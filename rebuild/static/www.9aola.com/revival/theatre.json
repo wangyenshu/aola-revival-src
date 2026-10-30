@@ -1,0 +1,26 @@
+{
+ "films": [
+  {
+   "id": "anniversary2",
+   "title": "奥拉星2周年",
+   "url": "http://aola.100bt.com/shipin/img/1343327424744_.flv",
+   "mp4": "http://www.9aola.com/revival/theatre/anniversary2.mp4",
+   "webm": "http://www.9aola.com/revival/theatre/anniversary2.webm",
+   "poster": "http://www.9aola.com/revival/theatre/anniversary2.jpg",
+   "uploaded": "2012-07-26",
+   "origin": "era",
+   "where": "js/aola.js showAnniversaryVideo; v.100bt.com/video/aola/37591.html (Wayback, 15 Oct 2012)"
+  },
+  {
+   "id": "warteam",
+   "title": "奥拉星战队",
+   "url": "http://aola.100bt.com/gwActivity/20121227/aola.flv",
+   "mp4": "http://www.9aola.com/revival/theatre/warteam.mp4",
+   "webm": "http://www.9aola.com/revival/theatre/warteam.webm",
+   "poster": "http://www.9aola.com/revival/theatre/warteam.jpg",
+   "uploaded": "2013-05-16",
+   "origin": "later",
+   "where": "js/aola.js showWarTeamVideo (aola.100bt.com/gwActivity/20121227/play.html)"
+  }
+ ]
+}

@@ -195,7 +195,8 @@ package mmo.play.player
          if (u == null || pt == null) return;
          var p:PlayerBase = _playerList[u.getName()] as PlayerBase;
          if (p == null || p == _myPlayer) return;
-         if (e.type == SocketClientEvent.onUserMove) p.moveTo(pt.x, pt.y, pt.walkSpeed);
+         // Another player walks the way round the obstruction too (his client sends where to).
+         if (e.type == SocketClientEvent.onUserMove) p.walkTo(pt.x, pt.y);
          else p.jumpTo(pt.x, pt.y);
       }
 

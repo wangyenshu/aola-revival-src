@@ -131,10 +131,12 @@ package mmo.revival.book
          have.y = 122;
          box.addChild(have);
          var ok:Sprite = pill("购 买", 0x40A93C, function():void { remove(box); answer(true); });
+         ok.name = "buyOk";
          ok.x = 70;
          ok.y = 160;
          box.addChild(ok);
          var no:Sprite = pill("取 消", 0x8A8A8A, function():void { remove(box); answer(false); });
+         no.name = "buyCancel";
          no.x = 200;
          no.y = 160;
          box.addChild(no);
@@ -152,6 +154,7 @@ package mmo.revival.book
          t.y = 24;
          box.addChild(t);
          var ok:Sprite = pill("确 定", 0x3A8FD9, function():void { remove(box); });
+         ok.name = "msgOk";
          ok.x = 115;
          ok.y = 84;
          box.addChild(ok);

@@ -11,8 +11,9 @@ static data with a long decompile timeout:
   java -jar ffdec.jar -config decompilationTimeoutSingleMethod=1200,decompilationTimeoutFile=2400 \\
       -selectclass mmo.pm.data.PMDataList -export script out pet/pmservice.swf
 
-This keeps the species of the era cut (revival/pets.json from gen_pets.py), the
-skills they learn, the attribute table and the experience curves, and writes
+This keeps the species of the era cut (revival/pets.json from gen_pets.py) and
+the two the story quests fight that are in no 亚比 list (--story), the skills
+they learn, the attribute table and the experience curves, and writes
 (百田's data, so into the rebuilt root, not git):
 
   <rebuilt>/www.9aola.com/revival/pmdata.json
@@ -67,8 +68,11 @@ def main(argv=None) -> None:
     ap.add_argument("--pmdata", required=True)
     ap.add_argument("--pets", required=True, help="revival/pets.json (era species)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--story", default="869,998",
+                    help="species fought only in story quests, not in the era's 亚比 list: the 通灵巫师 (869, tasks 2451–2583, "
+                         "2681–2764) and the 黑化病毒 (998, task 1294); they cannot be caught")
     a = ap.parse_args(argv)
-    era = set(json.load(open(a.pets, encoding="utf-8")).keys())
+    era = set(json.load(open(a.pets, encoding="utf-8")).keys()) | {x for x in a.story.split(",") if x}
 
     species, skills, chart, exp = {}, {}, {}, {}
     for section, key, cls, p in rows(a.pmdata):

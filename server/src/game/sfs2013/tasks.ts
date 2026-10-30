@@ -66,6 +66,9 @@ export interface TaskTables {
  * own definitions.
  */
 export function registerTaskTables(t: TaskTables): void {
+  for (const [id, d] of Object.entries(t.defines ?? {})) {
+    if (d[0] === STEP_ITEMS || d[0] === STEP_BEAT_PET) STEP_RULES[Number(id)] = { type: d[0], param: d[1] };
+  }
   for (const [id, st] of Object.entries(t.starters ?? {})) {
     const ti = Number(id);
     if (TASK_DEFS[ti]) continue;
@@ -73,6 +76,68 @@ export function registerTaskTables(t: TaskTables): void {
     if (!d || d[0] !== 0) continue;
     TASK_DEFS[ti] = { steps: d[1].split(",").filter(Boolean).map(Number), pre: st.pre, auto: st.type === 12 };
   }
+}
+
+/**
+ * Steps the server finishes itself (TaskDefine types of the later tables):
+ * 14 "c|item:n,item:n": once the player has those items (道具, material type
+ * 2), which the quest's script hands out with GatherClient.collectItem; with
+ * c 1 the items are taken back then. 101 "pet,n": once the player has beaten
+ * that task 亚比 n times (IPetFight.fightWithTaskPet). The 2013 server is
+ * lost: both rules are RECONSTRUCTED from the tables and the scripts, which
+ * wait for the step to finish after giving the item or winning the fight.
+ */
+export const STEP_ITEMS = 14;
+export const STEP_BEAT_PET = 101;
+export const STEP_RULES: Record<number, { type: number; param: string }> = {};
+
+/** Owners whose items the item steps look at (material type -> id -> count). */
+export interface ItemOwner extends TaskOwner {
+  items?: Record<string, Record<string, number>>;
+}
+
+/** Item steps being done whose items the player now has: they finish (the items taken when the step says so). */
+export function stepsByItems(rec: ItemOwner, now: number): TaskResult & { taken: [number, number][] } {
+  const out: TaskResult & { taken: [number, number][] } = { changes: [], taken: [] };
+  for (const [id, rule] of Object.entries(STEP_RULES)) {
+    if (rule.type !== STEP_ITEMS || !isDoing(rec, Number(id))) continue;
+    const [take, list] = rule.param.split("|");
+    const need = (list ?? "").split(",").filter(Boolean).map((x) => x.split(":").map(Number) as [number, number]);
+    const bag = rec.items?.["2"] ?? {};
+    if (!need.length || need.some(([ii, n]) => (bag[ii] ?? 0) < n)) continue;
+    if (take === "1") {
+      for (const [ii, n] of need) {
+        bag[ii] -= n;
+        if (bag[ii] <= 0) delete bag[ii];
+        out.taken.push([ii, n]);
+      }
+    }
+    const r = finishStep(rec, Number(id), now);
+    out.changes.push(...r.changes);
+    if (r.score !== undefined) out.score = r.score;
+  }
+  return out;
+}
+
+/** A task 亚比 beaten: the steps that ask for it count the win, and finish when there are enough. */
+export function stepsByPetWin(rec: TaskOwner, pet: number, now: number): TaskResult {
+  const out: TaskResult = { changes: [] };
+  for (const [id, rule] of Object.entries(STEP_RULES)) {
+    const step = Number(id);
+    if (rule.type !== STEP_BEAT_PET || !isDoing(rec, step)) continue;
+    const [want, times] = rule.param.split(",").map(Number);
+    if (want !== pet) continue;
+    const r = book(rec)[step];
+    r.ex = (r.ex | 0) + 1;
+    if (r.ex < (times || 1)) {
+      out.changes.push({ t: view(step, r), ty: TaskUpdate.UPDATE });
+      continue;
+    }
+    const f = finishStep(rec, step, now);
+    out.changes.push(...f.changes);
+    if (f.score !== undefined) out.score = f.score;
+  }
+  return out;
 }
 
 /** The first task of a new player. */
@@ -92,7 +157,20 @@ export interface RobotRecord {
   name: string;
   /** Experience the HELLO keeps for handing out to 亚比 (RobotClient 2-12 / 2-13). */
   exp: number;
+  /** Whether it walks behind the player (RobotClient 2-1 follow / 2-2 unfollow). */
   follow: boolean;
+  /** The day it came, "yyyy-mm-dd" (its star sign on its card). */
+  born?: string;
+  /** Its clothes (a robot clothes id; "" for the default look). */
+  avatar?: string;
+}
+
+/**
+ * The user variable "r" of a player whose HELLO follows him, as the HELLO
+ * code reads it: "type,level,avatar,hellobaby" (type 0, the HELLO).
+ */
+export function robotVar(r: RobotRecord): string {
+  return `0,1,${r.avatar ?? ""},`;
 }
 
 export interface TaskChange {
@@ -242,6 +320,8 @@ export function skipTo(rec: TaskOwner, step: number, now: number): TaskResult {
       out.changes.push({ t: view(s, b[s]), ty: TaskUpdate.ADD_FINISH });
     }
   }
+  // Past step 146 a player has the HELLO 普伦博士 gives there.
+  if (b[146]?.st === 1 && !rec.robot) rec.robot = { name: "HELLO", exp: 0, follow: true, born: new Date(now).toISOString().slice(0, 10) };
   if (parent === step) return out;
   const d = TASK_DEFS[parent];
   const at = d.steps.indexOf(step);
@@ -311,22 +391,47 @@ export function installTasks(world: World, deps: TaskDeps): void {
   }
 
   // ---------------------------------------------------------------- HELLO
-  // RobotClient (era library): 2-11 addRobot {}, 2-0 getRobot {un?}, 2-12
-  // getExp {}. The replies' fields are RECONSTRUCTED (the robot modules that
-  // read them, init/robotmanager and robot/robotpanelnew, survive only as
-  // later copies): the HELLO is called "HELLO" until renamed.
-  const robotView = (r: RobotRecord | undefined) => (r ? { has: 1, n: r.name, exp: r.exp, f: r.follow ? 1 : 0 } : { has: 0 });
+  // RobotClient (era library): 2-11 addRobot {}, 2-0 getRobot {un?}, 2-1
+  // follow {}, 2-2 unfollow {}, 2-12 getExp {}. The replies' fields are those
+  // the era HELLO cards read (robot/robotanothermes: n name, a clothes, b
+  // birthday, e energy, f skills), the rest RECONSTRUCTED (init/robotmanager,
+  // which shows the HELLO in scenes, survives only as a later copy): the
+  // HELLO is called "HELLO" until renamed. A following HELLO is the user
+  // variable "r", so everyone in the room sees it.
+  const robotView = (r: RobotRecord | undefined) =>
+    r ? { has: 1, n: r.name, a: r.avatar ?? "", b: r.born ?? "2012-08-15", e: 100, f: "", t: 0, exp: r.exp, fl: r.follow ? 1 : 0 } : { has: 0 };
+  const today = () => new Date(deps.now()).toISOString().slice(0, 10);
   world.xt("RobotExtension.2-11", async (ctx) => {
     const rec = await deps.load(ctx);
     if (!rec.robot) {
-      rec.robot = { name: "HELLO", exp: 0, follow: true };
+      rec.robot = { name: "HELLO", exp: 0, follow: true, born: today() };
       await deps.save(rec);
+      world.setUserVars(ctx.session, { r: robotVar(rec.robot) });
     }
     ctx.reply({ res: 1, ...robotView(rec.robot) });
   });
   world.xt("RobotExtension.2-0", async (ctx) => {
     const rec = await deps.load(ctx);
     ctx.reply(robotView(rec.robot));
+  });
+  world.xt("RobotExtension.2-1", async (ctx) => {
+    const rec = await deps.load(ctx);
+    if (!rec.robot) return ctx.reply({ res: 0 });
+    if (!rec.robot.follow) {
+      rec.robot.follow = true;
+      await deps.save(rec);
+    }
+    world.setUserVars(ctx.session, { r: robotVar(rec.robot) });
+    ctx.reply({ res: 1, ...robotView(rec.robot) });
+  });
+  world.xt("RobotExtension.2-2", async (ctx) => {
+    const rec = await deps.load(ctx);
+    if (rec.robot?.follow) {
+      rec.robot.follow = false;
+      await deps.save(rec);
+    }
+    world.setUserVars(ctx.session, { r: null });
+    ctx.reply({ res: 1 });
   });
   world.xt("RobotExtension.2-12", async (ctx) => {
     const rec = await deps.load(ctx);

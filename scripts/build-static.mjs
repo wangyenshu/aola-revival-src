@@ -6,7 +6,8 @@
 //                                 [--exclude dir,dir] [--copy]
 //
 // dist/
-//   index.html, config.js, boot.js     the front end (web/)
+//   index.html, config.js, boot.js,   the front end (web/)
+//   theatre.js
 //   emulator.js                         the in-page server emulator (server/src/browser/entry.ts)
 //   sw.js                               the service worker that answers the original URLs
 //   ruffle/                             Ruffle 0.7.1 (npm @ruffle-rs/ruffle)
@@ -49,7 +50,7 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 // Front end.
-for (const f of ["index.html", "config.js", "boot.js"]) copyFileSync(path.join(root, "web", f), path.join(out, f));
+for (const f of ["index.html", "config.js", "boot.js", "theatre.js"]) copyFileSync(path.join(root, "web", f), path.join(out, f));
 await build({
   entryPoints: [path.join(root, "server/src/browser/entry.ts")],
   outfile: path.join(out, "emulator.js"),

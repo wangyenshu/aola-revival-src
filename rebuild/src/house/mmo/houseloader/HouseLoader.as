@@ -24,8 +24,8 @@ package mmo.houseloader
     * name and visitor count), then the house SWF furniture/b<hid> is loaded
     * as the scene "home" in the room "<owner>_<hid>_Home".
     *
-    * In 2013 loadHouse() opened the garden (b000247) first; the garden is not
-    * rebuilt yet, so it goes straight into the main house.
+    * As in 2013, loadHouse() opens the garden (b000247, rebuilt) first; its
+    * 我的家 leads into the main house.
     */
    public class HouseLoader extends EventDispatcher implements IHouseLoader
    {
@@ -33,6 +33,8 @@ package mmo.houseloader
       private var _sceneInfo:SceneInfo;
       private var loading:Boolean;
       private var pendingKey:String = "default";
+      /** HouseInfo.GARDENHOUSEID. */
+      private static const GARDEN_ID:int = 247;
 
       public function HouseLoader()
       {
@@ -78,7 +80,7 @@ package mmo.houseloader
             }
             _houseInfo = new HouseInfo(p.un || owner, int(p.hid), p.nn || owner);
             _houseInfo.extData = {count: int(p.count)};
-            loadSubHouse(_houseInfo.mainHouseId, "default", "ld", ext);
+            loadSubHouse(GARDEN_ID, "default", "ld", ext);
          };
          sc.addEventListener(HouseClient.onGetUserHouseInfo, onInfo);
          HouseClient.instance.getUserHouseInfo(owner);

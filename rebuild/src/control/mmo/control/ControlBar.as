@@ -10,8 +10,8 @@ package mmo.control
    import flash.events.TimerEvent;
    import flash.filters.GlowFilter;
    import flash.geom.Rectangle;
-   import flash.media.SoundMixer;
-   import flash.media.SoundTransform;
+   import mmo.common.sound.SoundManager;
+   import mmo.revival.RLog;
    import flash.text.TextField;
    import flash.text.TextFieldType;
    import flash.text.TextFormat;
@@ -36,7 +36,7 @@ package mmo.control
     */
    public class ControlBar extends Sprite
    {
-      /** Called with a button name: map phrase face action shoot card friend team squad pet home mall history. */
+      /** Called with a button name: map phrase face action shoot card friend team squad pet home mall history toolbox. */
       public var onButton:Function;
       /** Called with the line typed into the chat box. */
       public var onSay:Function;
@@ -72,6 +72,8 @@ package mmo.control
          var mall:BarButton = new BarButton("btn_mall", BarIcons.make("mall"), null, 0, 0, click);
          mall.scaleX = mall.scaleY = 1.15;
          addButton(mall, 938, 512);
+         // The revival's 工具箱 (not of 2013), under the task icon.
+         addButton(new BarButton("btn_toolbox", BarIcons.make("toolbox"), "工具箱", 0, 20, click), 936, 114);
          buildChat();
          buildSound();
          buildClock();
@@ -227,7 +229,12 @@ package mmo.control
          return b;
       }
 
-      /** The sound switch: a green ball with a note, crossed out when the sound is off. */
+      /**
+       * The music switch: a green ball with a note, crossed out when the music
+       * is off. It is the 2013 SoundManager's (common library): switchMusic
+       * stops the scene music or has it played again (init/sceneinit), and
+       * the choice is kept per player (LocalStore "u_s").
+       */
       private function buildSound():void
       {
          sound = new Sprite();
@@ -235,12 +242,13 @@ package mmo.control
          sound.x = 904;
          sound.y = 547;
          sound.buttonMode = true;
+         try { muted = SoundManager.instance.isClose; } catch (err:Error) {}
          drawSound();
          sound.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
          {
             e.stopPropagation();
             muted = !muted;
-            SoundMixer.soundTransform = new SoundTransform(muted ? 0 : 1);
+            try { SoundManager.instance.switchMusic(muted); } catch (err:Error) { RLog.error("music switch", err); }
             drawSound();
          });
          addChild(sound);

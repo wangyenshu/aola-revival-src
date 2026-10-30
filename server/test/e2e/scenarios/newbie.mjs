@@ -9,6 +9,8 @@
 // NEWBIE_FROM=143 (or 145, 146 …) plays 136–137 for the first 亚比, then
 // jumps there with the dev command tasktest.
 
+import { clickNpc } from "./lib.mjs";
+
 export default async function newbie(h) {
   const talk = () => h.hook("talk");
   const say = async (re, picks, name, seconds = 60) => {
@@ -62,9 +64,17 @@ export default async function newbie(h) {
     let n = 0;
     while (replies("2403") === ended && Date.now() < end) {
       if (mode === "catch" && n > 0) {
-        await h.click(956, 41);
-        await h.sleep(1200);
-        await h.click(873, 183);
+        // 捕捉, once the wheel takes commands (the balls show), then the first ball.
+        let ball = "none";
+        for (let k = 0; k < 6 && ball === "none"; k++) {
+          await h.click(956, 41);
+          await h.sleep(1200);
+          ball = String(await h.hook("where", "fightSlot0"));
+        }
+        if (ball !== "none" && !ball.startsWith("error")) {
+          const [x, y] = ball.split(",").map(Number);
+          await h.click(x + 20, y + 16);
+        }
       } else await h.click(907, 175);
       n++;
       await h.sleep(5000);
@@ -149,7 +159,7 @@ export default async function newbie(h) {
     if (from <= 143) {
       // 143: five 亚比球 from 米娜.
       await goto("toolshopcopy");
-      await h.revival("npc", "301");
+      await clickNpc(h, "301");
       await say(/买亚比球就来找我/, [0], "143");
       await h.sleep(3000);
       await h.shot("143-buy");
@@ -166,7 +176,7 @@ export default async function newbie(h) {
         await h.click(564, 365); // 取消
         await h.revival("give", "32");
         await h.sleep(1500);
-        await h.revival("npc", "301");
+        await clickNpc(h, "301");
         await say(/买亚比球就来找我/, [0], "143retry");
       }
       await say(/亚比球收好啦/, [0], "143done");

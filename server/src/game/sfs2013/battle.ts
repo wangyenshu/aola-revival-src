@@ -26,6 +26,7 @@
 // from the skill descriptions, catching, experience) are RECONSTRUCTED on the
 // columns of the client's tables (pmdata.ts).
 
+import { stepsByPetWin, type TaskOwner } from "./tasks.ts";
 import {
   catchLevel,
   evolutionAt,
@@ -176,6 +177,8 @@ export interface Battle {
   /** Waiting for the player to choose another 亚比 after one fell. */
   mustSwitch: boolean;
   over: boolean;
+  /** Run once when the player wins (an NPC challenge's prize); its messages go out with the win. */
+  onWin?: (o: PetOwner) => Msg[];
 }
 
 export type Msg = [cmd: string, body: Record<string, unknown>];
@@ -543,7 +546,6 @@ export interface WinResult {
 
 /** Experience, effort points, levels, new skills and evolution for the 亚比 that won. */
 export function award(t: PetTables, pet: PetRecord, wildRace: number, wildLevel: number): WinResult {
-  const msgs: Msg[] = [];
   const wsp = speciesOf(t, wildRace);
   const gained = expYield(wsp, wildLevel);
   if (wsp) {
@@ -558,6 +560,12 @@ export function award(t: PetTables, pet: PetRecord, wildRace: number, wildLevel:
       }
     });
   }
+  return gainExp(t, pet, gained);
+}
+
+/** Experience for a 亚比: its levels, evolutions and new skills, with the replies that tell the client (2241, 2242, 2234). */
+export function gainExp(t: PetTables, pet: PetRecord, gained: number): WinResult {
+  const msgs: Msg[] = [];
   pet.exp += gained;
   let evolvedTo: number | undefined;
   const ups: Msg[] = [];
@@ -654,9 +662,27 @@ export interface BattleDeps {
   wild: () => Promise<Record<string, WildEntry[]>>;
   today: () => string;
   rng?: Rng;
+  /** The game clock (task steps a win finishes are dated by it). */
+  now?: () => number;
 }
 
 const PM = "PocketMonsterExtension";
+
+/** PetFightTypes.FIGHT_IN_NPCCHALLENGE. */
+const FIGHT_IN_NPCCHALLENGE = 14;
+/** The NPC's 亚比 per mode (新手训练, 小试身手, 勇士挑战). RECONSTRUCTED. */
+const NPC_LEVELS = [8, 18, 30];
+/**
+ * First stage of each challenge NPC's line (ChallengeConfig of the era
+ * npcchallengeservice: 13 维克, 35 芭芭拉, 145 骑士团卫兵, 14 普伦博士, 3 米娜,
+ * 26 哈德, 142 亨特, 32 安娜, 31 依依, 172 马赫, 312 上古使者). RECONSTRUCTED.
+ */
+const NPC_TEAM_BASE: Record<number, number> = { 13: 61, 35: 10, 145: 43, 14: 1, 3: 34, 26: 70, 142: 19, 32: 10, 31: 1, 172: 99, 312: 70 };
+
+export interface NpcChallengeRecord {
+  /** NPC id -> hardest mode won; NPC id -> the day its 欢乐弹珠 was given. */
+  npcChallenge?: { won: Record<number, number>; gift: Record<number, string> };
+}
 
 /** The fight of newbie step 138 (taskext/task135 starts it against 达达, race 322). */
 function tutorial(o: object, race: number): boolean {
@@ -678,7 +704,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ pms: (await deps.wild())[room] ?? [] });
   });
 
-  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean) => {
+  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"]) => {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     for (const p of o.pets ?? []) normalisePet(p, t);
@@ -699,6 +725,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const engine = new BattleEngine(t, deps.rng);
     const canCatch = catchable && Number.isFinite(Number(speciesOf(t, race)!.c[0]));
     const b = engine.start(nextBattle++, ctx.player.room?.name ?? "", o, active, wildPet, canCatch);
+    b.onWin = onWin;
     battles.set(o.id, b);
     engine.bag = o.pets;
     engine.ownerRef = o;
@@ -710,13 +737,59 @@ export function installBattles(world: World, deps: BattleDeps): void {
   };
 
   // startPKWithRobot {raceId, level, sw, id}: a wild 亚比 of the room at one of its levels; tasks pass a level.
+  // A story quest's 亚比 (IPetFight.fightWithTaskPet) is numbered variant * 10000 + species
+  // (10322: 达达; 10869, 20869, 30869: three fights with the 通灵巫师). The 2013 server's task
+  // 亚比 are lost: RECONSTRUCTED as the species at the level of the player's strongest 亚比 (at
+  // least 5), two levels more for each further variant, not to be caught. A win counts for the
+  // steps that ask for it (TaskDefine type 101, tasks.ts stepsByPetWin).
   world.xt("PetExtension.54_2", async (ctx) => {
-    const race = Number(ctx.params.raceId);
-    const entry = ((await deps.wild())[ctx.player.room?.name ?? ""] ?? []).find((w) => w.raceId === race);
-    const rng = deps.rng ?? Math.random;
     const asked = Number(ctx.params.level);
+    const id = Number(ctx.params.raceId);
+    const onWin: Battle["onWin"] = (o) =>
+      stepsByPetWin(o as TaskOwner, id, deps.now?.() ?? Date.now()).changes.map((c): Msg => ["10-1", { t: c.t, ty: c.ty }]);
+    if (id >= 10000) {
+      const o = await deps.load(ctx);
+      const top = Math.max(5, ...(o.pets ?? []).map((p) => p.level));
+      const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
+      return begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin);
+    }
+    const entry = ((await deps.wild())[ctx.player.room?.name ?? ""] ?? []).find((w) => w.raceId === id);
+    const rng = deps.rng ?? Math.random;
     const level = entry ? entry.min + Math.floor(rng() * (entry.max - entry.min + 1)) : asked > 0 ? asked : 5;
-    await begin(ctx, race, Math.max(1, Math.min(100, level)), true);
+    await begin(ctx, id, Math.max(1, Math.min(100, level)), true, onWin);
+  });
+
+  // NPC challenge (the era npcchallenge/npcchallengeservice, PetFightTypes.FIGHT_IN_NPCCHALLENGE 14):
+  //   54_22 {type: 14, npc, lv, npcId, name} -> 54_22 {res, canGet, canGet1}, then the fight as above.
+  // res false when a harder mode is asked before the easier ones are won (the client then shows
+  // npcChallenge_fail_<lv>); canGet: a win today brings one 欢乐弹珠 (item 343, "今天我身上的弹弹珠
+  // 已经发完啦" once given). The 2013 server and the NPCs' teams are lost: each NPC fights with one
+  // 亚比 of an evolution line, the next stage for each harder mode, at NPC_LEVELS (RECONSTRUCTED).
+  world.xt("PetExtension.54_22", async (ctx) => {
+    if (Number(ctx.params.type) !== FIGHT_IN_NPCCHALLENGE) return ctx.reply({ res: false });
+    const npcId = Number(ctx.params.npcId) | 0;
+    const lv = Math.max(1, Math.min(3, Number(ctx.params.lv) | 0));
+    const o = (await deps.load(ctx)) as PetOwner & NpcChallengeRecord;
+    const t = await deps.tables();
+    const rec = (o.npcChallenge ??= { won: {}, gift: {} });
+    if (lv > (rec.won[npcId] ?? 0) + 1) return ctx.reply({ res: false, canGet: false, canGet1: false });
+    const day = deps.today();
+    const canGet = rec.gift[npcId] !== day;
+    let race = NPC_TEAM_BASE[npcId] ?? NPC_TEAM_BASE[13];
+    for (let i = 1; i < lv; i++) {
+      const next = (t.species[String(race)] as { next?: number } | undefined)?.next;
+      if (next && speciesOf(t, next)) race = next;
+    }
+    ctx.reply({ res: true, canGet, canGet1: canGet });
+    await begin(ctx, race, NPC_LEVELS[lv - 1], false, (owner) => {
+      const r = ((owner as PetOwner & NpcChallengeRecord).npcChallenge ??= { won: {}, gift: {} });
+      r.won[npcId] = Math.max(r.won[npcId] ?? 0, lv);
+      if (r.gift[npcId] === day) return [];
+      r.gift[npcId] = day;
+      const items = (((owner as { items?: Record<string, Record<string, number>> }).items ??= {})["2"] ??= {});
+      items["343"] = (items["343"] ?? 0) + 1;
+      return [["onAmountUpdated", { amount: "2_343_0_1" }]];
+    });
   });
 
   // fightWithBoss {raceId, index}: no catching.
@@ -771,6 +844,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const r = award(t, pet, b.wild.pet.race, b.wild.pet.level);
       out.push(...r.msgs);
       if (r.evolvedTo && o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+      if (b.onWin) out.push(...b.onWin(o));
       out.push(["2403", { isWin: true, raceId: b.wild.pet.race, evolveFrom: r.evolvedTo ? before : 0, desc: `战斗胜利！${nameOf(t, before)}获得了经验。`, pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;

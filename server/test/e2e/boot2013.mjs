@@ -144,9 +144,12 @@ if (a.scenario) {
     },
     hook: callHook,
   };
-  const deadline = new Promise((r) => setTimeout(() => r("scenario: out of time"), Number(a.seconds) * 1000 - (Date.now() - t0)));
+  let timer;
+  const deadline = new Promise((r) => (timer = setTimeout(() => r("scenario: out of time"), Number(a.seconds) * 1000 - (Date.now() - t0))));
   const mod = await import(path.resolve(a.scenario));
   const r = await Promise.race([mod.default(h).then(() => "scenario: done", (err) => "scenario failed: " + (err?.stack ?? err)), deadline]);
+  // A scenario that ends early must not leave the process waiting for the deadline.
+  clearTimeout(timer);
   consoleLines.push(`[${r}]`);
   console.log(r);
 }

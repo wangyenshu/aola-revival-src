@@ -8,12 +8,17 @@ package mmo.play.actthings.helper
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.utils.getQualifiedClassName;
+   import mmo.interfaces.task.TaskEvent;
+   import mmo.interfaces.task.TaskEventDispatcher;
+   import mmo.play.scene.SceneManager;
+   import mmo.play.scene.SceneManagerEvent;
 
    /**
     * REBUILT (later-engine helper, for scene files re-uploaded after 2013):
     * the display shortcuts those scenes call (children by name or dotted
     * path, frames, visibility, enabling). The activity-specific parts of
-    * the later class (boss videos, tasks, anti-addiction) are not included.
+    * the later class (boss videos, anti-addiction) are not included;
+    * startTask is, for the later upload of task script 805.
     */
    public class ActComHelper
    {
@@ -146,6 +151,32 @@ package mmo.play.actthings.helper
 
       public static function removeTips(c:DisplayObjectContainer, name:String, a:Boolean = true, b:Boolean = true):void
       {
+      }
+
+      /**
+       * As the later startTask: go to the scene (when one is named), then ask
+       * the task service to start the task (TaskEvent.ON_CLIENT_START, as an
+       * NPC's start choice does).
+       */
+      public static function startTask(taskId:int, scene:String = ""):void
+      {
+         var go:Function = function():void
+         {
+            TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_CLIENT_START, {taskId: taskId}));
+         };
+         if (scene == "")
+         {
+            go();
+            return;
+         }
+         var sm:SceneManager = SceneManager.getInstance();
+         var inited:Function = function(e:SceneManagerEvent):void
+         {
+            sm.removeEventListener(SceneManagerEvent.SCENE_INITED, inited);
+            go();
+         };
+         sm.addEventListener(SceneManagerEvent.SCENE_INITED, inited);
+         sm.loadScene(scene);
       }
    }
 }

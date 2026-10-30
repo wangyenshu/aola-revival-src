@@ -136,6 +136,8 @@ const TYPES: Record<string, string> = {
   mp3: "audio/mpeg",
   wav: "audio/wav",
   flv: "video/x-flv",
+  mp4: "video/mp4",
+  webm: "video/webm",
   wasm: "application/wasm",
   ico: "image/x-icon",
 };

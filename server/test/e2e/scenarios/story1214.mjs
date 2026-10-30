@@ -10,6 +10,8 @@
 // ladder of 1225 is put together by dragging. STORY_FROM=<step> starts later
 // (e.g. STORY_FROM=1221 in 小熊之家).
 
+import { clickNpc, closeTalk } from "./lib.mjs";
+
 export default async function story(h) {
   const FROM = Number(process.env.STORY_FROM || 0);
   const talk = () => h.hook("talk");
@@ -62,7 +64,7 @@ export default async function story(h) {
   await h.until(() => h.hook("scene"), "starland", 90);
   await h.sleep(3000);
   // A new player is greeted by the HELLO (the newbie quest's first call): close it.
-  if (/指挥中心/.test(String(await talk()))) await h.click(822, 402);
+  if (/指挥中心/.test(String(await talk()))) await closeTalk(h);
   await h.revival("addpet", "4");
   await h.sleep(1500);
   await h.revival("tasktest", String(FROM || 1214));
@@ -82,7 +84,7 @@ export default async function story(h) {
   await h.revival("goto", "giantcordillera1");
   await scene("giantcordillera1");
   await h.shot("giantcordillera1");
-  await h.revival("npc", "608");
+  await clickNpc(h, "608");
   await say(/黑色的云团/, "1214-start");
   await through();
   await step(1215);
@@ -93,13 +95,13 @@ export default async function story(h) {
   await step(1216);
   await transport("library");
   await scene("library");
-  await h.revival("npc", "43");
+  await clickNpc(h, "43");
   await say(/小南|巨人山脉/, "1216");
   await through();
   await step(1217);
   await transport("helloschool");
   await scene("helloschool");
-  await h.revival("npc", "14");
+  await clickNpc(h, "14");
   await say(/./, "1217");
   await through();
   await step(1218);
@@ -133,13 +135,26 @@ export default async function story(h) {
   async function part1219() {
     await follow(1226, 300);
     // 1226: 伊尼 (284) will not talk until you have beaten his 亚比 (371).
-    const started = replies("2401");
     const ended = replies("2403");
     // (Started at 1226, nothing has made 伊尼 speak yet: talk to him.)
-    const talkTo = FROM === 1226 ? go({ giantcordillera2: "284" }) : async () => {};
-    await follow(1227, 240, async () => {
-      if (replies("2401") > started && replies("2403") === ended) await battle(ended);
-      else await talkTo();
+    let talkTo = FROM === 1226 ? go({ giantcordillera2: "284" }) : async () => {};
+    let fights = replies("2401");
+    let over = ended;
+    await follow(1227, 360, async () => {
+      if (replies("2401") > fights && replies("2403") === over) {
+        await battle(over);
+        fights = replies("2401");
+        over = replies("2403");
+        // Lost (伊尼: 我是不小心才使出全力的……): heal and talk to him again.
+        talkTo = async () => {
+          if (/全力/.test(String(h.lines.slice(-200).join("\n")))) {
+            await h.revival("heal");
+            await h.sleep(1500);
+            await clickNpc(h, "284");
+            talkTo = async () => {};
+          }
+        };
+      } else await talkTo();
     });
     // 1227: out through the gap the arrow shows, down to 巨人山脚, where 伊尼 waits.
     await follow(1228, 180, go({ giantcordillera2: [775, 191] }));
@@ -168,7 +183,7 @@ export default async function story(h) {
       if (Array.isArray(what)) {
         h.log(`go: click ${what} in ${sc}`);
         await h.click(what[0] + 20, what[1] + 16);
-      } else if (!talked) talked = (await h.revival("npc", what)) === "ok";
+      } else if (!talked) talked = (await clickNpc(h, what)) === "ok";
     };
   }
 

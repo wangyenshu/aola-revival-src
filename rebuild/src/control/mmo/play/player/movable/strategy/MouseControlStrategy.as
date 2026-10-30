@@ -1,5 +1,7 @@
 package mmo.play.player.movable.strategy
 {
+   import flash.display.DisplayObject;
+   import flash.utils.getQualifiedClassName;
    import flash.events.MouseEvent;
    import flash.geom.Point;
    import flash.utils.getTimer;
@@ -39,7 +41,9 @@ package mmo.play.player.movable.strategy
 
       private function onMouseDownBoard(e:MouseEvent):void
       {
-         RLog.log("mouse: down at " + e.stageX + "," + e.stageY + " on " + e.target);
+         var chain:Array = [];
+         for (var d:DisplayObject = e.target as DisplayObject; d != null && chain.length < 6; d = d.parent) chain.push(d.name + ":" + getQualifiedClassName(d).replace(/.*::/, ""));
+         RLog.log("mouse: down at " + e.stageX + "," + e.stageY + " on " + chain.join("<"));
          if (_controlItem == null || SceneManager.getInstance().isSuspend) return;
          var info:SceneInfo = SceneManager.getInstance().loadedSceneInfo;
          if (info == null || info.scene == null) return;

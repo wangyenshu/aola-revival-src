@@ -23,6 +23,12 @@ build() { # <module dir> <main> <out name> <installed relpath>
 }
 rm -f "$OUT"/*.swf
 build login mmo/user/login/Main.as login.swf "user/login.swf%3F1301301"
+# The start screen without the January 2013 campaign (no earlier picture survives):
+# tools/clean_start.py takes the title and captions out of user/yunyingres and the
+# links to 百田's other games out of sight in user/yunyingstart.
+mkdir -p "$W/user"
+python3 "$TOOLS/clean_start.py" --ffdec "${FFDEC:?ffdec.jar}" --res "$(art user/yunyingres.swf)" --start "$(art user/yunyingstart.swf)" \
+  --out-res "$W/user/yunyingres.swf%3F130124" --out-start "$W/user/yunyingstart.swf%3F121203"
 # play.swf carries the rebuilt scene engine (mmo.play.*, sources in src/control):
 # it is in the main domain before any module loads. Everything else links
 # against it as an external library.
@@ -83,6 +89,9 @@ export EXTRA_SWC="$OUT/swc/play.swc"
 # Player card with the wardrobe: rebuilt usercard/usercardservice.
 build usercard mmo/usercard/DocUserCard.as usercard.swf "usercard/usercardservice.swf%3F130117"
 
+# 亚比仓库: rebuilt pet/petwarehouse (drawn panel; the 2013 module is lost).
+build petwarehouse mmo/petwarehouse/DocPetWareHouse.as petwarehouse.swf "pet/petwarehouse.swf%3F121227"
+
 # 亚比: rebuilt pet/petdataservice and pet/petdictionarydata (species table in
 # rebuild/gen/petdict from tools/gen_pets.py), and the 亚比背包: rebuilt code
 # on the original 2012 art of pet/petpackage.swf.
@@ -109,11 +118,35 @@ export GEN="$HERE/../gen/petfight"
 build petfight mmo/petfightnew/DocLoginPetFight.as petfight.swf "pet/loginpetfightnew.swf%3F1210"
 unset GEN
 
+# The HELLO in scenes: rebuilt init/robotmanager.
+build robotmanager mmo/robot/robotmanager/DocClass.as robotmanager.swf "init/robotmanager.swf%3F130103"
+
+# Scene music: rebuilt init/sceneinit (the later copy calls later services).
+build sceneinit mmo/sceneinit/DocClass.as sceneinit.swf "init/sceneinit.swf%3F121220"
+
 # No play-time limit (防沉迷) in a private revival: rebuilt antiaddiction/antiaddiction.
 build antiaddiction mmo/antiaddiction/DocClass.as antiaddiction.swf "antiaddiction/antiaddiction.swf%3F130117"
 
-# Beams sent at things (gathering): rebuilt shoot/shooteffectservice.
-build shooteffect mmo/shoot/effect/DocClass.as shooteffect.swf "shoot/shooteffectservice.swf%3F130124"
+# Shooting (射击) and the beams sent at things (gathering): the 2013
+# shoot/shoot and shoot/shooteffectservice are lost; the later ones (the live
+# client's, decompiled) are compiled against the 2013 interfaces, the few
+# later-only calls replaced (marked in the sources), and put back on the
+# later modules' own art (their symbols keep their class names).
+build shoot mmo/shoot/DocClass.as shoot-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art shoot/shoot.swf)" --code "$OUT/shoot-code.swf" --drop-art-abc \
+  --note "LATER shoot/shoot: the live client's code compiled against the 2013 interfaces (aola-revival), on its own art" \
+  --out "$W/shoot/shoot.swf%3F130124"
+build shooteffect mmo/shoot/effect/DocClass.as shooteffect-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art shoot/shooteffectservice.swf)" --code "$OUT/shooteffect-code.swf" --drop-art-abc \
+  --note "LATER shoot/shooteffectservice: the live client's code compiled against the 2013 interfaces (aola-revival), on its own art" \
+  --out "$W/shoot/shooteffectservice.swf%3F130124"
+
+# Mini games: rebuilt game/gamemanager (the later one on the 2013 interfaces;
+# the games themselves are the era/later game/*.swf, run by SceneManager.loadGame).
+build gamemanager mmo/game/DocGameManager.as gamemanager.swf "game/gamemanager.swf%3F121220"
+
+# 商城: rebuilt rmbshoppingmallservice (the era 收费 catalog books in a drawn chooser).
+build rmbmall mmo/rmbshoppingmallservice/DocRmbMall.as rmbmall.swf "rmbshoppingmallservice/rmbshoppingmallservice.swf%3F130124"
 
 # Scene chat: rebuilt baseservice/scenetalk (the chat box is in the rebuilt control bar).
 build scenetalk mmo/scenetalk/DocClass.as scenetalk.swf "baseservice/scenetalk.swf%3F1210"
@@ -159,6 +192,14 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art house/housestorage.swf)" \
   --bind 31=mmo.housestorage.TableButton --bind 22=mmo.housestorage.TableButton --bind 15=mmo.housestorage.TableButton \
   --note "REBUILT house/housestorage: rebuilt code (aola-revival) on the art of the later housestorage.swf" \
   --out "$W/house/housestorage.swf%3F121206"
+# The 家园 (house 247, where 回家 leads first; its 我的家 is the 小屋): rebuilt
+# furniture/b000247 (the January 2013 one is lost; the captured file is a later
+# rework). Its picture is the January 2012 tutorial house/houseteachmovie/
+# houseteachgarden, its trees the June 2012 plant/y<id>, both loaded at run time.
+java -jar "$FFDEC" -swf2swc "$OUT/swc/housecommon.swc" "$OUT/housecommon.swf" > /dev/null
+export EXTRA_SWC="$OUT/swc/play.swc $OUT/swc/housecommon.swc"
+build garden mmo/house/b000247/b000247_Doc.as garden.swf "furniture/b000247.swf%3F130117"
+export EXTRA_SWC="$OUT/swc/play.swc"
 
 # 奥拉广场: rebuilt code on the July 2012 artwork (bigscene/starlandcopy).
 build scenes/starland mmo/scene/starland/Docstarland.as starland-code.swf ""
@@ -166,3 +207,20 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art bigscene/starlandcopy.swf)" \
   --code "$OUT/starland-code.swf" --bind 0=mmo.scene.starland.Docstarland --bind 225=mmo.scene.starland.Starland \
   --note "REBUILT scene/starland: rebuilt code (aola-revival) on the July 2012 art of bigscene/starlandcopy.swf" \
   --out "$W/scene/starland.swf%3F130124"
+
+# 道具店: the later scene's own code (2016 copy, decompiled), compiled against
+# the 2013 interfaces without its one later-only call, on that copy's art.
+build scenes/toolshop mmo/scene/toolshop/DocToolshop.as toolshop-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/toolshop.swf)" \
+  --code "$OUT/toolshop-code.swf" --bind 0=mmo.scene.toolshop.DocToolshop --bind 203=mmo.scene.toolshop.Toolshop \
+  --note "LATER scene/toolshop: its code compiled against the 2013 interfaces (aola-revival), on its own art" \
+  --out "$W/scene/toolshop.swf%3F121203"
+
+# 奇草树林 (云端王国's first room): the later scene's code on the 2013
+# interfaces and that copy's art, with the room's map button back (it opens
+# the era 云端王国 map, scene/cloudstarmap).
+build scenes/cloudstar1 mmo/scene/cloudstar1/DocCloudStar1.as cloudstar1-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/cloudstar1.swf)" \
+  --code "$OUT/cloudstar1-code.swf" --bind 0=mmo.scene.cloudstar1.DocCloudStar1 --bind 24=mmo.scene.cloudstar1.CloudStar1 \
+  --note "LATER scene/cloudstar1: its code compiled against the 2013 interfaces (aola-revival), its map button redrawn, on its own art" \
+  --out "$W/scene/cloudstar1.swf%3F1210"

@@ -13,6 +13,7 @@ package mmo.tasknpc
    import mmo.interfaces.task.ITaskService;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
+   import mmo.interfaces.task.ext.TaskNpcPanelConfig;
    import mmo.loader.LoadingSpriteType;
    import mmo.loader.SimpleCustomLoader;
    import mmo.play.scene.SceneManager;
@@ -42,6 +43,15 @@ package mmo.tasknpc
     */
    public class TaskNpcService extends Sprite implements ITaskNpcService
    {
+      /**
+       * The namespace of the later ITaskNpcService's methods. Task scripts
+       * compiled against the later interface call setTaskNpcPanelConfig and
+       * updateNpc in it (callproperty QName(Namespace("mmo.interfaces.task:
+       * ITaskNpcService"), …)); the 2013 interface this class implements
+       * does not have them, so they are defined in it here by hand.
+       */
+      namespace later_itf = "mmo.interfaces.task:ITaskNpcService";
+
       private static var _instance:TaskNpcService;
       private var npcs:Object = {};
       private var interactions:Object = {};
@@ -104,8 +114,30 @@ package mmo.tasknpc
          return "";
       }
 
+      /**
+       * RECONSTRUCTED greetings for NPCs whose later default talk speaks of
+       * later stories (维克's 礼箱 and 亚特兰蒂斯): lines of the era's own
+       * conversations instead (维克's is his reply in the delivery talk
+       * carrierBearLearnSkillTalk_13).
+       */
+      private static const ERA_TALK:Object = {
+         13: ["嗯，最近收到的挑战信越来越多啦！不过难不倒我异星使者维克的。"]
+      };
+
+      /**
+       * The NPCs of the era npcchallenge/npcchallengeservice (ChallengeConfig):
+       * id -> scene. Their panel offers the challenge (TaskEvent action
+       * "npcchallenge<id>", which that service answers with npcChallenge_talk).
+       * The 2013 choice text is lost (RECONSTRUCTED).
+       */
+      private static const CHALLENGE:Object = {
+         13: "maintown1", 35: "starland", 145: "bluesquare", 14: "helloschool", 3: "toolshop",
+         26: "fastclub", 142: "bluesquare", 32: "furnitureshop", 31: "clothesshop", 172: "bluesquare", 312: "temple6"
+      };
+
       public static function defaultTalk(id:int):Array
       {
+         if (ERA_TALK[id] != null) return ERA_TALK[id] as Array;
          try
          {
             var c:Object = getDefinitionByName("mmo.tasknpcdefine.NpcDefaultTalk");
@@ -292,6 +324,7 @@ package mmo.tasknpc
       private var taskTalks:Object = {};
       private var taskTalkConfig:Object = {};
       private var starterTalkConfig:Object = {};
+      private var freeTalkConfig:Object = {};
 
       private static function taskService():ITaskService
       {
@@ -349,10 +382,41 @@ package mmo.tasknpc
          if (npc != null) npc.setTaskMark(xml != null);
       }
 
-      /** Conversations a task script names "npcId_taskId_from", for showNpcPanel (the later TaskNpcPanelConfig). */
+      /**
+       * Conversations a task script names "npcId_taskId_from", for showNpcPanel:
+       * a map of them, or a later TaskNpcPanelConfig (its task talks, start
+       * talks and free talks, merged as the later NpcPanelConfig does).
+       */
       public function setTaskNpcPanelConfig(config:Object):void
       {
-         for (var k:String in config) taskTalkConfig[k] = config[k];
+         var k:String;
+         var c:TaskNpcPanelConfig = config as TaskNpcPanelConfig;
+         if (c == null)
+         {
+            for (k in config) taskTalkConfig[k] = config[k];
+            return;
+         }
+         for (k in c.npcFreeTaskTalkConfig) freeTalkConfig[k] = c.npcFreeTaskTalkConfig[k];
+         for (k in c.npcTaskTalkConfig) taskTalkConfig[k] = c.npcTaskTalkConfig[k];
+         for (k in c.npcStarterTalkConfig) starterTalkConfig[k] = c.npcStarterTalkConfig[k];
+      }
+
+      /** The later updateNpc: task NPCs of the scene come and go, marks follow (TaskNpcManager.freshNpc). */
+      public function updateNpc():void
+      {
+         onTasksChanged(null);
+      }
+
+      /** LATER ITaskNpcService.setTaskNpcPanelConfig (see later_itf). */
+      later_itf function setTaskNpcPanelConfig(config:TaskNpcPanelConfig):void
+      {
+         this.setTaskNpcPanelConfig(config);
+      }
+
+      /** LATER ITaskNpcService.updateNpc (see later_itf). */
+      later_itf function updateNpc():void
+      {
+         this.updateNpc();
       }
 
       /** The NPC's own panel: a greeting, plus the choices scenes added with addNpcInteraction. */
@@ -397,11 +461,23 @@ package mmo.tasknpc
             c.@action = it.action;
             xml.context.appendChild(c);
          }
+         var here:Object = SceneManager.getInstance().loadedSceneInfo;
+         if (CHALLENGE[npcId] != null && here != null && here.sceneName == CHALLENGE[npcId])
+         {
+            var ch:XML = <choice str="我要和你进行亚比对战！"/>;
+            ch.@action = "npcchallenge" + npcId;
+            xml.context.appendChild(ch);
+         }
          NpcTalkPanel.show(xml, npcId);
       }
 
       public function showNpcPanelFreely(name:String, npcId:int, iconId:int = 1):void
       {
+         if (freeTalkConfig[name] is XML)
+         {
+            NpcTalkPanel.show(freeTalkConfig[name] as XML, npcId, iconId);
+            return;
+         }
          var hit:XMLList = FreeTalkData.TALKS.t.(@k == name);
          if (hit.length() == 0)
          {

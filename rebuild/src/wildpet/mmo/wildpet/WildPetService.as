@@ -78,9 +78,40 @@ package mmo.wildpet
 
       private function onAppearTime(e:TimerEvent):void
       {
-         var points:Array = WildPetLocationMap.getLocations(sceneName());
-         if (points == null) return;
+         // Every scene asks: the server knows which have wild 亚比.
+         var points:Array = pointsOf(sceneName());
+         if (points == null || points.length == 0) return;
          generatePet(Math.min(points.length, WILD_PET_NUM));
+      }
+
+      /**
+       * Where wild 亚比 walk: the later client's points for the scene, or, for a
+       * scene it has none for (the November 2012 map names 亚比 there), five
+       * free spots of its obstruction spread over the first screen.
+       */
+      private function pointsOf(scene:String):Array
+      {
+         var points:Array = WildPetLocationMap.getLocations(scene);
+         if (points != null) return points;
+         var si:SceneInfo = SceneManager.getInstance().loadedSceneInfo;
+         if (si == null || si.scene == null || si.scene.obStruction == null) return null;
+         var out:Array = [];
+         var tries:int = 0;
+         var seed:int = 0;
+         for (var k:int = 0; k < scene.length; k++) seed = (seed * 31 + scene.charCodeAt(k)) & 0xFFFF;
+         while (out.length < 5 && tries < 400)
+         {
+            tries++;
+            seed = (seed * 9301 + 49297) % 233280;
+            var x:int = 120 + seed % 720;
+            seed = (seed * 9301 + 49297) % 233280;
+            var y:int = 260 + seed % 220;
+            if (si.scene.isBlocked(x, y)) continue;
+            var near:Boolean = false;
+            for each (var p:Point in out) if (Point.distance(p, new Point(x, y)) < 110) near = true;
+            if (!near) out.push(new Point(x, y));
+         }
+         return out.length > 0 ? out : null;
       }
 
       private function onFightStart(e:PetFightEvent):void
@@ -125,8 +156,8 @@ package mmo.wildpet
          var rares:Array = [];
          for each (var o:Object in info) (int(o.common) == 0 ? rares : commons).push(o);
          if (commons.length == 0) return;
-         var points:Array = WildPetLocationMap.getLocations(sceneName());
-         if (points == null) return;
+         var points:Array = pointsOf(sceneName());
+         if (points == null || points.length == 0) return;
          var n:int = Math.min(num > 0 ? num : WILD_PET_NUM, points.length);
          var chosen:Array = [];
          for (var i:int = 0; i < n; i++)

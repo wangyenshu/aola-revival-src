@@ -63,7 +63,17 @@ def locations(path: str) -> dict[str, list[tuple[int, int]]]:
 
 
 def backgrounds(path: str, mirror: str) -> dict[str, tuple[str, str]]:
-    have = {f.split(".swf")[0] for f in os.listdir(os.path.join(mirror, "www.9aola.com", "petfightbackground"))}
+    files = os.path.join(mirror, "FILES.jsonl")
+    if os.path.exists(files):
+        # game/: era files only (FILES.jsonl origin)
+        have = set()
+        for line in open(files, encoding="utf-8"):
+            r = json.loads(line)
+            m = re.match(r"www\.9aola\.com/petfightbackground/(\w+)\.swf", r["path"])
+            if m and r["origin"] != "later":
+                have.add(m.group(1))
+    else:
+        have = {f.split(".swf")[0] for f in os.listdir(os.path.join(mirror, "www.9aola.com", "petfightbackground"))}
     out = {}
     for scene, cls, f in re.findall(r'backs\["(\w+)"\]\s*=\s*\["([\w.]+)","petfightbackground/(\w+)"\]', open(path, encoding="utf-8").read()):
         if f in have:
@@ -81,7 +91,7 @@ def chain_levels(evo: str, race: str) -> tuple[int, int | None]:
 
 
 def level_range(sp: dict, race: str, rare: bool) -> tuple[int, int]:
-    catch = int(sp["c"][0]) if sp["c"][0].isdigit() else 1
+    catch = int(sp["c"][0]) if str(sp["c"][0]).isdigit() else 1
     reached, evolves = chain_levels(sp.get("evo", ""), race)
     lo = max(1, catch)
     if reached > 0:
@@ -94,10 +104,58 @@ def level_range(sp: dict, race: str, rare: bool) -> tuple[int, int]:
     return lo, hi
 
 
+def from_map(places: dict, wild: dict, era_rooms: dict, points: dict, species: dict, dict_path: str) -> int:
+    """Every 亚比 and rare 亚比 the November 2012 world map names for a place
+    walks in that place's scenes: in those its 获得方式 names, else in all of
+    them (the place's rooms: <place><n>, and those the map lists under 场景)."""
+    info = {}
+    for line in open(dict_path, encoding="utf-8"):
+        m = re.match(r'\s*"(\d+)":new PetDictionaryDataItem\((.*)\),?\s*$', line)
+        if m:
+            p = STR.findall(m.group(2))
+            info.setdefault(p[1], (m.group(1), p[10] if len(p) > 10 else ""))
+    added = 0
+    for place, d in places.items():
+        base = re.sub(r"\d+$", "", place)
+        # (Scenes without walking points of the later client get points from their obstruction, WildPetService.)
+        scenes = [n for n in era_rooms if re.match(re.escape(base) + r"\d*$", n)]
+        scenes += [n for n, desc in era_rooms.items() if desc in d.get("scenes", []) and n not in scenes]
+        if not scenes:
+            continue
+        for rare, names in ((False, d.get("pets", [])), (True, d.get("rare", []))):
+            for name in names:
+                if name not in info:
+                    continue
+                race, way = info[name]
+                sp = species.get(race)
+                if sp is None:
+                    continue
+                if any(race in wild.get(s, {}) for s in scenes):
+                    continue
+                named = [s for s in scenes if era_rooms[s] and era_rooms[s] in way]
+                for s in named or scenes:
+                    lo, hi = level_range(sp, race, rare)
+                    wild.setdefault(s, {})[race] = {"raceId": int(race), "min": lo, "max": hi, "common": 0 if rare else 1,
+                                                    "rate": RARE_RATE if rare else 0}
+                added += 1
+        # A scene with only rares shows nothing: the place's common 亚比 walk there too.
+        for sc in scenes:
+            here = wild.get(sc, {})
+            if here and not any(e["common"] for e in here.values()):
+                for name in d.get("pets", []):
+                    race = info.get(name, (None,))[0]
+                    sp = species.get(race) if race else None
+                    if sp is not None:
+                        lo, hi = level_range(sp, race, False)
+                        here[race] = {"raceId": int(race), "min": lo, "max": hi, "common": 1, "rate": 0}
+    return added
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     for a in ("dict", "pmdata", "config", "locations", "backgrounds", "mirror", "gen", "json"):
         ap.add_argument("--" + a, required=True)
+    ap.add_argument("--map", help="the places of the November 2012 world map (tools/map_pets.py)")
     a = ap.parse_args(argv)
     era_rooms = rooms(a.config)
     points = {k: v for k, v in locations(a.locations).items() if k in era_rooms}
@@ -126,6 +184,10 @@ def main(argv=None) -> None:
             lo, hi = level_range(sp, race, rare)
             wild.setdefault(s, {})[race] = {"raceId": int(race), "min": lo, "max": hi, "common": 0 if rare else 1, "rate": RARE_RATE if rare else 0}
 
+    if a.map:
+        added = from_map(json.load(open(a.map, encoding="utf-8")), wild, era_rooms, points, species, a.dict)
+        print(f"November 2012 map: {added} 亚比 added to the scenes of their place")
+
     out = {s: sorted(v.values(), key=lambda x: (x["common"] == 0, x["raceId"])) for s, v in sorted(wild.items())}
     # A scene of rares only would show nothing (the generator fills slots with common ones).
     out = {s: v for s, v in out.items() if any(x["common"] for x in v)}
@@ -135,7 +197,7 @@ def main(argv=None) -> None:
     d = os.path.join(a.gen, "wildpet", "mmo", "wildpet")
     os.makedirs(d, exist_ok=True)
     rows = "\n".join(
-        f'         m["{s}"] = [{", ".join(f"new Point({x},{y})" for x, y in points[s])}];' for s in sorted(out)
+        f'         m["{s}"] = [{", ".join(f"new Point({x},{y})" for x, y in points[s])}];' for s in sorted(out) if s in points
     )
     open(os.path.join(d, "WildPetLocationMap.as"), "w", encoding="utf-8").write(f"""package mmo.wildpet
 {{

@@ -234,6 +234,49 @@ package mmo.play.scene
          return free;
       }
 
+      private var _pathGrid:PathGrid;
+
+      /**
+       * The way from (x0, y0) to (x1, y1) round the obstruction: waypoints,
+       * the last the destination (or the free point nearest it); null when
+       * there is none (or no obstruction). The grid is made on the first walk
+       * in the scene and made again when the obstruction has changed under a
+       * way found on it.
+       */
+      public function findPath(x0:Number, y0:Number, x1:Number, y1:Number):Array
+      {
+         if (obStruction == null) return null;
+         for (var attempt:int = 0; attempt < 2; attempt++)
+         {
+            if (_pathGrid == null) _pathGrid = new PathGrid(_sceneWidth, _sceneHeight, isBlocked);
+            var path:Array = _pathGrid.find(x0, y0, x1, y1);
+            if (path == null || attempt == 1 || stillFree(x0, y0, path)) return path;
+            _pathGrid = null;
+         }
+         return null;
+      }
+
+      /** Does each leg of the way still miss the obstruction as it is now? */
+      private function stillFree(x0:Number, y0:Number, path:Array):Boolean
+      {
+         var px:Number = x0, py:Number = y0;
+         var startInside:Boolean = isBlocked(x0, y0);
+         for each (var p:Point in path)
+         {
+            var dist:Number = Point.distance(new Point(px, py), p);
+            var steps:int = Math.max(1, Math.ceil(dist / 8));
+            for (var i:int = 1; i <= steps; i++)
+            {
+               var blocked:Boolean = isBlocked(px + (p.x - px) * i / steps, py + (p.y - py) * i / steps);
+               if (blocked && !startInside) return false;
+               if (!blocked) startInside = false;
+            }
+            px = p.x;
+            py = p.y;
+         }
+         return true;
+      }
+
       /** Is this scene point on the obstruction layer? */
       public function isBlocked(x:Number, y:Number):Boolean
       {
@@ -324,6 +367,12 @@ package mmo.play.scene
          {
             if (layer == null || layer.parent != this) continue;
             setChildIndex(layer, at++);
+            // A layer is never a click target itself (what it holds still is):
+            // art its author made click-through (mouseEnabled = false, as the
+            // counter of 道具店 copy over 米娜) then lets the click reach what
+            // lies below, NPCs and players included, instead of stopping at the
+            // layer; a click on plain art still walks (the scene takes it).
+            if (layer is InteractiveObject && layer != obStruction) InteractiveObject(layer).mouseEnabled = false;
          }
       }
 
@@ -357,7 +406,7 @@ package mmo.play.scene
             _pendingPoint = new Point(int(c.x), int(c.y));
             me.addEventListener(MovableEvent.ARRIVED, onArrived);
             me.addEventListener(MovableEvent.MOVE_BEGIN, onMoveBegin);
-            if (me.moveTo(_pendingPoint.x, _pendingPoint.y) == null) onArrived(null);
+            if (me.walkTo(_pendingPoint.x, _pendingPoint.y) == null) onArrived(null);
             return;
          }
       }

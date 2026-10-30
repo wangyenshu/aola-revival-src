@@ -16,6 +16,8 @@
     "e2e": "node server/test/e2e/browser.e2e.mjs",
     "e2e:newbie": "node server/test/e2e/boot2013.mjs --out work/e2e-newbie --seconds 1300 --query dev=1 --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/newbie.mjs",
     "e2e:story": "node server/test/e2e/boot2013.mjs --out work/e2e-story --seconds 1500 --query dev=1 --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/story1214.mjs",
+    "e2e:garden": "node server/test/e2e/boot2013.mjs --out work/e2e-garden --seconds 400 --query dev=1 --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/garden.mjs",
+    "e2e:music": "node server/test/e2e/boot2013.mjs --out work/e2e-music --seconds 300 --query dev=1 --script server/test/e2e/audio-probe.js --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/music.mjs",
     "start": "node server/src/node/main.ts"
   },
   "dependencies": {

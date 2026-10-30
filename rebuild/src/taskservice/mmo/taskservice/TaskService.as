@@ -39,6 +39,25 @@ package mmo.taskservice
     */
    public class TaskService extends EventDispatcher implements ITaskService
    {
+      /**
+       * The namespace of the later ITaskService's methods: the 2018 uploads of
+       * task scripts 2298 and 2314 ask isReviewingTask through it, which the
+       * 2013 interface does not have (see TaskNpcService.later_itf).
+       */
+      namespace later_itf = "mmo.interfaces.task:ITaskService";
+
+      /** LATER ITaskService.isReviewingTask: the 2013 client has no quest review. */
+      later_itf function isReviewingTask():Boolean
+      {
+         return false;
+      }
+
+      /** LATER ITaskService.getCurrReviewTaskId: none (see isReviewingTask). */
+      later_itf function getCurrReviewTaskId():int
+      {
+         return -1;
+      }
+
       /** 10-1 types; the 2013 constants are lost (the rebuilt server uses the same). */
       public static const TYPE_UPDATE:int = 0;
       public static const TYPE_ADD:int = 1;

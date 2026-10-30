@@ -1,0 +1,232 @@
+﻿<bconfig>
+  <!--
+		注意：<br/> 
+		1.no属性中请不要设为一个字符串形式的数字，如"201001"。<br/> 
+		2.全部的商品册必须在<updatelist>标签中有对应项，否则可能报错<br/> 
+	-->
+  <updatelist>
+    <updateitem no="catalog201001" name="道具商品册">20110501</updateitem>
+    <updateitem no="catalog201002" name="服装商品册">20150313</updateitem>
+    <updateitem no="catalog201003" name="家具商品册">20120614</updateitem>
+    <updateitem no="catalog201007" name="快捷道具册">20100910</updateitem>
+
+    <updateitem no="catalog201008" name="水上集市">20100910</updateitem>
+    <updateitem no="catalog201009" name="哈迷乐园">20100910</updateitem>
+    <updateitem no="sellcard" name="哈米乐园购买卡片">20100910</updateitem>
+    <updateitem no="catalog201011" name="明星亚比选票">20100910</updateitem>
+    <updateitem no="catalog201004" name="收费服装商品册">20171215</updateitem>
+    <updateitem no="catalog201005" name="收费道具商品册">20170428</updateitem>
+    <updateitem no="catalog201006" name="收费亚比蛋商品册">20130913</updateitem>
+    <updateitem no="catalog201010" name="收费家具商品册">201401219</updateitem>
+    <updateitem no="catalog201101" name="许愿盒购买册">20110114</updateitem>
+    <updateitem no="catalog201102" name="种植手册">20111222</updateitem>
+    <updateitem no="catalog201103" name="种植星愿树">20110126</updateitem>
+    <updateitem no="catalog201104" name="射线商品册">20110331</updateitem>
+    <updateitem no="catalog201105" name="玄武商品册">20110825</updateitem>
+    <updateitem no="catalog201106" name="强力道具柜">20110722</updateitem>
+    <updateitem no="catalog201107" name="灵气射击卡道具购买册">20110729</updateitem>
+    <updateitem no="catalog201108" name="动物乐园购买册">20110808</updateitem>
+    <updateitem no="catalog201109" name="动物保卫战购买册">20110817</updateitem>
+    <updateitem no="catalog201110" name="射击卡手册">20110907</updateitem>
+    <updateitem no="catalog201111" name="星座亚比穿越册">20110907</updateitem>
+    <updateitem no="catalog201112" name="动物保卫战购买册">20110914</updateitem>
+    <updateitem no="catalog201113" name="海洋保卫战购买册">20111019</updateitem>
+    <updateitem no="catalog201114" name="流行购物街购买手册">20120511</updateitem>
+    <updateitem no="catalog201115" name="流行购物街购买手册">20111221</updateitem>
+    <updateitem no="catalog201116" name="服装家具活动">20120106</updateitem>
+    <updateitem no="catalog201201" name="七星龙珠购买手册">20120112</updateitem>
+    <updateitem no="catalog201202" name="采集道具购买手册">20120215</updateitem>
+    <updateitem no="catalog201203" name="星座亚比展台">20120525</updateitem>
+    <!--
+			服装展台更新注意：<br/> 
+			1.服装册子如果有直接购买功能(弹出其它册子不算)，则请选择catalog201204更新<br/>
+			2.如果有指定跳页功能，且没有直接购买功能的，请选择book201203进行更新 <br/>
+			3.以后服装展台若用到册子，请根据以上两种情况进行选择<br/>
+		-->
+    <updateitem no="catalog201204" name="服装展台册子">20120613</updateitem>
+    <!--服装展台更新注意-->
+    <updateitem no="catalog201205" name="灵兽家具册子">20120906</updateitem>
+  </updatelist>
+  <catalogs>
+    <catalog no="catalog201001" n="道具商品册" f="catalog/item" t="mmo.itemcatalog.Item"
+			p="1,1;3,1;2,1;2,2;3,2;4,1;4,2" />
+    <catalog no="catalog201002" n="服装商品册" f="catalog/clothes" t="mmo.dress.Clothes"
+			p="1,1;1,2;87,1;86,1;85,1;84,1;83,1;82,1;81,1;80,1;79,1;78,1;77,1;76,1;75,1;74,1;73,1;72,1;71,1;70,1;69,1;68,1;67,1;66,1;65,1;64,1;63,1;62,1;61,1;60,1;59,1;58,1;57,1;56,1;55,1;54,1;53,1;52,1;47,1;44,1;11,2;12,2" />
+    <catalog no="catalog201003" n="家具商品册" f="catalog/jiaju"
+			t="mmo.funiturecatalog.Furniture"
+			p="1,1;1,3;45,1;45,2;45,3;44,1;44,2;44,3;43,1;43,2;43,3;42,1;42,2;42,3;41,1;41,2;41,3;40,1;40,2;40,3;30,1;37,1;36,1;36,2;36,3;35,1;35,2;35,3;34,1;34,2;34,3;33,1;33,2;31,1;31,2;32,1;29,1;28,1;24,1;25,1;26,1;27,1;21,1;22,1;23,1;18,1;16,1;16,2;17,1;14,1;15,1;15,2;8,1;9,1;10,1;11,1;5,2;6,1;7,1;4,1;4,2;5,1;3,1;3,2" />
+    <catalog no="catalog201007" n="快捷道具册" f="catalog/item" t="mmo.itemcatalog.Item"
+			p="2,1;2,2;3,2;4,1;4,2" />
+    <catalog no="catalog201008" n="水上集市" f="catalog/watermaterial"
+			t="mmo.watercatalog.WaterMaterial" p="1,1" />
+    <catalog no="catalog201009" n="哈迷乐园" f="catalog/starlandmaterial"
+			t="mmo.starlandcatalog.StarlandMaterial" p="1,1" />
+    <catalog no="sellcard" n="哈米乐园购买卡片" f="catalog/happyArkSellPanel"
+			t="mmo.happyArkcatalog.happyArkSellPanel" p="1,1" />
+    <catalog no="catalog201011" n="明星亚比选票" f="catalog/staryabicatalog"
+			t="mmo.staryabi.Catalog" p="1,1" />
+    <catalog no="catalog201004" n="收费服装商品册" f="catalog/costume" t="mmo.dress.Costume"
+			p="277,1;123,1;124,1;125,1;306,1;331,1;332,1;333,1;334,1;335,1;336,1;337,1;338,1;339,1;340,1;313,1;314,1;315,1;316,1;317,1;330,1;319,1;320,1;321,1;322,1;323,1;324,1;325,1;326,1;327,1;328,1;307,1;308,1;309,1;310,1;311,1;312,1;244,1;296,1;297,1;298,1;299,1;301,1;302,1;303,1;237,1;236,1;198,1;197,1;196,1;130,1;5,1" />
+    <catalog no="catalog201005" n="收费道具商品册" f="catalog/tool"
+			t="mmo.itemcatalog.Tool"
+			p="1,1;4,1;148,1;149,1;145,1;146,1;147,1;144,1;132,1;128,1;113,1;111,1;32,1;8,2;5,1;21,1;10,1;3,2;3,1" />
+    <catalog no="catalog201006" n="收费亚比蛋商品册" f="catalog/egg"
+			t="mmo.itemcatalog.Egg" p="1,1" />
+    <catalog no="catalog201010" n="收费家具商品册" f="catalog/furniture"
+			t="mmo.funiturecatalog.RMBFurniture"
+			p="1,1;38,1;36,1;35,1;34,1;33,1;32,1;31,2;31,1;21,1;24,2;30,1;30,2;29,1;29,2;28,1;28,2;27,1;27,2;26,1;26,2;23,1;23,2;14,1;15,1;16,1;10,1;11,1;7,1;8,1;9,1;5,1;6,1" />
+    <catalog no="catalog201101" n="许愿盒购买册" f="catalog/dreambox"
+			t="mmo.bookdreambox.Dreambox" p="1,1" />
+    <catalog no="catalog201102" n="种植手册" f="catalog/zhongzhi" t="mmo.zhongzhi.ZhongZhi"
+			p="1,1;1,2;8,1;7,1;6,1;5,1;4,1;3,2;3,1;2,1;2,2" />
+    <catalog no="catalog201103" n="种植星愿树" f="wishtree/wishtree"
+			t="mmo.wishtree.BuyPanel" p="1,1" />
+    <catalog no="catalog201104" n="射线商品册" f="catalog/radialcard"
+			t="mmo.radialcard.Radialcard" p="1,1" />
+    <catalog no="catalog201105" n="玄武商品册" f="catalog/lingshougongbuybook"
+			t="mmo.lingshougongbuybook.LingShouGongBuyBook" p="2,2;2,1;1,3;1,1;1,2" />
+    <catalog no="catalog201106" n="强力道具柜" f="catalog/strongitem"
+			t="mmo.strongitem.StrongItem" p="1,1;1,2;1,3" />
+    <catalog no="catalog201107" n="灵气射击卡道具购买册" f="catalog/lingqishoot"
+			t="mmo.lingqishoot.LingqiShoot" p="1,1" />
+    <catalog no="catalog201108" n="动物乐园购买册" f="catalog/catchanimalgame"
+			t="mmo.catchanimalgame.BuyBook" p="1,1" />
+    <catalog no="catalog201109" n="动物保卫战购买册" f="catalog/pvzgame"
+			t="mmo.pvzgame.BuyBook" p="1,1" />
+    <catalog no="catalog201110" n="射击卡手册" f="catalog/shootcard"
+			t="mmo.shootcard.ShootCard" p="1,1;7,3;7,2;7,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2" />
+    <catalog no="catalog201111" n="星座亚比穿越册" f="catalog/xingzuoyabi"
+			t="mmo.xingzuoyabi.XingzuoYabi" p="1,6;1,1;1,2;1,3;1,4;1,5" />
+    <catalog no="catalog201112" n="动物保卫战购买册" f="catalog/guardnutgame"
+			t="mmo.guardnut.BuyBook" p="1,1" />
+    <catalog no="catalog201113" n="海洋保卫战购买册" f="catalog/seadefendgame"
+			t="mmo.seadefend.BuyBook" p="1,1" />
+    <catalog no="catalog201116" n="服装家具活动" f="catalog/activityclothes"
+			t="mmo.activityclothes.ActivityClothes" p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2" />
+    <catalog no="catalog201201" n="七星龙珠购买手册" f="catalog/sevendragonsell"
+			t="mmo.sevendragonsell.SevenDragonSell" p="1,1" />
+    <catalog no="catalog201202" n="采集道具购买手册" f="catalog/collecttool"
+			t="mmo.collecttoolscatalog.Tool" p="1,1" />
+    <catalog no="catalog201203" n="星座亚比展台" f="catalog/xingzuozhantai"
+			t="mmo.xingzuozhantai.XingZuoZhanTai" p="1,1;2,1;3,1" />
+    <catalog no="catalog201204" n="服装展台册子" f="catalog/tshow/tshow"
+			t="mmo.starshopping.TShow" p="11,1;11,2" />
+    <catalog no="catalog201205" n="灵兽家具册子" f="catalog/lingshoufurniture/lingshoufurniture"
+			t="mmo.lingshoufurniture.Furniture" p="2,1;3,1;4,1" />
+  </catalogs>
+
+  <books>
+    <book no="book201004" n="亚比手册" f="catalog/yabi" t="mmo.yabi.Page"
+			p="1,1;1,3;2,1;3,1;3,3;4,1;11,1;4,2;4,3;5,1;5,3;5,4;6,1;6,3;6,4;7,1;7,2;7,3;8,1;8,2;9,1;9,2;10,1;1,2" />
+    <book no="book201005" n="亚比机器使用指南" f="catalog/yabimachineuseguidebook"
+			t="mmo.yabimachineuseguidebook.Page" p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;4,3;1,2" />
+    <book no="book201006" n="Hello手册" f="catalog/hello" t="mmo.hello.Page"
+			p="1,1;1,2;2,1;3,1;3,2;3,3;1,3" />
+    <book no="book201007" n="奥拉手册" f="catalog/aolahandbookNew" t="mmo.aolahandbookNew.Page"
+			p="1,1;2,2;3,1;3,2;4,1;5,1;5,2;6,1;7,1;7,2;8,1;8,2;9,1;10,1;11,1;11,2;12,1;13,1;14,1;15,1;15,2;16,1;2,1" />
+    <book no="book201008" n="蓝宝石消息" f="catalog/bluenews" t="mmo.bluenews.Page"
+			p="8,2;8,1;7,1;7,2;6,2;6,1;5,1;5,2;5,3;4,1;4,2;3,1;3,2;1,1;2,1;2,2" />
+    <book no="book201009" n="蓝宝石骑士宝典" f="catalog/blueknight" t="mmo.blueknight.BlueKnight"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;1,2" />
+			<!-- 60,1 乾坤坐骑-->
+    <book no="book201010" n="亚比坐骑图鉴" f="catalog/yabizuoqitujian"
+			t="mmo.ybknightBook.YBknightBook"
+			p="1,1;2,1;2,2;2,3;10,2;16,1;24,1;35,1;24,2;56,1;65,1;80,2;80,7;80,6;80,5;80,4;80,3;80,1;79,1;76,1;78,1;77,1;75,1;74,1;73,1;72,1;71,1;70,1;69,1;68,1;67,1;66,1;64,1;63,1;62,1;61,1;60,1;58,1;54,1;51,1;50,1;52,1;49,1;55,1;48,1;57,1;38,1;46,1;39,1;40,1;34,1;47,1;33,1;32,1;31,1;40,1;27,1;45,1;53,1;4,1;4,2;4,3;4,4;5,1;36,1;37,1;5,4;6,1;6,2;6,3;7,1;7,2;8,1;8,2;9,1;9,2;10,1;11,1;11,2;12,1;12,2;13,1;13,2;14,1;14,2;15,1;17,1;17,2;18,1;18,2;19,1;20,1;21,1;21,2;22,1;23,1;23,2;25,1;29,1;30,1;3,1;3,3;5,2;5,3;3,2;26,1;43,1;28,1;44,1;42,1;41,1;59,1;59,2;1,2" />
+    <book no="book201011" n="亚比坐骑手册" f="catalog/yabizuoqibook"
+			t="mmo.yabizuoqibook.YaBiZuoQiBook" p="1,1;1,2;1,3" />
+    <book no="book201012" n="蓝宝石最新消息" f="catalog/bluelatestnews" t="mmo.bluelatestnews.Page"
+			p="25,1;35,1;84,1;85,1;26,1;27,1;43,1;32,1;5,1;7,1;33,1;2,2;29,1;13,2;30,1;6,1;9,1;34,1;54,1" />
+    <book no="book201101" n="亚比秘籍" f="catalog/yabimethodbook"
+			t="mmo.yabimethodbook.YabiMethodBook" p="1,1;2,1;3,1;4,1;5,1;6,1;8,1" />
+    <book no="book201102" n="亚比图鉴" f="catalog/yabidictionary"
+			t="mmo.yabidictionary.YabiDictionary" p="1,1;2,1;3,1;4,1;5,1" />
+    <book no="book201103" n="超进化手册" f="catalog/superevolution"
+			t="mmo.superevolution.SuperEvolution" p="1,1;1,2;2,2;2,1;3,1;4,1;4,2;3,2;5,2;5,1;6,1" />
+    <book no="book201104" n="奥拉小说" f="catalog/aolalittlestory" t="mmo.aolastory.AolaLittleStory"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;4,3;1,2" />
+    <book no="book201105" n="融合手册" f="catalog/ronghe" t="mmo.ronghe.Ronghe"
+			p="1,1;2,1;3,1;3,2;3,5;3,6;3,7;3,8;4,1;4,3;4,4;1,2" />
+    <book no="book201106" n="战队手册" f="catalog/squadbook" t="mmo.squadbook.SquadBook"
+			p="1,1;2,1;2,2;2,3;3,1;3,2;4,1;4,2" />
+    <book no="book201107" n="奥拉总动员2冰封精灵" f="catalog/aolaicespirit" t="mmo.icespirit.IceSpirit"
+			p="1,1;2,1;3,1;4,1;5,1;6,1;7,1;8,1;1,2" />
+    <book no="book201108" n="社区手册" f="catalog/community" t="mmo.community.Community"
+			p="1,1;1,2;2,1;2,2;13,2;14,1;28,2;29,1;29,2;30,1;28,1;31,1;24,2;14,2;15,1;15,2;16,1;16,2;17,1;13,1;25,1;25,2;26,1;26,2;27,1;27,2;19,2;20,1;20,2;21,1;21,2;22,1;22,2;23,1;23,2;24,1;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;8,1;8,2;9,1;9,2;10,1;10,2;11,1;11,2;12,1;12,2;30,2" />
+    <book no="book201109" n="亚比训练册" f="catalog/yabitrain" t="mmo.yabitrain.Yabitrain"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1" />
+    <book no="book201110" n="图书馆动画" f="catalog/librarymovies"
+			t="mmo.librarymovies.LibraryMovies" p="1,1;1,2;2,1;2,2;2,3;3,1;3,2;3,3;4,1;4,2;5,1" />
+    <book no="book201111" n="快乐涂鸦" f="catalog/happytuya" t="mmo.happytuya.HappyTuya"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;8,1;8,2;9,1;9,2;10,1;10,2;10,3" />
+    <book no="book201112" n="快乐涂鸦2" f="catalog/happytuyatwo" t="mmo.happytuya.HappyTuyaTwo"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;8,1;8,2;9,1;9,2;10,1;10,2;10,3" />
+    <book no="book201113" n="动物园手册" f="catalog/zoohandbook" t="mmo.zoo.ZooHandBook"
+			p="1,1" />
+    <book no="book201114" n="周年亚比设计大赛" f="catalog/anniversaryyabi"
+			t="mmo.anniversaryyabi.AnniversaryYaBi" p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;1,2" />
+
+    <book no="book201115" n="亚比秘籍册01" f="catalog/yabibook" t="mmo.yabibook.YabiBook"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;8,1;8,2;8,3" />
+    <book no="book201116" n="亚比秘籍册02" f="catalog/yabibooktwo" t="mmo.yabibooktwo.YabiBookTwo"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;8,1;8,2;9,1;9,2" />
+    <book no="book201117" n="《第一届奥拉服装设计优秀作品》" f="catalog/works1_" t="mmo.works1.Page"
+			p="1,1;1,3;2,1;2,2;3,1;3,2;4,1;4,2;4,3;5,1;5,2;1,2" />
+    <book no="book201118" n="教官手册" f="catalog/masterhandbook"
+			t="mmo.masterhandbook.MasterHandbook" p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;1,2" />
+    <book no="book201119" n="亚比背包帮助" f="catalog/petpackagecatalog" t="mmo.petpackagecatalog.Page"
+			p="1,1;2,1" />
+    <book no="book201120" n="咪卡图书" f="catalog/mikatushu" t="mmo.mikatushu.Page"
+			p="1,1;1,2;1,3;1,4" />
+    <book no="book201121" n="冒险协会的故事" f="catalog/advanturebook" t="mmo.advanturebook.Page"
+			p="1,1;1,2;1,3;1,4" />
+    <book no="book201122" n="奥拉总动员3寻找猫王子" f="catalog/catprince" t="mmo.catprince.CatPrince"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;1,2;" />
+    <book no="book201123" n="奥拉总动员4神武月传说" f="catalog/moonstory" t="mmo.moonstory.MoonStory"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;1,2;" />
+    <book no="book201124" n="奥拉决胜全书" f="catalog/victorybook" t="mmo.victorybook.VictoryBook"
+			p="1,1;2,1;2,2;3,1;1,2;" />
+    <book no="book201125" n="时空制霸全书" f="catalog/spacevictory"
+			t="mmo.spacevictory.SpaceVictory" p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;1,2;" />
+    <book no="book201126" n="亚比究级秘传" f="catalog/yabimystery" t="mmo.yabimystery.YabiMystery"
+			p="1,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;1,2;" />
+    <book no="book201127" n="酷玩协会的故事" f="catalog/playunionbook" t="mmo.playunionbook.Page"
+			p="1,1;1,2;1,3;1,4" />
+    <!--
+		<book no="book201128" n="王子漫画书第一期" f="catalog/krfbook" t="mmo.krfbook.KrfBook"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201129" n="王子漫画书第二期" f="catalog/krf2book" t="mmo.krfbook.Krf2Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201130" n="王子漫画书第三期" f="catalog/krf3book" t="mmo.krfbook.Krf3Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201131" n="王子漫画书第四期" f="catalog/krf4book" t="mmo.krfbook.Krf4Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201132" n="王子漫画书第五期" f="catalog/krf5book" t="mmo.krfbook.Krf5Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201133" n="王子漫画书第六期" f="catalog/krf6book" t="mmo.krfbook.Krf6Book"
+			p="1,1;1,2;2,1;2,2;2,3;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2" />
+		<book no="book201134" n="王子漫画书第七期" f="catalog/krf7book" t="mmo.krfbook.Krf7Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201135" n="王子漫画书第八期" f="catalog/krf8book" t="mmo.krfbook.Krf8Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+		<book no="book201136" n="王子漫画书第九期" f="catalog/krf9book" t="mmo.krfbook.Krf9Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+    <book no="book201137" n="王子漫画书第十期" f="catalog/krfbook10/krf10book" t="mmo.krfbook.Krf10Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+    <book no="book201138" n="王子漫画书第十一期" f="catalog/krfbook11/krf11book" t="mmo.krfbook.Krf11Book"
+			p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+    <book no="book201139" n="王子漫画书第十二期" f="catalog/krfbook12/krf12book" t="mmo.krfbook.Krf12Book"
+     p="1,1;1,2;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2;7,1;7,2;7,3" />
+    -->
+    <book no="book201201" n="《第二届奥拉服装设计优秀作品》" f="catalog/works2_" t="mmo.works2.Page"
+			p="1,1;1,3;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;1,2" />
+    <book no="book201202" n="周年亚比设计大赛" f="catalog/anniversaryyabitwo"
+			t="mmo.anniversaryyabi.AnniversaryYaBiTwo" p="1,1;2,1;2,2;3,1;3,2;4,1;1,2" />
+
+    <book no="book201203" n="服装展台" f="catalog/tshowh/tshowh" t="mmo.tshowh.TShowH"
+			p="60,1" />
+    <book no="book201301" n="礼包展台" f="catalog/giftbagshow/giftbagshow" t="mmo.giftbagshow.GiftBagShow"
+      p="5,1" />
+    <book no="book201302" n="神兵图鉴" f="catalog/shenbingtujian/shenbingtujian" t="mmo.shbtj.Shenbingtujian"
+      p="2,1;3,1;4,1" />
+  </books>
+</bconfig>

@@ -188,3 +188,27 @@ test("a 百分百亚比球 catches at once: the 亚比 joins the bag", async () 
   assert.ok((owner.catchExp ?? 0) > 0);
   assert.equal(owner.items["2"]["64"], undefined);
 });
+
+test("a story quest's task 亚比 (variant * 10000 + species): at the player's level, not to be caught, and the win finishes its step", async () => {
+  const { registerTaskTables, skipTo } = await import("../src/game/sfs2013/tasks.ts");
+  registerTaskTables({ defines: { "59": [0, "62,63"], "62": [101, "10043,1"], "63": [11, ""] }, starters: { "59": { type: 11, pre: [], name: "干涸的河床" } } });
+  const { owner, call } = harness(() => 0.3);
+  skipTo(owner as never, 62, 1);
+  const start = await call("PetExtension.54_2", { raceId: 20043, level: -1, sw: true, id: -1 });
+  assert.deepEqual(start.map(([c]) => c), ["2303", "2401"]);
+  const join = start[0][1] as { ch: boolean; pmmList: { battleView: { pmList: { pmSView: { r: number; lv: number } }[] } }[] };
+  assert.equal(join.ch, false);
+  assert.equal(join.pmmList[1].battleView.pmList[0].pmSView.r, 43);
+  assert.equal(join.pmmList[1].battleView.pmList[0].pmSView.lv, 14, "the player's 12, two more for variant 2");
+  // Not the step's 亚比 (it asks for 10043): the step stays.
+  let out: Msg[] = [];
+  for (let i = 0; i < 40 && !out.some(([c]) => c === "2403"); i++) out = await call("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 });
+  assert.ok(!out.some(([c]) => c === "10-1"));
+  owner.pets![0].hp = 999;
+  await call("PetExtension.54_2", { raceId: 10043, level: 3 });
+  out = [];
+  for (let i = 0; i < 40 && !out.some(([c]) => c === "2403"); i++) out = await call("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 });
+  const end = out.find(([c]) => c === "2403")!;
+  assert.equal(end[1].isWin, true);
+  assert.deepEqual(out.filter(([c]) => c === "10-1").map(([, b]) => (b as { t: { ti: number } }).t.ti), [62, 63]);
+});

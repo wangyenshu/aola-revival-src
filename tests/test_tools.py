@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import base64
+import contextlib
 import zlib
 import hashlib
 import io
@@ -351,6 +352,67 @@ class MakeGameRootTest(unittest.TestCase):
                                      "--search", f"{t / 'mirror'},{t / 'supplement'}", "--out", str(t / "game2")])
             for rel in got:
                 self.assertEqual((t / "game2" / rel).read_bytes(), (t / "game" / rel).read_bytes())
+
+
+class AddLaterTest(unittest.TestCase):
+    """A later copy goes into game/ under the 2013 name, listed in FILES.jsonl."""
+
+    def test_add(self):
+        import add_later
+
+        LIVE["/play/skin/a000033.swf"] = b"FWS hello"
+        srv = ThreadingHTTPServer(("127.0.0.1", 0), FakeLive)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            with tempfile.TemporaryDirectory() as t:
+                t = Path(t)
+                (t / "game").mkdir()
+                (t / "game/FILES.jsonl").write_text(json.dumps({"path": "www.9aola.com/a.swf%3F1210", "origin": "era"}) + "\n")
+                head = t / "head.jsonl"
+                head.write_text(json.dumps({"path": "skin/a000033.swf", "status": 200, "lm": "2016-06-30T18:59:10Z", "size": 9}) + "\n")
+                args = ["--game", str(t / "game"), "--live-head", str(head), "--why", "HELLO in scenes",
+                        "--cdn", f"http://127.0.0.1:{srv.server_address[1]}/play/", "skin/a000033.swf", "skin/nothere.swf"]
+                with redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    add_later.main(args)
+                    add_later.main(args)  # a second time adds nothing
+                self.assertEqual((t / "game/www.9aola.com/skin/a000033.swf%3F1210").read_bytes(), b"FWS hello")
+                rows = [json.loads(l) for l in (t / "game/FILES.jsonl").read_text().splitlines()]
+                self.assertEqual([r["path"] for r in rows], ["www.9aola.com/a.swf%3F1210", "www.9aola.com/skin/a000033.swf%3F1210"])
+                self.assertEqual(rows[1]["origin"], "later")
+                self.assertEqual(rows[1]["added"], "HELLO in scenes")
+                self.assertEqual(rows[1]["sha1"], hashlib.sha1(b"FWS hello").hexdigest())
+        finally:
+            srv.shutdown()
+
+
+class GenTasksTest(unittest.TestCase):
+    """The conversations the later uploads of task scripts carry themselves."""
+
+    def test_script_talks(self):
+        import gen_tasks
+
+        body = """
+         this.npcTaskTalkConfig["1_1742_catestar1"] = <config>
+            <context npcId="1" str="a"><choice str="b" action="1742_afterStart"/></context>
+         </config>;
+         npcTaskTalkConfig["16_72_suolide3"] = <dialog>
+            <context str="c" npcId="16"/>
+         </dialog>;
+         this.npcStarterTalkConfig[this._nodeKey[2298]] = <config><context npcId="581" str="d"/></config>;
+         this.npcTaskTalkConfig[this._nodeKey["showCartoon"]] = <config><context str="e"/></config>;
+         this.npcTaskTalkConfig[this._nodeKey["unknown"]] = <config><context str="f"/></config>;
+        """
+        config = """private const TASK_NPC_PANEL_DATA:Object = {
+         2298:"581_2298_yakestar1",
+         "showCartoon":"0_2299_AftershowCartoon"
+      };"""
+        got = {(k, key): xml for k, key, xml in gen_tasks.script_talks(body, config)}
+        self.assertEqual(sorted(got), [("npcStarterTalkConfig", "581_2298_yakestar1"), ("npcTaskTalkConfig", "0_2299_AftershowCartoon"),
+                                       ("npcTaskTalkConfig", "16_72_suolide3"), ("npcTaskTalkConfig", "1_1742_catestar1")])
+        self.assertTrue(got[("npcTaskTalkConfig", "16_72_suolide3")].startswith("<dialog>"))
+        self.assertIn('action="1742_afterStart"', got[("npcTaskTalkConfig", "1_1742_catestar1")])
+        # Without the config, keyed talks are left out.
+        self.assertEqual(len(gen_tasks.script_talks(body)), 2)
 
 
 class GenNpcDataTest(unittest.TestCase):

@@ -86,11 +86,24 @@ package mmo.pet.petpackage
          button(panel.btnItem, notReady("亚比道具"));
          button(panel.btnCloth, notReady("亚比装扮"));
          button(panel.btnCard, notReady("战术卡"));
-         button(panel.btnBackWare, notReady("亚比仓库"));
+         button(panel.btnBackWare, function():void
+         {
+            // 亚比仓库: the rebuilt pet/petwarehouse (service PetWareHouse).
+            ServiceContainer.instance.tryGetService("PetWareHouse", function(svc:IService, o:Object):void
+            {
+               try { IShowPanel(svc).showPanel(); } catch (e:Error) { RLog.error("petpackage warehouse", e); }
+            });
+         });
          button(panel.mcRide, notReady("坐骑"));
          button(panel.mcSetPri, setFirst);
          button(panel.mcFollow, toggleFollow);
          button(panel.btnHealth, healAll);
+         // The art's two-frame tabs and switches (frame 1 plain, 2 chosen) would play
+         // on and blink: the lost logic held them still, as here.
+         for each (var n:String in ["btnInfo", "btnItem", "btnCloth", "btnCard"]) frame(panel[n], n == "btnInfo" ? 2 : 1);
+         frame(panel.mcRide, 3);
+         frame(panel.mcSetPri, 1);
+         frame(panel.mcFollow, 1);
          // The page under the 技能 / 能力 / 信息 tabs, and the name above them.
          titleText = text(new TextFormat("SimSun", 14, 0x0D5EB0, true));
          titleText.x = panel.btnshowskill.x - 30;
@@ -242,8 +255,18 @@ package mmo.pet.petpackage
          if (panel && panel.parent) refresh();
       }
 
+      private static function frame(d:*, n:int):void
+      {
+         var mc:MovieClip = d as MovieClip;
+         if (mc != null) mc.gotoAndStop(Math.min(n, mc.totalFrames));
+      }
+
       private function showPage():void
       {
+         frame(panel.btnshowskill, page == "skill" ? 2 : 1);
+         frame(panel.btnshowpropertity, page == "ability" ? 2 : 1);
+         frame(panel.btnshowinfo, page == "info" ? 2 : 1);
+         frame(panel.mcSetPri, selected > 0 ? 2 : 1);
          var p:PetBriefInfo = pets[selected] as PetBriefInfo;
          if (p == null) return;
          var d:PetDetailedInfo = data ? data.getPetDetailedInfoById(p.id) : null;

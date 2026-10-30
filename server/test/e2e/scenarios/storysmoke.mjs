@@ -7,6 +7,7 @@
 //
 // The list is the start conversations (npc_task_scene) of tools/gen_tasks.py.
 
+import { clickNpc, closeTalk } from "./lib.mjs";
 import { readFileSync } from "node:fs";
 
 export default async function smoke(h) {
@@ -19,7 +20,10 @@ export default async function smoke(h) {
   const results = [];
   await h.until(() => h.hook("scene"), "starland", 90);
   await h.sleep(3000);
-  if (/指挥中心/.test(String(await h.hook("talk")))) await h.click(822, 402);
+  if (/指挥中心/.test(String(await h.hook("talk")))) await closeTalk(h);
+  // A player who has done the newbie quest has his first 亚比 (else the HELLO offers one).
+  await h.revival("addpet", "4");
+  await h.sleep(1500);
   for (const s of starts) {
     if (only && !only.includes(s.task)) continue;
     await h.revival("tasktest", s.task);
@@ -29,17 +33,15 @@ export default async function smoke(h) {
     await h.until(() => h.hook("busy"), "0", 30);
     await h.sleep(4000);
     // Whatever the scene opened by itself first.
-    for (let i = 0; i < 3 && String(await h.hook("talk")); i++) {
-      await h.click(822, 402);
-      await h.sleep(800);
-    }
-    const r = there ? await h.revival("npc", s.npc) : "not in scene";
+    for (let i = 0; i < 3 && String(await h.hook("talk")); i++) await closeTalk(h);
+    const r = there ? await clickNpc(h, s.npc) : "not in scene";
     const t = r === "ok" ? await h.until(() => h.hook("talk"), undefined, 15) : false;
     const ok = Boolean(t);
     results.push(`${ok ? "OK  " : "FAIL"} ${s.task} ${s.scene} npc ${s.npc}: ${t || r}`);
     h.log(results.at(-1));
+    if (!ok) h.log(`  on top: ${await h.hook("top")}; layers: ${String(await h.hook("layers", "3")).replace(/\s+/g, " ")}`);
     await h.shot(`${s.task}-${s.scene}`);
-    if (t) await h.click(822, 402);
+    if (t) await closeTalk(h);
     await h.sleep(1000);
     // Close a transport panel or anything else left open.
     if (/taskTransportPanel/.test(String(await h.hook("top")))) await h.click(585, 334);

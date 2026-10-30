@@ -159,6 +159,7 @@ package mmo.tasknpc
          box.addChild(hint);
 
          var close:Sprite = new Sprite();
+         close.name = "talkClose";
          close.buttonMode = true;
          close.graphics.lineStyle(2, 0xFFFFFF);
          close.graphics.beginFill(0x3A8FD9);

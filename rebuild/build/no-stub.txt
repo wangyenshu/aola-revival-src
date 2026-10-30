@@ -17,6 +17,7 @@ house/housemenu
 house/housestorage
 baseservice/scenetalk
 antiaddiction/antiaddiction
+shoot/shoot
 shoot/shooteffectservice
 pet/wildpetservice
 pet/loginpetfightnew
@@ -27,3 +28,8 @@ task/taskservice
 task/taskextmanager
 task/taskpanelnew
 task/tasktransportpanel
+init/sceneinit
+init/robotmanager
+rmbshoppingmallservice/rmbshoppingmallservice
+game/gamemanager
+pet/petwarehouse

@@ -20,6 +20,7 @@ package mmo.usercard
    import mmo.interfaces.material.clothes.AvatarInfo;
    import mmo.interfaces.material.clothes.IClothesService;
    import mmo.interfaces.material.clothes.UserClothes;
+   import mmo.interfaces.material.MaterialServiceEvent;
    import mmo.loader.layer.LayerManager;
    import mmo.revival.RLog;
 
@@ -148,6 +149,7 @@ package mmo.usercard
          closeBtn.graphics.moveTo(5, -5); closeBtn.graphics.lineTo(-5, 5);
          closeBtn.x = W - 6;
          closeBtn.y = 6;
+         closeBtn.name = "cardClose";
          closeBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); this_close(); });
          box.addChild(closeBtn);
       }
@@ -238,27 +240,23 @@ package mmo.usercard
          try
          {
             var icon:DisplayObject = clothes.getView(uc.materialId);
-            if (icon != null)
+            var holder:Sprite = new Sprite();
+            holder.mouseEnabled = holder.mouseChildren = false;
+            cell.addChild(holder);
+            if (icon == null)
             {
-               var holder:Sprite = new Sprite();
-               holder.mouseEnabled = holder.mouseChildren = false;
-               holder.addChild(icon);
-               cell.addChild(holder);
-               var fit:Function = function(e:Event = null):void
+               // Not loaded yet: ClothesService.getView sends it later (MaterialServiceEvent.onGetView).
+               var later:Function = function(e:MaterialServiceEvent):void
                {
-                  var b:Object = holder.getBounds(holder);
-                  if (b.width <= 0) return;
-                  var s:Number = Math.min(1.2, 52 / b.width, 52 / b.height);
-                  holder.scaleX = holder.scaleY = s;
-                  holder.x = 31 - (b.left + b.width / 2) * s;
-                  holder.y = 31 - (b.top + b.height / 2) * s;
+                  if (e.params == null || int(e.params.id) != uc.materialId || !(e.params.view is DisplayObject)) return;
+                  clothes.removeEventListener(MaterialServiceEvent.onGetView, later);
+                  if (holder.numChildren == 0 && cell.parent != null) placeIcon(holder, DisplayObject(e.params.view));
                };
-               fit();
-               holder.addEventListener(Event.ENTER_FRAME, function(e:Event):void
-               {
-                  fit();
-                  if (holder.width > 0) holder.removeEventListener(Event.ENTER_FRAME, arguments.callee);
-               });
+               clothes.addEventListener(MaterialServiceEvent.onGetView, later);
+            }
+            else
+            {
+               placeIcon(holder, icon);
             }
          }
          catch (e:Error) {}
@@ -288,6 +286,27 @@ package mmo.usercard
             refreshGrid();
          });
          return cell;
+      }
+
+      /** An icon in its cell, fitted into the 62 px square once it has drawn. */
+      private static function placeIcon(holder:Sprite, icon:DisplayObject):void
+      {
+         holder.addChild(icon);
+         var fit:Function = function(e:Event = null):void
+         {
+            var b:Object = holder.getBounds(holder);
+            if (b.width <= 0) return;
+            var s:Number = Math.min(1.2, 52 / b.width, 52 / b.height);
+            holder.scaleX = holder.scaleY = s;
+            holder.x = 31 - (b.left + b.width / 2) * s;
+            holder.y = 31 - (b.top + b.height / 2) * s;
+         };
+         fit();
+         holder.addEventListener(Event.ENTER_FRAME, function(e:Event):void
+         {
+            fit();
+            if (holder.width > 0) holder.removeEventListener(Event.ENTER_FRAME, arguments.callee);
+         });
       }
 
       private var tip:TextField;

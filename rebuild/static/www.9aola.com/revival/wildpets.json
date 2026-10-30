@@ -6,6 +6,13 @@
 "max": 4,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 253,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
 }
 ],
 "aixiscene2": [
@@ -48,6 +55,13 @@
 }
 ],
 "aquarium": [
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
 {
 "raceId": 181,
 "min": 14,
@@ -207,6 +221,22 @@
 "rate": 5
 }
 ],
+"candystar3": [
+{
+"raceId": 844,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 848,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
 "candystar4": [
 {
 "raceId": 845,
@@ -255,6 +285,13 @@
 "max": 34,
 "common": 0,
 "rate": 5
+},
+{
+"raceId": 914,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
 }
 ],
 "clockstar3": [
@@ -264,6 +301,235 @@
 "max": 38,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 915,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
+}
+],
+"cloudstar1": [
+{
+"raceId": 1182,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1194,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1203,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1201,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 1209,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+}
+],
+"cloudstar2": [
+{
+"raceId": 1182,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1194,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1203,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1201,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 1209,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+}
+],
+"cloudstar3": [
+{
+"raceId": 1182,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1194,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1203,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1201,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 1209,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+}
+],
+"cloudstar4": [
+{
+"raceId": 1182,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1194,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1203,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1201,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 1209,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+}
+],
+"cloudstar5": [
+{
+"raceId": 1182,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1194,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1203,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1201,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 1209,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+}
+],
+"cloudstar6": [
+{
+"raceId": 1182,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1194,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1203,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1201,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 1209,
+"min": 32,
+"max": 36,
+"common": 0,
+"rate": 5
 }
 ],
 "ecologicalpark": [
@@ -271,6 +537,15 @@
 "raceId": 1205,
 "min": 5,
 "max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"employmenttown": [
+{
+"raceId": 1196,
+"min": 4,
+"max": 7,
 "common": 1,
 "rate": 0
 }
@@ -371,6 +646,22 @@
 "rate": 0
 }
 ],
+"gymnasium": [
+{
+"raceId": 25,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 151,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
 "haikustar1": [
 {
 "raceId": 705,
@@ -392,6 +683,29 @@
 "max": 18,
 "common": 0,
 "rate": 5
+},
+{
+"raceId": 712,
+"min": 38,
+"max": 42,
+"common": 0,
+"rate": 5
+}
+],
+"haikustar2": [
+{
+"raceId": 705,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 712,
+"min": 38,
+"max": 42,
+"common": 0,
+"rate": 5
 }
 ],
 "haikustar3": [
@@ -401,6 +715,36 @@
 "max": 38,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 712,
+"min": 38,
+"max": 42,
+"common": 0,
+"rate": 5
+}
+],
+"haikustar4": [
+{
+"raceId": 705,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 335,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+},
+{
+"raceId": 712,
+"min": 38,
+"max": 42,
+"common": 0,
+"rate": 5
 }
 ],
 "haiwen1": [
@@ -714,6 +1058,60 @@
 "rate": 0
 }
 ],
+"msevenstar1": [
+{
+"raceId": 779,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
+"msevenstar2": [
+{
+"raceId": 779,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
+"msevenstar3": [
+{
+"raceId": 779,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
+"msevenstar4": [
+{
+"raceId": 779,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
+"msevenstar5": [
+{
+"raceId": 779,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
+"msevenstar6": [
+{
+"raceId": 779,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
 "musicstar1": [
 {
 "raceId": 977,
@@ -721,6 +1119,311 @@
 "max": 11,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 979,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"mysticearth1": [
+{
+"raceId": 1245,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1254,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1262,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1279,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1247,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"mysticearth2": [
+{
+"raceId": 1245,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1254,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1262,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1279,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1247,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"mysticearth3": [
+{
+"raceId": 1245,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1254,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1262,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1279,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1247,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"mysticearth4": [
+{
+"raceId": 1245,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1254,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1262,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1279,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1247,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"mysticocean1": [
+{
+"raceId": 540,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1293,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1313,
+"min": 4,
+"max": 7,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1286,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
+}
+],
+"mysticocean2": [
+{
+"raceId": 540,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1293,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1313,
+"min": 4,
+"max": 7,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1286,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
+}
+],
+"mysticocean3": [
+{
+"raceId": 540,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1293,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1313,
+"min": 4,
+"max": 7,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1286,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
+}
+],
+"mysticocean4": [
+{
+"raceId": 540,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1293,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1313,
+"min": 4,
+"max": 7,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1286,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
+}
+],
+"mysticocean5": [
+{
+"raceId": 540,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1293,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1313,
+"min": 4,
+"max": 7,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 1286,
+"min": 10,
+"max": 14,
+"common": 0,
+"rate": 5
 }
 ],
 "screampark1": [
@@ -778,6 +1481,13 @@
 "max": 20,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 259,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
 }
 ],
 "siwude4": [
@@ -885,6 +1595,22 @@
 "rate": 0
 }
 ],
+"teambattleoutside": [
+{
+"raceId": 172,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 977,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+}
+],
 "temple1": [
 {
 "raceId": 534,
@@ -956,6 +1682,61 @@
 "max": 34,
 "common": 0,
 "rate": 5
+},
+{
+"raceId": 896,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"windmillstar2": [
+{
+"raceId": 875,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 896,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"windmillstar3": [
+{
+"raceId": 875,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 896,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"windmillstar4": [
+{
+"raceId": 875,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 896,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
 }
 ],
 "woerte1": [
@@ -1022,6 +1803,45 @@
 "max": 8,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 832,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
+}
+],
+"yakestar2": [
+{
+"raceId": 825,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 832,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
+}
+],
+"yakestar3": [
+{
+"raceId": 825,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 832,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
 }
 ],
 "yakestar4": [
@@ -1031,6 +1851,13 @@
 "max": 38,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 832,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
 }
 ],
 "yishuzhidu1": [
@@ -1045,6 +1872,22 @@
 "raceId": 167,
 "min": 18,
 "max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"yishuzhidu2": [
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
 "common": 1,
 "rate": 0
 }
@@ -1070,6 +1913,13 @@
 "max": 42,
 "common": 1,
 "rate": 0
+},
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
 }
 ],
 "yishuzhidu4": [
@@ -1077,6 +1927,13 @@
 "raceId": 167,
 "min": 18,
 "max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
 "common": 1,
 "rate": 0
 },
@@ -1100,6 +1957,22 @@
 "raceId": 135,
 "min": 38,
 "max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"yishuzhidu6": [
+{
+"raceId": 169,
+"min": 1,
+"max": 4,
 "common": 1,
 "rate": 0
 }

@@ -97,6 +97,7 @@ package mmo.revival.book
          addChild(bar);
 
          var prev:Sprite = button("◀ 上一页", function():void { go(index - 1); });
+         prev.name = "bookPrev";
          prev.x = 14;
          prev.y = 8;
          bar.addChild(prev);
@@ -104,6 +105,7 @@ package mmo.revival.book
          pageText.y = 8;
          bar.addChild(pageText);
          var next:Sprite = button("下一页 ▶", function():void { go(index + 1); });
+         next.name = "bookNext";
          next.x = 420 - next.width - 14;
          next.y = 8;
          bar.addChild(next);
@@ -131,6 +133,7 @@ package mmo.revival.book
          close.graphics.lineStyle(3, 0xFFFFFF);
          close.graphics.moveTo(-6, -6); close.graphics.lineTo(6, 6);
          close.graphics.moveTo(6, -6); close.graphics.lineTo(-6, 6);
+         close.name = "bookClose";
          close.x = 924;
          close.y = 36;
          close.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); close_(); });

@@ -22,5 +22,8 @@ package mmo.play.player.movable
       function jumpTo(x:int, y:int):Object;
       function stop():Object;
       function setStrategy(strategy:IMovingStrategy):void;
+      /** LATER (see PlayerBase.movability). */
+      function get movability():Boolean;
+      function set movability(v:Boolean):void;
    }
 }

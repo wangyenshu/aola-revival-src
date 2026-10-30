@@ -136,7 +136,10 @@ export class World {
     const p = this.player(s);
     if (!p) return;
     const list = Object.entries(vars).map(([k, v]) => encodeVar(k, v));
-    for (const v of list) p.vars.set(v.name, v);
+    for (const v of list) {
+      if (v.type === "x") p.vars.delete(v.name);
+      else p.vars.set(v.name, v);
+    }
     if (p.room) this.sendRoom(p.room, S.userVarsUpdate(p.room.id, p.id, list));
     else s.sendBytes(S.userVarsUpdate(0, p.id, list));
   }

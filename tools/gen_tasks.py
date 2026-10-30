@@ -13,7 +13,11 @@ quests that can be played:
   * a task (TaskDefine type 0) with a starter, numbered within the 2013
     range (up to the newest era script), other than the newbie quest (135,
     140, 150, RECONSTRUCTED in rebuild/src/taskdefines);
-  * NPC conversations for at least half of its steps;
+  * NPC conversations for at least half of its steps (in the later
+    task/tasknpc, or, for the quests whose scripts survive only as their
+    2015–2019 uploads, in the script itself: Task<id>NpcPanelConfig, which
+    the later client got when the script loaded; they are read from there
+    too, so the NPCs offer and carry the quests before any script loads);
   * every script the scene table names for it is in game/ (era files where
     they survive; later uploads of the same scripts otherwise, added by
     tools/story_files.py);
@@ -33,6 +37,7 @@ Outputs (generated; commit them):
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import os
 import re
@@ -43,6 +48,10 @@ import xml.etree.ElementTree as ET
 
 WWW = "www.9aola.com"
 NEWBIE = {135, 140, 150}
+# Tasks 2298 and 2314 (run by the later NewBaseTaskInitialler) name their
+# talks through their config's TASK_NPC_PANEL_DATA: this._nodeKey[2298].
+NODE_TALK = re.compile(r'(?:this\.)?(npcTaskTalkConfig|npcStarterTalkConfig)\[this\._nodeKey\[("?\w+"?)\]\]\s*=\s*(<(?:config|dialog)\b.*?</(?:config|dialog)>);', re.S)
+TALK = re.compile(r'(?:this\.)?(npcTaskTalkConfig|npcStarterTalkConfig)\["(\d+_\d+_[^"]+)"\]\s*=\s*(<(?:config|dialog)\b.*?</(?:config|dialog)>);', re.S)
 
 
 def decompile(ffdec: str, swf: str, out: str, what: str = "script") -> None:
@@ -69,6 +78,20 @@ def game_paths(game: str) -> set[str]:
         if p.startswith(WWW + "/"):
             out.add(re.sub(r"%3F.*$", "", p[len(WWW) + 1:]))
     return out
+
+
+def script_talks(body: str, config_body: str = "") -> list[tuple[str, str, str]]:
+    """The conversations a script's Task<id>NpcPanelConfig sets: (table, key, xml).
+
+    Keys are written out ("16_72_suolide3") or, in the quests run by the later
+    NewBaseTaskInitialler, looked up in the quest config's TASK_NPC_PANEL_DATA
+    (this._nodeKey[2298], this._nodeKey["showCartoon"])."""
+    found = TALK.findall(body)
+    if NODE_TALK.search(body):
+        m = re.search(r"TASK_NPC_PANEL_DATA:Object\s*=\s*\{(.*?)\};", config_body, re.S)
+        node_keys = {k.strip('"'): v for k, v in re.findall(r'("?\w+"?):"([^"]+)"', m.group(1))} if m else {}
+        found += [(kind, node_keys[k.strip('"')], xml) for kind, k, xml in NODE_TALK.findall(body) if k.strip('"') in node_keys]
+    return found
 
 
 def load_tables(ffdec: str, game: str, config: str, work: str) -> dict:
@@ -110,14 +133,38 @@ def load_tables(ffdec: str, game: str, config: str, work: str) -> dict:
 
     talk, start = {}, {}
     cfgdir = os.path.join(paths["tasknpc"], "scripts/mmo/tasknpc/config")
-    pat = re.compile(r'this\.(npcTaskTalkConfig|npcStarterTalkConfig)\["(\d+_\d+_[^"]+)"\]\s*=\s*(<config.*?</config>);', re.S)
     for d, _, ns in os.walk(cfgdir):
         for n in sorted(ns):
             if n.endswith(".as"):
-                for kind, key, xml in pat.findall(open(os.path.join(d, n), encoding="utf-8").read()):
+                for kind, key, xml in TALK.findall(open(os.path.join(d, n), encoding="utf-8").read()):
                     (talk if kind == "npcTaskTalkConfig" else start)[key] = xml
+    # The scripts uploaded after 2013 keep their quests' conversations
+    # themselves (Task<id>NpcPanelConfig, given to the NPC service when the
+    # script loads); the tasknpc module's tables come first.
+    script_keys = set()
+    files = sorted({e["file"] for e in te if e["file"] and e["file"].startswith("taskext/")})
+    jobs = []
+    for f in files:
+        local = game_file(game, f + ".swf")
+        if local is not None:
+            out = os.path.join(work, "scripts", os.path.basename(f))
+            jobs.append((local, out))
+    with concurrent.futures.ThreadPoolExecutor(4) as ex:
+        list(ex.map(lambda j: os.path.isdir(j[1]) or decompile(ffdec, j[0], j[1]), jobs))
+    for _, out in jobs:
+        for d, _, ns in os.walk(out):
+            for n in sorted(ns):
+                if n.endswith("NpcPanelConfig.as"):
+                    body = open(os.path.join(d, n), encoding="utf-8", errors="replace").read()
+                    cfg = os.path.join(d, n.replace("NpcPanelConfig.as", "Config.as"))
+                    cfg_body = open(cfg, encoding="utf-8", errors="replace").read() if os.path.isfile(cfg) else ""
+                    for kind, key, xml in script_talks(body, cfg_body):
+                        table = talk if kind == "npcTaskTalkConfig" else start
+                        if key not in table:
+                            table[key] = xml
+                            script_keys.add(key)
 
-    t = {"defines": defines, "starters": starters, "panels": panels, "te": te, "talk": talk, "start": start}
+    t = {"defines": defines, "starters": starters, "panels": panels, "te": te, "talk": talk, "start": start, "script_keys": script_keys}
     owner = {s: k for k in defines for s in steps_of(t, k)}
     entries_of: dict[int, list] = {}
     for e in te:
@@ -136,7 +183,8 @@ def steps_of(t: dict, task: int) -> list[int]:
     return [int(x) for x in d[1].split(",") if x] if d and d[0] == 0 else []
 
 
-def choose(t: dict, game: str, allow_later: bool = True, require_scripts: bool = True, why_not: dict | None = None) -> list[int]:
+def choose(t: dict, game: str, allow_later: bool = True, require_scripts: bool = True, why_not: dict | None = None,
+           require_talk: bool = True) -> list[int]:
     why_not = {} if why_not is None else why_not
     origin = {}
     newest = 0
@@ -156,7 +204,7 @@ def choose(t: dict, game: str, allow_later: bool = True, require_scripts: bool =
             continue
         st = steps_of(t, task)
         talked = sum(1 for s in st if s in talk_steps)
-        if not st or talked < max(1, len(st) // 2):
+        if require_talk and (not st or talked < max(1, len(st) // 2)):
             why_not[task] = "no conversations"
             continue
         if require_scripts:
@@ -188,8 +236,13 @@ def write(t: dict, chosen: list[int], out_gen: str, out_static: str) -> dict:
             lst = scene_te.setdefault(e["scene"], [])
             if e not in lst:
                 lst.append(e)
-    talk_keys = sorted(k for k in t["talk"] if int(k.split("_")[1]) in ids)
-    start_keys = sorted(k for k in t["start"] if int(k.split("_")[1]) in ids)
+    # Scripts number the parts of a step too: 202802 is part 2 of step 2028 (they open those themselves).
+    def ours(k: str) -> bool:
+        i = int(k.split("_")[1])
+        return i in ids or (i >= 10000 and i // 100 in step_ids)
+
+    talk_keys = sorted(k for k in t["talk"] if ours(k))
+    start_keys = sorted(k for k in t["start"] if ours(k))
 
     def s(v) -> str:
         return json.dumps(v, ensure_ascii=False)
@@ -230,7 +283,8 @@ def write(t: dict, chosen: list[int], out_gen: str, out_static: str) -> dict:
     json.dump({"defines": {str(i): list(defines[i]) for i in sorted(ids) if i in defines}, "starters": {str(k): starters[k] for k in chosen}},
               open(os.path.join(out_static, WWW, "revival", "tasks.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
     return {"steps": len(step_ids), "scripts": len({e["file"] for k in chosen for e in t["entries_of"].get(k, [])}),
-            "talks": len(talk_keys), "starts": len(start_keys)}
+            "talks": len(talk_keys), "starts": len(start_keys),
+            "from_scripts": len([k for k in talk_keys + start_keys if k in t["script_keys"]])}
 
 
 def main(argv=None) -> None:
@@ -246,7 +300,8 @@ def main(argv=None) -> None:
     why: dict[int, str] = {}
     chosen = choose(t, a.game, why_not=why)
     n = write(t, chosen, a.out_gen, a.out_static)
-    print(f"{len(chosen)} tasks, {n['steps']} steps, {n['scripts']} scripts, {n['talks']} task talks, {n['starts']} start talks")
+    print(f"{len(chosen)} tasks, {n['steps']} steps, {n['scripts']} scripts, {n['talks']} task talks, {n['starts']} start talks"
+          f" ({n['from_scripts']} of the talks from the scripts' own tables)")
     for k in chosen:
         st = t["starters"][k]
         print(f"  {k:5d} {st['name']}  (pre {','.join(map(str, st['pre'])) or '-'}, area {st['area']})")

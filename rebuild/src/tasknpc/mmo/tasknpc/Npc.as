@@ -86,6 +86,7 @@ package mmo.tasknpc
          view = new Sprite();
          view.name = "npc_" + id;
          view.buttonMode = true;
+         art.name = "npcArt";
          view.addChild(art);
          var name:String = TaskNpcService.npcName(id);
          if (name)

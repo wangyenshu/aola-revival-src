@@ -11,12 +11,22 @@ file defines (e.g. mmo.dress.Clothes51_1), newest file first as the live
 list orders them; cover pages (file 1) are kept from the live list. Pages
 whose file is not an era file are left out, so later clothes are not sold.
 
-  tools/gen_bconfig.py --bconfig <ConfigEmbed_bconfigClass.bin> --mirror mirror \\
+  tools/gen_bconfig.py --bconfig tools/data/live-bconfig.xml --mirror mirror \\
+      --game game --materials rebuild/static/www.9aola.com/revival/materials.json \\
       --out rebuild/gen/bconfig
+
+With --game and --materials, page files that are in game/ but not in the
+mirror (copies taken from the live server later, tools/add_later.py, for
+books whose 2013 pages the archive lacks: the 道具, 家具, 种植 and 射击卡
+books) count too, when every item they sell (buttons btnBuy_<type>_<id>) is
+in the 2013 material data and they sell something: a page selling anything
+newer than January 2013 is a later page and stays out.
+(tools/data/live-bconfig.xml is the live list: ConfigEmbed_bconfigClass.bin.)
 """
 from __future__ import annotations
 
 import argparse
+import json
 import glob
 import lzma
 import os
@@ -38,8 +48,9 @@ def swf_body(b: bytes) -> bytes:
     return b""
 
 
-def era_pages(mirror: str, file_prefix: str, class_prefix: str) -> list[tuple[int, int]]:
-    """(file number, page number) for each page class in era page files."""
+def era_pages(mirror: str, file_prefix: str, class_prefix: str, accept=None) -> list[tuple[int, int]]:
+    """(file number, page number) for each page class in era page files.
+    accept(n, body): whether to take page file n (default: all)."""
     out = []
     base = os.path.join(mirror, HOST, *file_prefix.split("/"))
     pat = re.compile(re.escape(class_prefix).encode() + rb"(\d+)_(\d+)")
@@ -52,9 +63,19 @@ def era_pages(mirror: str, file_prefix: str, class_prefix: str) -> list[tuple[in
             body = swf_body(open(f, "rb").read())
         except Exception:
             continue
+        if accept is not None and not accept(n, body):
+            continue
         pages = sorted({int(p) for fn, p in pat.findall(body) if int(fn) == n})
         out += [(n, p) for p in pages]
     return out
+
+
+def sells_2013(materials: dict):
+    """accept() for page files taken later: they sell something, and only 2013 materials."""
+    def accept(n: int, body: bytes) -> bool:
+        ids = set(re.findall(rb"btnBuy_(\d+)_(\d+)", body))
+        return bool(ids) and all(i.decode() in materials.get(t.decode(), {}) for t, i in ids)
+    return accept
 
 
 def main(argv=None) -> None:
@@ -62,7 +83,12 @@ def main(argv=None) -> None:
     ap.add_argument("--bconfig", required=True)
     ap.add_argument("--mirror", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--game", help="game/: page files added from the live server count too (with --materials)")
+    ap.add_argument("--materials", help="revival/materials.json, the 2013 material data")
     a = ap.parse_args(argv)
+    later = None
+    if a.game and a.materials:
+        later = sells_2013(json.load(open(a.materials, encoding="utf-8")))
     text = open(a.bconfig, encoding="utf-8-sig").read()
     root = ET.fromstring(text)
     kept = dropped = 0
@@ -74,9 +100,17 @@ def main(argv=None) -> None:
             f, t = el.get("f", ""), el.get("t", "")
             live = [tuple(int(x) for x in p.split(",")) for p in el.get("p", "").split(";") if "," in p]
             era = era_pages(a.mirror, f, t) if t else []
+            from_mirror = bool(era)
+            if later is not None and t:
+                have = {n for n, _ in era}
+                era += [p for p in era_pages(a.game, f, t, later) if p[0] not in have]
             era_files = {n for n, _ in era}
             covers = [p for p in live if p[0] == 1 and 1 not in era_files]
             pages = covers + sorted(era, key=lambda p: (-p[0], p[1]))
+            if era and not from_mirror:
+                # A book only of pages taken later: in the live list's order (scenes open
+                # its pages by index), pages it no longer lists after them.
+                pages = [p for p in live if p in pages] + [p for p in pages if p not in live]
             if not pages:
                 g.remove(el)
                 dropped += 1

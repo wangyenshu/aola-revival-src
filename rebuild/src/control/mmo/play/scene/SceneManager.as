@@ -2,7 +2,9 @@ package mmo.play.scene
 {
    import flash.utils.setTimeout;
    import flash.display.DisplayObject;
+   import flash.display.MovieClip;
    import flash.display.Sprite;
+   import flash.media.SoundMixer;
    import flash.events.EventDispatcher;
    import flash.geom.Point;
    import mmo.config.ConfigReader;
@@ -33,6 +35,12 @@ package mmo.play.scene
       private static var _instance:SceneManager;
 
       public var loadedSceneInfo:SceneInfo;
+
+      /** LATER helper: the name of the scene the player is in ("" while none is). */
+      public function getCurSceneName():String
+      {
+         return loadedSceneInfo != null ? loadedSceneInfo.sceneName : "";
+      }
       private var loadingInfo:SceneInfo;
       private var history:Array = [];
       private var busy:Boolean;
@@ -68,16 +76,101 @@ package mmo.play.scene
          return busy;
       }
 
-      /** Mini games (DocGameBase SWFs) are not rebuilt yet. */
+      /** The mini game being played: {sceneName, swf, ext, doc, view}; null outside games. */
+      public var loadedGameInfo:Object;
+      private var gameLayer:Sprite;
+
+      /**
+       * REBUILT. A mini game: a room of config.xml with game="1" (GameTable
+       * names them; IGameManager.loadGame) whose SWF has a DocGameBase
+       * document class. Its game view (DocGameBase.game, or the document
+       * itself when that is null, as in game/ropedancer) covers the screen on
+       * the apps layer, under the dialogs it opens; unloadGame() takes it away
+       * and the player is back in the scene (entered again, SCENE_INITED, as
+       * after leaving a 2013 game room; games wait for that).
+       */
       public function loadGame(name:String, show:Boolean = true, ext:* = null):void
       {
-         RLog.log("scene: loadGame " + name + " (mini games are not rebuilt yet)");
-         RNotice.show(LayerManager.getBaseScene().stage, "这个小游戏还没有修复好哦！");
+         if (busy || loadedGameInfo != null) return;
+         var cfg:ConfigReader = ConfigReader.instance;
+         var swf:String = cfg.getSceneSwf(name);
+         if (swf == null || swf == "")
+         {
+            RLog.log("scene: no game named " + name);
+            RNotice.show(LayerManager.getBaseScene().stage, "这个小游戏还没有修复好哦！");
+            return;
+         }
+         var e:SceneManagerEvent = new SceneManagerEvent(SceneManagerEvent.ON_LOADING_SCENE, {sceneName: name, game: true});
+         dispatchEvent(e);
+         if (e.params.cancel) return;
+         busy = true;
+         var info:Object = {sceneName: name, swf: swf, ext: ext};
+         var arrived:Boolean = false;
+         var desc:String = cfg.getSceneDescription(name);
+         RLog.log("scene: loadGame " + name + " (" + swf + ")");
+         SimpleCustomLoader.loadSingleResource(swf, null, LoadingSpriteType.FULL_SCREEN, "正在打开" + (desc || "小游戏") + "……", function(content:Object):void
+         {
+            arrived = true;
+            busy = false;
+            try
+            {
+               var doc:DocGameBase = content as DocGameBase;
+               if (doc == null && content != null && content.hasOwnProperty("content")) doc = content["content"] as DocGameBase;
+               var view:DisplayObject = doc != null ? doc.game : null;
+               if (view == null) view = (doc != null ? doc : content) as DisplayObject;
+               if (view == null) throw new Error("not a game document");
+               info.doc = doc;
+               info.view = view;
+               loadedGameInfo = info;
+               gameLayer = new Sprite();
+               gameLayer.name = "gameLayer";
+               gameLayer.graphics.beginFill(0x000000);
+               gameLayer.graphics.drawRect(0, 0, 960, 560);
+               gameLayer.graphics.endFill();
+               gameLayer.addChild(view);
+               LayerManager.getBaseApp().addChild(gameLayer);
+               isSuspend = true;
+               dispatchEvent(new SceneManagerEvent(SceneManagerEvent.GAME_INITED, {gameInfo: info, sceneName: name}));
+            }
+            catch (err:Error)
+            {
+               RLog.error("scene: game " + name, err);
+               loadedGameInfo = null;
+               if (gameLayer && gameLayer.parent) gameLayer.parent.removeChild(gameLayer);
+               gameLayer = null;
+               RNotice.show(LayerManager.getBaseScene().stage, "这个小游戏打不开了。");
+            }
+         }, this, function():void
+         {
+            setTimeout(function():void
+            {
+               if (!arrived && busy)
+               {
+                  busy = false;
+                  RNotice.show(LayerManager.getBaseScene().stage, "这个小游戏的文件找不到了。");
+               }
+            }, 0);
+         });
       }
 
       public function unloadGame():void
       {
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.UNLOAD_GAME));
+         var info:Object = loadedGameInfo;
+         loadedGameInfo = null;
+         if (gameLayer != null && gameLayer.parent != null) gameLayer.parent.removeChild(gameLayer);
+         gameLayer = null;
+         if (info != null)
+         {
+            try { if (info.view is MovieClip) MovieClip(info.view).stop(); } catch (e1:Error) {}
+            SoundMixer.stopAll();
+            isSuspend = false;
+         }
+         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.UNLOAD_GAME, {gameInfo: info}));
+         if (info != null && loadedSceneInfo != null)
+         {
+            var back:String = loadedSceneInfo.sceneName;
+            setTimeout(function():void { loadScene(back, "default", true); }, 0);
+         }
       }
 
       /** Instance (副本) scenes: entered like any scene, keyed by their scene name. */
@@ -186,6 +279,17 @@ package mmo.play.scene
       public function loadSceneWith(info:SceneInfo, hooks:Object = null):void
       {
          if (busy) return;
+         if (loadedGameInfo != null)
+         {
+            // Going elsewhere from inside a mini game (a task, a test): the game goes away.
+            var g:Object = loadedGameInfo;
+            loadedGameInfo = null;
+            if (gameLayer != null && gameLayer.parent != null) gameLayer.parent.removeChild(gameLayer);
+            gameLayer = null;
+            SoundMixer.stopAll();
+            isSuspend = false;
+            dispatchEvent(new SceneManagerEvent(SceneManagerEvent.UNLOAD_GAME, {gameInfo: g}));
+         }
          busy = true;
          loadingInfo = info;
          loadingHooks = hooks || {};

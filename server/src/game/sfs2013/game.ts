@@ -3,11 +3,13 @@
 // every unhandled extension call is logged with its parameters.
 
 import type { Emulator } from "../../core/emulator.ts";
-import { installPets, followVar, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
-import { installBattles, type WildEntry } from "./battle.ts";
-import { installTasks, registerTaskTables, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
+import { installPets, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
+import { installBattles, gainExp, type WildEntry } from "./battle.ts";
+import { installTasks, registerTaskTables, stepsByItems, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
 import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord } from "./house.ts";
+import { installShoot, type CardRow } from "./shoot.ts";
+import { installPlants, plantTree, type PlantRec } from "./plants.ts";
 import { World, type XtContext } from "./server.ts";
 
 export interface UserRecord {
@@ -38,16 +40,33 @@ export interface UserRecord {
   tasks?: Record<string, UserTaskRec>;
   /** The HELLO, once the newbie quest has given it. */
   robot?: RobotRecord;
+  /** 晶币 won in mini games today. */
+  gameCoins?: { day: string; n: number };
+  /** 星币 (UserInfo.xingbi) and 晶豆 (a later currency; kept for the toolbox only). */
+  xingbi?: number;
+  jingdou?: number;
+  /** The trees of the 家园 (plants.ts). */
+  plants?: PlantRec[];
+  nextPlantId?: number;
 }
 
 /**
  * Starting outfit for a new player. The server-side default is not in any
  * surviving file; this is the 酷蓝 set (clothes 126–132 in the 2013
  * materialdata: hair, cape, suit, trousers, boots, eyes), one of the free
- * outfits the client data marks as not for sale. The body itself comes from
- * config.xml's <avatar dids="1,10145"> defaults.
+ * outfits the client data marks as not for sale, over the bare head and body
+ * (BASE_CLOTHES).
  */
-export const DEFAULT_AVATAR = "126;127;129;130;131;132";
+export const DEFAULT_AVATAR = "6;7;126;127;129;130;131;132";
+
+/**
+ * The bare head and body (clothes 6 _底色头部 and 7 _底色身体, hidden from the
+ * wardrobe by their "_" names): always worn, under everything. The big
+ * avatar of the 形象卡 draws the legs and arms from 7 (its parts
+ * DI_SE__QU_GAN_HE_TUI, DI_SE__SHOU_BI_*); without it the trousers float
+ * above the shoes.
+ */
+export const BASE_CLOTHES = ["6", "7"];
 
 /**
  * 晶币 a new player starts with. Not in any surviving file (the 2013 server
@@ -83,7 +102,6 @@ const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
   "MaterialExtension.61_6": { clothes: [] }, // RobotClothesService
   "MaterialExtension.61_7": { cards: [] }, // PetCardService
   "MaterialExtension.61-8": { cards: [] }, // PetCard2Service
-  "PlantExtension.80_1": { userPlants: [] }, // PlantService
   "PlantItemExtension.81_2": { items: [] }, // PlantItemService
   "RobotExtension.2-6": { i: [] }, // RobotItemService
   "SundriesExtension.70-1": { b: [] }, // BadgeService
@@ -101,6 +119,9 @@ async function userRecord(emu: Emulator, name: string): Promise<UserRecord | und
 /** Older saves predate money and inventory: give them the defaults. */
 function normalise(rec: UserRecord): UserRecord {
   if (!rec.avatar) rec.avatar = DEFAULT_AVATAR;
+  const wornNow = rec.avatar.split(";").filter(Boolean);
+  for (const id of BASE_CLOTHES) if (!wornNow.includes(id)) wornNow.unshift(id);
+  rec.avatar = wornNow.join(";");
   if (rec.score == null) rec.score = START_SCORE;
   if (!rec.items) rec.items = {};
   const clothes = (rec.items["0"] ??= {});
@@ -112,6 +133,30 @@ function normalise(rec: UserRecord): UserRecord {
   }
   houseOf(rec);
   return rec;
+}
+
+/** Mini game rates (RECONSTRUCTED): points per 晶币, 晶币 a game at most, 晶币 a day at most. */
+export const GAME_SCORE_PER_COIN = 10;
+export const GAME_COINS_PER_GAME = 200;
+export const GAME_COINS_PER_DAY = 1000;
+
+/**
+ * The inverse of the 2013 client's Encrypt.encryptCode (a 7-digit score
+ * shuffled, framed and turned into 9 digits).
+ */
+export function decryptScore(code: number): number {
+  const EVEN = [1, 3, 6, 0, 9, 5, 2, 7, 4, 8];
+  const ODD = [2, 7, 4, 8, 1, 3, 6, 0, 9, 5];
+  const POS = [2, 5, 3, 0, 6, 4, 1];
+  const c = String(Math.max(0, Math.floor(code))).padStart(9, "0").slice(-9).split("").map(Number);
+  const b = c.map((v, i) => (i % 2 === 1 ? ODD : EVEN).indexOf(v));
+  const p: number[] = [];
+  p[0] = (b[0] - 7 + 10) % 10;
+  for (let i = 1; i < 9; i++) p[i] = (b[i] - p[i - 1] + 10) % 10;
+  const a = p.slice(1, 8);
+  const d: number[] = new Array(7).fill(0);
+  for (let i = 0; i < 7; i++) d[POS[i]] = a[i];
+  return Number(d.join(""));
 }
 
 export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World {
@@ -174,7 +219,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const rec = await me(ctx);
     const worn = new Set(rec.avatar!.split(";").filter(Boolean));
     for (const id of String(ctx.params.cid ?? "").split(",").filter(Boolean)) {
-      if (!rec.items!["0"]?.[id]) continue;
+      if (!rec.items!["0"]?.[id] || BASE_CLOTHES.includes(id)) continue;
       if (worn.has(id)) worn.delete(id);
       else worn.add(id);
     }
@@ -204,6 +249,28 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ userId: rec.id, totalScore: rec.score });
   });
 
+  // Mini games: SocketClient.endGame -> ScoreManager.increaseScore {score (encrypted, Encrypt.encryptCode),
+  // level, exitWay, gameName} -> increaseScore {scoreAdded, state, got}; the games show scoreAdded as
+  // the 晶币 won and a tip for state -1/-2/-3. The 2013 rates are lost: RECONSTRUCTED as one 晶币 per
+  // GAME_SCORE_PER_COIN points, at most GAME_COINS_PER_GAME a game and GAME_COINS_PER_DAY a day (then state -1).
+  world.xt("ScoreManager.increaseScore", async (ctx) => {
+    const rec = await me(ctx);
+    const points = Math.max(0, decryptScore(Number(ctx.params.score) || 0));
+    const day = emu.clock.now().toISOString().slice(0, 10);
+    if (rec.gameCoins?.day !== day) rec.gameCoins = { day, n: 0 };
+    let coins = Math.min(GAME_COINS_PER_GAME, Math.floor(points / GAME_SCORE_PER_COIN));
+    let state = 1;
+    if (rec.gameCoins.n + coins > GAME_COINS_PER_DAY) {
+      coins = Math.max(0, GAME_COINS_PER_DAY - rec.gameCoins.n);
+      state = -1;
+    }
+    rec.gameCoins.n += coins;
+    rec.score = (rec.score ?? 0) + coins;
+    await save(rec);
+    if (coins > 0) ctx.reply({ score: rec.score }, "onScoreUpdated");
+    ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? "") }, "increaseScore");
+  });
+
   // MaterialClient.buyMaterial: {tp, mi, qt}. Replies {res} (1 ok, -1 not for sale, -2 too little 晶币,
   // -3 real-money item, -4 already owned); on success pushes onScoreUpdated and onAmountUpdated
   // (the original AmountUpdateService adds the item on the client).
@@ -216,6 +283,15 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const owned = (rec.items![tp] ??= {});
     const fail = (res: number) => ctx.reply({ res, tp: Number(tp), mi: Number(mi), qt });
     if (!row) return fail(-1);
+    if (tp === "9") {
+      // A tree of the 种植手册: it goes into the 植树盆 of the 家园 (plants.ts).
+      const tree = plantTree(rec, Number(mi));
+      if (typeof tree === "number") return fail(tree === -2 ? -2 : -4);
+      await save(rec);
+      ctx.reply({ score: rec.score }, "onScoreUpdated");
+      ctx.reply({ amount: `9_${mi}_0_1_${tree.id}` }, "onAmountUpdated");
+      return ctx.reply({ res: 1, tp: 9, mi: Number(mi), qt: 1, score: rec.score });
+    }
     const [price, buyback, rmb, maxQ] = row;
     const unit = price > 0 ? price : buyback * 2;
     if (unit <= 0 && rmb > 0) return fail(-3);
@@ -267,11 +343,96 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ result: 1, itemId: Number(mi), qt });
   });
 
+  // Items a quest's script hands out or takes (the era GatherClient):
+  //   14_8 collectItem {ii, qt}, 14_6 collectItemOnce {ii, qt} (only while the player has none),
+  //   14_7 decreaseMyItem {ii, qt}; the items (道具, type 2) arrive through onAmountUpdated, and the
+  //   quest steps waiting for them finish (tasks.ts stepsByItems). No reply of the 2013 server to
+  //   these survives, and the scripts wait for none. RECONSTRUCTED.
+  const questItem = async (ctx: XtContext, once: boolean, sign: number) => {
+    const mi = String(Number(ctx.params.ii));
+    const qt = Math.max(1, Number(ctx.params.qt) | 0);
+    const rec = await me(ctx);
+    const items = (rec.items!["2"] ??= {});
+    if (once && (items[mi] ?? 0) > 0) return;
+    const row = (await table())["2"]?.[mi];
+    const maxQ = row ? Math.max(1, row[3]) : 999;
+    const before = items[mi] ?? 0;
+    const after = sign > 0 ? Math.min(maxQ, before + qt) : Math.max(0, before - qt);
+    if (after === before) return;
+    if (after > 0) items[mi] = after;
+    else delete items[mi];
+    ctx.reply({ amount: `2_${mi}_0_${after - before}` }, "onAmountUpdated");
+    const r = stepsByItems(rec, emu.clock.now().getTime());
+    for (const [ii, n] of r.taken) ctx.reply({ amount: `2_${ii}_0_${-n}` }, "onAmountUpdated");
+    for (const c of r.changes) ctx.reply({ t: c.t, ty: c.ty }, "10-1");
+    if (r.score !== undefined) ctx.reply({ score: r.score }, "onScoreUpdated");
+    await save(rec);
+  };
+  world.xt("MaterialExtension.14_8", (ctx) => questItem(ctx, false, 1));
+  world.xt("MaterialExtension.14_6", (ctx) => questItem(ctx, true, 1));
+  world.xt("MaterialExtension.14_7", (ctx) => questItem(ctx, false, -1));
+
+  // ---------------------------------------------------------------- the toolbox (工具箱)
+  // Not of 2013: the revival's own panel for testing and for players who want it
+  // (rebuilt control, ToolboxPanel). SundriesExtension.revival_toolbox (the client
+  // reaches the server only through the extensions it numbers)
+  //   {score, xingbi, jingdou, exp}  adds that much (晶币 at most 9,999,999; exp to the
+  //                                  first 亚比 of the bag, with its levels and evolutions)
+  //   {raceId, level}                a new 亚比 (to the bag, or the 亚比仓库 when the bag is full)
+  //   -> revival_toolbox {score, xingbi, jingdou, msg}, onScoreUpdated, and the 亚比 replies
+  world.xt("SundriesExtension.revival_toolbox", async (ctx) => {
+    const rec = await me(ctx);
+    const p = ctx.params;
+    const t = await tables();
+    const add = (v: unknown) => Math.max(0, Math.min(9_999_999, Number(v) | 0));
+    const said: string[] = [];
+    if (add(p.score)) {
+      rec.score = Math.min(9_999_999, (rec.score ?? 0) + add(p.score));
+      ctx.reply({ score: rec.score }, "onScoreUpdated");
+      said.push(`晶币 +${add(p.score)}`);
+    }
+    if (add(p.xingbi)) {
+      rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + add(p.xingbi));
+      said.push(`星币 +${add(p.xingbi)}`);
+    }
+    if (add(p.jingdou)) {
+      rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + add(p.jingdou));
+      said.push(`晶豆 +${add(p.jingdou)}`);
+    }
+    if (add(p.exp)) {
+      const pet = rec.pets?.[0];
+      if (!pet) said.push("背包里没有亚比，经验没有加上");
+      else {
+        const r = gainExp(t, pet, add(p.exp));
+        for (const [cmd, body] of r.msgs) ctx.reply(body, cmd);
+        if (r.evolvedTo && rec.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+        said.push(`${nameOf(t, pet.race)} 经验 +${add(p.exp)}（Lv${pet.level}）`);
+      }
+    }
+    const race = Number(p.raceId) | 0;
+    if (race > 0) {
+      if (!speciesOf(t, race)) said.push(`没有编号为 ${race} 的亚比`);
+      else {
+        const pet = newPet(rec, t, race, Math.max(1, Math.min(100, Number(p.level) || 5)), today());
+        if ((rec.pets ??= []).length < 6) {
+          rec.pets.push(pet);
+          ctx.reply({ pm: detailOf(pet, rec, t) }, "2201");
+          said.push(`得到了 Lv${pet.level} ${nameOf(t, race)}`);
+        } else {
+          (rec.storage ??= []).push(pet);
+          said.push(`得到了 Lv${pet.level} ${nameOf(t, race)}，背包满了，放进了亚比仓库`);
+        }
+      }
+    }
+    await save(rec);
+    ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, msg: said.join("\n") }, "revival_toolbox");
+  });
+
   // ---------------------------------------------------------------- pets
 
   const today = () => emu.clock.now().toISOString().slice(0, 10);
   installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today });
-  installBattles(world, { load: me, save: (o) => save(o as UserRecord), tables, wild, today });
+  installBattles(world, { load: me, save: (o) => save(o as UserRecord), tables, wild, today, now: () => emu.clock.now().getTime() });
 
   const taskTables = json<TaskTables>("revival/tasks.json", { defines: {}, starters: {} }).then(registerTaskTables);
   installTasks(world, { load: me, save: (o) => save(o as UserRecord), now: () => emu.clock.now().getTime(), ready: taskTables, dev: opts.dev });
@@ -280,6 +441,19 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     me,
     find: (name) => userRecord(emu, name),
     save: (o) => save(o as UserRecord),
+  });
+
+  installPlants(world, {
+    me,
+    find: (name) => userRecord(emu, name),
+    save: (o) => save(o as UserRecord),
+    now: () => emu.clock.now().getTime(),
+  });
+
+  installShoot(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    cards: async () => ((await table())["4"] ?? {}) as unknown as Record<string, CardRow>,
   });
 
   // ---------------------------------------------------------------- test commands

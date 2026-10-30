@@ -315,6 +315,42 @@ export function installPets(world: World, deps: PetDeps): void {
     ctx.reply({ pmList: pets.map((p) => briefOf(p, o, t)), pms: pets[0] ? `${pets[0].id}#` : "", cui: 0, prv: [] }, "2212");
   });
 
+  // 亚比仓库 (pet/petwarehouse; the 2013 module is lost, the commands are the era PetClient's):
+  //   1213 viewPMInLocation {pmType, page, loc, order, asc} -> 2213 {loc, page, pages, total, pmList}
+  //        loc 1 the 仓库 (STORAGE_PAGE to a page), loc 0 the bag
+  //   1224 sendPmToFromStorage {id, loc} -> 2224 {result, id, loc}   loc: where it goes (1 仓库, 0 bag)
+  //        result 1 done, -1 no such 亚比, -2 the bag is full, -3 the last 亚比 of the bag stays
+  // The 2013 rules are lost: RECONSTRUCTED (the bag holds 6 as everywhere in the client).
+  const STORAGE_PAGE = 12;
+  world.xt(`${EXT}.1213`, async (ctx) => {
+    const { o, t } = await loadAll(ctx);
+    const loc = Number(ctx.params.loc) | 0;
+    const all = loc === 1 ? (o.storage ??= []) : list(o);
+    const pages = Math.max(1, Math.ceil(all.length / STORAGE_PAGE));
+    const page = Math.max(0, Math.min(pages - 1, Number(ctx.params.page) | 0));
+    const shown = loc === 1 ? all.slice(page * STORAGE_PAGE, (page + 1) * STORAGE_PAGE) : all;
+    ctx.reply({ loc, page, pages, total: all.length, pmList: shown.map((p) => briefOf(p, o, t)) }, "2213");
+  });
+  world.xt(`${EXT}.1224`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const id = Number(ctx.params.id);
+    const loc = Number(ctx.params.loc) | 0;
+    const bag = list(o);
+    const store = (o.storage ??= []);
+    const from = loc === 1 ? bag : store;
+    const to = loc === 1 ? store : bag;
+    const i = from.findIndex((p) => p.id === id);
+    const answer = (result: number) => ctx.reply({ result, id, loc }, "2224");
+    if (i < 0) return answer(-1);
+    if (loc === 0 && bag.length >= 6) return answer(-2);
+    if (loc === 1 && bag.length <= 1) return answer(-3);
+    const [p] = from.splice(i, 1);
+    to.push(p);
+    if (loc === 1 && o.followPet === id) o.followPet = 0;
+    await deps.save(o);
+    answer(1);
+  });
+
   // viewSinglePM {id} -> {pm: PetDetailedInfo}
   world.xt(`${EXT}.1211`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
@@ -329,8 +365,13 @@ export function installPets(world: World, deps: PetDeps): void {
     const race = Number(ctx.params.raceId);
     if (!t.species[String(race)] && !t.pm.species[String(race)]) return ctx.reply({ msg: "没有这种亚比" }, "2201");
     const pets = list(o);
-    if (pets.length >= 6) return ctx.reply({ msg: "你的背包里已经有6只亚比了" }, "2201");
     const p = newPet(o, t, race, Math.max(1, Math.min(100, Number(ctx.params.level) || 5)), deps.today());
+    if (pets.length >= 6) {
+      // A full bag: to the 亚比仓库, as a catch with a full bag goes (RECONSTRUCTED).
+      (o.storage ??= []).push(p);
+      await deps.save(o);
+      return ctx.reply({ msg: `${nameOf(t, race)}已经放进了亚比仓库` }, "2201");
+    }
     pets.push(p);
     await deps.save(o);
     ctx.reply({ pm: detailOf(p, o, t) }, "2201");

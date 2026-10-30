@@ -73,7 +73,7 @@ tell from a name like `aola.js~3F20121227`.
 
 ## game/
 
-16,668 files (917 MB) at the paths the January 2013 client asks for:
+17,186 files (1,108 MB) at the paths the January 2013 client asks for:
 `www.9aola.com/<path>%3F<version>`, the version being the one in the
 2013-01-25 manifest or the loader's default `1210`.
 
@@ -81,17 +81,18 @@ tell from a name like `aola.js~3F20121227`.
 
 | Origin | Files | What |
 | --- | --: | --- |
-| `era` | 13,057 | from the live-CDN archive of 28 October 2026, uploaded on or before the release date: the files the 2013 client loaded, or older unchanged ones |
-| `later` | 3,473 | uploaded after the release: used only where nothing older survives, and only what the 2013 client asks for (listed in the manifest or the config, the 亚比, NPCs, tasks and furniture of the 2013 ranges by number); 87 of them (`"added": "story quests"`) for the 2012 story quests, whose scenes the 2013 client no longer had (`tools/story_files.py`) |
+| `era` | 13,305 | from the live-CDN archive of 28 October 2026, uploaded on or before the release date: the files the 2013 client loaded, or older unchanged ones; 248 of them taken later, which the archive's first pass had not asked for: 22 shop book pages and the 8 trees of the 家园 (`plant/y000001–8`, June 2012) with `tools/add_later.py`, 217 films, comics and panels of the 2012 story quests (`tools/story_files.py`), the 奥拉星2周年 film of the 百田大剧场 (`tools/theatre.py`) |
+| `later` | 3,737 | uploaded after the release: used only where nothing older survives, and only what the 2013 client asks for (listed in the manifest or the config, the 亚比, NPCs, tasks and furniture of the 2013 ranges by number); 291 of them (`"added": "story quests…"`) for the 2012 story quests: scenes the 2013 client no longer had, the scripts that survive only as their 2015–2019 uploads (`tools/story_files.py`) and the fight art of two task 亚比; with `tools/add_later.py`: 2 the HELLO's look, 51 shop book pages (道具, 家具, 种植, 射击卡), 6 the 形象卡's bare body; the 战队 film at its December 2012 address (a May 2013 upload, `tools/theatre.py`) |
+| `derived` | 6 | made here from a file above: the two films of the 百田大剧场 as WebM and MP4 (a page cannot play Flash video) and a frame of each (`tools/theatre.py`) |
 | `capture` | 138 | not on the CDN any more: Wayback Machine captures of the boot chain and pages, the November 2012 map from 百田's guide page |
 
 It was made from the archive (`docs/ARCHIVE.md`) and earlier captures with
 `tools/make_game_root.py select` (rules and lists in `tools/data/`), and the
-story-quest files added with `tools/story_files.py --fetch` (the only tool
-that downloads into `game/`; building never does). The same folder can be
-made again from `FILES.jsonl` and a local copy of the archive, every SHA-1
-checked, nothing downloaded (the story-quest files are not in the archive:
-give a copy of `game/` as a search folder):
+files added since with `tools/story_files.py --fetch`, `tools/add_later.py` and
+`tools/theatre.py` (the only tools that download into `game/`; building never does). The same
+folder can be made again from `FILES.jsonl` and a local copy of the archive,
+every SHA-1 checked, nothing downloaded (the files added since are not in the
+archive: give a copy of `game/` as a search folder):
 
 ```bash
 python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
@@ -115,7 +116,14 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
 - **In the browser**: `npx playwright install chromium` once, then
   `npm run e2e:newbie` plays the whole newbie quest in Chromium against
   `dist/` and leaves screenshots in `work/e2e-newbie/`; `npm run e2e:story`
-  plays the story quests 1214 and 1219 (`work/e2e-story/`).
+  plays the story quests 1214 and 1219 (`work/e2e-story/`), `npm run e2e:music`
+  listens to the scene music and the music switch (`work/e2e-music/`),
+  `npm run e2e:garden` plants a tree in the 家园, goes into the 小屋 and plays a
+  film of the 百田大剧场 (`work/e2e-garden/`).
+  The scenarios `storysmoke.mjs` (every start conversation), `stepsmoke.mjs`
+  (the conversation of each step, and the errors the scripts throw) and
+  `storyplay.mjs` (quests played through, `QUESTS=1742,1750`) look at the
+  story quests at large.
   `server/test/e2e/boot2013.mjs --mirror build/rebuilt,game` serves the game
   files straight from the roots (no `npm run build` after changing a module);
   `--url` tests a site served elsewhere, such as `npm run serve -- --base
@@ -144,17 +152,28 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
 Working now: the newbie quest of 2012 from the HELLO's first call to
 麦哲伦's ceremony (choosing the first 亚比, the first fight, buying 亚比球,
 catching a 朵朵兔, getting the HELLO, with the era task panels and films);
-after it, 45 story quests of 2011–12 under 可接 in the task panel (巨人山脉,
-幽暗冥州, 钻石岛, 蔓藤峡谷 …) running their own scripts, the first two of
+after it, the 162 story quests of 2010–12 under 可接 in the task panel
+(猫王子, 思伍德, 烈焰鸟, 巨人山脉, 幽暗冥州, 钻石岛, 美食之星, 童话之星, 糖果星,
+骑士学院, 尖叫游乐园, 白灵圣殿 …) running their own scripts, the first two of
 巨人山脉 checked from start to end; the
-world map (the November 2012 map), NPCs with their talk, the control bar of
-December 2011 (phrases, faces, actions, chat log, 奥拉周刊), shops and the
-wardrobe, the pet bag and the following 亚比, the home with furniture and
-storage, gathering in scenes, and wild 亚比 with battles. Known gaps: the HELLO
-in scenes, bosses and arenas, friends, daily tasks, most mini games and
-activities are still stand-ins (clicking one says
-这个功能还在修复中). `docs/PLAN.md` lists every missing system, what survives
-of it, the server commands it needs, and the milestone order.
+world map (the November 2012 map), NPCs with their talk and the NPC
+challenges (异星使者维克 and ten others), each scene's music, walking round
+obstacles (A* on the scene's obstruction), the HELLO walking behind the player,
+the control bar of December 2011 (phrases, faces, actions, 射击 with the
+shoot cards and their effects, chat log, 奥拉周刊, music switch, 商城), the
+shop books (道具, 射击卡, 服装, 家具, 种植, the 收费 books of the 商城), the
+player card with the wardrobe, the pet bag and the following 亚比, the
+亚比仓库, the 家园 of 2012 (rebuilt from its tutorial picture: trees to plant,
+water, feed and pick in its 植树盆) with 我的家, the home with furniture and
+storage, the 百田大剧场 (the 奥拉星 films that survive), the start screen
+without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星币,
+晶豆, experience, any 亚比 by number; not of 2013), gathering in scenes, the wild and rare 亚比 the
+November 2012 map lists for each place, battles, and the mini games (their
+entrance panels, the games' own SWFs, 晶币 for the score). Known gaps: the
+HELLO's panel, bosses and arenas, friends, daily tasks and most activities
+are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every
+missing system, what survives of it, the server commands it needs, and the
+milestone order.
 
 ## Layout
 

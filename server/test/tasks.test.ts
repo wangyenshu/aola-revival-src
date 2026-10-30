@@ -7,7 +7,8 @@ type Msg = [string, Record<string, unknown>];
 
 function harness(owner: TaskOwner) {
   const handlers = new Map<string, XtHandler>();
-  const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world) } as unknown as World;
+  const vars: Record<string, unknown>[] = [];
+  const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: (_s: unknown, v: Record<string, unknown>) => vars.push(v) } as unknown as World;
   let now = 1000;
   installTasks(world, { load: async () => owner, save: async () => {}, now: () => now++ });
   const call = async (key: string, params: Record<string, unknown> = {}) => {
@@ -16,7 +17,7 @@ function harness(owner: TaskOwner) {
     await handlers.get(key)!(ctx, key);
     return out;
   };
-  return { call };
+  return { call, vars };
 }
 
 test("a new player starts the newbie quest at login", async () => {
@@ -91,6 +92,20 @@ test("the HELLO is added once", async () => {
   assert.equal(b.exp, 5);
 });
 
+test("the HELLO follows: the user variable r, gone when it stops", async () => {
+  const owner: TaskOwner = { robot: { name: "HELLO", exp: 0, follow: false } };
+  const { call, vars } = harness(owner);
+  const [[, r]] = await call("RobotExtension.2-1");
+  assert.equal(r.res, 1);
+  assert.equal(owner.robot!.follow, true);
+  assert.deepEqual(vars.at(-1), { r: "0,1,," });
+  await call("RobotExtension.2-2");
+  assert.equal(owner.robot!.follow, false);
+  assert.deepEqual(vars.at(-1), { r: null });
+  const [[, none]] = await harness({}).call("RobotExtension.2-1");
+  assert.equal(none.res, 0);
+});
+
 test("test runs can skip to a step", async () => {
   const { skipTo } = await import("../src/game/sfs2013/tasks.ts");
   const rec: TaskOwner = {};
@@ -120,4 +135,28 @@ test("the story quests come from revival/tasks.json; a type 12 starter follows i
   finishStep(rec, 1215, 4);
   const end = finishStep(rec, 1216, 5);
   assert.deepEqual(end.changes.slice(-3).map((c) => [c.t.ti, c.ty]), [[1214, TaskUpdate.FINISH], [1219, TaskUpdate.ADD], [1220, TaskUpdate.ADD]]);
+});
+
+test("an item step finishes once the script has handed out its items; a fight step once its task 亚比 is beaten", async () => {
+  const { registerTaskTables, skipTo, stepsByItems, stepsByPetWin } = await import("../src/game/sfs2013/tasks.ts");
+  registerTaskTables({
+    defines: {
+      "228": [0, "229,230"], "229": [14, "1|108:1"], "230": [11, ""],
+      "59": [0, "61,62,63"], "61": [11, ""], "62": [101, "10322,2"], "63": [11, ""],
+    },
+    starters: { "228": { type: 11, pre: [], name: "可恶的达斯特黑市" }, "59": { type: 11, pre: [], name: "干涸的河床" } },
+  });
+  const rec: TaskOwner & { items?: Record<string, Record<string, number>> } = {};
+  skipTo(rec, 229, 1);
+  assert.deepEqual(stepsByItems(rec, 2).changes, [], "no 人鱼鳞片 yet");
+  rec.items = { "2": { "108": 1 } };
+  const got = stepsByItems(rec, 3);
+  assert.deepEqual(got.changes.map((c) => [c.t.ti, c.ty]), [[229, TaskUpdate.FINISH], [230, TaskUpdate.ADD]]);
+  assert.deepEqual(got.taken, [[108, 1]], "c 1: the scale is taken back");
+  assert.equal(rec.items["2"]["108"], undefined);
+
+  skipTo(rec, 62, 4);
+  assert.deepEqual(stepsByPetWin(rec, 322, 5).changes, [], "another 亚比 does not count");
+  assert.deepEqual(stepsByPetWin(rec, 10322, 6).changes.map((c) => [c.t.ti, c.ty, c.t.ex]), [[62, TaskUpdate.UPDATE, 1]]);
+  assert.deepEqual(stepsByPetWin(rec, 10322, 7).changes.map((c) => [c.t.ti, c.ty]), [[62, TaskUpdate.FINISH], [63, TaskUpdate.ADD]]);
 });

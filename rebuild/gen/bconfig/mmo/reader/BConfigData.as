@@ -44,19 +44,20 @@ package mmo.reader
     <updateitem no="catalog201205" name="灵兽家具册子">20120906</updateitem>
   </updatelist>
   <catalogs>
-    <catalog no="catalog201001" n="道具商品册" f="catalog/item" t="mmo.itemcatalog.Item" p="1,1" />
+    <catalog no="catalog201001" n="道具商品册" f="catalog/item" t="mmo.itemcatalog.Item" p="1,1;3,1;2,1;2,2;3,2;4,1;4,2;9,1;8,1;8,2;7,1;6,1;5,1;5,2" />
     <catalog no="catalog201002" n="服装商品册" f="catalog/clothes" t="mmo.dress.Clothes" p="1,1;1,2;51,1;50,1;49,1;48,1;46,1;45,1;43,1;42,1;41,1;40,1;39,1;38,1;37,1;36,1;35,1;34,1;33,1;32,1;32,2;31,1;30,1;29,1;28,1;27,1;26,1;26,2;25,1;24,1;24,2;23,1;23,2;22,1;22,2;21,1;20,1;19,1;19,2;18,1;18,2;17,1;16,1;15,1;15,2;14,1;14,2;13,1;13,2;10,1;10,2;9,1;9,2;8,1;8,2;7,1;7,2;6,1;5,1;4,1;3,1;3,2;2,1;2,2" />
-    <catalog no="catalog201003" n="家具商品册" f="catalog/jiaju" t="mmo.funiturecatalog.Furniture" p="1,1;1,3" />
+    <catalog no="catalog201003" n="家具商品册" f="catalog/jiaju" t="mmo.funiturecatalog.Furniture" p="1,1;1,3;44,1;44,2;44,3;43,1;43,2;43,3;42,1;42,2;42,3;41,1;41,2;41,3;40,1;40,2;40,3;30,1;37,1;36,1;36,2;36,3;35,1;35,2;35,3;34,1;34,2;34,3;33,1;33,2;31,1;31,2;32,1;29,1;28,1;24,1;25,1;26,1;27,1;21,1;22,1;23,1;18,1;16,1;16,2;17,1;14,1;15,1;15,2;8,1;9,1;10,1;11,1;5,2;6,1;7,1;4,1;4,2;5,1;3,1;3,2;39,1;39,2;39,3;38,1;38,2;37,2;37,3;28,2;20,1;20,2;19,1;13,1;12,1;12,2;2,1;2,2" />
+    <catalog no="catalog201007" n="快捷道具册" f="catalog/item" t="mmo.itemcatalog.Item" p="2,1;2,2;3,2;4,1;4,2;9,1;8,1;8,2;7,1;6,1;5,1;5,2;3,1" />
     <catalog no="catalog201008" n="水上集市" f="catalog/watermaterial" t="mmo.watercatalog.WaterMaterial" p="1,1" />
     <catalog no="catalog201009" n="哈迷乐园" f="catalog/starlandmaterial" t="mmo.starlandcatalog.StarlandMaterial" p="1,1" />
     <catalog no="sellcard" n="哈米乐园购买卡片" f="catalog/happyArkSellPanel" t="mmo.happyArkcatalog.happyArkSellPanel" p="1,1" />
     <catalog no="catalog201011" n="明星亚比选票" f="catalog/staryabicatalog" t="mmo.staryabi.Catalog" p="1,1" />
     <catalog no="catalog201004" n="收费服装商品册" f="catalog/costume" t="mmo.dress.Costume" p="110,1;110,2;109,1;108,1;108,2;108,3;107,1;106,1;105,1;104,1;102,1;101,1;101,2;101,3;99,1;99,2;95,1;95,2;93,1;93,2;92,1;91,1;91,2;91,3;89,1;89,2;89,3;88,1;87,1;86,1;85,1;83,1;82,1;81,1;81,2;80,1;79,1;78,1;77,1;76,1;75,1;74,1;73,1;72,1;70,1;69,1;68,1;67,1;66,1;65,1;64,1;63,1;62,1;61,1;60,1;59,1;58,1;57,1;56,1;55,1;54,1;53,1;52,1;49,1;48,1;47,1;46,1;45,1;44,1;43,1;42,1;41,1;40,1;39,1;38,1;37,1;36,1;35,1;34,1;33,1;32,1;32,2;31,1;30,1;29,1;27,1;26,1;26,2;25,1;25,2;24,1;24,2;23,1;22,1;22,2;21,1;21,2;20,1;19,1;18,1;17,1;17,2;16,1;16,2;15,1;15,2;14,1;14,2;13,1;13,2;12,1;11,1;10,1;9,1;8,1;7,1;7,2;6,1;6,2;4,1;4,2;3,1;3,2;2,1;2,2" />
     <catalog no="catalog201005" n="收费道具商品册" f="catalog/tool" t="mmo.itemcatalog.Tool" p="1,1;55,1;54,1;53,1;52,1;51,1;50,1;49,1;48,1;47,1;46,1;45,1;44,1;43,1;42,1;41,1;41,2;40,1;39,1;38,1;37,1;36,1;35,1;34,1;33,1;33,2;32,1;31,1;30,1;29,1;28,1;27,1;26,1;25,1;24,1;23,1;22,1;19,1;19,2;17,2;16,1;16,2;15,1;15,2;14,1;14,2;13,1;13,2;12,1;12,2;9,1;7,1;7,2;6,1;6,2;2,1;2,2" />
-    <catalog no="catalog201006" n="收费亚比蛋商品册" f="catalog/egg" t="mmo.itemcatalog.Egg" p="1,1" />
+    <catalog no="catalog201006" n="收费亚比蛋商品册" f="catalog/egg" t="mmo.itemcatalog.Egg" p="1,1;5,1;5,2;3,1;2,1" />
     <catalog no="catalog201010" n="收费家具商品册" f="catalog/furniture" t="mmo.funiturecatalog.RMBFurniture" p="1,1;30,1;30,2;29,1;29,2;28,1;28,2;27,1;27,2;26,1;26,2;25,1;25,2;24,1;24,2;23,1;23,2;22,1;21,1;21,2;20,1;19,1;18,1;17,1;16,1;15,1;14,1;13,1;12,1;11,1;10,1;9,1;8,1;7,1;6,1;5,1;4,1;3,1;3,2;2,1" />
     <catalog no="catalog201101" n="许愿盒购买册" f="catalog/dreambox" t="mmo.bookdreambox.Dreambox" p="1,1" />
-    <catalog no="catalog201102" n="种植手册" f="catalog/zhongzhi" t="mmo.zhongzhi.ZhongZhi" p="1,1;1,2" />
+    <catalog no="catalog201102" n="种植手册" f="catalog/zhongzhi" t="mmo.zhongzhi.ZhongZhi" p="1,1;1,2;8,1;7,1;6,1;5,1;4,1;3,2;3,1;2,1;2,2" />
     <catalog no="catalog201103" n="种植星愿树" f="wishtree/wishtree" t="mmo.wishtree.BuyPanel" p="1,1" />
     <catalog no="catalog201104" n="射线商品册" f="catalog/radialcard" t="mmo.radialcard.Radialcard" p="1,1" />
     <catalog no="catalog201105" n="玄武商品册" f="catalog/lingshougongbuybook" t="mmo.lingshougongbuybook.LingShouGongBuyBook" p="1,3;1,1;1,2" />
@@ -64,7 +65,7 @@ package mmo.reader
     <catalog no="catalog201107" n="灵气射击卡道具购买册" f="catalog/lingqishoot" t="mmo.lingqishoot.LingqiShoot" p="1,1" />
     <catalog no="catalog201108" n="动物乐园购买册" f="catalog/catchanimalgame" t="mmo.catchanimalgame.BuyBook" p="1,1" />
     <catalog no="catalog201109" n="动物保卫战购买册" f="catalog/pvzgame" t="mmo.pvzgame.BuyBook" p="1,1" />
-    <catalog no="catalog201110" n="射击卡手册" f="catalog/shootcard" t="mmo.shootcard.ShootCard" p="1,1" />
+    <catalog no="catalog201110" n="射击卡手册" f="catalog/shootcard" t="mmo.shootcard.ShootCard" p="1,1;7,3;7,2;7,1;2,1;2,2;3,1;3,2;4,1;4,2;5,1;5,2;6,1;6,2" />
     <catalog no="catalog201111" n="星座亚比穿越册" f="catalog/xingzuoyabi" t="mmo.xingzuoyabi.XingzuoYabi" p="1,6;1,1;1,2;1,3;1,4;1,5" />
     <catalog no="catalog201112" n="动物保卫战购买册" f="catalog/guardnutgame" t="mmo.guardnut.BuyBook" p="1,1" />
     <catalog no="catalog201113" n="海洋保卫战购买册" f="catalog/seadefendgame" t="mmo.seadefend.BuyBook" p="1,1" />

@@ -728,6 +728,7 @@ package mmo.petfightnew
          {
             var u2:UserItem = list[i] as UserItem;
             var slot:SlotButton = new SlotButton(u2 ? u2.materialId : 0, u2 ? u2.quantity : 0, u2 ? {id: u2.materialId, ball: balls, item: u2.material} : null);
+            slot.name = "fightSlot" + i;
             slot.x = PANEL_X + 10 + (i % 2) * 66;
             slot.y = PANEL_Y + 22 + int(i / 2) * 64;
             if (u2)

@@ -1,104 +1,131 @@
 package mmo.shoot.effect
 {
-   import flash.display.DisplayObjectContainer;
-   import flash.display.Shape;
-   import flash.events.Event;
    import flash.events.EventDispatcher;
    import flash.geom.Point;
-   import flash.utils.getTimer;
-   import mmo.interfaces.IService;
+   import mmo.framework.comm.SocketClient;
    import mmo.interfaces.shoot.data.ShootInfo;
    import mmo.interfaces.shoot.effects.IShootEffectService;
    import mmo.interfaces.shoot.effects.IShootEffectTarget;
+   import mmo.interfaces.shoot.effects.target.ShootForPoint;
    import mmo.play.player.PlayerManager;
+   import flash.events.TimerEvent;
+   import flash.utils.Timer;
+   import mmo.play.player.sceneplayer.Player;
    import mmo.play.player.sceneplayer.PlayerBase;
-
-   /**
-    * REBUILT shoot/shooteffectservice (ServiceConfig "ShootEffectService"):
-    * the beams a player sends at things. The 2013 module and its effect art
-    * are lost; the effect is drawn (a pulsing beam from the player's hand to
-    * the target) and the callbacks run as the 2013 interface promises:
-    * collect() after `duration` ms (gathering), shoot() once the beam lands.
-    */
+   import mmo.play.scene.SceneBase;
+   import mmo.play.scene.SceneInfo;
+   import mmo.play.scene.SceneManager;
+   import mmo.shoot.effect.effects.EffectDisplayer;
+   import mmo.shoot.effect.helper.DirectionHelper;
+   
    public class ShootEffectService extends EventDispatcher implements IShootEffectService
    {
-      private var collecting:Object;
-
+      
+      private var myCollectEffect:EffectDisplayer = null;
+      
       public function ShootEffectService()
       {
          super();
       }
-
-      public function getInstance():IService
+      
+      public function shoot(param1:String, param2:int, param3:IShootEffectTarget, param4:ShootInfo, param5:Function = null, param6:* = null) : void
       {
-         return this;
-      }
-
-      public function collect(from:String, point:Point, cardId:int, duration:int, callback:Function = null, thisObj:* = null):void
-      {
-         cancelCollect();
-         var job:Object = beam(from, point, Math.max(300, duration), function():void
+         var onEffectDisplayed:Function;
+         var effectDisplayer:EffectDisplayer = null;
+         var fromUser:String = param1;
+         var cardId:int = param2;
+         var target:IShootEffectTarget = param3;
+         var shootInfo:ShootInfo = param4;
+         var callback:Function = param5;
+         var thisObject:* = param6;
+         var fromPlayer:PlayerBase = PlayerManager.getInstance().playerList[fromUser] as PlayerBase;
+         if(fromPlayer == null)
          {
-            if (collecting == job) collecting = null;
-            if (callback != null) callback.apply(thisObj, []);
-         });
-         collecting = job;
-      }
-
-      public function cancelCollect():void
-      {
-         if (collecting != null) collecting.stop();
-         collecting = null;
-      }
-
-      public function shoot(from:String, type:int, target:IShootEffectTarget, info:ShootInfo, callback:Function = null, thisObj:* = null):void
-      {
-         beam(from, new Point(target.x, target.y), 600, function():void
+            return;
+         }
+         this.shootAction(fromPlayer,target,1500);
+         effectDisplayer = new EffectDisplayer();
+         onEffectDisplayed = function():void
          {
-            if (callback != null) callback.apply(thisObj, []);
-         });
-      }
-
-      /** Draw a beam from the player to point for ms milliseconds, then done(). Returns {stop()}. */
-      private function beam(from:String, point:Point, ms:int, done:Function):Object
-      {
-         var p:PlayerBase = PlayerManager.getInstance().getPlayer(from);
-         var layer:DisplayObjectContainer = p ? p.parent : null;
-         var s:Shape = new Shape();
-         var t0:int = getTimer();
-         var job:Object = {};
-         var finish:Function = function(call:Boolean):void
-         {
-            s.removeEventListener(Event.ENTER_FRAME, frame);
-            if (s.parent) s.parent.removeChild(s);
-            if (call) done();
-         };
-         var frame:Function = function(e:Event):void
-         {
-            var k:Number = (getTimer() - t0) / ms;
-            if (k >= 1 || p == null || p.parent == null)
+            effectDisplayer.dispose();
+            if(callback != null)
             {
-               finish(p != null);
-               return;
+               callback.apply(thisObject);
             }
-            var hx:Number = p.x, hy:Number = p.y - 50;
-            s.graphics.clear();
-            var a:Number = 0.45 + 0.35 * Math.sin(getTimer() / 80);
-            s.graphics.lineStyle(6, 0x66CCFF, a * 0.5);
-            s.graphics.moveTo(hx, hy);
-            s.graphics.lineTo(point.x, point.y);
-            s.graphics.lineStyle(2, 0xFFFFFF, a);
-            s.graphics.moveTo(hx, hy);
-            s.graphics.lineTo(point.x, point.y);
-            s.graphics.lineStyle();
-            s.graphics.beginFill(0xCCF2FF, a);
-            s.graphics.drawCircle(point.x, point.y, 6 + 4 * Math.sin(getTimer() / 60));
-            s.graphics.endFill();
          };
-         job.stop = function():void { finish(false); };
-         if (layer != null) layer.addChild(s);
-         s.addEventListener(Event.ENTER_FRAME, frame);
-         return job;
+         effectDisplayer.show(fromPlayer,target,cardId,shootInfo,onEffectDisplayed,this);
+      }
+      
+      public function collect(param1:String, param2:Point, param3:int, param4:int, param5:Function = null, param6:* = null) : void
+      {
+         var target:IShootEffectTarget;
+         var onEffectDisplayed:Function;
+         var collectEffect:EffectDisplayer = null;
+         var from:String = param1;
+         var point:Point = param2;
+         var cardId:int = param3;
+         var duration:int = param4;
+         var callback:Function = param5;
+         var thisObject:* = param6;
+         var fromPlayer:PlayerBase = PlayerManager.getInstance().playerList[from] as PlayerBase;
+         if(fromPlayer == null)
+         {
+            return;
+         }
+         target = new ShootForPoint(point.x,point.y);
+         this.shootAction(fromPlayer,target,duration);
+         collectEffect = new EffectDisplayer();
+         onEffectDisplayed = function():void
+         {
+            collectEffect.dispose();
+            if(callback != null)
+            {
+               callback.apply(thisObject);
+            }
+            this.myCollectEffect = null;
+         };
+         collectEffect.show(fromPlayer,target,cardId,null,onEffectDisplayed,this,true,duration);
+         if(from == SocketClient.instance.myUserName)
+         {
+            this.myCollectEffect = collectEffect;
+         }
+      }
+      
+      public function cancelCollect() : void
+      {
+         if(this.myCollectEffect == null)
+         {
+            return;
+         }
+         this.myCollectEffect.cancel();
+      }
+      
+      private function shootAction(param1:PlayerBase, param2:IShootEffectTarget, param3:int) : void
+      {
+         // The later scene's actionHelper with priorities is not in the 2013
+         // engine: the shooting pose ("dds" + the moving state n/f/r, in the
+         // 2013 ActionInfo) is played on the player for param3 ms, then the
+         // player stands again.
+         var player:Player = param1 as Player;
+         if(player == null)
+         {
+            return;
+         }
+         var current:String = player.currentAction();
+         var state:String = current != null && current.length == 4 ? current.charAt(3) : "n";
+         var dir:String = DirectionHelper.getDirection(param2.x - param1.x,param2.y - param1.y);
+         var code:String = dir + "s" + state;
+         player.action(code);
+         var timer:Timer = new Timer(param3,1);
+         timer.addEventListener(TimerEvent.TIMER,function(param1:TimerEvent):void
+         {
+            if(player.currentAction() == code)
+            {
+               player.action(dir + "z" + state);
+            }
+         });
+         timer.start();
       }
    }
 }
+

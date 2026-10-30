@@ -1,5 +1,6 @@
 package mmo.control
 {
+   import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
@@ -70,6 +71,7 @@ package mmo.control
          LayerManager.getBaseControl().addChild(bar);
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
+         ToolboxPanel.watchMoney();
          SceneManager.getInstance().loadDefaultScene();
       }
 
@@ -119,10 +121,17 @@ package mmo.control
                showPanel("SquadService");
                break;
             case "shoot":
-               RNotice.show(LayerManager.getBaseTop(), "射击要用光能石，射线功能还在修复中哦！");
+               toggleShoot();
                break;
             case "mall":
-               RNotice.show(LayerManager.getBaseTop(), "商城还在修复中，敬请期待！");
+               // 商城: RmbShoppingMallService (rebuilt), its first page.
+               ServiceContainer.instance.tryGetService("RmbShoppingMallService", function(svc:IService, o:Object):void
+               {
+                  try { Object(svc).showRmbShoppingPanel(0); } catch (e:Error) { RLog.error("control mall", e); }
+               });
+               break;
+            case "toolbox":
+               ToolboxPanel.toggle();
                break;
             default:
                RNotice.show(LayerManager.getBaseTop(), "这个功能还在修复中哦！");
@@ -198,6 +207,49 @@ package mmo.control
          });
       }
 
+      /**
+       * 射击: the shoot module's own bar button and card panel
+       * (IShootService.getShootButton), laid over the bar's 射击 button so
+       * that the panel opens above it; its own small button stays
+       * transparent (the bar draws the 2011 one) but takes the mouse, so
+       * the panel stays open while the mouse goes up to it.
+       */
+      private var shootWrap:Sprite;
+
+      private function toggleShoot():void
+      {
+         ServiceContainer.instance.tryGetService("ShootService", function(svc:IService, o:Object):void
+         {
+            try
+            {
+               if (shootWrap == null)
+               {
+                  shootWrap = Object(svc).getShootButton() as Sprite;
+                  var mine:DisplayObject = bar.getChildByName("btn_shoot");
+                  var theirs:DisplayObject = shootWrap ? shootWrap.getChildByName("mcShoot") : null;
+                  if (shootWrap == null || mine == null || theirs == null || !shootWrap.hasOwnProperty("toggle"))
+                  {
+                     shootWrap = null;
+                     RNotice.show(LayerManager.getBaseTop(), "射击还在修复中哦！");
+                     return;
+                  }
+                  theirs.alpha = 0;
+                  var at:Rectangle = mine.getBounds(bar);
+                  var b:Rectangle = theirs.getBounds(shootWrap);
+                  shootWrap.x = at.x + at.width / 2 - (b.x + b.width / 2);
+                  shootWrap.y = at.y + at.height / 2 - (b.y + b.height / 2);
+                  shootWrap.name = "shootWrap";
+                  bar.addChild(shootWrap);
+               }
+               Object(shootWrap).toggle();
+            }
+            catch (e:Error)
+            {
+               RLog.error("control shoot", e);
+            }
+         });
+      }
+
       private static function showPanel(service:String):void
       {
          ServiceContainer.instance.tryGetService(service, function(svc:IService, o:Object):void
@@ -211,7 +263,7 @@ package mmo.control
          });
       }
 
-      /** A point of the stage where `d` draws (and so takes a click), near the middle of what shows. */
+      /** A point of the stage where `d` draws and nothing in front of it does (so it takes a click there), near the middle of what shows. */
       private static function clickPoint(d:DisplayObject):String
       {
          var r:Rectangle = d.getBounds(d.stage).intersection(new Rectangle(0, 0, 960, 560));
@@ -236,6 +288,38 @@ package mmo.control
             if (hits.length > 0) break;
          }
          if (hits.length == 0) return null;
+         // Where the scene's layers in front (foreground, topground) do not draw over it: a
+         // counter in front of an NPC takes the clicks there. (Ruffle's getObjectsUnderPoint
+         // leaves things out, so this asks the layers.)
+         var info:Object = SceneManager.getInstance().loadedSceneInfo;
+         var fronts:Array = [];
+         if (info != null && info.scene != null)
+         {
+            for each (var ln:String in ["foreGround", "topGround"])
+            {
+               var fl:DisplayObjectContainer = info.scene[ln] as DisplayObjectContainer;
+               if (fl != null && !fl.contains(d)) fronts.push(fl);
+            }
+         }
+         var shown:Array = [];
+         sx = sy = 0;
+         for each (var hp:Point in hits)
+         {
+            var covered:Boolean = false;
+            for each (var f:DisplayObjectContainer in fronts) if (f.hitTestPoint(hp.x, hp.y, true)) { covered = true; break; }
+            if (!covered)
+            {
+               shown.push(hp);
+               sx += hp.x;
+               sy += hp.y;
+            }
+         }
+         if (shown.length > 0) hits = shown;
+         else
+         {
+            sx = sy = 0;
+            for each (hp in hits) { sx += hp.x; sy += hp.y; }
+         }
          var mid:Point = new Point(sx / hits.length, sy / hits.length);
          var best:Point = hits[0];
          for each (var h:Point in hits) if (Point.distance(h, mid) < Point.distance(best, mid)) best = h;
@@ -342,8 +426,12 @@ package mmo.control
                      // draws, "origin" its registration point (hidden ones too).
                      var root:DisplayObjectContainer = sm.loadedSceneInfo ? sm.loadedSceneInfo.scene : null;
                      var hidden:Boolean = cmd == "origin";
-                     var found:DisplayObject = root ? findNamed(root, arg, hidden) : null;
-                     if (found == null && LayerManager.stage) found = findNamed(LayerManager.stage, arg, hidden);
+                     // "a/b": b inside a (npc_301/npcArt: the NPC's picture, not its speech bubble).
+                     var path:Array = String(arg).split("/");
+                     var found:DisplayObject = root ? findNamed(root, path[0], hidden) : null;
+                     if (found == null && LayerManager.stage) found = findNamed(LayerManager.stage, path[0], hidden);
+                     for (var pi:int = 1; pi < path.length && found != null; pi++)
+                        found = found is DisplayObjectContainer ? findNamed(DisplayObjectContainer(found), path[pi], hidden) : null;
                      if (found == null || found.stage == null) return "none";
                      if (hidden)
                      {
@@ -359,6 +447,47 @@ package mmo.control
                      var chain:Array = [];
                      for (var bp:DisplayObject = bo; bp != null && bp != bo.stage; bp = bp.parent) chain.push(bp.name + (bp.visible ? "" : "(hidden)"));
                      return (br ? int(br.x) + "," + int(br.y) + " " + int(br.width) + "x" + int(br.height) : "off stage") + " " + chain.join("<");
+                  case "under":
+                     // What lies under stage point "x,y", topmost first, with parent chains (tests/e2e).
+                     var up:Array = String(arg).split(",");
+                     var objs:Array = LayerManager.stage ? LayerManager.stage.getObjectsUnderPoint(new Point(Number(up[0]), Number(up[1]))) : [];
+                     var outs:Array = [];
+                     for (var ui:int = objs.length - 1; ui >= 0 && outs.length < 4; ui--)
+                     {
+                        var uc:Array = [];
+                        for (var ud:DisplayObject = objs[ui]; ud != null && ud != ud.stage; ud = ud.parent)
+                           uc.push((ud.name || "?") + ":" + getQualifiedClassName(ud).replace(/.*::/, "") + (ud is InteractiveObject && !InteractiveObject(ud).mouseEnabled ? "(nomouse)" : ""));
+                        outs.push(uc.join("<"));
+                     }
+                     return outs.join(" || ");
+                  case "pos":
+                     // My player's scene position, and "moving" while walking (tests/e2e).
+                     var mine:PlayerBase = PlayerManager.getInstance().myPlayer as PlayerBase;
+                     return mine ? int(mine.x) + "," + int(mine.y) + (mine.isMoving() ? " moving" : "") : "none";
+                  case "blocked":
+                     // Is scene point "x,y" on the obstruction? (tests/e2e)
+                     var bxy:Array = String(arg).split(",");
+                     return sm.loadedSceneInfo && sm.loadedSceneInfo.scene && sm.loadedSceneInfo.scene.isBlocked(Number(bxy[0]), Number(bxy[1])) ? "1" : "0";
+                  case "obstruction":
+                     // The scene's obstruction sampled every 10 px: rows of # and . (tests/e2e).
+                     if (!sm.loadedSceneInfo || !sm.loadedSceneInfo.scene) return "none";
+                     var sb:Object = sm.loadedSceneInfo.scene;
+                     var orows:Array = [];
+                     for (var oy:int = 5; oy < int(sb.getSceneHeight()); oy += 10)
+                     {
+                        var orow:String = "";
+                        for (var ox:int = 5; ox < int(sb.getSceneWidth()); ox += 10) orow += sb.isBlocked(ox, oy) ? "#" : ".";
+                        orows.push(orow);
+                     }
+                     return orows.join("\n");
+                  case "clearmodal":
+                     // Close every panel, film and game window left open (tests/e2e).
+                     ModalDialogManager.getInstance().clearAll();
+                     return "ok";
+                  case "heal":
+                     // Every 亚比 back to full HP and PP (PocketMonsterExtension.revival_heal; tests/e2e).
+                     SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_heal", {});
+                     return "ok";
                   case "addpet":
                      // A 亚比 of that race, Lv 15, through addPM (1201), the command tasks give 亚比 with (tests/e2e).
                      SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1201", {raceId: int(arg), level: 15, type: 0});

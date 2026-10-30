@@ -125,6 +125,12 @@ package mmo.houseservice
          return _house;
       }
 
+      private function get inGarden():Boolean
+      {
+         try { return _houseLoader.houseInfo.isInGarden; } catch (err:Error) {}
+         return false;
+      }
+
       public function get inHouse():Boolean
       {
          return _house != null;
@@ -198,7 +204,8 @@ package mmo.houseservice
             {
                _menu.decorate();
                _menu.enabled = true;
-               _menu.visiable = true;
+               // The garden has its own bar; the menu (装扮, 我的家具) is the rooms'.
+               _menu.visiable = !inGarden;
                _menu.addEventListener(HouseMenuEvent.onEdit, onMenuEdit);
                _menu.addEventListener(HouseMenuEvent.onExitEdit, onMenuExitEdit);
                _menu.addEventListener(HouseMenuEvent.onSave, onMenuSave);

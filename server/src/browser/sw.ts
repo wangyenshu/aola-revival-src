@@ -79,7 +79,9 @@ async function fromMirror(req: Request): Promise<Response> {
   if (files) {
     const hit = [rel, withoutQuery(rel)].find((c) => files.has(c));
     if (hit) {
-      const res = await fetch(ROOTS[0] + encodeURI(staticName(hit))).catch(() => null);
+      // A <video> asks for parts of the file (Range): pass that on, the static host answers 206.
+      const range = req.headers.get("Range");
+      const res = await fetch(ROOTS[0] + encodeURI(staticName(hit)), range ? { headers: { Range: range } } : undefined).catch(() => null);
       if (res?.ok) return respond(res, hit);
     }
     if (withoutQuery(rel).endsWith("/crossdomain.xml")) {

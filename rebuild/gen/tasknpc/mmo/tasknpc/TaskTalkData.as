@@ -10,6 +10,192 @@ package mmo.tasknpc
    {
       public static function fill(talk:Object, starts:Object):void
       {
+         talk["0_2291_AftershowChiefTalk"] = <config>
+					<context npcId="1" str="主人，HELLO觉得我们可以在找纯净能源的同时帮助修罗寻找黑暗能量。">
+						<choice type="0" str="这倒是个好主意。" action="finish_2291"/>
+					</context>
+				</config>;
+         talk["0_2291_AftershowXiuLuoTalk"] = <config>
+					<context npcId="1" iconId="30" str="什么？凯撒会复活？修罗，你可不要吓唬HELLO哦！">
+						<choice type="0" str="是啊，修罗，这可不闹着玩的。">
+							<context npcId="540" iconId="6" str="我没有危言耸听，我来这里就是要把这些黑暗能量找出来，阻止凯撒复活。"/>
+							<context npcId="1" iconId="30" str="可你是六芒星系的守护神，HELLO担心没有你，六芒星系也会有危险。">
+								<choice type="0" str="是啊，修罗，六芒星系不能没有你啊。">
+									<context npcId="540" iconId="9" str="可是黑暗能量不找出来，诺亚星系就不安全。">
+										<choice type="0" str="那现在该怎么办呢？">
+											<context npcId="1" str="主人，主人，收到司令官的远程视频。">
+												<choice type="0" str="赶紧连线看看！" action="play_2291_showChiefTalk"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2292_AftershowSceneMovie"] = <config>
+					<context npcId="1" iconId="46" str="HELLO记得这是奇灵王的铃铛，可是修罗，它有什么用呢？"/>
+					<context npcId="540" str="这个铃铛能够感应到黑暗能量，只要铃铛有反应，我就会知道，所以你们务必好好保管。">
+						<choice type="0" str="放心吧，我一定会好好保管的。" action="play_2292_showMaiDiMovie_finish"/>
+					</context>
+				</config>;
+         talk["0_2293_AftershowMaiDiFightMovie"] = <config>
+					<context npcId="581" iconId="3" str="不把我父亲放了，我是不会罢休的。"/>
+					<context npcId="583" str="我劝你还老老实实的回去，要不然，我们打扁你。">
+						<choice type="0" str="你们也太欺负人了吧。">
+							<context npcId="583" str="哪来的毛头小子，竟然敢管小爷的闲事。">
+								<choice type="0" str="你们欺负人，我自然得管。" action="finish_2293"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2295_AftershowBleedMovie"] = <config>
+					<context npcId="1" iconId="30" str="主人，它流了好多血啊，我们快帮它把血止住吧！">
+						<choice type="0" str="可是要怎么止血呢？">
+							<context npcId="581" iconId="2" str="止……止血草，乱石之丘的止血草可以将血止住。"/>
+							<context npcId="1" str="看来它真撑不住了，主人，我们赶紧去帮它采止血草吧。">
+								<choice type="0" str="可是我不知道止血草长什么样子啊？">
+									<context npcId="581" iconId="2" str="四……四片叶子，红色的茎。">
+										<choice type="0" str="好了，我知道了，我们这就去。" action="switch_2295_yakestar2_enter_JiaoHu_finish"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2297_AftershowStopBleedMovie"] = <config>
+					<context npcId="581" iconId="4" str="你们的恩情我改日再来报答，我有事，得先走了，再见。"/>
+					<context npcId="1" iconId="30" str="你的伤很严重呢！HELLO觉得有什么事情等伤好了再说吧！">
+						<choice type="0" str="是啊。">
+							<context npcId="581" iconId="3" str="不行，我不能眼睁睁的看着父亲受苦，我一定要把它救出来。">
+								<choice type="0" str="你说的话我不是很明白。" action="finish_2297"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2299_AftershowCartoon"] = <config>
+					<context npcId="581" iconId="6" str="我的父亲保护圣物向来小心，绝对不会把圣物弄丢的。"/>
+					<context npcId="581" iconId="6" str="我觉得一定是族长故意污蔑父亲的，所以我要去让它放了父亲。">
+						<choice type="0" str="族长？它为什么要这么做呢？" action="finish_2299"/>
+					</context>
+				</config>;
+         talk["0_2300_AftershowMaiDiLeave"] = <config>
+					<context npcId="1" iconId="30" str="主人，HELLO有点担心麦提，不如我们也跟进去看看吧！">
+						<choice type="0" str="我也是这么想的。" action="switch_2300_yakestar3_finish"/>
+					</context>
+				</config>;
+         talk["0_2301_AftershowMaiDiChagrinMovie"] = <config>
+					<context npcId="581" iconId="6" str="哼，不要以为我不知道，一定是你想独占禾田玉石，所以故意陷害我父亲的。"/>
+					<context npcId="582" iconId="2" str="麦提，你太放肆了，赶紧给我出去，要不然我就不客气了。"/>
+					<context npcId="581" iconId="6" str="我说的本来就是事实，我父亲绝对不可能弄丢圣物的。"/>
+					<context npcId="581" iconId="2" str="如果你想证明自己的清白，就把我父亲放出来把话说清楚。">
+						<choice type="0" str="嗯，说的也有道理。">
+							<context npcId="582" iconId="2" str="看来今天你是皮痒得厉害，就再让你尝点苦头。">
+								<choice type="0" str="不许你们欺负麦提。" action="finish_2301"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2302_AftershowMaiDiLeave2"] = <config>
+					<context npcId="1" iconId="30" str="主人，HELLO担心麦提会做出什么傻事来，我们赶紧跟上去看看吧！">
+						<choice type="0" str="嗯，好的。" action="switch_2302_yakestar1_finish"/>
+					</context>
+				</config>;
+         talk["0_2303_AftershowCartoon2"] = <config>
+					<context npcId="581" str="既然族长不肯放了我父亲，那我就只有找到传说中的神器，将玛雅山劈开。">
+						<choice type="0" str="真的有这样的神器吗？" action="finish_2303"/>
+					</context>
+				</config>;
+         talk["0_2303_AftershowFindMovie"] = <config>
+					<context npcId="581" iconId="8" str="怎么会没有呢，真奇怪。">
+						<choice type="0" str="麦提，你怎么了？">
+							<context npcId="581" str="我在找记载神罗鬼斧的东西。">
+								<choice type="0" str="神罗鬼斧，那是什么啊？" action="show_2303_showCartoon2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2304_AftershowFindMovie2"] = <config>
+					<context npcId="581" iconId="9" str="看，就是这张羊皮卷，它上面记载着神罗鬼斧的所在地。">
+						<choice type="0" str="让我看看。" action="play_2304_showPaperMovie"/>
+					</context>
+				</config>;
+         talk["0_2304_AftershowPaperMovie"] = <config>
+					<context npcId="1" iconId="4" str="可是从这张图上，HELLO什么也看不出来啊。">
+						<choice type="0" str="嗯，我也是。">
+							<context npcId="581" iconId="10" str="变色剂，对，这张羊皮卷上的字一定是用变色剂写的。">
+								<choice type="0" str="什么是变色剂啊？">
+									<context npcId="581" str="变色剂是我们部落一种古老的颜料，用它写出来的字只有遇到水才会显示出来。">
+										<choice type="0" str="竟然有这种事情。" action="finish_2304"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2315_aftershowAnswerMovie"] = <config>
+					<context npcId="1" iconId="7" str="神罗鬼斧，巨石之阵。HELLO明白了，意思是说神罗鬼斧在巨石之阵中吧！"/>
+					<context npcId="581" str="真聪明，所以我认为只要我们找到巨石之阵，就能找到神罗鬼斧了。">
+						<choice type="0" str="可是巨石之阵在哪里呢？">
+							<context npcId="581" str="乱石之丘有一个巨型的石门，我想巨石之阵可能在乱石之丘。"/>
+							<context npcId="1" str="主人，既然如此，那我们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;乱石之丘&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;看看吧！">
+								<choice type="0" str="好的。" action="play_2315_showLeaveMovie_switch_yakestar2_finish"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2316_aftershowMagicMovie"] = <config>
+					<context npcId="581" str="如此强大的气场，看来这里就是诗中的巨石之阵了。">
+						<choice type="0" str="那怎么不见神罗鬼斧？">
+							<context npcId="581" str="因为我们还没有破解阵法。">
+								<choice type="0" str="那要如何才能破阵呢？">
+									<context npcId="581" str="我也不知道，不过我想刚才出现的八个字应该会是破阵的关键！"/>
+									<context npcId="1" str="主人，如果HELLO猜得不错，这几个字的意思是，只有登到石门顶部才可以破阵。">
+										<choice type="0" str="嗯，应该是这样的。" action="finish_2316"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2318_aftershowTouchMovie"] = <config>
+					<context npcId="581" iconId="11" str="#username#，你这是怎么了？">
+						<choice type="0" str="我也不清楚，刚才似乎有一股强大的力量不让我靠近。">
+							<context npcId="581" str="这么说神罗鬼斧真的如传说中的一样，有灵性，会认主人了。">
+								<choice type="0" str="神罗鬼斧有灵性，会认主人？">
+									<context npcId="581" str="是啊，我也是听父亲说的，神罗鬼斧只有和它心意相通的人才可以驾驭。"/>
+									<context npcId="1" iconId="13" str="HELLO想起来了，诗里面有一句：斧啸识得有缘人，看来主人不是它的有缘人哦！">
+										<choice type="0" str="原来如此，那我们现在应该怎么办？" action="finish_2318"/>
+									</context>
+								</choice> 
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2319_aftershowEnemyAppear"] = <config>
+					<context npcId="66" iconId="9" str="啊哈哈，原本是来拿禾田玉石的，想不到竟然可以得到一件意外的宝贝。">
+						<choice type="0" str="你要干什么？">
+							<context npcId="66" iconId="9" str="哎呀呀，这还看不出来吗？自然是要那小鬼手里的斧头啦！"/>
+							<context npcId="581" iconId="12" str="这神器我要拿去救父亲，是绝对不会给你的。">
+								<choice type="0" str="没错。" action="finish_2319"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2319_aftershowGetWeaponMovie"] = <config>
+					<context npcId="1" iconId="31" str="主人，看来麦提是神器的有缘人呢！">
+						<choice type="0" str="是啊，简直太好了。">
+							<context npcId="581" iconId="9" str="我拿到神罗鬼斧了，现在终于可以去救父亲了。">
+								<choice type="0" str="麦提，你真棒。" action="play_2319_showEnemyAppear"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["0_2321_aftershowEnemyLeave"] = <config>
+					<context npcId="1" iconId="30" str="主人，HELLO觉得菲莉的话里有古怪，我们要当心啊。">
+						<choice type="0" str="嗯，我会小心的。" action="finish_2321"/>
+					</context>
+				</config>;
          talk["10_1236_library"] = <config>
 					<context npcId="10" iconId="2" str="哦！你们居然找到了这个！太棒了！"/>
 					<context npcId="1" iconId="7" str="这是不是藏宝图？神秘的高科技力量？还是唤醒魔神的咒语？"/>
@@ -177,6 +363,30 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["11_702_yabistudy"] = <config>
+				  <context npcId="11" str="#username#，一看到你来找我，我就知道又有什么特别麻烦的事情啦。">
+					<choice str="还真是特别麻烦，不是你解决不了呢。">
+					  <context npcId="11" str="哈哈哈，像我这样的智者，三言两语怎能代表我高超的智慧，说吧，什么事情。">
+						<choice str="就是这张奇怪的卡片。">
+						  <context npcId="11" str="嗯嗯......让我瞧瞧，是张变身卡片，可是！竟然增加了永久变身芯片！太可恶了！这会造成异空间自然混乱的！"/>
+						  <context npcId="11" str="你是从哪里获得这张卡片的？">
+							<choice str="一只亚比无意拿到的。">
+							  <context npcId="1" str="是呀！而且这些亚比被变身后，会受到一种神秘的声音的控制，刚才还攻击了主人呢！"/>
+							  <context npcId="11" str="以我高超的智慧，我想这一定是个特大阴谋！">
+								<choice str="特大阴谋？">
+								  <context npcId="11" str="没错！你们仔细想想，如果我把所有的亚比都变成能听从我命令的亚比。那么我就能控制它们做我想做的任何事情了！"/>
+								  <context npcId="11" str="事不宜迟，你们快赶回去思伍德区的水木洞天看，可能已经发生不好的事情了。">
+									<choice str="好，HELLO！我们快回去看看！" taskId="702"/>
+								  </context>
+								</choice>
+							  </context>
+							</choice>
+						  </context>
+						</choice>
+					  </context>
+					</choice>
+				  </context>
+				</config>;
          talk["127_1288_giantcordillera5"] = <config name="127_1288_giantcordillera5">
 					<context npcId="127" iconId="4" str="阿风，你现在所做的每件事，都是坏事。"></context>
 					<context npcId="127" iconId="4" str="你必须跟我走！不能再留在那个家伙的身边！"></context>
@@ -254,6 +464,28 @@ package mmo.tasknpc
 						<choice str="你们在说些什么啊！" action="1640_fightMovie3"/>
 					</context>
 				</config>;
+         talk["130_9_mingzhongzhudingdezaihui0"] = <config>
+					<context npcId="9" iconId="1" str="刚来到奥拉星就在战斗中立下了大功，#username#，你的表现果然没有让我失望！ "/>
+					<context npcId="1278" iconId="16" str="(*^__^*)谢谢司令官！"/>
+					<context npcId="9" iconId="1" str="在奥拉星，每个小奥拉都要有只一起战斗的&lt;font color='#FF6600'&gt;&lt;b&gt;亚比&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;伙伴！在这些亚比球中，选择一个你命中注定的伙伴吧！  ">
+						<choice str="哇，谁是我命中注定的伙伴呢？" action="130_9_mingzhongzhudingdezaihui0">
+						</choice>
+					</context>
+				</config>;
+         talk["131_9_mingzhongzhudingdezaihui1"] = <config>
+					<context npcId="9" iconId="4" str="（这只亚比与王者之书…）"/>
+					<context npcId="9" str="没想到这只亚比竟然被你选中，那就按照命运的安排走下去吧！">
+						<choice str="这只亚比..？">
+							<context npcId="9" str="伊乐天生就能与王者之书产生共鸣，看来它与王者之书一定有着特殊的羁绊！">
+								<choice str="没想到伊乐竟然这么厉害！ ">
+									<context npcId="9" str="作为新人奖励，我现在送你&lt;font color='#FF6600'&gt;&lt;b&gt;30万经验&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，试着提升伊乐的等级看看吧！">
+										<choice str="哇！谢谢司令官！" action="131_9_mingzhongzhudingdezaihui1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["13_1424_mantenxiagu3"] = <config>
 					<context npcId='13' str="太好了，你已经收集到露珠了，我会和哈德一起拖住拉贝尔。你要尽可能地削弱黑化巨翅金鹏的力量，巨翅金鹏才有可能恢复正常。">
 						<choice type='0' str="嗯，我会加油的。" action="task1424movie"/>
@@ -295,6 +527,21 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["13_1823_talk"] = <config>
+					<context npcId="1" str="主人，我们快去指挥中心向司令官报告吧！">
+						<choice type="0" str="向指挥中心出发！" taskId="1823" action="1823_showTipsMovie"/>
+					</context>
+				</config>;
+         talk["13_1889_firstTalk"] = <dialog>
+					<context npcId="1" str="主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告吧！">
+						<choice str="向指挥中心出发！" taskId="1889"/>
+					</context>
+				</dialog>;
+         talk["13_199_maintown2next"] = <dialog>
+					<context npcId="1" str="奥拉之辉已经成功融合了，我们快去向司令官报告吧！">
+						<choice type="0" str="好！我这就去找司令官。" taskId="199" action="199_gotoMaintown2"/>
+					</context>
+				</dialog>;
          talk["14_1217_helloschool"] = <config name="14_1217_helloschool">
 					<context npcId="14" iconId="5" str="#username#，奥拉星的英雄，是什么风把你们吹来了？">
 						<choice str="司令官派我调查巨人山脉。">
@@ -326,6 +573,322 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["16_57_suolide1"] = <dialog>
+					<context str="盖布？！盖布是我们对伟大的英雄统称，是索里德人民的指引者。">	</context>
+					<context str="按照传统，每一位想要成为王的人都需要找到一位盖布来引导他找到四块分别代表&lt;font color='#FF6600'&gt;&lt;b&gt;爱心&lt;/b&gt;&lt;/font&gt;、&lt;font color='#FF6600'&gt;&lt;b&gt;智慧&lt;/b&gt;&lt;/font&gt;、&lt;font color='#FF6600'&gt;&lt;b&gt;环保&lt;/b&gt;&lt;/font&gt;和&lt;font color='#FF6600'&gt;&lt;b&gt;正义&lt;/b&gt;&lt;/font&gt;的石板，来证明其王的资质。">
+						<choice type="0" str="那好，让我来成为你的盖布吧！" taskId="57">
+							<context str="太好了！不过，盖布可不是这么好当的哦！我也先要考验一下你的实力，看你够不够格做我的盖布。接受我的挑战吧！">
+								<choice type="3" str="好，我接受你的挑战！" action="16_58_suolide1"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["16_58_0"] = <dialog>
+					<context str="唉……看来我还得继续寻找我的盖布。">
+						<choice type="0" str="我一定是你的盖布，等我准备一下再来比试。">
+						</choice>
+					</context>
+				</dialog>;
+         talk["16_58_1"] = <dialog>
+					<context str="#username#，你太厉害了！有你在，我一定可以集齐石板，成为猫王的！">
+						<choice type="1" str="好！让我们找到石板，在索里德区书写新猫王的传奇吧！">
+							<context str="流沙区域可能有石板的消息，让我们先去那儿吧！">
+								 <choice type="0" str="好，那我们一起去流沙区域看看吧。" action="16_58_suolide2"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["16_58_suolide1"] = <dialog>
+					<context str="你准备好成为我的盖布了吗？请接受我的挑战吧！">
+						<choice type="3" str="是" action="16_58_suolide1"/>
+						<choice type="1" str="否">
+								<context str="那真是太遗憾了，我期待和你的对战。">
+								</context>
+							</choice>
+					</context>
+				</dialog>;
+         talk["16_60_suolide2"] = <dialog>
+					<context str="咦？小跳鼠？这么慌张，发生了什么事？" npcId="16" iconId="1"/>
+					<context str="前两天，突然传来一声巨响，好像是有什么东西落入索里德区，然后河床就干涸了。" npcId="20" iconId="1"/>
+					<context str="大家都在找水源，没有水，自然要搬走。可是，大家也不知道什么地方有水，所以到处乱窜。" npcId="20" iconId="1"/>
+					<context str="水源在索里德区的&lt;font color='#FF6600'&gt;&lt;b&gt;新世界&lt;/b&gt;&lt;/font&gt;，说不定是那里出了问题，让我们去调查一下吧。" npcId="16" iconId="1">
+						<choice type="0" str="好，让我们去索里德的新世界调查水源问题。" taskId="60">
+						</choice>
+					</context>
+				</dialog>;
+         talk["16_61_0"] = <dialog>
+					<context str="看！那儿有艘飞船把泉眼堵住了。" npcId="16" iconId="1"/>
+					<context str="主人，我们把飞船移开的话，水就会重新流出来了吧！" npcId="1">
+						<choice type="0" str="应该不会错。" action="61_ShowNextTalk"/>
+					</context>
+				</dialog>;
+         talk["16_63_suolide4"] = <dialog>
+					<context str="泉眼被飞船堵住了，怎么把飞船移开啊？" npcId="16" iconId="1"/>
+					<context str="主人，用强大的光能射线射击飞船试试看！" npcId="1" iconId="1">
+						<choice type="0" str="好！" action="21_62_suolide4_1"/>
+					</context>
+				</dialog>;
+         talk["16_64_suolide2"] = <dialog>
+					<context str="索里德是一片神奇美丽的地方，我最爱索里德了。" npcId="16" iconId="1"/>
+				</dialog>;
+         talk["16_67_suolide1"] = <config>
+					<context str="象形符号在哪呢？真难找啊。"></context>
+				</config>;
+         talk["16_67_suolide2"] = <config>
+					<context str="象形符号在哪呢？真难找啊。"></context>
+				</config>;
+         talk["16_67_suolide3"] = <config>
+					<context str="象形符号在哪呢？真难找啊。"></context>
+				</config>;
+         talk["16_68_aftermovie"] = <dialog>
+				  <context str="刚才那~那是，法~~法法~老王？法老王的鬼魂来啦！救命呀！">
+					<choice type="2" str="那是抢走石板的坏人，不是法老王的鬼魂。我们快追。">
+					 <context str="真的？但那个黑影真的很可怕，你可要&lt;font color='#FF6600'&gt;&lt;b&gt;跟着我 &lt;/b&gt;&lt;/font&gt;。">
+					 	<choice type="2" str="我会跟着你的。" taskId="68" action="16_68_suolide2"/>
+					 </context>
+					</choice>
+				  </context>
+				</dialog>;
+         talk["16_68_suolide2"] = <config>
+					<context str="索里德是一片神奇美丽的地方，我最爱索里德了。"></context>
+				</config>;
+         talk["16_69_suolide4"] = <dialog>
+				  <context str="你终于跟过来了，等了你好久。"/>
+				  <context str="那个黑影不知道跑哪去了，我们再去问问&lt;font color='#FF6600'&gt;&lt;b&gt;猫王&lt;/b&gt;&lt;/font&gt;吧。">
+					<choice type="2" str="还是先去询问一下猫王吧！" taskId="69"/>
+				  </context>
+				</dialog>;
+         talk["16_70_suolide4"] = <dialog>
+				  <context str="正义石板被一个可怕的石像黑影抢走了。"/></dialog>;
+         talk["16_72_suolide3"] = <dialog>
+					<context str="这一定就是猫王所说的索里克斯了！" npcId="16"/>
+					<context str="是谁打断了我的思考？" npcId="24"/>
+					<context str="哦？看你的样子，你一定就是索里德的猫王子。你是想要通过王的考验吧？" npcId="24"/>
+					<context str="你真厉害！是的，我就是猫王子哈里，我要成为未来最伟大的猫王。请问您知道石板在哪里吗？" npcId="16"/>
+					<context str="如果你确定自己拥有超凡的智慧，那就来找我进行智慧的谜题考验吧。" npcId="24">
+						<choice type="0" str="是的，我准备好挑战谜题了。" taskId="72">
+						</choice>
+					</context>
+			</dialog>;
+         talk["16_73_suolide3"] = <config>
+								<context str="快去找索里克斯吧。"/>
+							</config>;
+         talk["16_74_suolide3"] = <config>
+								<context str="快去找索里克斯吧。"/>
+							</config>;
+         talk["16_75_suolide3"] = <config>
+											<context str="索里德是一片神奇美丽的地方，我最爱索里德了。"/>
+										</config>;
+         talk["16_89_suolide1"] = <config>
+					<context str="请问你是鲁阿鲁吗？" npcId="16"/>
+					<context str="找我有什么事吗？" npcId="23"/>
+					<context str="我要找到石板，证明我具有成为猫王的资质。请问它在你这里吗？" npcId="16"/>
+					<context str="石板的确是在我这里，不过，想要获得石板需要一个条件。我想要在这里见到&lt;font color='#FF6600'&gt;&lt;b&gt;索里德之花&lt;/b&gt;&lt;/font&gt;—一种只有在索里德才有的特殊花朵。我已经很久没有见到过了。" npcId="23"/>
+					<context str="怎么才能得到索里德之花呢？" npcId="16"/>
+					<context str="在索里德区找到&lt;font color='#FF6600'&gt;&lt;b&gt;索里德之花种子&lt;/b&gt;&lt;/font&gt;、&lt;font color='#FF6600'&gt;&lt;b&gt;水&lt;/b&gt;&lt;/font&gt;和&lt;font color='#FF6600'&gt;&lt;b&gt;土壤&lt;/b&gt;&lt;/font&gt;，应该就可以种出索里德之花了。" npcId="23"/>
+					<context str="种子、水和土壤都在新世界，去那里可以找到它们。" npcId="23">
+						<choice str="我这就去找。" taskId="89"/>
+					</context>
+				</config>;
+         talk["16_90_suolide1"] = <config>
+					<context str="种子、水和土壤么？我在这儿找找看吧。"/>
+				</config>;
+         talk["16_90_suolide2"] = <config>
+					<context str="种子、水和土壤么？我在这儿找找看吧。"/>
+				</config>;
+         talk["16_90_suolide3"] = <config>
+					<context str="种子、水和土壤么？我在这儿找找看吧。"/>
+				</config>;
+         talk["16_91_suolide1"] = <config>
+					<context str="索里德是一片神奇美丽的地方，我最爱索里德了。"/>
+				</config>;
+         talk["16_92_suolide1"] = <config>
+					<context str="索里德是一片神奇美丽的地方，我最爱索里德了。"/>
+				</config>;
+         talk["16_93_suolide1"] = <config>
+					<context str="索里德是一片神奇美丽的地方，我最爱索里德了。"/>
+				</config>;
+         talk["16_94_suolide1"] = <config>
+					<context str="索里德是一片神奇美丽的地方，我最爱索里德了。"/>
+				</config>;
+         talk["173_699_siwude6"] = <config>
+					<context action="t698McShoot"/>
+				</config>;
+         talk["173_700_siwude5"] = <config>
+				  <context npcId="173" str="我怎么会到这里来的？我刚才做了什么事情？">
+					<choice str="小翼鸟看起来像失忆的样子。">
+					  <context npcId="173" str="啊！我想起来了！我听到了一种很悦耳的声音，然后我就昏昏沉沉的，然后我就好像晕晕的，然后我就......">
+						<choice str="我就出现在你眼前。">
+						  <context npcId="173" str="没错啦！就是这样啦！"/>
+							<context npcId="1" str="主人！我们找找那个声音的来源！">
+							  <choice str="好的，应该就在这附近。" action="t698McSound" taskId="700"/>
+							</context>
+						</choice>
+					  </context>
+					</choice>
+				  </context>
+				</config>;
+         talk["173_701_siwude5"] = <config>
+					<context action="t698Fight1">
+					</context>
+				</config>;
+         talk["173_702_siwude5"] = <config>
+					<context str="快去亚比研究中心找贝鲁特吧！">
+					</context>
+				</config>;
+         talk["173_703_siwude5"] = <config>
+				  <context npcId="173" str="你们怎么好像很着急呀？查出什么了吗？"/>
+				  <context npcId="1" str="天啊！这可是个非常可怕的射线呀！你闯祸啦！"/>
+				  <context npcId="173" str="怎么办？那怎么办？"/>
+				  <context npcId="1" str="别怕，我们当务之急是找出控制小翼鸟的声源。">
+					<choice str="对！" action="t698DuoKeTe"/>//播放场景动画：多克特出现，带着一个小翼鸟形状的声波传送器。
+				  </context>
+				</config>;
+         talk["173_705_siwude5"] = <config>
+					<context npcId="173" str="哇！你刚才实在是太帅气了！完胜多克特！">
+						<choice str="小意思......小意思.....">
+							<context npcId="1" str="主人呀，我们得赶紧想办法摧毁这个声波发送器和射线卡啊！">
+								<choice str="是啊！这个发送器看起来很坚固的样子。">
+									<context npcId="1" str="我们拿去给卡波看看，他是顶呱呱的木匠，可能有办法处理它！">
+										<choice str="好！" taskId="705"/>
+									</context>					
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["173_706_siwude5"] = <config>
+					<context str="找到卡波了吗？">
+					</context>
+				</config>;
+         talk["174_1847_siwude2"] = <config>
+					<context npcId="174" str="坏……坏人打进来了，思伍德区有危险啦！"/>
+					<context npcId="1" str="你别紧张，已经没事了，你先冷静一下，把话说清楚！">
+						<choice str="是啊，到底是怎么回事呢？">
+							<context npcId="174" str="一群坏人抢了我们的东西，抓了好多亚比。"/>
+							<context npcId="174" str="它们现在应该还在原始林地，你们快去救救它们吧！"/>
+							<context npcId="441" str="太可恶了，简直让我忍无可忍，竟然敢这样对我的伙伴，我一定要去收拾那群坏蛋。"/>
+							<context npcId="1" str="主人，HELLO觉得一定又是达斯特人干的！">
+								<choice str="我也是这么认为的，我们去看看吧！" action="1847_NextTips" taskId="1847">
+								</choice>
+							</context>						
+						</choice>
+					</context>
+				</config>;
+         talk["176_1712_secondTalk"] = <config>
+					<context npcId="176" iconId="1" str="你去问问圆角羊吧！">
+						<choice str="好吧！">
+							<context npcId="418" iconId="2" str="都是我不好，都是我不好！"/>
+							<context npcId="1" iconId="1" str="发生什么事情了吗？">
+								<choice str="木羊羊为什么生气了呢？">
+									<context npcId="418" iconId="2" str="……我，我早上帮大家打水，结果……555">
+										<choice str="……怎么了？" action="movie1_1712"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["176_1712_suolide4"] = <config>
+					<context npcId="176" iconId="9" str="哼，肯定是圆角羊把水喝光了，还说帮忙打水。"/>
+					<context npcId="417" iconId="2" str="一定是这样的。">
+						<choice str="发生什么事情了吗？" action="1711_afterStart"/>
+						<choice str="不清楚怎么回事。"/>
+					</context>
+				</config>;
+         talk["176_1713_suolide4"] = <config>
+					<context npcId="176" iconId="9" str="不跟圆角羊玩了，它说谎！">
+						<choice str="圆角羊没有说谎，它真的去打水了！只不过它的身体吸水，水被吸走了而已。">
+							<context npcId="176" iconId="9" str="不信，肯定是它把水偷喝了，还说帮我们打水，哼~">
+								<choice str="……">
+									<context npcId="1" iconId="1" str="主人，看来木羊羊认定是圆角羊说谎了。">
+										<choice str="怎么办才好？！" action="movie1_1713"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["176_1715_secondTalk"] = <config>
+					<context npcId="176" iconId="9" str="就是他，他一直追着我们！"/>
+					<context npcId="8" iconId="1" str="上次让你跑了，这次看你往哪跑。">
+						<choice str="哈鲁达，小心的应该是你，你忘了上次怎么被我打惨的吗？">
+							<context npcId="8" iconId="1" str="小奥拉，这次可说不定哦！">
+								<choice str="那就试试看。" action="movie2_1715"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["176_1715_suolide4"] = <config>
+					<context npcId="176" iconId="1" str="原来你们在这里啊，我正找你们呢！有坏人在追我们，#username#，你知道锐角羊龙去哪里了吗？">
+						<choice str="它去风暴沙漠了。" action="movie1_1715"/>
+					</context>
+				</config>;
+         talk["176_1716_suolide4"] = <config>
+					<context npcId="176" iconId="1" str="哈鲁达真可恶。"/>
+				</config>;
+         talk["176_1717_suolide4"] = <config>
+					<context npcId="176" iconId="1" str="沙麒麟，我们一起去玩吧！"/>
+					<context npcId="65" iconId="1" str="很抱歉，不能和你们一起去玩了！我要去进行守护者考验。"/>
+					<context npcId="176" iconId="1" str="为什么？你还在生我们的气吗？"/>
+					<context npcId="65" iconId="1" str="不是的，你们是我最好的朋友，我想成为守护者，这样才能永远保护你们。"/>
+					<context npcId="176" iconId="5" str="太感动了555……"/>
+					<context npcId="176" iconId="1" str="那我们先去玩啦，下次有机会再一起玩吧！"/>
+					<context npcId="65" iconId="1" str="好啊，希望你们以后常来玩。"/>
+					<context npcId="1" iconId="1" str="你真的要去风暴沙漠考验吗？"/>
+					<context npcId="65" iconId="1" str="是的，我已经决定了。"/>
+					<context npcId="65" iconId="1" str="#username#，你们能和我一起去吗？">
+						<choice str="没问题，我们是好朋友嘛！">
+							<context npcId="65" iconId="1" str="好，那我们就去&lt;font color='#FF6600'&gt;&lt;b&gt;风暴沙漠&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+								<choice str="好的。" taskId="1717"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["17_66_suolide4"] = <dialog>
+				  <context str="不错，不错。你已经找到第一块石板了。"/>
+				  <context str="这里有一块&lt;font color='#FF6600'&gt;&lt;b&gt;羊皮卷轴&lt;/b&gt;&lt;/font&gt;，你可以按照羊皮纸的指示，在&lt;font color='#FF6600'&gt;&lt;b&gt;流沙区域&lt;/b&gt;&lt;/font&gt;寻找第二块石板。"/>
+				  <context str="嗯，为了成为新猫王，我一定能找到第二块石板的！" npcId="16" viewId="1">
+				  	<choice type="2" str="我也相信哈里。" action="17_66_suolide4"/>
+				  </context>
+				</dialog>;
+         talk["17_70_suolide4"] = <dialog>
+				  <context str="怎么样？找到正义石板了吗？"/>
+				  <context str="正义石板被一个可怕的石像黑影抢走了。" npcId="16"/>
+				  <context str="石板被抢走不要紧，只要怀有正义的心，终会找到正义石板的！" npcId="17"/>
+				  <context str="你们先去寻找智慧石板吧，&lt;font color='#FF6600'&gt;&lt;b&gt;风暴之眼&lt;/b&gt;&lt;/font&gt;处的&lt;font color='#FF6600'&gt;&lt;b&gt;索里克斯石盘&lt;/b&gt;&lt;/font&gt;处可能有线索。"/>
+				  <context str="嗯，为了成为新猫王，我一定能找到第三块石板的！" npcId="16">
+				  	<choice type="2" str="加油！" taskId="70"/>
+				  </context>
+				</dialog>;
+         talk["17_75_suolide4"] = <dialog>
+					<context str="哈里，你不愧是我的孩子，通过了索里克斯的智慧考验。你可以去遗迹区域找一个叫做鲁阿鲁的石像，他会给你提供石板的线索。"/>
+					<context str="嗯，为了成为新猫王，我一定能找到第四块石板的！" npcId="16">
+						<choice type="0" str="你一定可以的！" taskId="75"/>
+					</context>
+				</dialog>;
+         talk["17_77_end"] = <dialog>
+					<context str="索里德人民感激勇者的所作所为，为了纪念勇者，铭记历史，奥拉勇者在索里德人民的帮助下制作了4块石板，记录索里德的故事，考验王的继承人。这就是王之考验的由来。">
+						<choice type="2" str="啊，那位勇者一定就是我们奥拉星上传说中的三位勇士之一。">
+							<context str="难道你就是奥拉星新一代的勇士？太好了！你终于来了。哈哈！感谢你们的勇者，他用辉之碎片帮我们构筑了今天的索里德文明。"/>
+							<context str="现在到了辉之碎片物归原主的时候了。4块石板是四把钥匙。勇士，到绿洲上取出伟大的辉之碎片吧！">
+								<choice type="0" str="我这就去。" taskId="77"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["17_77_suolide4"] = <dialog>
+					<context str="父王，我已经集齐了爱心、智慧、自然、正义四块石板。" npcId="16"/>
+					<context str="孩子，你终于集齐了四块石板，具备了王的资质，下面我将为你讲述每一个继承人都应该了解的四块石板的历史。" npcId="17"/>
+					<context str="那是发生在很久很久以前的故事，当时的索里德可是到处都是森林……">
+						<choice type="0" str="那一定是个很精彩的故事。" action="17_77_suolide4_movie"/>
+					</context>
+				</dialog>;
+         talk["17_79_suolide4"] = <dialog>
+					<context npcId="17" str="奥拉勇士，就请你把这辉之碎片带回属于它的地方吧！">
+						<choice type="0" str="谢谢您，猫王！" action="showed_geted"/>
+					</context>
+				</dialog>;
          talk["182_1597_talkContinue"] = <config>
 					<context npcId="182" iconId="7" str="这里有一只十分强大的炎魔，它可以吞噬这里的火焰，然后变得更加强大。"/>
 					<context npcId="182" iconId="7" str="小心，它又要出来了。">
@@ -363,6 +926,87 @@ package mmo.tasknpc
 				</config>;
          talk["182_728_temple2"] = <config>
 					<context npcId="182" iconId="2" str="唉……就是有人总是爱凑热闹，没事找事，瞎捣乱！">
+					</context>
+				</config>;
+         talk["182_752_temple2_afterFaint"] = <config>
+					<context iconId="4" str="你们快带赤月走！"/>
+					<context npcId="1" str="炎风……"/>
+					<context iconId="4" npcId="182" str="这种小角色，我一个人就能搞定！"/>
+					<context iconId="4" str="你们不要在这碍事，搞得我实力发挥不出来！快走！">
+						<choice str="一定有办法的！你不能牺牲自己……" action="752_temple2_afterFaint"/>
+					</context>
+				</config>;
+         talk["182_753_temple2_boyondsound3"] = <config>
+					<context iconId="5" str="赤月！赤月你怎么啦？"/>
+					<context npcId="183" iconId="6" str="我？我……将一切毁灭！">
+						<choice str="赤月已经发狂了。">
+							<context npcId="182" iconId="5" str="怎么办？怎么才能阻止赤月？"/>
+							<context npcId="183" iconId="6" str="不要…不要接近我！"/>
+							<context npcId="1" str="主人！赤月刚刚使出了那招大妖之怒，一定耗费了很多体力。"/>
+							<context npcId="1" str="我们现在应该可以打败它，让它冷静下来。">
+								<choice str="好！我来试试打败赤月。" action="753_temple2_boyondsound3" taskId="753"/>	
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["182_754_temple2_fightwin"] = <config>
+					<context iconId="5" str="赤月！你怎么样了？"/>
+					<context npcId="183" iconId="2" str="我没事！大家怎么样了？">
+						<choice str="因为你！大家都脱险了。">
+							<context npcId="182" iconId="2" str="哼！以后再独自做这种危险的事，朋友就没的做了。"/>
+							<context npcId="183" iconId="3" str="嘿嘿！别……别生气呀！"/>
+							<context npcId="1" str="对了！刚刚那个黑影哪里去了？那个黑影是谁呢？"/>
+							<context npcId="182" iconId="2" str="难道是？">
+								<choice str="是谁？" taskId="754" action="754_temple2_fightwin"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["182_790_temple3_2win182Talk"] = <config>
+					<context npcId="182" iconId="2" str="唉……病是可以医，笨是没得救了">
+						<choice str="……我……">
+							<context npcId="183" iconId="3" str="不是的，不是的。它不是说你笨，你真的不是很笨的，真的！">
+								<choice str="……">
+									<context npcId="182" iconId="2" str="不要解释那么多，好戏要来了！">
+										<choice str="好戏？" action="790_woodAppear"/>
+									</context>		
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["182_791_temple3_1fail182Talk"] = <config>
+					<context iconId="2" str="我说了吧！病是可以医，笨是没得救了。">
+						<choice str="我一定会打败这些木头的！"/>
+					</context>
+				</config>;
+         talk["182_791_temple3_2win182Talk"] = <config>
+					<context iconId="2" str="嘿嘿……好戏还在后头呢！"/>
+					<context npcId="183" iconId="3" str="阿风！要不告诉他们方法吧！我看他们快坚持不住了。">
+						<choice str="谁说我坚持不住了？">
+							<context npcId="182" iconId="2" str="看看！好心当成驴肝肺！狗咬吕洞宾——不识好人心！">
+								<choice str="我招谁惹谁了呀！" action="791_woodAppear"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["182_792_temple3_1fail182Talk"] = <config>
+					<context iconId="2" str="啧啧啧！有些人，就是爱吹牛啊！"/>
+					<context npcId="183" iconId="2" str="刚才#username#故意让我而已啦！">
+						<choice str="再来打过！"/>
+					</context>
+				</config>;
+         talk["182_808_temple3"] = <config>	
+					<context npcId="1" str="炎风，你怎么了？为什么要跟它走？"/>
+					<context npcId="182" iconId="6" str="我……我要救赤月！只有他才有去除赤月邪恶力量的方法。否则，赤月会死掉的。"/>
+					<context npcId="182" iconId="6" str="而唯一去除邪恶力量的方法就是转移邪恶。我要帮助赤月！"/>
+					<context npcId="182" iconId="6" str="神秘人帮我救赤月，我答应跟它走！">
+						<choice str="我不会让黑影带走你的！" action="808_crazyWind">
+						</choice>
+					</context>
+				</config>;
+         talk["182_809_temple3"] = <config>
+					<context npcId="182" str="为了赤月，我一定要走……">
 					</context>
 				</config>;
          talk["183_1587_youanmingzhou2"] = <config>
@@ -438,6 +1082,27 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["183_752_temple2_fightFail"] = <config>
+					<context iconId="5" str="果然还是不行。阿风！你们先走，我来拦住它">
+						<choice str="你们也不是它的对手的。" action="752_temple2_fightFail"/>
+					</context>
+				</config>;
+         talk["183_754_temple2_fightfail"] = <config>
+					<context iconId="6" str="我…我要摧毁一切！">
+						<choice str="我一定要让你恢复正常。"/>
+					</context>
+				</config>;
+         talk["183_754_temple2_tryfight"] = <config>
+					<context iconId="6" str="不要…不要接近我！">
+						<choice str="赤月！快恢复意识吧！" action="754_temple2_tryfight"/>
+					</context>
+				</config>;
+         talk["183_792_temple3_2win183Talk"] = <config>
+					<context iconId="2" str="干嘛打我？好痛呀！"/>
+					<context npcId="182" iconId="4" str="下次你再变，打得你起不来。">
+						<choice str="赤月？黑影？这些……" taskId="792"/>
+					</context>
+				</config>;
          talk["194_1424_mantenxiagu3"] = <config>
 					<context npcId='194' str="你要尽可能地削弱黑化巨翅金鹏的力量，巨翅金鹏才有可能恢复正常。">
 					</context>
@@ -497,6 +1162,103 @@ package mmo.tasknpc
 								<choice type='0' str="什么？！怎么会这样？！" action="task1556movie"/>
 							</context>
 						</choice>
+					</context>
+				</config>;
+         talk["19_2102_bingxuestar2"] = <config>
+					<context npcId="19" iconId="1" str="你以为有兰丁在我就会怕吗？">
+						<choice type="3" str="哼，对付你，还用不着我们的英雄出手。" action="2101_fight"/>
+						<choice str="等我先去准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["19_2102_fightFail"] = <config>
+					<context npcId="19" str="年轻人，别太逞强！">
+						<choice str="刚才没尽全力，下面让你见识我真正的本领。"/>
+					</context>
+				</config>;
+         talk["19_2102_fightWin"] = <config>
+					<context npcId="19" str="哼，这次算你们走运，但别得意得太早，我们还会再见的。">
+						<choice str="好走，不送。" action="2102_runAway"/>
+					</context>
+				</config>;
+         talk["19_222101_hexagrampalace3"] = <config>
+					<context npcId="19" iconId="1" str="哼，连一个小鬼都搞不定，真是太没用了！">
+						<choice str="别太小瞧人了！" action="2218_Fight2"/>
+					</context>
+				</config>;
+         talk["19_222502_hexagrampalace4"] = <config>
+					<context npcId="19" iconId="1" str="凯撒大人，A计划已经失败，我们还是先撤退吧！"/>
+					<context npcId="539" iconId="9" str="哼！修罗，今天算你好运，下次可就没这么好的事了！">
+						<choice str="该死的凯撒，别跑！" action="2218_Movie7"/>
+					</context>
+				</config>;
+         talk["19_93_fightLose"] = <config>
+					<context str="想要打败我可帕斯，再练个100年吧。">
+						<choice type="0" str="我才不会就这么被打败。"/>
+					</context>
+				</config>;
+         talk["19_93_suolide1"] = <config>
+					<context str="哼！把石板拿来，你们或许还有一条活路，否则我将会把索里德变成一片废墟！"/>
+					<context str="啊！黑影?法老王的鬼魂？！" npcId="16">
+						<choice str="不要怕，这个世界上是没有鬼魂的，他只是长得像法老王而已。">
+							<context str="你们这些小鬼，到底交不交石板？" npcId="19"/>
+							<context str="想被我摧毁吗？想让索里德被夷为平地吗？">
+								<choice type="3" str="你这个坏蛋。" action="19_93_suolide1"/>
+								<choice type="1" str="好可怕！赶快跑！"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["19_94_suolide1"] = <config>
+					<context str="哼，你们会为今日的所作所为付出代价的，有朝一日，我可帕斯必将索里德夷为平地。"/>
+					<context str="我才不怕呢，我会将索里德变得越来越美好，越来越强大的！" npcId="16" action="16_94_suolide1">
+						<choice str="刚才多亏了你呢，谢谢你，王子。">
+							<context str="应该是我谢谢你才对呀，要不是你，我很难鼓起勇气面对那个可帕斯呢。" npcId="16"/>
+							<context str="好了，石板已经集齐了，回去找猫王吧。" npcId="16">
+								<choice str="好！去找猫王。" taskId="94"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1029_secondTalk"] = <config>
+					<context str="怎么办？主人！战无炎已经完全不记得神武月了。">
+						<choice str="能够控制战无炎的人一定就在附近。">
+							<context str="那我们怎么办？">
+								<choice str="快！我们要尽快找到幕后黑手。" taskId="1029"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1029_temple2"] = <config>
+					<context str="主人！那！难道它就是长大的炎风，也就是战——无——炎！">
+						<choice str="是的。">
+							<context str="战无炎忘记了赤月了吗？忘记它最要好的朋友了吗？">
+								<choice str="我也不敢相信。" action="1029_showMovie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1031_secondTalk"] = <config>
+					<context str="主人！神武月，神武月它有变化了。">
+						<choice str="难道真正的上古力量不只是如此。" action="1031_showMovie2"/>
+					</context>
+				</config>;
+         talk["1_1031_temple2"] = <config>
+					<context str="主人！怎么样？怎么样？谁赢了？">
+						<choice str="谁赢都是输。" action="1031_showMovie1"/>
+					</context>
+				</config>;
+         talk["1_1032_secondTalk"] = <config>
+					<context npcId="245" iconId="2" str="阿风！我一定要救回阿风！">
+						<choice str="这一切一定有着密切的关联。">
+							<context str="阿风，等着我吧！">
+								<choice str="我相信你们一定会重逢的。" action="1032_showMovie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1032_thirdTalk"] = <config>
+					<context str="事不宜迟，主人！我们快回去向司令官报告吧！">
+						<choice str="好！赤月要加油！我们回去向司令官汇报吧！" taskId="1032"/>
 					</context>
 				</config>;
          talk["1_1040_monkeytalk"] = <config name="1_1040_monkeytalk">
@@ -744,6 +1506,24 @@ package mmo.tasknpc
          talk["1_1166_fightspace2_2"] = <config name="1_1166_fightspace2_2">
 					<context npcId="1" str="主人！难道小星猴遇到危险了？">
 						<choice str="我们快去看看！" taskId="1166"></choice>
+					</context>
+				</config>;
+         talk["1_11_aixiscene4_1"] = <config name="1_11_aixiscene4_1">
+					<context npcId="1" str="好像一点作用也没有呢，╮(╯▽╰)╭HELLO连融化的冰水都没看到。">
+						<choice str="怎么会这样！">
+							<context npcId="2" iconId="2" str="看来，封印住伊莎女王的冰块，不是普通的冰块……">
+								<choice str="哈鲁达还真是用心良苦……">
+									<context npcId="201" iconId="4" str="……吉……吉蒂……">
+										<choice str="伊莎女王好像有反应了！" action="1_11_aixiscene4_1end"></choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_11_aixiscene4_3"] = <config name="1_11_aixiscene4_3">
+					<context npcId="1" str="没错，HELLO和主人绝对会找到救出你的办法的！绝对不会放弃你！">
+						<choice str="嗯！你一定要撑住！" action="1_11_aixiscene4_3end"></choice>
 					</context>
 				</config>;
          talk["1_1218_giantcordillera1_1"] = <config name="1_1218_giantcordillera1_1">
@@ -1028,6 +1808,11 @@ package mmo.tasknpc
          talk["1_1298_giantcordillera6_3"] = <config name="1_1298_giantcordillera6_3">
 					<context npcId="1" str="呼~~终于把这些奇怪的东西消灭了。">
 						<choice str="没有我不能解决的事情。" taskId="1298"></choice>
+					</context>
+				</config>;
+         talk["1_12_aixiscene4_2"] = <config name="1_12_aixiscene4_2">
+					<context npcId="1" str="主人，HELLO也不知道该怎么办了……">
+						<choice str="让我们冷静下来，好好想想吧！" taskId="12"></choice>
 					</context>
 				</config>;
          talk["1_1301_giantcordillera6_1"] = <config name="1_1301_giantcordillera6_1">
@@ -1972,15 +2757,1083 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["1_16902_talk"] = <config>
+					<context npcId="1" str="主人，快使用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;切断蔓藤吧！">
+						<choice type="0" str="好办法！" action="169_DoCut"/>
+					</context>
+				</config>;
+         talk["1_16903_talk"] = <config>
+					<context npcId="1" str="主人，别让坏蛋跑了！赶紧追上去吧！">
+						<choice type="0" str="好的！" taskId="170" action="169_ShowArrow"/>
+					</context>
+				</config>;
+         talk["1_1713_secondTalk"] = <config>
+					<context npcId="1" iconId="1" str="+_+现在知道大家为什么不和它玩了……">
+						<choice str="我们一定要帮助它才行。" action="1713finished" taskId="1713"/>
+					</context>
+				</config>;
+         talk["1_1716_secondTalk"] = <config>
+					<context npcId="1" iconId="1" str="哇，锐角羊龙吸收龙卷风的能量进化成了沙麒麟。"/>
+					<context npcId="8" iconId="1" str="情况不妙……三十六计走为上！">
+						<choice str="别跑！" action="movie2_1716"/>
+					</context>
+				</config>;
+         talk["1_1718_lastTalk"] = <config>
+					<context npcId="1" iconId="1" str="主人，沙麒麟通过了考验。">
+						<choice str="太好了，恭喜你。">
+							<context npcId="65" iconId="1" str="我还要谢谢你，#username#，你是我最好的朋友。"/>
+							<context npcId="65" iconId="1" str="因为你们的鼓励我才能坚持到现在。">
+								<choice str="其实是你为朋友着想的意志支持着你。">
+									<context npcId="65" iconId="1" str="希望你们以后常来找我玩。">
+										<choice str="一定会的。" taskId="1718"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_17202_talk"] = <config>
+					<context npcId="1" str="这个多克特逃跑速度还真是快，主人，我们回&lt;font color='#FF6600'&gt;&lt;b&gt;部落林地&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;问问杜克要怎么办吧！">
+						<choice type="0" str="好吧！" taskId="172" action="172_ShowArrow"/>
+					</context>
+				</config>;
+         talk["1_1742_catestar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，这些家伙是在干嘛，看起来好热闹的样子。">
+						<choice str="我们也过去凑凑热闹。" action="1742_afterStart"/>
+						<choice str="下次再凑这个热闹吧。"/>
+					</context>
+				</config>;
+         talk["1_1744_aftermovie1"] = <config>
+					<context npcId="1" iconId="1" str="哇，那岂不是可以在美食节上吃到好多好好吃的东西！"/>
+					<context npcId="423" iconId="1" str="没错哦，美食节可是美食之星上最重要的节日呢。"/>
+					<context npcId="423" iconId="1" str="每个有美食大厨梦想的亚比，都一定会参加美食节的！"/>
+					<context npcId="1" iconId="1" str="HELLO很好奇，美食节最初是由谁提议的呢？"/>
+					<context npcId="423" iconId="1" str="这个我还真不是很清楚……不如你去&lt;font color='#FF6600'&gt;&lt;b&gt;冰淇淋大街问问奥力奥&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧，它一定知道的。">
+						<choice str="好的！" action="1744_finished" taskId="1744"/>
+					</context>
+				</config>;
+         talk["1_1746_aftermovie1"] = <config>
+					<context npcId="1" iconId="1" str="哇，两姐妹长得好像，简直就是双胞胎！"/>
+					<context npcId="424" iconId="1" str="呵呵……呵呵……大家都这么说呢。"/>
+					<context npcId="1" iconId="1" str="露丝做蛋糕也一定很厉害吧。"/>
+					<context npcId="424" iconId="2" str="我……我其实还好啦……">
+						<choice str="哎呀，别谦虚啦！" action="movie2_1746"/>
+					</context>
+				</config>;
+         talk["1_1748_aftermovie1"] = <config>
+					<context npcId="1" iconId="1" str="已经过去几天啦，不知道露可准备得怎么样了？HELLO好惦记啊！"/>
+					<context npcId="1" iconId="1" str="主人，不如我们去&lt;font color='#FF6600'&gt;&lt;b&gt;露可的美食小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;看看它吧。">
+						<choice str="好，我也正想去呢。" action="1748_finished" taskId="1748"/>
+					</context>
+				</config>;
+         talk["1_1751_aftermovie1"] = <config>
+					<context npcId="1" iconId="1" str="露丝看起来真奇怪。">
+						<choice str="我有不好的感觉……">
+							<context npcId="1" iconId="1" str="HELLO也有不好的预感，我们还是先回&lt;font color='#FF6600'&gt;&lt;b&gt;露可的美食小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+								<choice str="嗯，好！" action="1751_finished" taskId="1751"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1752_aftermovie1"] = <config>
+					<context npcId="1" iconId="1" str="就HELLO多年的侦探经验来看，露丝还是有很大嫌疑的！"/>
+					<context npcId="423" iconId="4" str="亲，你们能帮助我，我很高兴……"/>
+					<context npcId="423" iconId="4" str="但是露丝绝对不会做这种事情，请不要随便怀疑我的妹妹好吗亲？"/>
+					<context npcId="1" iconId="1" str="对不起……也许是HELLO和主人想多了。">
+						<choice str="如果是饭菜的问题的话，可以下手的机会太多了，不一定是露丝做的。">
+							<context npcId="1" iconId="1" str="不过刚才露丝的样子很奇怪，HELLO有点担心，不如回&lt;font color='#FF6600'&gt;&lt;b&gt;松软蛋糕店&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;看看露丝有没有回来吧。">
+								<choice str="好。" action="1752_finished" taskId="1752"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1753_aftermovie1"] = <config>
+					<context npcId="1" iconId="1" str="难道真的是露丝干的……">
+						<choice str="看来很有可能是这样。">
+							<context npcId="1" iconId="1" str="主人，你看，角落里还有一个奇怪的东西。">
+								<choice str="好像是某种食材。" action="appearStrangeFood"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1753_catestar2"] = <config>
+					<context npcId="1" iconId="1" str="主人，看来露丝还没回来呢。">
+						<choice str="扑了个空。">
+							<context npcId="1" iconId="1" str="主人，你看，角落里有一张纸团。">
+								<choice str="怎么会有纸团，让我看看。" action="movie1_1753"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1753_strangefood"] = <config>
+					<context npcId="1" iconId="1" str="这东西是什么，闻起来有股怪怪的味道。"/>
+					<context npcId="1" iconId="1" str="阿嚏……还是去&lt;font color='#FF6600'&gt;&lt;b&gt;露可的美食小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;拿给露可看看吧。">
+						<choice str="我也是这么想的。" action="1753_finished" taskId="1753"/>
+					</context>
+				</config>;
+         talk["1_1756_aftershowpaper"] = <config>
+					<context npcId="1" iconId="1" str="主人，虽然露可不愿意相信，但HELLO觉得露丝还是大有问题。">
+						<choice str="其实我的直觉也是这样告诉我的。">
+							<context npcId="1" iconId="1" str="不知道露丝到底去哪了，什么时候才能回来。HELLO有好多的问题想问它。">
+								<choice str="我也是满肚子的疑惑。">
+									<context npcId="1" iconId="1" str="现在只能希望奥力奥能够找出不知味的解药了。">
+										<choice str="看来只能是这样了。" action="1756_finished"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1768_nextTalk2"] = <config>
+					<context npcId="1" iconId="4" str="不知道露丝这是要去哪里，主人，我们不如跟上去看看吧。">
+						<choice type="0" str="好的。" taskId="1768" action="1768_showLastMovie"/>
+					</context>
+				</config>;
+         talk["1_1769_catestar4"] = <config>
+					<context npcId="1" iconId="12" str="哇，主人！露丝居然跳进汉堡包了！">
+						<choice type="0" str="……太神奇了!">
+							<context npcId="1" str="别管那么多了，我们也快点跟上吧！">
+								<choice type="0" str="也只有这个办法了！" taskId="1769" action="1769_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1773_catestar2"] = <config>
+					<context npcId="1" str="主人，点击&lt;font color='#FF6600'&gt;&lt;b&gt;右边的蛋糕台&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;就能帮助露可露丝卖蛋糕了哦！"/>
+					<context npcId="1" str="只要通过第一关就算成功哦！">
+						<choice type="0" str="好的，我知道了！" action="1773_startGame"/>
+						<choice str="我现在还有别的事要做，待会再来卖蛋糕吧！"/>
+					</context>
+				</config>;
+         talk["1_1773_loseInGame"] = <config>
+					<context npcId="1" str="主人，到现在只卖出了一点点蛋糕呢，再加把油吧！">
+						<choice type="0" str="好，我再试一次。"/>
+					</context>
+				</config>;
+         talk["1_1773_winInGame"] = <config>
+					<context npcId="1" str="哇，主人，今天蛋糕店的收入很不错哦！卖了很多蛋糕呢！">
+						<choice type="0" str="即使这样被夸奖，我也高兴不起来……毕竟露可和露丝的事情都没有任何进展。">
+							<context npcId="1" iconId="20" str="是啊，最重要的事情一个都没解决呢……"/>
+							<context npcId="1" str="不过，HELLO觉得，还是应该先想办法帮助露可恢复味觉。"/>
+							<context npcId="1" str="所以还是去&lt;font color='#FF6600'&gt;&lt;b&gt;冰淇淋大街&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;再问问奥力奥有关解药的事吧。">
+								<choice type="0" str="好主意，就这么办。" taskId="1773" action="1773_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1775_catestar4"] = <config>
+					<context npcId="1" str="这就是奥力奥所说的，配置解药的素材吧！">
+						<choice type="0" str="看来就是它了！">
+							<context npcId="1" str="让HELLO看看，那里还有两个，看HELLO把它们摘下来！">
+								<choice type="0" str="加油加油！" action="1775_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1775_nextTalk"] = <config>
+					<context npcId="1" str="主人，你没伤到吧？">
+						<choice type="0" str="别担心，我没事！">
+							<context npcId="1" str="HELLO怎么觉得那黑影怪怪的……"/>
+							<context npcId="1" str="算了，先不管这个了，先回&lt;font color='#FF6600'&gt;&lt;b&gt;露可的美食小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;找露可去吧。">
+								<choice type="0" str="好的！" taskId="1775" action="1775_showNextMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1777_catestar3"] = <config>
+					<context npcId="1" str="药煎好了，我们端去给露可喝吧！">
+						<choice type="0" str="好的。" taskId="1777" action="1777_nextTalk"/>
+					</context>
+				</config>;
+         talk["1_1778_nextTalk"] = <config>
+					<context npcId="1" iconId="23" str="主人，不好啦，露可晕倒啦！">
+						<choice type="0" str="太糟糕了，这可怎么办？！">
+							<context npcId="1" iconId="23" str="我们还是赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;冰淇淋大街&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;找奥力奥问问清楚吧！">
+								<choice type="0" str="只能这样了。" taskId="1778" action="1778_showNextMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1779_nextTalk"] = <config>
+					<context npcId="1" str="哇，好大的气场啊，HELLO的眼睛都被它闪得睁不开啦!">
+						<choice type="0" str="是啊，也不知道是什么神物。">
+							<context npcId="1" str="主人，它离开的时候好像留下了什么东西呢，快去看看吧！">
+								<choice type="0" str="好的。" taskId="1779"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1780_catestar1"] = <config>
+					<context npcId="1" str="好漂亮的鳞片啊，HELLO都没有见过呢！">
+						<choice type="0" str="是啊，不知道是什么。">
+							<context npcId="420" iconId="3" str="这……这可是个难得的宝贝啊！"/>
+							<context npcId="420" iconId="3" str="刚才那道白光，一定是另一个星球的传说中的神奇亚比，听说它身上有无穷的能量。"/>
+							<context npcId="420" iconId="3" str="这块鳞片就是从它身上掉落下来的，听说它可以净化邪恶，驱百毒，治百病。">
+								<choice type="0" str="真的这么神奇？">
+									<context npcId="420" str="一切都只在传说中听过，是不是真的，还有待验证。">
+										<choice type="0" str="不过传说中的亚比在这里现身，还留下一块鳞片，难道是在暗示我们可以用这个救露可？">
+											<context npcId="1" str="事到如今，不管怎样都要试一试了！"/>
+											<context npcId="1" str="主人，事不宜迟，我们赶紧拿它去&lt;font color='#FF6600'&gt;&lt;b&gt;露可的美食小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;救露可吧！">
+												<choice type="0" str="好的，我们走！" taskId="1780" action="1780_showMovie"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1781_catestar3"] = <config>
+					<context npcId="1" str="主人，露可真的会好起来吗？">
+						<choice type="0" str="希望如此吧。" action="1781_showEndMovie"/>
+					</context>	
+				</config>;
+         talk["1_1807_ThirdTalk"] = <config>
+					<context npcId="1" str="主人，快看，露可醒了耶！我们快过去看看吧！">
+						<choice type="0" str="能醒过来真是太好了！" taskId="1807" action="1807_nextTalk"/>
+					</context>
+				</config>;
+         talk["1_1807_nextTalk"] = <config>
+					<context npcId="1" iconId="30" str="可是都过去这么多天了，露可会不会真的醒不过来啊？HELLO好担心哦！">
+						<choice type="0" str="不会的，露可一定会醒的。" action="1807_showMovie"/>
+					</context>
+				</config>;
+         talk["1_1811_catestar3"] = <config>
+					<context npcId="1" str="是一滴蓝色的眼泪耶，难道这滴眼泪就是露可要寻找的重要食材吗？"/>
+					<context npcId="423" iconId="10" str="这……这是一滴意念之泪。">
+						<choice type="0" str="意念之泪？">
+							<context npcId="423" str="意念之泪是亲人之间通过心灵感应传递信息的一种方式，只有亲人才能感应到。"/>
+							<context npcId="423" str="这一定是露丝托它带给我们的，快点打开它，看看露丝要告诉我们什么吧！">
+								<choice type="0" str="要怎么才能打开它呢？">
+									<context npcId="423" str="要得到意念之泪中的信息，必须让它凝结。"/>
+									<context npcId="1" str="主人，用&lt;font color='#FF6600'&gt;&lt;b&gt;冰冻射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;试试吧！">
+										<choice type="0" str="好的。" action="1811_alter"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1811_nextTalk"] = <config>
+					<context npcId="1" str="主人，快去看看露丝到底要告诉我们什么吧！">
+						<choice type="0" str="好的，看看去。" taskId="1811" action="1811_nextTalk"/>
+					</context>
+				</config>;
+         talk["1_1819_lastTalk"] = <config>
+					<context npcId="1" str="真开心，两姐妹终于团聚了。">
+						<choice type="0" str="是啊，露可也终于可以放心了。">
+							<context npcId="1" str="主人，现在露丝已经安全了，我们让奥力奥进行下一步计划吧！">
+								<choice type="0" str="好的。" taskId="1819" action="1819_nextTalk"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1821_nextTalk"] = <config>
+					<context npcId="1" str="主人，露可获得了美食节大赛的冠军，我们去为它庆祝吧。">
+						<choice type="0" str="好的。" taskId="1821" action="1821_nextTalk"/>
+					</context>
+				</config>;
+         talk["1_1829_secondTalk"] = <config>
+					<context npcId="1" str="太棒啦！有露水的话，一定能让那只亚比退烧的！">
+						<choice str="没错！">
+							<context npcId="1" str="主人，快点回&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，让那只亚比服下露水吧。">
+								<choice str="好，这就回去。" action="1829_tasktips2" taskId="1829"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1829_unicornstar2"] = <config>
+					<context npcId="1" str="主人，那朵最大的莲叶上有很多露水哦！">
+						<choice str="好，就是它了！" action="1829_interaction"/>
+					</context>
+				</config>;
+         talk["1_1830_secondTalk"] = <config>
+					<context npcId="1" iconId="23" str="哇啊啊！主人！它长出了角！它长出了角！"/>
+					<context npcId="453" iconId="1" str="……有必要那么吃惊吗？有角很正常，因为我是一只独角兽啊！"/>
+					<context npcId="1" iconId="23" str="我以为独角兽只有传说中才有，没想到竟然在这里见到了！">
+						<choice str="确实挺吃惊的，更吃惊的是你的角居然这么随便就长出来了！">
+							<context npcId="453" iconId="1" str="咳咳……我只是刻意隐藏起来了而已。">
+								<choice str="好吧。" action="1830_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1831_secondTalk"] = <config>
+					<context npcId="1" iconId="4" str="刚才那些士兵是来抓你的吗？为什么它们要抓你啊？你究竟是什么人呀？"/>
+					<context npcId="453" iconId="1" str="非常感谢你们对我的救命之恩，但是，有些事情你们还是不知道的好。"/>
+					<context npcId="1" iconId="1" str="喔……看来你是个很神秘的亚比！不过HELLO还有两个问题呢。"/>
+					<context npcId="1" iconId="1" str="仙林是什么东西？先哲又是什么东西啊？"/>
+					<context npcId="453" iconId="3" str="这个……这个……"/>
+					<context npcId="1" iconId="1" str="在你昏迷的时候，你喊了167次先哲哦，HELLO可是有仔细数过的。"/>
+					<context npcId="453" iconId="1" str="啊？！是吗？！也许是因为它欠我一点钱吧……"/>
+					<context npcId="1" iconId="1" str="哇，那那个叫仙林的家伙一定欠你很多钱，你喊仙林喊了668次哦！"/>
+					<context npcId="453" iconId="3" str="啊？！是吗？！我有喊这么多次吗？！">
+						<choice str="是啊，我们都有数过的。">
+							<context npcId="453" iconId="3" str="好了，我还有大事要做，得先走了，我们、我们后会有期。">
+								<choice str="就要走了？好吧，后会有期。" action="1831_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1831_thirdTalk"] = <config>
+					<context npcId="1" iconId="1" str="主人，我们还是赶紧办正事吧，找纯净能源才是我们来这里的目的。"/>
+					<context npcId="1" str="也许刚才那些士兵会知道些纯净能源的事情，去&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;问问它们吧。">
+						<choice str="目前也只有这个方法了。" action="1831_tasktips4" taskId="1831"/>
+					</context>
+				</config>;
+         talk["1_1832_secondTalk"] = <config>
+					<context npcId="1" str="咦，这不就是刚刚我们……">
+						<choice str="嘘~HELLO，先别说出来。">
+							<context npcId="447" str="怎么，你们认识这家伙？">
+								<choice str="(⊙o⊙)不认识，这家伙犯了什么罪？">
+									<context npcId="447" str="哼，这家伙犯的罪可多了，它是独角之星有史以来最大的罪犯。">
+										<choice str="怎么说？" action="1832_movie2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1834_thirdTalk"] = <config>
+					<context npcId="1" str="哇，刚才那是什么，HELLO被深深震撼了！"/>
+					<context npcId="446" str="这是王室才能掌握的魔法，这样，你们能信任我吗？">
+						<choice str="这样强力的魔法，果真只有王室血脉才能掌握。" action="1834_Finsh"/>
+					</context>
+				</config>;
+         talk["1_1841_secondTalk"] = <config>
+					<context npcId="1" str="哇，HELLO觉得这只独角兽看起来很有智慧的样子！"/>
+					<context npcId="448" iconId="1" str="这位是先哲独角兽，法力高强，能预言未来！">
+						<choice str="听起来很厉害的样子。">
+							<context npcId="1" str="对了，刚才你是说，仙林独角兽是王子的青梅竹马？">
+								<choice str="这里面的故事，能讲给我们听听吗？" action="1841_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1845_afterUrgencyInformation"] = <config>
+					<context npcId="1" str="主人，连接藤蔓那边好像出事了。">
+						<choice str="我们赶紧去看看！">
+							<context npcId="441" str="我也要去。">
+								<choice str="那一起走吧！" action="1845_NextTips" taskId="1845">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1846_afterHeiDaRunAway"] = <config>
+					<context npcId="1" str="主人，小花蝶好像受到惊吓了，我们过去看看它吧！">
+						<choice str="好的！" taskId="1846">
+						</choice>
+					</context>
+				</config>;
+         talk["1_1848_afterMuMianHurt"] = <config>
+					<context npcId="1" str="主人，不好了，木面仔受伤了！">
+						<choice str="我们快过去看看！" taskId="1848">
+						</choice>
+					</context>
+				</config>;
+         talk["1_1849_afterBecomeMuMianXia"] = <config>
+					<context npcId="1" str="主人，木面仔好厉害哦！那剑花闪得我眼睛都花了！">
+						<choice str="我看到了！">
+							<context npcId="1" str="不过它戴上面具后，样子变得好奇怪哦，HELLO都快认不出它了！">
+								<choice str="嗯，如果不是亲眼看到，我也不敢相信它会是以前那个可爱的木面仔。">
+									<context npcId="1" str="它虽然救下了自己的伙伴，但是它的样子……唉，不知道它会怎么想！">
+									<choice str="我们去看看它吧！" taskId="1849">
+									</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1854_unicornstar2"] = <config>
+					<context npcId="1" iconId="23" str="哇，没想到真的有魔法阵入口！">
+						<choice str="这入口真隐蔽，之前都没发现。">
+							<context npcId="454" str="这是独角兽王室才知道的入口，我们赶紧&lt;font color='#FF6600'&gt;&lt;b&gt;从这入口下去&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+								<choice str="好！刻不容缓！" action="1854_tasktips2" taskId="1854"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1857_fourthTalk"] = <config>
+					<context npcId="1" iconId="1" str="主人，我们赶紧&lt;font color='#FF6600'&gt;&lt;b&gt;把锁打开&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，将王子救出来吧！">
+						<choice str="嗯！救王子要紧！" action="1857_end" taskId="1857"/>
+					</context>
+				</config>;
+         talk["1_1857_secondTalk"] = <config>
+					<context npcId="1" iconId="33" str="主人，小心暗器！">
+						<choice str="啊？！在哪里！我没看到！" action="1857_movie1"/>
+					</context>
+				</config>;
+         talk["1_1857_thirdTalk"] = <config>
+					<context npcId="1" iconId="33" str="主人，你没事吧！">
+						<choice str="还、还好。">
+							<context npcId="447" str="哼，你们这群不知天高地厚的家伙，你们总有一天会付出代价的！">
+								<choice str="我们等着这一天到来！" action="1857_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1858_loseTalk"] = <config>
+					<context npcId="1" str="主人，别气馁，开锁的数字就隐藏在皇宫地牢的地面上，再仔细看看！">
+						<choice str="好，我知道了。"/>
+					</context>
+				</config>;
+         talk["1_1861_secondTalk"] = <config>
+					<context npcId="1" str="通往独角兽密林的路就在那里，大家跟上。">
+						<choice str="多多王子！将军！我们走吧！" action="1861_tasktips4" taskId="1861"/>
+					</context>
+				</config>;
+         talk["1_1863_secondTalk"] = <config>
+					<context npcId="1" iconId="4" str="中间少了一段呢，HELLO没太看明白……"/>
+					<context npcId="1" iconId="4" str="不过多多王子的父亲突然倒地了，真的很奇怪……感觉不是现任国王所为。">
+						<choice str="嗯，我也有这种感觉。">
+							<context npcId="446" iconId="1" str="……难道父王的事情，其实另有隐情……"/>
+							<context npcId="454" str="就刚才这段回忆看来，现在的国王确实没有足够的实力将老国王打败……">
+								<choice str="感觉事情开始变得复杂了。">
+									<context npcId="1" iconId="1" str="不管怎么样，我们还是先回到&lt;font color='#FF6600'&gt;&lt;b&gt;阳光荷塘&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+										<choice str="对，还是先离开这里再说吧。" action="1863_tasktips5" taskId="1863"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1863_unicornstar3"] = <config>
+					<context npcId="1" str="主人，HELLO感觉到了，这个东西，是独角之星上的纯净能源！">
+						<choice str="世上居然有这么巧的事……">
+							<context npcId="446" iconId="8" str="你们称为纯净能源的东西里面，似乎凝聚着父王的残留的记忆！">
+								<choice str="让我们看看里面有着怎样的记忆吧。" action="1863_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1866_secondTalk"] = <config>
+					<context npcId="1" iconId="24" str="又是可恶的达斯特人！没想到他们也来这里了！"/>
+					<context npcId="446" str="难道，竟然要我亲手去救仇人吗？">
+						<choice str="可是他们绑架的不只是国王，还有公主啊！">
+							<context npcId="446" str="……我、我……可是……">
+								<choice str="王子，你要想清楚！">
+									<context npcId="446" str="我脑子里太乱了，让我冷静一下吧。">
+										<choice str="王子……" action="1866_movie2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1866_unicornstar1"] = <config>
+					<context npcId="1" str="看来这张一定就是先哲独角兽所说的绑架公告了。">
+						<choice str="这年头绑匪都这么明目张胆了，绑架公告都搞得跟皇榜似的。">
+							<context npcId="446" iconId="2" str="让我看看，上面都写了什么呢？">
+								<choice str="估计是索要赎金之类的吧。" action="1866_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_1869_secondTalk"] = <dialog>
+					<context str="HELLO觉得这个办法不错，好像能行得通喔！"/>
+					<context npcId="446" str="可是你们这样做，会把自己陷入危险之地的……如果有个万一……">
+						<choice str="是啊，这可是个危险的办法。">
+							<context npcId="451" str="王子，您大可不必担心我们安危，我在预言里可没看到自己的死期，哈哈！"/>
+							<context npcId="454" str="行了，别废话了，走吧，先哲！">
+								<choice str="大家，一路保重啊！" action="1869_showMovie2"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["1_1869_thirdTalk"] = <dialog>
+					<context str="它们，就这样进去了呢……一定要平安归来啊，先哲、铠甲将军。"/>
+					<context npcId="446" str="不能浪费它们特意制造出的机会，#username#，我们走吧，潜入&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫地牢&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;！">
+						<choice str="出发。" action="1869_showMovie3" taskId="1869"/>
+					</context>
+				</dialog>;
+         talk["1_1872_operationFail"] = <dialog>
+					<context str="主人，别气馁，开锁的数字就隐藏在皇宫地牢的地面上，再仔细看看！">
+						<choice str="好，我知道了。"/>
+					</context>
+				</dialog>;
+         talk["1_1872_operationSucceed"] = <dialog>
+					<context iconId="4" str="咦？奇怪，这次锁居然没有被打开？！">
+						<choice str="密码明明就是167，怎么会这样？！">
+							<context npcId="449" iconId="3" str="王子，别费力气了，这锁的密码，早就被哈鲁达更改了。"/>
+							<context str="你明明知道这是一个陷阱，何苦故意踏进来呢？"/>
+							<context npcId="448" iconId="2" str="王子，不要管我和父亲了，快走吧！恐怕哈鲁达他们就要来了！">
+								<choice str="可恶……怎么会这样！" action="1872_showMovie" taskId="1872"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["1_1874_secondTalk"] = <dialog>
+					<context iconId="23" str="哈鲁达明明一向都很废柴的，今天怎么这么厉害！"/>
+					<context npcId="456" iconId="2" str="哼，虽然我不愿意承认，但是多克特对达鲁的改造的确非常有成效。"/>
+					<context str="你们是不可能打败现在的我和达鲁的！"/>
+					<context npcId="448" iconId="2" str="多多王子，不要管我和父亲了，快点走吧！"/>
+					<context npcId="446" iconId="2" str="可恶，到底要怎么办才好！本王子才不想在战斗中又跑掉！">
+						<choice str="王子……" action="1875_showFirstTalk" taskId="1874"/>
+					</context>
+				</dialog>;
+         talk["1_1876_fightWin"] = <dialog>
+					<context str="主人，我们也赶紧跟上去吧！">
+						<choice str="好的。" action="1876_showMovie"/>
+					</context>
+				</dialog>;
+         talk["1_1882_finish"] = <dialog>
+					<context str="主人，喜帖都送完啦，我们回&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫大殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;告诉先哲独角兽吧。">
+						<choice str="好！" taskId="1882"/>
+					</context>
+				</dialog>;
+         talk["1_1883_firthTalk"] = <dialog>
+					<context str="主人，我们也一起跟去&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+						<choice str="好的。" action="1883_showMovie5" taskId="1883"/>
+					</context>
+				</dialog>;
+         talk["1_1883_fourthTalk"] = <dialog>
+					<context str="哇，仙林公主好漂亮呀！">
+						<choice str="超级美！">
+							<context npcId="451" iconId="2" str="好啦，各位！婚礼大巡游，准备开始咯！第一站，皇宫外城！"/>
+							<context str="喂，证婚人，快点跟上队伍哦，你可是要见证这一切的人呢！">
+								<choice str="好嘞，我绝对不会错过的！" action="1883_showMovie4"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["1_1883_secondTalk"] = <dialog>
+					<context str="时间过的真快，今天已经是多多王子和仙林公主举行婚礼的日子了！">
+						<choice str="是啊，可是怎么没看到它们中的任何一个呢。" action="1883_showMovie2"/>
+					</context>
+				</dialog>;
+         talk["1_1883_thirdTalk"] = <dialog>
+					<context str="哇，是多多王子！">
+						<choice str="仙林公主在哪儿呀？" action="1883_showMovie3"/>
+					</context>
+				</dialog>;
+         talk["1_1884_firstTalk"] = <dialog>
+					<context str="主人，快！要开始说证婚词啦！">
+						<choice str="（突然有点紧张）好、好的！" action="1884_showMovie1"/>
+					</context>
+				</dialog>;
+         talk["1_1884_secondTalk"] = <dialog>
+					<context str="主人，接下来该去&lt;font color='#FF6600'&gt;&lt;b&gt;阳光荷塘&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;啦！">
+						<choice str="嗯，好！" action="1884_showMovie2" taskId="1884"/>
+					</context>
+				</dialog>;
+         talk["1_1885_firstTalk"] = <dialog>
+					<context str="主人刚才说的真棒，我们继续前往&lt;font color='#FF6600'&gt;&lt;b&gt;独角兽密林&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+						<choice str="嘿嘿嘿，谢谢夸奖！" action="1885_showMovie" taskId="1885"/>
+					</context>
+				</dialog>;
+         talk["1_1886_firstTalk"] = <dialog>
+					<context str="主人，下一站该去&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫地牢&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;了！">
+						<choice str="我们走！" action="1886_showMovie" taskId="1886"/>
+					</context>
+				</dialog>;
+         talk["1_1895_fairytalestar2"] = <config>
+					<context npcId="1" iconId="12" str="哇！怎么这么多白雪公主……">
+						<choice str="七个白雪公主？">
+							<context npcId="1" iconId="12" str="我记得童话故事中不是这样的剧情啊……发生什么事了？"/>
+							<context npcId="1" str="主人，你看这里有一幅画卷，说不定有什么线索。">
+								<choice str="先打开看看。" action="1895_SnowPrincess">
+									<context npcId="1" iconId="13" str="怎么漫画中的故事和现在的情况不一样啊？到底发生了什么事情呢？">
+										<choice str="我们还是回去问问童心吧。" taskId="1895" action="1895_Tips1">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["1_1961_magicstar1"] = <config>
 					<context npcId="1" iconId="1" str="主人，那个老奶奶摔倒了，我们快点过去看看她吧！">
 						<choice str="嗯，得赶紧看看去！" taskId="1961" action="1961_End">
 						</choice>
 					</context>
 				</config>;
+         talk["1_196602_magicstar2"] = <config>
+					<context npcId="1" iconId="2" str="主人，看，HELLO厉害吧！我们把气球拿去给摩么卡吧！">
+						<choice str="嗯，好的。" taskId="1966" action="1966_End"/>
+					</context>
+				</config>;
+         talk["1_196603_magicstar2"] = <config>
+					<context npcId="1" iconId="16" str="主人，气球还没有吹好哦！">
+						<choice str="那我们再来一次吧！"/>
+					</context>
+				</config>;
+         talk["1_196702_magicstar2"] = <config>
+					<context npcId="1" iconId="1" str="这个魔术确实很精彩，但是主人，HELLO能够感觉到摩么卡手里的魔术棒也许就是我们在寻找的纯净能源。">
+						<choice str="也就是说安迪奶奶先前说的外界力量很可能就是这根魔术棒的能量咯！">
+							<context npcId="1" iconId="1" str="HELLO也不能肯定，要不然我们让摩么卡不用魔术棒再给我们表演一次吧！">
+								<choice str="嗯，看来只能这样了。">
+									<context npcId="487" iconId="9" str="什么，不用魔术棒，再表演一次，这绝对不行！">
+										<choice str="难道你心虚了？">
+											<context npcId="487" iconId="9" str="我才没有呢？快轮到我上场表演了，我没有时间和你们啰嗦！">
+												<choice str="不行，你不能去。" action="1959_Movie10"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_196703_magicstar2"] = <config>
+					<context npcId="1" iconId="1" str="主人，不好，摩么卡已经站到舞台上了，看来它真的有依靠魔术棒的力量哦！">
+						<choice str="嗯，我们得赶紧阻止它的表演才行。" taskId="1967" action="1967_End"/>
+					</context>
+				</config>;
+         talk["1_196802_magicstar2"] = <config>
+					<context npcId="1" iconId="30" str="主人，你看，摩么卡好像有点不太对劲呢！">
+						<choice str="是啊，这可不像刚才的它。">
+							<context npcId="1" iconId="30" str="我们去问问它到底发生了什么事吧！">
+								<choice str="嗯，问问它去。" taskId="1968" action="1968_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["1_1968_magicstar2"] = <config>
 					<context npcId="1" iconId="30" str="主人，摩么卡的人气好像很高耶，我们如果现在阻止它似乎有点不妥。">
 						<choice str="我也这么认为，还真让人犯愁。" action="1959_Movie12"/>
+					</context>
+				</config>;
+         talk["1_197102_magicstar2"] = <config>
+					<context npcId="1" iconId="1" str="主人，道具没有处理好，摩么卡无法进行魔术表演呢，再努力一下吧！">
+						<choice str="好，我再试一次。"/>
+					</context>
+				</config>;
+         talk["1_197103_magicstar2"] = <config>
+					<context npcId="1" iconId="1" str="哇，主人真棒，这么快就把道具处理好了，我们快点把牌拿去给摩么卡吧！">
+						<choice str="嗯，好的。" taskId="1971" action="1971_End"/>
+					</context>
+				</config>;
+         talk["1_197202_magicstar2"] = <config>
+					<context npcId="1" iconId="10" str="如果不是因为处理过道具，HELLO一定会觉得这个魔术很神奇。">
+						<choice str="嗯，是的，因为红心8是那单数牌里面唯一的双数牌，而梅花3是双数牌里唯一的单数牌。" action="1969_Movie3"/>
+					</context>
+				</config>;
+         talk["1_197203_magicstar2"] = <config>
+					<context npcId="1" iconId="30" str="主人，看这情况不太妙哦，我们赶紧去找安迪奶奶吧。">
+						<choice str="嗯，只能这么办了。" taskId="1972" action="1969_Tips1"/>
+					</context>
+				</config>;
+         talk["1_197302_magicstar1"] = <config>
+					<context npcId="1" iconId="30" str="主人，我们也赶紧跟上安迪奶奶，一起去&lt;font color='#FF6600'&gt;&lt;b&gt;魔术馆&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+						<choice str="好的，看看去！" taskId="1973" action="1969_Tips2"/>
+					</context>
+				</config>;
+         talk["1_197502_magicstar2"] = <config>
+					<context npcId="1" iconId="34" str="真是个感人的故事，HELLO又要热泪盈眶了！">
+						<choice str="我也是。">	
+							<context npcId="486" iconId="1" str="摩奇是为了拯救魔术之星才死的，它临终前把摩么卡托付给了我，所以我绝对不能让摩么卡出事。"/>
+							<context npcId="487" iconId="4" str="奶奶，是我太任性了，我不应该借助魔术棒的力量表演魔术的。"/>
+							<context npcId="486" iconId="1" str="奶奶不怪你，其实奶奶之所以要阻止你，还有一个非常重要的一个原因。">
+								<choice str="什么原因？" action="1969_Movie6">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_197602_magicstar1"] = <config>
+					<context npcId="1" iconId="30" str="主人，HELLO记得这是摩么卡的项链。">
+						<choice str="摩么卡的项链怎么会在这里……">
+							<context npcId="1" iconId="30" str="主人，你看，魔术广场也乱糟糟的，好像刚刚经历了一场打斗！">
+								<choice str="糟糕！难道摩么卡出事了！" action="1969_Movie7"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_197603_magicstar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，看来魔术棒很有可能是多克特抢走了，而摩么卡肯定发现了什么！">
+						<choice str="没错，可恶的多克特，居然还骗我们说他是来看魔术表演的！" action="1969_Movie8"/>
+					</context>
+				</config>;
+         talk["1_197_getPetEgg"] = <dialog>
+					<context npcId="1" str="哦耶！太好了！主人，我们又找到辉之碎片喽！">
+						<choice type="0" str="是呀，好开心喔！" taskId="199" action="36_197_siwude4fightwincontinue3_showpanel"></choice>
+					</context>
+				</dialog>;
+         talk["1_197_siwude4fightwincontinue4"] = <dialog>
+					<context npcId="1" str="哦耶！辉之碎片收回来喽！我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;传送核心&lt;/b&gt;&lt;/font&gt;融合奥拉之辉吧！">
+						<choice type="2" str="好！现在就前往传送核心。" action="197_gotoMaintown1"/>
+					</context>
+				</dialog>;
+         talk["1_199102_magicstar3"] = <config>
+					<context npcId="1" iconId="1" str="主人，我们还没能逃出多克特的障眼法呢！">
+						<choice str="我再试一次吧。"/>
+					</context>
+				</config>;
+         talk["1_199403_magicstar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，摩么卡这句话想告诉安迪奶奶什么呢，HELLO不明白哦！">
+						<choice str="我也很疑惑。" action="1986_Movie9"/>
+					</context>
+				</config>;
+         talk["1_199404_magicstar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，多克特带着摩么卡往魔术小镇去了，我们赶紧追过去吧！"/>
+					<context npcId="486" iconId="1" str="孩子们，不用追了。">
+						<choice str="为什么啊？" taskId="1994"/>
+					</context>
+				</config>;
+         talk["1_1997_magicstar2"] = <config>
+					<context npcId="1" iconId="1" str="主人，魔术材料都已经找好了，我们去&lt;font color='#FF6600'&gt;&lt;b&gt;魔术广场&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;找安迪奶奶吧！">
+						<choice str="嗯，好的！" taskId="1997" action="1997_End"/>
+					</context>
+				</config>;
+         talk["1_199802_magicstar1"] = <config>
+					<context npcId="1" iconId="23" str="哇，这个盒子和多克特的几乎一模一样耶，安迪奶奶真棒！">
+						<choice str="太令人震惊了！">
+							<context npcId="486" iconId="1" str="现在老了，体力大不如以前，也不知道这个盒子能不能帮得上忙？"/>
+							<context npcId="1" iconId="1" str="HELLO相信安迪奶奶，但HELLO现在担心的是摩么卡真的可以实现这个魔术吗？"/>
+							<context npcId="486" iconId="1" str="凭借摩么卡以前的技术要实现这个魔术有些难度。"/>
+							<context npcId="486" iconId="1" str="但是这次奶奶选择相信它，因为它是摩奇的孩子。">
+								<choice str="我也相信摩么卡一定不会让我们失望的。">
+									<context npcId="1" iconId="1" str="既然这样，那我们快把魔术盒送到&lt;font color='#FF6600'&gt;&lt;b&gt;魔术小镇&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;给摩么卡吧！">
+										<choice str="嗯，事不宜迟，走吧！" taskId="1998" action="1998_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_200002_magicstar3"] = <config>
+					<context npcId="1" iconId="1" str="主人，这到底是怎么回事呢，HELLO现在有点晕了。">
+						<choice str="我也不清楚。">
+							<context npcId="46" iconId="7" str="我盒子里的能量到底是怎么跑到你的盒子里去的？"/>
+							<context npcId="487" iconId="12" str="都说了，被我用偷天换日转移了，至于怎么实现的，我是不会告诉你的！"/>
+							<context npcId="46" iconId="7" str="可恶，把能量还给我，要不然别怪我不客气了！">
+								<choice str="能量是属于摩么卡的，怎么可以给你。" taskId="2000" action="2000_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_200202_magicstar3"] = <config>
+					<context npcId="1" iconId="1" str="安迪奶奶的意思是，现在摩么卡就具备这种神力？"/>
+					<context npcId="486" iconId="1" str="是这样的，但是它自己是没有办法使用的，必须由别人带它进入战斗才行。"/>
+					<context npcId="486" iconId="5" str="若是当年摩奇拥有偷天换日之力，也许就不会牺牲了。"/>
+					<context npcId="487" iconId="1" str="奶奶，你放心，我不会重蹈母亲的覆辙，#username#,现在就请你带我和多克特战斗一场吧！">
+						<choice str="既然你这么相信我，我一定不会让你失望的。" action="1995_Movie7"/>
+					</context>
+				</config>;
+         talk["1_200203_magicstar3"] = <config>
+					<context npcId="1" iconId="23" str="主人，你看，摩么卡进化了，简直太酷了。">
+						<choice str="是啊，太惊艳了，真令人震惊！" taskId="2002" action="2002_End"/>
+					</context>
+				</config>;
+         talk["1_200402_magicstar3"] = <config>
+					<context npcId="1" iconId="23" str="这到底是怎么回事啊，摩么卡，你是怎么做到的啊？"/>
+					<context npcId="491" iconId="1" str="嘿嘿……这个嘛……不能说的秘密。"/>
+					<context npcId="486" iconId="1" str="魔术揭秘就不神奇了，奶奶觉得，不如把这个魔术当成你们心里永远的秘密吧。">
+						<choice str="奶奶说的对，这就是我们永远的秘密。">
+							<context npcId="491" iconId="1" str="现在我已经领悟到了魔术的真谛，以后我会继续努力，争取像妈妈一样，成为一位出色的魔术师。">
+								<choice str="摩么卡，我相信你一定可以的。">
+									<context npcId="486" iconId="1" str="#username#，奶奶听星球上的亚比说你是来寻找纯净能源的。"/>
+									<context npcId="486" iconId="1" str="所以奶奶和摩么卡商量后决定把这个盒子里的能量送给你。">
+										<choice str="这怎么可以，这可是摩么卡的母亲留下的遗物，我们不可以这么做！" taskId="2004" action="2004_End">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_200501_magicstar3"] = <config>
+					<context npcId='1' str="主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告吧！">
+						<choice type='0' str="向指挥中心出发！" taskId="2005" action="2005_End">
+						</choice>
+					</context>
+				</config>;
+         talk["1_201102_haikustar1"] = <config>
+					<context npcId="1" iconId="35" str="主人！这家伙比我馋多了！">
+						<choice str="……">
+							<context npcId="493" iconId="1" str="才不是这样呢！">
+								<choice str="那应该是怎样的呢？" action="2010_Movie3"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_201103_haikustar1"] = <config>
+					<context npcId="493" iconId="2" str="呜呜……"/>
+					<context npcId="1" iconId="9" str="主人啊！HELLO听得都晕了，到底怎么回事啊！">
+						<choice str="是啊！有话慢慢说，别激动啊！">
+							<context npcId="494" iconId="1" str="嗯嗯，这个问题，需要从科学的角度来解释，而从科学上来讲……">
+								<choice str="然后怎么样？">
+									<context npcId="494" iconId="1" str="这个还需要我进一步地研究！">
+										<choice str="— —||（汗流不止中……)">
+											<context npcId="1" iconId="12" str="主人！你看天上！">
+												<choice str="什么？" action="2010_Movie4"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_201104_haikustar1"] = <config>
+					<context npcId="1" iconId="12" str="主人！那道白光是什么？好像落在海岸边上啦！">
+						<choice str="我们过去看看。" taskId="2011" action="2011_End"/>
+					</context>
+				</config>;
+         talk["1_201402_haikustar1"] = <config>
+					<context npcId="1" iconId="10" str="o(∩_∩)o…哈哈！坏蛋全都被我们赶走啦！主人！"/>
+					<context npcId="1" iconId="10" str="以后，HELLO的大蒜攻击，也可以算是一项神兵利器啦！">
+						<choice str="……好像连好人也被熏晕了……快看看它吧！" taskId="2014" action="2014_End"/>
+					</context>
+				</config>;
+         talk["1_2016_haikustar2"] = <config>
+					<context npcId="1" iconId="12" str="哇！光……球……那个光球啊！"/>
+					<context npcId="497" iconId="2" str="我是白京京，可不是什么光球哦！"/>
+					<context npcId="1" iconId="7" str="看样子你的伤都恢复了呢！"/>
+					<context npcId="497" iconId="2" str="要多谢你们将我送到这海枯之海中，我才能这么快地恢复啊！">
+						<choice str="这么神奇？">
+							<context npcId="497" iconId="2" str="因为我生在这海中，这海枯之海，就是我的力量源泉。"/>
+							<context npcId="497" iconId="2" str="不过，你这颗大蒜真是厉害，我到现在还头疼呢。"/>
+							<context npcId="1" iconId="35" str="被这么夸奖，真是不好意思！虽然我不是大蒜……">
+								<choice str="刚才那只亚比是谁？它为什么追你啊？" action="2010_Movie10"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_201702_haikustar2"] = <config>
+					<context npcId="1" iconId="1" str="哇！真是一个善良的人，他叫什么名字呢？"/>
+					<context npcId="497" iconId="1" str="我也不知道，唉……人海茫茫……不知道什么时候才能找到他。">
+						<choice str="让我们来帮你找吧！">
+							<context npcId="497" iconId="1" str="真的吗？你们愿意帮助我吗？"/>
+							<context npcId="1" iconId="1" str="愿意啊！说不定还可以打听海枯之石的下落呢，你说呢？主人？">
+								<choice str="恩，一定帮忙，可是怎么找呢？">
+									<context npcId="497" iconId="1" str="我有一个办法！">
+										<choice str="那太好啦！" taskId="2017"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_201902_haikustar2"] = <config>
+					<context npcId="1" iconId="12" str="哇！主人！太神奇啦！这样一定可以帮白京京找到恩人的。">
+						<choice str="嗯，让我们去找吧！">
+							<context npcId="497" iconId="1" str="等等，等等，你们还不知道他以前什么样子呢。">
+								<choice str="哎呀！差点忘了。" action="2018_Pic1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_202104_haikustar3"] = <config>
+					<context npcId="1" iconId="1" str="主人，这位大叔好像不是我们要找的人呢！">
+						<choice str="是啊！我们再找找看吧！" action="2021_Num1"/>
+					</context>
+				</config>;
+         talk["1_202105_haikustar3"] = <config>
+					<context npcId="1" iconId="1" str="主人，这位好像不是我们要找的人呢！跟画上的完全不一样。">
+						<choice str="嗯，我们继续找吧。" action="2021_Num2"/>
+					</context>
+				</config>;
+         talk["1_202106_haikustar3"] = <config>
+					<context npcId="1" iconId="1" str="果然不是我们要找的人……">
+						<choice str="我们继续找吧。" action="2021_Num3"/>
+					</context>
+				</config>;
+         talk["1_202107_haikustar3"] = <config>
+					<context npcId="1" iconId="1" str="主人，好像是白京京的声音。">
+						<choice str="一定是出什么事了，我们过去看看。" taskId="2021" action="2021_End"/>
+					</context>
+				</config>;
+         talk["1_202202_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="白京京它不是妖怪！">
+						<choice str="对啊！你们误会了。">
+							<context npcId="498" iconId="2" str="还说不是妖怪，到处找人念一些邪恶的咒语！"/>
+							<context npcId="499" iconId="2" str="看它那头银发就知道了，一定是妖怪！"/>
+							<context npcId="500" iconId="2" str="说得没错，最近海枯之星海面不平静，说不定就是它惹出来的。"/>
+							<context npcId="1" iconId="30" str="不好！大家可能误会白京京了。">
+								<choice str="说得对！我们要为白京京解释清楚。" action="2018_Movie7"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_202203_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，加油！我们得帮白京京躲过村民的追捕才行！">
+						<choice str="嗯！一定要让白京京逃出困境才行！"/>
+					</context>
+				</config>;
+         talk["1_202204_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，这个人是……他好像是来帮助白京京的。">
+						<choice str="嗯，看看他说些什么。" taskId="2022" action="2022_End"/>
+					</context>
+				</config>;
+         talk["1_202302_haikustar1"] = <config>
+					<context npcId="1" iconId="31" str="白京京！这就是你寻找的恩人啊！"/>
+					<context npcId="497" iconId="6" str="……我……我的恩人……">
+						<choice str="小心！" action="2018_Movie9"/>
+					</context>
+				</config>;
+         talk["1_202304_haikustar1"] = <config>
+					<context npcId="1" iconId="30" str="主人！我们快跟过去看看，HELLO很担心白京京。"/>
+					<context npcId="501" iconId="1" str="我也一起去！">
+						<choice str="好！" taskId="2023" action="2023_End"/>
+					</context>
+				</config>;
+         talk["1_2025_haikustar3"] = <config>
+					<context npcId="1" iconId="1" str="主人！这些……真的都是白京京做的吗？"/>
+					<context npcId="1" iconId="1" str="HELLO虽然和白京京相处不久，但HELLO觉得白京京不是坏人。">
+						<choice str="我也不信！">
+							<context npcId="501" iconId="1" str="我们都没有亲眼见到是白京京破坏镇子，不能就这样下结论。"/>
+							<context npcId="498" iconId="1" str="那你们说说这还能是谁做的？">
+								<choice str="给我们一点时间，我们会找出真凶！" action="2025_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_202802_haikustar3"] = <config>
+					<context npcId="1" iconId="12" str="主人，这哪来的一大堆木头呢？">
+						<choice str="不知道……" action="2026_FindEnd"/>
+					</context>
+				</config>;
+         talk["1_202803_haikustar3"] = <config>
+					<context npcId="1" iconId="12" str="主人，好奇怪，这儿哪来的一大堆砖块呢？">
+						<choice str="真奇怪……" action="2026_FindEnd"/>
+					</context>
+				</config>;
+         talk["1_202804_haikustar3"] = <config>
+					<context npcId="1" iconId="12" str="主人，怎么回事？这儿哪来的一大堆贝壳呢？">
+						<choice str="我也不清楚……" action="2026_FindEnd"/>
+					</context>
+				</config>;
+         talk["1_202806_haikustar3"] = <config>
+					<context npcId="1" iconId="1" str="主人，还差一点就能修好房子了，要加油啊！">
+						<choice str="好！我会努力的！" action=""/>
+					</context>
+				</config>;
+         talk["1_202902_haikustar3"] = <config>
+					<context npcId="1" iconId="12" str="主人！刚才那个黑影是什么？">
+						<choice str="难道是达斯特人？" action="2026_Movie5"/>
+					</context>
+				</config>;
+         talk["1_203304_haikustar2"] = <config>
+					<context npcId="1" iconId="30" str="主人，你没事吧？">
+						<choice str="地上有什么东西，把我绊倒了。">
+							<context npcId="1" iconId="12" str="哦？主人！你看，这东西上面好像刻着图案。">
+								<choice str="我们好好看看。" taskId="2033" action="2033_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_203401_haikustar2"] = <config>
+					<context npcId="1" iconId="1" str="主人，上面都是些什么啊！HELLO没有太明白。">
+						<choice str="我也不太懂，不如我们去问问书恩吧。">
+							<context npcId="1" iconId="1" str="好！我们一起把这块石板给拖回去。">
+								<choice str="好！" taskId="2034" action="2034_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_203502_haikustar2"] = <config>
+					<context npcId="1" iconId="1" str="主人！别灰心，这次我们一定能将石板拔出来的。">
+						<choice str="嗯！我们再试试。"/>
+					</context>
+				</config>;
+         talk["1_203503_haikustar2"] = <config>
+					<context npcId="1" iconId="1" str="哇！主人！这下不好了，我们遇到巨型海怪啦！">
+						<choice str="不是吧！这下要被吃掉了。" taskId="2035" action="2035_End"/>
+					</context>
+				</config>;
+         talk["1_203703_haikustar2"] = <config>
+					<context npcId="1" iconId="16" str="主人！不好是古力德的声音！书恩，好像出事了！">
+						<choice str="我们快过去看看。" taskId="2037" action="2037_End"/>
+					</context>
+				</config>;
+         talk["1_203802_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="主人！是海枯之星上的居民，他们来帮助我们了！"/>
+					<context npcId="498" iconId="1" str="白京京，对不起，都是我们不好，之前错怪了你……"/>
+					<context npcId="497" iconId="6" str="啊……刚才你们是在跟我说“对不起”？"/>
+					<context npcId="1" iconId="1" str="之前，找材料，修好小镇上的房子，也是白京京在帮忙吧！"/>
+					<context npcId="497" iconId="6" str="这……都……远远比不上书恩为我所做的……">
+						<choice str="古力德，快放了书恩，否则，你也走不了了。" action="2032_Movie6"/>
+					</context>
+				</config>;
+         talk["1_203803_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，我们去追！"/>
+					<context npcId="497" iconId="1" str="不！这样，我们会害了书恩的……我们还是好好想想办法吧！">
+						<choice str="对！现在，救书恩才是最紧要的。" action="2038_End"/>
+					</context>
+				</config>;
+         talk["1_204802_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="主人，得赶紧将HELLO变成海枯之石，才能救出书恩哦！">
+						<choice str="好，我们再来一次。" action=""/>
+					</context>
+				</config>;
+         talk["1_205003_haikustar4"] = <config>
+					<context npcId="1" iconId="33" str="书恩！书恩！主人！书恩怎么样了？">
+						<choice str="我们快过去看看。" taskId="2050" action="2050_End"/>
+					</context>
+				</config>;
+         talk["1_205102_haikustar4"] = <config>
+					<context npcId="1" iconId="33" str="书恩！主人！书恩怎么了，书恩他……"/>
+					<context npcId="497" iconId="11" str="书恩……呜呜……书恩你…你不能……呜呜……">
+						<choice str="书恩受伤太重，恐怕……">
+							<context npcId="497" iconId="11" str="……不！我绝对不可以让书恩死！">
+								<choice str="别担心，我们一定有办法可以救书恩的。">
+									<context npcId="497" iconId="9" str="对！海枯之石，海枯之石一定可以救书恩的，我这就去找。"/>
+									<context npcId="497" iconId="11" str="拜托！请你们将书恩送回小镇，托人照料。">
+										<choice str="放心吧！交给我们了。" action="2046_Movie8"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_205103_haikustar4"] = <config>
+					<context npcId="1" iconId="23" str="咦？主人你看！那是我们挖出来的东西，看来是古力德在刚才不小心掉的。">
+						<choice str="带上吧！说不定有帮助。" action="2046_Movie9"/>
+					</context>
+				</config>;
+         talk["1_205104_haikustar4"] = <config>
+					<context npcId="1" iconId="23" str="主人！这很像是大海龟的龟壳啊！">
+						<choice str="说不定能从这里找到海枯之石的线索。">
+							<context npcId="1" iconId="1" str="主人！我们赶快将书恩送回&lt;font color='#FF6600'&gt;&lt;b&gt;海枯小镇&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，然后就去找白京京和大海龟吧！">
+								<choice str="好！我们准备出发吧！" taskId="2051" action="2051_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_205602_haikustar2"] = <config>
+					<context npcId="1" iconId="23" str="龟伯伯呀！这难道就是传说中的海枯之石？">
+						<choice str="是啊！跟我们想象的差得也太远啦！" taskId="2056" action="2056_End"/>
+					</context>
+				</config>;
+         talk["1_205702_haikustar2"] = <config>
+					<context npcId="1" iconId="23" str="主人！那颗心难道是……难道是白京京？">
+						<choice str="竟然是白京京！！">
+							<context npcId="1" iconId="1" str="主人，这样的话，如果要救书恩，岂不是要让白京京重新变成石头？">
+								<choice str="我也不知道。" action="2055_Movie3"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_205902_haikustar2"] = <config>
+					<context npcId="1" iconId="32" str="主人，白京京已经重新变为海枯之石了，呜呜……"/>
+					<context npcId="508" iconId="1" str="不要辜负白京京的期望，你们赶快拿海枯之石去救书恩吧！">
+						<choice str="恩，我们这就拿海枯之石去救书恩。" action="2055_Movie6"/>
+					</context>
+				</config>;
+         talk["1_206302_haikustar1"] = <config>
+					<context npcId="1" iconId="7" str="哇！拉贝尔，太好啦！又见到你了，还是那么帅！">
+						<choice str="来到这里，一定是有重要的事情吧！" taskId="2063" action="2063_End"/>
+					</context>
+				</config>;
+         talk["1_206402_haikustar1"] = <config>
+					<context npcId="1" iconId="7" str="哇！主人！你看！书恩醒了。">
+						<choice str="……白京京的努力没有白费……">
+							<context npcId="501" iconId="8" str="白京京？对了，白京京呢？">
+								<choice str="(强忍泪水)白京京它……">
+									<context npcId="1" iconId="42" str="（暗中拉扯主人）白京京啊！对啦！主人，白京京不是说，报完恩，就回到自由自在的大海了吗？"/>
+									<context npcId="501" iconId="8" str="真的？">
+										<choice str="恩，是啊……">
+											<context npcId="501" iconId="4" str="不可能的！不可能的！白京京辛辛苦苦来找我，怎么就这么走了呢？">
+												<choice str="恩已经报了，你还要它做什么呢？" taskId="2064" action="2055_Movie11"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
 					</context>
 				</config>;
          talk["1_2073_afterStorm"] = <config>
@@ -2007,10 +3860,956 @@ package mmo.tasknpc
 						<choice str="好的，我再试一次！"/>
 					</context>
 				</config>;
+         talk["1_2081_afterDoudou"] = <config>
+					<context npcId="1" str="豆豆似乎离不开迪恩呢， HELLO觉得还是让我家主人去比较合适。">
+						<choice str="是啊，迪恩，你还是留下来照顾豆豆吧！">
+							<context npcId="520" iconId="7" str="既然这样，那就只好麻烦你们了，不过你们一定要小心。">
+								<choice str="放心吧，我们一定会安全回来的！" taskId="2081" action="2081_gotoHill"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2083_cullFail"] = <config>
+					<context npcId="1" str="主人，我们还没有摘到冰凌花呢，再加把油吧！">
+						<choice str="好的，我再试一次！"/>
+					</context>
+				</config>;
+         talk["1_2083_cullSuccess"] = <config>
+					<context npcId="1" str="哇，主人好厉害，这么快就摘到了，我们把冰凌花拿去&lt;font color='#FF6600'&gt;&lt;b&gt;迪恩的小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;给迪恩吧！">
+						<choice str="好的，现在就去。" taskId="2083" action="2083_gotoHouse"/>
+					</context>
+				</config>;
+         talk["1_2083_toCullFlower"] = <config>
+					<context npcId="1" str="主人，冰凌花长在那么高的地方，我们似乎摘不到，得爬上去才行。">
+						<choice str="好的，我们爬上去将它摘下来吧！" action="2083_toCullFlower"/>
+					</context>
+				</config>;
+         talk["1_2084_afterFootprint"] = <config>
+					<context npcId="1" str="主人，快看，地上有一串脚印。">
+						<choice str="脚印？难道是豆豆的？">
+							<context npcId="1" str="HELLO认得出来，这就是豆豆的脚印。">
+								<choice str="豆豆为什么要离开呢？">
+									<context npcId="1" str="HELLO也不知道，不过现在迪恩叫不醒，豆豆又突然离家。"/>
+									<context npcId="1" str="HELLO觉得豆豆似乎对我们隐瞒了什么，不如我们跟着脚印过去看看。">
+										<choice str="嗯，也许可以查到一点线索。" taskId="2084" action="2084_goOutside"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2086_afterDoudouGo"] = <config>
+					<context npcId="1" str="主人，主人，你没事吧！吓坏HELLO了。">
+						<choice str="我没事，刚才那股风力量太大了。">
+							<context npcId="1" iconId="40" str="是啊，HELLO觉得那个影子身上有好重的邪气呢！">
+								<choice str="先不管那么多了，赶紧去救豆豆！">
+									<context npcId="1" iconId="40" str="救不了了，HELLO已经查过了，冰墙上根本没有出入口。">
+										<choice str="真奇怪，这到底是怎么回事？" action="2086_diEnCome"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2089_afterFallIll"] = <config>
+					<context npcId="1" str="主人，迪恩好像受寒感冒了，HELLO觉得我们还是劝他回家比较好。">
+						<choice str="嗯，我也这么认为。" taskId="2089">
+							<context npcId="520" iconId="6" str="你们不用劝我，等不到豆豆，我是不会回去的。">
+								<choice str="可是你这样子身体会吃不消的。">
+									<context npcId="520" iconId="6" str="豆豆已经成了我生活的一部分。"/>
+									<context npcId="520" iconId="6" str="如果它有什么三长两短，我不知道我还有没有勇气一个人活下去。">
+										<choice str="不要说丧气话，豆豆一定不会有事的。">
+											<context npcId="1" iconId="30" str="是啊，HELLO觉得如果豆豆看到你现在这个样子一定会很伤心的。"/>
+											<context npcId="520" iconId="6" str="我知道你们是一番好意，不过，我意已决，你们不用再说了。"/>
+											<context npcId="1" iconId="6" str="主人，迪恩一直这么等下去，身体肯定会受不了的。"/>
+											<context npcId="1" iconId="6" str="不如我们把他绑回去吧！">
+												<choice str="非常时刻看来只能用非常手段了。" action="2090_butterflyAppear"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2090_afterButterfly"] = <config>
+					<context npcId="1" iconId="31" str="主人，快看，蝴蝶，上次豆豆消失的时候蝴蝶就出现过。"/>
+					<context npcId="520" iconId="9" str="它们一定知道豆豆的下落，我们赶紧问问它们吧。">
+						<choice str="嗯，好的。" taskId="2090">
+							<context npcId="531" str="你们是什么人，待在这里干什么？">
+								<choice str="我们是在这儿等一个朋友，不知道你们有没有看到过它？">
+									<context npcId="531" str="我不管你什么朋友不朋友的，你们挡住了我们的路，赶紧闪开。">
+										<choice str="可是……" action="2090_doudouAppear"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2091_afterAppear"] = <config>
+					<context npcId="1" str="主人，豆豆昏过去了！HELLO觉得豆豆的事情应该和这群蝴蝶有关。"/>
+					<context npcId="1" str="我们赶紧找它们把事情问问清楚吧！">
+						<choice str="嗯，我也是这么想的。" taskId="2091">
+							<context npcId="531" str="好了，任务完成，得回去向主人报告了。">
+								<choice str="等等，话还没有说清楚，不许走！你们到底对我朋友做了什么？">
+									<context npcId="531" str="除了主人，还没有人敢对我们大呼小叫，我看你们是找打！">
+										<choice type="3" str="那我就来领教领教！" action="2092_fightButterfly"/>
+										<choice str="我还没有做好准备，待会再来和你打。"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2093_afterGo"] = <config>
+					<context npcId="1" str="主人，HELLO担心迪恩的身体会吃不消，我们赶紧跟去&lt;font color='#FF6600'&gt;&lt;b&gt;迪恩的小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;看看吧！">
+						<choice str="好的，我也正有此意。" taskId="2093" action="2093_taskRemind"/>
+					</context>
+				</config>;
+         talk["1_2094_afterWeak"] = <config>
+					<context npcI="1" str="主人，迪恩好像也睡着了。">
+						<choice str="嗯，应该是太累了。">
+							<context npcId="1" str="主人，HELLO觉得发生在豆豆身上的这些事情太奇怪了。"/>
+							<context npcId="1" str="不如让迪恩和豆豆在这好好休息，我们去&lt;font color='#FF6600'&gt;&lt;b&gt;怀特雪原&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;再找找线索吧！">
+								<choice str="我也正有此意。" taskId="2094" action="2094_taskRemind"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2094_feedFail"] = <config>
+					<context npcId="1" iconId="30" str="主人，豆豆还没有把药喝完呢，迪恩会担心的！">
+						<choice str="知道了，我再试一次吧！"/>
+					</context>
+				</config>;
+         talk["1_2094_feedSuccess"] = <config>
+					<context npcId="1" iconId="7" str="主人，豆豆喝完药，醒来应该就会退烧了。">
+						<choice str="嗯，但愿如此。" action="2094_diEnWeak"/>
+					</context>
+				</config>;
+         talk["1_2096_afterBall"] = <config>
+					<context npcId="1" iconId="23" str="快看，主人，那里有一个发光的黑色球体，HELLO似乎从它身上闻到了熟悉的味道。">
+						<choice str="熟悉的味道，难道是？" action="2096_bossAppear"/>
+					</context>
+				</config>;
+         talk["1_2100_afterKnow"] = <config>
+					<context npcId="1" iconId="30" str="主人，是迪恩的求救声，他们好像遇到危险了。"/>
+					<context npcId="385" str="看来达斯特人的速度比我想像中的更快，得赶紧阻止他们。">
+						<choice str="嗯，我也一起去。" action="2100_goHouse"/>
+					</context>
+				</config>;
+         talk["1_2103_afterWeak"] = <config>
+					<context npcId="1" iconId="30" str="主人，不好了，豆豆的身体又飘起来了，而且这次情况似乎更严重了。"/>
+					<context npcId="520" iconId="8" str="豆豆，豆豆，你不要吓哥哥啊！">
+						<choice str="这，这该怎么办？" action="2103_getDoudou"/>
+					</context>
+				</config>;
+         talk["1_2135_gameFail"] = <config>
+					<context npcId="1" iconId="30" str="主人，豆豆还没能吃完冰凌花，再加把油吧！">
+						<choice str="好的，我再试一次吧！"/>
+					</context>
+				</config>;
+         talk["1_2144_lineupFail"] = <config>
+					<context npcId="1" str="主人，能量法阵还有没有完成，虚幻之春就无法保留了。">
+						<choice str="那我再试一次吧！"/>
+					</context>
+				</config>;
+         talk["1_217903_hexagrampalace2"] = <config>
+					<context npcId="1" iconId="1" str="主人，神秘的水晶石的封印好像解开了，看看它到底要告诉我们什么吧！">
+						<choice str="好的！" taskId="2179" action="2179_End"/>
+					</context>
+				</config>;
+         talk["1_218002_hexagrampalace2"] = <config>
+					<context npcId="1" iconId="5" str="主人，难道这是……修罗和凯撒小时候的故事吗？">
+						<choice str="看起来确实是。">
+							<context npcId="547" iconId="1" str="没错，这就是修罗和凯撒从前的故事，而我，就是奇灵王。"/>
+							<context npcId="547" iconId="1" str="当时，我已经开始感觉到，凯撒有可能真的是恶魔之子，而后来的一切也证明了这点。"/>
+							<context npcId="547" iconId="1" str="于是，我将自己的一部分灵力封印起来，创建了这样一个空间。"/>
+							<context npcId="547" iconId="1" str="只有能够帮助修罗阻止凯撒的勇士，那个被命运选中的勇士，才能够进入这里。">
+								<choice str="那个勇士，难道是我？" taskId="2180" action="2180_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_218502_hexagrampalace1"] = <config>
+					<context npcId="1" iconId="16" str="HELLO和主人可是答应过某只亚比，一定要帮助修罗打败你呢，怎么能死在这里呢？">
+						<choice str="没错！主角可不会这么轻易就挂掉！" action="2183_Movie2"/>
+					</context>
+				</config>;
+         talk["1_218802_hexagrampalace2"] = <config>
+					<context npcId="1" iconId="5" str="哇，主人，是奇灵王，奇灵王把修罗的伤治好了！">
+						<choice str="真神奇！">
+							<context npcId="517" iconId="1" str="#username#，已经没有时间了！既然你要和我并肩战斗，就要变得更强才行！"/>
+							<context npcId="517" iconId="1" str="在凯撒再一次袭来之前，我会严格地锻炼你，明白吗？">
+								<choice str="是！修罗！我也会努力，让自己变得更强的！" taskId="2188" action="2188_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_221302_hexagrampalace2"] = <config>
+					<context npcId="1" iconId="31" str="哇，这世上居然有这么厉害的东西，看来修罗的力量可以马上恢复啦！">
+						<choice str="是啊，修罗，你应该早点告诉我们啊。">
+							<context npcId="517" iconId="3" str="千年奇灵果极其珍贵，一位星系守护神仅有一颗，原本，想留至生死关头再使用。"/>
+							<context npcId="517" iconId="3" str="但现在看来，已经不得不用了。">
+								<choice str="我们支持你的决定，走，摘千年奇灵果去。">
+									<context npcId="517" iconId="3" str="千年奇灵果在奇灵神树那儿，跟我来吧，我们需要先去到&lt;font color='#FF6600'&gt;&lt;b&gt;六芒前殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;。">
+										<choice str="好！" taskId="2213" action="2213_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_221502_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，&lt;font color='#FF6600'&gt;&lt;b&gt;把彩虹石放入剑的凹槽中&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，找出那把守护剑吧！">
+						<choice str="嗯！说干就干！" action="2210_Jiaohu1"/>
+					</context>
+				</config>;
+         talk["1_221503_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="31" str="主人，我们成功了！太棒了！">
+						<choice str="嘿嘿。">
+							<context npcId="1" iconId="23" str="咦，主人，好奇怪！好像有什么东西从树里面钻出来了！">
+								<choice str="那、那是什么？" taskId="2215" action="2215_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_221504_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，别灰心！再仔细观察一下彩虹石和剑的凹槽的形状吧！">
+						<choice str="我会努力的。" action=""/>
+					</context>
+				</config>;
+         talk["1_2215_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，你看，这就是修罗所说的那五把剑吧！">
+						<choice str="看来就是了。" action="2215_Start"/>
+					</context>
+				</config>;
+         talk["1_221702_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="7" str="拿到千年奇灵果了！主人，我们快把它拿给修罗吧！">
+						<choice str="嗯，得赶紧把这东西给修罗。" action="2210_Movie7"/>
+					</context>
+				</config>;
+         talk["1_222002_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="33" str="主人，是凯撒！凯撒又来了！"/>
+					<context npcId="1" iconId="26" str="以修罗现在的力量，是没办法对抗凯撒的！主人，我们得赶紧把千年奇灵果给修罗！">
+						<choice str="该死的达斯特，都——给——我——让——开！" taskId="2220" action="2220_End"/>
+					</context>
+				</config>;
+         talk["1_222100_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，加油！千万不要被这个家伙打倒啊！">
+						<choice str="我才不会被他打倒呢！让我准备一下再战！" action=""/>
+					</context>
+				</config>;
+         talk["1_222102_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，加油！千万不要被这两个家伙打倒啊！">
+						<choice str="我才不会被他们打倒呢！让我准备一下再战！" action=""/>
+					</context>
+				</config>;
+         talk["1_222103_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，我们赶紧把千年奇灵果拿去给修罗吧！">
+						<choice str="嗯！现在就去！" taskId="2221" action="2218_Movie2"/>
+					</context>
+				</config>;
+         talk["1_222202_hexagrampalace1"] = <config>
+					<context npcId="1" iconId="16" str="主人，修罗和凯撒进入&lt;font color='#FF6600'&gt;&lt;b&gt;六芒内殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;了，我们也赶紧跟进去吧！">
+						<choice str="嗯！赶紧进六芒内殿！" taskId="2222" action="2222_End"/>
+					</context>
+				</config>;
+         talk["1_222302_hexagrampalace4"] = <config>
+					<context npcId="1" iconId="4" str="主人，HELLO好像听到天空传来奇怪的声音，而且，声音越来越巨大了！">
+						<choice str="我也听到了，到底怎么了？">
+							<context npcId="517" iconId="6" str="似乎有非常多的能量弹，正朝着六芒神殿飞来！">
+								<choice str="什么？能量弹？">
+									<context npcId="539" iconId="8" str="哈哈哈！我还以为达斯特都是废物，看来还是有点用处的！"/>
+									<context npcId="539" iconId="8" str="你们一定不知道吧，我和达斯特已经是同盟关系了！"/>
+									<context npcId="539" iconId="8" str="这场足以摧毁六芒神殿的能量弹，就是达斯特给我的见面礼！">
+										<choice str="什么？！">
+											<context npcId="539" iconId="8" str="只要我帮他们拿到六芒星系所有的纯净能源，他们就帮我摧毁六芒神殿！"/>
+											<context npcId="539" iconId="8" str="摧毁六芒神殿，就等于摧毁修罗！只要修罗一死，我就是这个宇宙的主宰了！">
+												<choice str="可恶！现在到底要怎么办！" taskId="2223" action="2223_End"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_222402_hexagrampalace4"] = <config>
+					<context npcId="1" iconId="16" str="主人，再加把油呀！一定要阻止这波能量弹！">
+						<choice str="嗯！一定要阻止！" action=""/>
+					</context>
+				</config>;
+         talk["1_222403_hexagrampalace4"] = <config>
+					<context npcId="1" iconId="7" str="主人！修罗！我们成功了！我们阻止了这波能量弹！">
+						<choice str="太棒了！" taskId="2224" action="2224_End"/>
+					</context>
+				</config>;
+         talk["1_222503_hexagrampalace4"] = <config>
+					<context npcId="1" iconId="14" str="主人，凯撒他们跑了，我们快追！">
+						<choice str="对，要乘胜追击才行！">
+							<context npcId="517" iconId="6" str="不，不用了！我已经，撑不住了。">
+								<choice str="修罗！你没事吧！" action="2218_Movie8"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_222504_hexagrampalace4"] = <config>
+					<context npcId="1" iconId="30" str="修罗！修罗！修罗你怎么了！">
+						<choice str="明明吃了千年奇灵果，不该这样啊……">
+							<context npcId="1" iconId="30" str="对了，主人，之前奇灵神树的守卫不是说过，如果修罗受伤的话，可以找它吗？">
+								<choice str="没错，我们赶紧带着修罗去找它吧！" action="2218_Movie9"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_222505_hexagrampalace4"] = <config>
+					<context npcId="1" iconId="1" str="主人，我们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;奇灵神树&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+						<choice str="好，赶紧出发！" taskId="2225" action="2225_End"/>
+					</context>
+				</config>;
+         talk["1_222902_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="7" str="主人，快看，伊修醒了！">
+						<choice str="你感觉好点了没？">
+							<context npcId="559" iconId="2" str="哎，虽然力量并没有完全恢复，但是现在的凯撒已经和达斯特成了同盟，事情很棘手。"/>
+							<context npcId="559" iconId="1" str="不能这样休息下去了，凯撒随时有可能来到六芒神殿，我必须做好战斗的准备。"/>
+							<context npcId="1" iconId="30" str="伊修，别乱来啦！你这样的身体，根本吃不消凯撒的攻击呀！">
+								<choice str="是啊，别逞强了！">
+									<context npcId="559" iconId="1" str="别担心，我可是星系守护神，没有闯不过的难关。"/>
+									<context npcId="556" iconId="1" str="其实我有一个方法，可以让伊修的能量迅速恢复。">
+										<choice str="是什么方法？" taskId="2229" action="2229_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_223202_hexagrampalace1"] = <config>
+					<context npcId="1" iconId="16" str="主人，不要松懈啊！我们一定要帮助伊修恢复力量！">
+						<choice str="嗯，我会加油的！再来一次吧。" action=""/>
+					</context>
+				</config>;
+         talk["1_223303_hexagrampalace1"] = <config>
+					<context npcId="1" iconId="16" str="主人，修罗它们去&lt;font color='#FF6600'&gt;&lt;b&gt;奇灵神树&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;了，我们也赶紧跟去吧！">
+						<choice str="好！" taskId="2233" action="2233_End"/>
+					</context>
+				</config>;
+         talk["1_223902_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="30" str="修罗！你怎么了！主人，修罗它，它怎么变成黑色的了！">
+						<choice str="难道凯撒的力量侵蚀了修罗的身体吗？" taskId="2239" action="2239_End"/>
+					</context>
+				</config>;
+         talk["1_223_helloTalk"] = <config>
+						<context str="收集到泡泡光片鱼了，快去水上都市找雷米吧！">
+							<choice str="走吧，前往水上都市。" taskId="223"/>
+						</context>
+			   </config>;
+         talk["1_224002_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="10" str="主人，是三英雄！他们来帮我们了！"/>
+					<context npcId="194" iconId="1" str="呼~看来我们总算是及时赶到了！还以为要来不及了呢！ "/>
+					<context npcId="94" iconId="1" str="#username#，辛苦你坚持这么久！达斯特的这帮人，就由我们来打倒了！"/>
+					<context npcId="86" iconId="1" str="无恶不作的达斯特，就让我们来给你终结一击吧！">
+						<choice str="三英雄来帮忙，真是太好了！">
+							<context npcId="562" iconId="1" str="看来不清理掉你们三个，事情只会更棘手。"/>
+							<context npcId="94" iconId="1" str="想清理掉我们可没那么简单，有胆量就跟上来，我们去别的地方较量！">
+								<choice str="兰丁好帅！" taskId="2240" action="2236_Movie5"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_224303_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="7" str="主人，修罗，我们赢了！我们打败凯撒了！">
+						<choice str="我们做到了！" taskId="2243" action="2243_End"/>
+					</context>
+				</config>;
+         talk["1_224402_hexagrampalace3"] = <config>
+					<context npcId="1" iconId="1" str="主人，事关重大，我们还是先回&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告此事吧。">
+						<choice str="好！" taskId="2244" action="2244_End"/>
+					</context>
+				</config>;
          talk["1_2296_talk"] = <config>
 					<context npcId="1" str="主人，我们赶紧把止血草拿去&lt;font color='#FF6600'&gt;&lt;b&gt;伊索部落&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;给麦提吧！">
 						<choice type="0" str="好的。" taskId="2296" action="2296_showTipsMovie"/>
 					</context>	
+				</config>;
+         talk["1_2296_yakestar2"] = <config>
+					<context npcId="1" str="主人，我们赶紧把止血草拿去&lt;font color='#FF6600'&gt;&lt;b&gt;伊索部落&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;给麦提吧！">
+						<choice type="0" str="好的。" action="switch_2296_yakestar1_finish"/>
+					</context>	
+				</config>;
+         talk["1_229_hello"] = <config>
+				<context npcId="1" str="啊！是人鱼鳞片！人鱼的鳞片怎么会随便掉落？">
+						<choice type="0" str="是啊！人鱼可可怎么不在岸边等我们呀！">
+							<context npcId="1" str="人鱼可可可能遇到危险了！！我们去找美食商人雷米问问看有什么线索吧！">
+								<choice type="0" str="嗯！我们火速去找雷米！" action="229_showTips"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2317_loseInGame"] = <config>
+					<context npcId="1" str="主人，麦提还没爬到石门的顶部呢！">
+						<choice type="0" str="我再试一次吧！"/>
+					</context>
+				</config>;
+         talk["1_2317_winInGame"] = <config>
+					<context npcId="1" str="主人，快看，斧头……HELLO太激动了！">
+						<choice type="0" str="我也是。" action="finish_2317"/>
+					</context>
+				</config>;
+         talk["1_2357_lastTalk"] = <config>
+					<context npcId="1" str="主人，我们也终于拿到了重要的纯净能源！">
+						<choice type="0" str="是呀！太棒了！" action="2357_showInjectMovie"/>
+					</context>
+				</config>;
+         talk["1_2357_talk"] = <config>
+					<context npcId="1" str="主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告吧！">
+						<choice type="0" str="出发！" taskId="2357" action="2357_showTransport"/>
+					</context>
+				</config>;
+         talk["1_2370_AfterCandyCompanyCartoon"] = <config>
+					<context npcId="1" iconId="31" str="哇哇哇！主人，我们一定要找到金色巧克力！去参观糖果工厂！"/>
+					<context npcId="592" iconId="6" str="亲爱的糖糖，我们也要找到金色巧克力！我刚刚买了1000个糖呢！"/>
+					<context npcId="593" iconId="6" str="不要叫我亲爱的！">
+						<choice str="……" action="2370_HitChocolateMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2380_AfterSpitOutGoldChocolateMovie"] = <config>
+					<context npcId="1" iconId="10" str="还好巧克力没事！吓HELLO一跳！小白吐，你可要收好哦！">
+						<choice str="别再吃掉啦！" taskId="2380">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2381_AfterOneMoreCartoon"] = <config>
+					<context npcId="1" iconId="10" str="这颗巧克力有2个幸运名额！太棒了！难道这就是命中注定吗？"/>
+					<context npcId="593" iconId="7" str="耶！我们好厉害哦！ #username#！笨蛋！我们一起去糖果工厂咯！">
+						<choice str="呵呵！我们3个人都能去，太好了！" taskId="2381">
+						</choice>
+					</context>
+				</config>;
+         talk["1_23_aixiscene4_1"] = <config name="1_23_aixiscene4_1">
+					<context npcId="1" iconId="7" str="哇！主人你太厉害啦！可是我们怎么找极冷和极热的能量呢？"></context>
+					<context npcId="2" str="这个我知道，艾夕区有一种古老的方法。">
+						<choice str="什么方法？">
+							<context npcId="2" str="艾夕区的居民经常利用冰来取火。">
+								<choice str="（非常惊讶）利用冰来取火？！" action="1_23_aixiscene4_1end"></choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_23_aixiscene4_2"] = <config name="1_23_aixiscene4_2">
+					<context npcId="1" iconId="7" str="说干就干，主人，我们需要非常大的冰镜呢！"></context>
+					<context npcId="1" iconId="7" str="那里有块大冰块，很适合做冰镜哦！主人，用光能射线射击它吧！">
+						<choice str="好，把它射击下来做冰镜！" taskId="23"></choice>
+					</context>
+				</config>;
+         talk["1_2407_AfterTransportInteraction"] = <config>
+					<context npcId="1" iconId="21" str="哇！刚才好吓人哦！小白吐你还好吧？"/>
+					<context npcId="610" iconId="4" str="……"/>
+					<context npcId="593" iconId="7" str="哈哈哈哈哈哈，小白吐你这样子好好笑！说话啊！"/>
+					<context npcId="593" iconId="7" str="笨蛋！你说话啊！你怎么了？开什么玩笑啊？">
+						<choice str="我有不详的预感……" action="2407_CandySirGiftMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2407_FailTransportInteraction"] = <config>
+					<context npcId="593" iconId="11" str="再来一次！">
+						<choice str="好的！" action="2407_TransportInteraction"/>
+						<choice str="待会再来！" action="2407_ComeAgainLater"/>
+					</context>
+				</config>;
+         talk["1_2409_AfterLeaveMovie"] = <config>
+					<context npcId="1" iconId="33" str="天啊！小白吐它…它真的变成糖果了！！好可怕！"/>
+					<context npcId="593" iconId="2" str="小白吐你这个笨蛋！居然要本小姐亲自救你！气死我啦！">
+						<choice str="糖糖……" action="2409_GoUpTranportMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2410_AfterMuseumShineMovie"] = <config>
+					<context npcId="1" iconId="3" str="啊啊啊啊啊啊！救命啊！！好多怪物啊！主人，HELLO好怕怕！"/>
+					<context npcId="593" iconId="12" str="这…这里就是…宇宙超级糖果博物馆？！"/>
+					<context npcId="1" iconId="3" str="你们看…这里全都是兔子…不，是变成了糖果的兔子…">
+						<choice str="天啊！这些就是糖先生的艺术品？！" taskId="2410">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2427_AfterSecretEntranceInteraction"] = <config>
+					<context npcId="1" iconId="44" str="哇噻！糖爷爷你太厉害了！居然还知道秘密通道呢！"/>
+					<context npcId="595" iconId="2" str="那当然啦！想当年，爷爷还是糖果星最帅的私家侦探呢……"/>
+					<context npcId="593" iconId="7" str="好了爷爷，你最棒啦！我们要走咯！祝我们好运吧！">
+						<choice str="爷爷再见！" taskId="2427">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2441_AfterEnergyMovie"] = <config>
+					<context npcId="1" str="主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告吧！">
+						<choice str="向指挥中心出发！" taskId="2441">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2456_secondtalk"] = <config>
+					<context npcId="1" iconId="11" str="主人，亚伦被通灵巫师抓走了！怎么办呀？"/>
+					<context npcId="1" iconId="11" str="刚才它们是不是还说了要把亚伦献给神明之类的话，亚伦是不是会没命啊？！">
+						<choice str="得赶紧想办法把亚伦救出来才行！">
+							<context npcId="1" iconId="11" str="主人，刚才悬赏令上也有贝琪，已经丢了亚伦，我们一定要保护好贝琪。"/>
+							<context npcId="1" iconId="11" str="HELLO觉得我们得去秘密基地找贝琪，告诉它这件事情。">
+								<choice str="说的没错。" action="2456_end" taskId="2456"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2469_secondtalk"] = <config>
+					<context npcId="1" iconId="30" str="主人，贝琪这样会被抓住的，我们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;风车城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;追贝琪吧！">
+						<choice str="嗯，得赶紧追上去才行。" action="2469_end" taskId="2469"/>
+					</context>
+				</config>;
+         talk["1_2470_secondtalk"] = <config>
+					<context npcId="1" iconId="30" str="主人，别听贝琪的，我们赶紧跟着它去&lt;font color='#FF6600'&gt;&lt;b&gt;风之城堡&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;。">
+						<choice str="这还用你说！" action="2470_end" taskId="2470"/>
+					</context>
+				</config>;
+         talk["1_2471_afterfight"] = <config>
+					<context npcId="1" iconId="11" str="贝琪，趁这个机会，赶紧走啊！别浪费我家主人的一片好心！"/>
+					<context npcId="620" str="这城堡的门容易进来，不过可不是那么容易出去的，今天你们一个都别想跑。"/>
+					<context npcId="619" iconId="8" str="是我自己一时冲动跑来这里的，我不能扔下你，#username#，我们一起走！">
+						<choice str="我走了，谁帮你挡住它们啊！快走！" action="2471_end" taskId="2471"/>
+					</context>
+				</config>;
+         talk["1_2472_secondtalk"] = <config>
+					<context npcId="1" str="主人，HELLO觉得这小老鼠说话好酷啊，感觉好厉害！"/>
+					<context npcId="619" iconId="9" str="不知道这份礼物究竟是什么，我们先回&lt;font color='#FF6600'&gt;&lt;b&gt;秘密基地&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;拆开看看吧。">
+						<choice str="好啊。" action="2472_end" taskId="2472"/>
+					</context>
+				</config>;
+         talk["1_2473_secondtalk"] = <config>
+					<context npcId="1" iconId="3" str="这是炸弹？！HELLO不明白，小老鼠为什么要送我们炸弹？！">
+						<choice str="我也不懂。">
+							<context npcId="619" iconId="10" str="原来如此，我想我明白了。"/>
+							<context npcId="619" iconId="10" str="我想我已经有了营救亚伦的完美计划！">
+								<choice str="说来听听。" action="2473_multipagecomic"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2478_afterstart"] = <config>
+					<context npcId="1" iconId="29" str="奇怪，上次亚伦明明不是被关在这里的，这回又为什么出现在这里了呢？">
+						<choice str="难道有什么变动？" action="2478_movie1"/>
+					</context>
+				</config>;
+         talk["1_2479_thirdtalk"] = <config>
+					<context npcId="1" iconId="7" str="Yeah！亚伦救到了，我们赶紧走吧！">
+						<choice str="是呀！">
+							<context npcId="628" str="不行，我们还有重大的使命没有完成呢！">
+								<choice str="啊？什么使命？">
+									<context npcId="628" str="做卧底都做到这个地步了，我们当然要把通灵巫师给赶出风车谷！"/>
+									<context npcId="623" iconId="6" str="要怎么做才能做到呢？"/>
+									<context npcId="628" str="（把遇到小老鼠和小老鼠告诉我们的事情说给亚伦听）"/>
+									<context npcId="623" iconId="6" str="难道你是要用炸弹？！"/>
+									<context npcId="628" str="没错！利用炸弹，炸开屋子，让阳光射入城堡！让它们再也没有地方容身！"/>
+									<context npcId="623" iconId="7" str="哇！贝琪你想得真周到！说干就干，我们赶紧安装炸弹吧！">
+										<choice str="好吧，真拿你们没辙！" action="2479_end" taskId="2479"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_24_aixiscene4_2"] = <config name="1_24_aixiscene4_2">
+					<context npcId="1" iconId="7" str="太好了！这下子，可以汇聚极热的能量了，不过极冷的能量在哪呢？"></context>
+					<context npcId="2" str="极冷的话……">
+						<choice str="吉蒂，你知道些什么吗？">
+							<context npcId="2" str="这让我回想起以前，伊莎身上有不可控制的强大冰冻的力量。">
+								<choice str="借助辉之碎片的力量？">
+									<context npcId="2" str="只是这样不知道会不会对伊莎造成伤害……"></context>
+									<context npcId="201" iconId="2" str="开启辉之碎片吧！拉贝尔信任我，我一定可以控制好这股能量的。">
+										<choice str="那让我们开启辉之碎片吧！" taskId="24"></choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2501_interactionlose"] = <config>
+					<context npcId="1" iconId="3" str="主人，你小心点！这样下去我们会暴露行踪的！">
+						<choice str="嗯，我会小心的！"/>
+					</context>
+				</config>;
+         talk["1_2502_secondtalk"] = <config>
+					<context npcId="1" iconId="3" str="主人，那不是凯撒吗？根本不是它们说的什么夜王大人啊？！">
+						<choice str="这到底是怎么回事？" action="2502_movie2" taskId="2502"/>
+					</context>
+				</config>;
+         talk["1_2508_aftermc2"] = <config>
+					<context npcId='1' iconId="27" str="贝琪！小老鼠！"/>
+					<context npcId='620' str="这就是反抗我们的下场！">
+						<choice type='0' str="可恨！" action="task2508movie3"/>
+					</context>
+				</config>;
+         talk["1_2508_aftermc3"] = <config>
+					<context npcId='1' str="主人，这是纯净能源的力量，纯净能源救了大家！">
+						<choice type='0' str="太神奇了！" taskId="2508"/>
+					</context>
+				</config>;
+         talk["1_2509_aftermovie"] = <config>
+					<context npcId='1' str="主人，我们也赶紧追上去，不能让它们跑了！">
+						<choice type='0' str="说的对！" taskId="2509" action="1_2509_aftermovie"/>
+					</context>
+				</config>;
+         talk["1_2509_lose"] = <config>
+					<context npcId='1' str="主人，要加油，这次我们一定要胜利！">
+						<choice type='0' str="我明白！"/>
+					</context>
+				</config>;
+         talk["1_2514_afterinteraction"] = <config>
+					<context npcId='1' str="HELLO从来没见过这地方呢，不过这画上的这个地方让人感觉很不舒服。">
+						<choice type='0' str="嗯，感觉弥漫着一股黑暗气息。">
+							<context npcId='625' str="也许这地方和凯撒、夜王之间都有着莫大的关系……">
+								<choice type='0' str="看来得去调查一下。" taskId="2514" action="2514_End">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2515_aftermovie"] = <config>
+					<context npcId='1' str="主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告吧！">
+						<choice type='0' str="向指挥中心出发！" taskId="2515">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2525_secondtalk"] = <config>
+					<context npcId="1" str="主人，HELLO觉得亚伦出现在这里，说不定和麦哲伦司令官所说的异常有关系呢！">
+						<choice str="很有可能。" action="2525_movie2"/>
+					</context>
+				</config>;
+         talk["1_2526_interactionlosetalk"] = <config>
+					<context npcId="1" str="主人，气囊还没有吹大哦！">
+						<choice str="我再试试！" action="2526_interaction"/>
+						<choice str="等我准备一下。"/>
+					</context>
+				</config>;
+         talk["1_2526_secondtalk"] = <config>
+					<context npcId="1" str="亚伦怎么会无缘无故就跑到这里来了呢？">
+						<choice str="是啊，好奇怪。" action="2526_end" taskId="2526"/>
+					</context>
+				</config>;
+         talk["1_2527_secondtalk"] = <config>
+					<context npcId="1" str="那会不会是因为电池没电了，时钟停止造成的时空混乱呢？"/>
+					<context npcId="642" iconId="3" str="这种事情不可能发生。">
+						<choice str="为什么呢？">
+							<context npcId="642" iconId="3" str="看到这片海了吗？这就是时间海洋。">
+								<choice str="时间海洋？">
+									<context npcId="642" iconId="3" str="是的，时间海洋里有巨大的能源支持着时钟的运转。"/>
+									<context npcId="1" str="可是HELLO好担心，这么大的能量如果被坏人偷走了怎么办？"/>
+									<context npcId="642" iconId="3" str="时间海洋里的能量除了运行时钟之外是不可以被取出的。">
+										<choice str="原来如此。那这种时空错乱究竟是什么原因呢……" action="2527_end" taskId="2527"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2528_secondtalk"] = <config>
+					<context npcId="1" str="黑暗魔法……有点吓人呀……"/>
+					<context npcId="642" iconId="2" str="另外我有个弟弟叫泽秒，如果遇见它，请帮我注意一下，最近它有点奇怪。">
+						<choice str="好的，没问题。" action="2528_end" taskId="2528"/>
+					</context>
+				</config>;
+         talk["1_2529_secondtalk"] = <config>
+					<context npcId="1" str="主人你看它在做什么呢？">
+						<choice str="不知道，我们问问看吧！" action="2529_end" taskId="2529"/>
+					</context>
+				</config>;
+         talk["1_2530_secondtalk"] = <config>
+					<context npcId="1" str="HELLO觉得你们好了不起呀！那最厉害的一定是大哥泽时啦，好想见见它呀！">
+						<choice str="我也是呢。">
+							<context npcId="643" iconId="3" str="大哥……大哥它已经去世了……"/>
+							<context npcId="1" str="啊……对不起啊……不该提起你的伤心事的。"/>
+							<context npcId="643" iconId="3" str="没事……都过去很多年了。不过我很快就可以见到它了！">
+								<choice str="什么？">
+									<context npcId="643" iconId="2" str="哦哦……没什么啦，我还有事情，先走啦！">
+										<choice str="等等！把话说清楚。" action="2530_movie2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2530_thirdtalk"] = <config>
+					<context npcId="1" str="主人你看！泽秒去了钟摆孤岛，那里不是禁地吗？而且泽秒说的话也怪怪的……">
+						<choice str="一定有问题，我们跟去看看。" action="2530_end"/>
+					</context>
+				</config>;
+         talk["1_2532_secondtalk"] = <config>
+					<context npcId="1" str="主人你看！泽秒正在把能量注入那块紫色的水晶！">
+						<choice str="是啊，还有那只亚比看着很眼熟啊！">
+							<context npcId="1" str="HELLO想起来了，它不就是我们在风车谷见到的通灵巫师吗？">
+								<choice str="没错！它在这里做什么？">
+									<context npcId="1" str="而且泽秒居然和它在一起，这其中一定有问题！"/>
+									<context npcId="1" str="HELLO有一种不好的预感，时空错乱的事一定与它们有关！">
+										<choice str="嗯！我们不要轻举妄动，快去告诉泽分！" action="2532_end" taskId="2532"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2533_interactionlosetalk"] = <config>
+					<context npcId="1" str="主人，弹子还没有发射到指定的位置哦！">
+						<choice str="我再试试！" action="2533_interaction"/>
+						<choice str="等我准备一下。"/>
+					</context>
+				</config>;
+         talk["1_2533_secondtalk"] = <config>
+					<context npcId="1" str="哈哈，成功了！主人我们快走吧！">
+						<choice str="嗯，走！" action="2533_end" taskId="2533"/>
+					</context>
+				</config>;
+         talk["1_2535_secondtalk"] = <config>
+					<context npcId="1" str="主人你看！那个通灵巫师好像在和泽秒说什么！">
+						<choice str="嘘……听它们说了什么。" action="2535_movie2"/>
+					</context>
+				</config>;
+         talk["1_2535_thirdtalk"] = <config>
+					<context npcId="1" str="明灭之轮？回到过去？居然有这么奇异的魔法！">
+						<choice str="我有点不相信。">
+							<context npcId="642" iconId="2" str="这个傻小子果真被骗了。">
+								<choice str="那明灭之轮到底是什么东西呢？">
+									<context npcId="642" iconId="2" str="总之根本不是什么可以回到过去的魔法，它远远比这要邪恶得多。"/>
+									<context npcId="642" iconId="2" str="不知道永夜族又有什么阴谋，我一定要阻止它们！">
+										<choice str="我帮你。" action="2535_end" taskId="2535"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2547_secondtalk"] = <config>
+					<context npcId="1" str="主人你看，时光灵球在发光！">
+						<choice str="是呀！我们成功了！" action="2547_end" taskId="2547"/>
+					</context>
+				</config>;
+         talk["1_254_destroy"] = <config>
+					<context str="铠甲被击破了，趁现在，打败SR军团！" npcId="1"/>
+					<context str="铠甲怎么破了？我花了这么多钱就买了个这样不堪一击的垃圾！！" npcId="54"/>
+					<context str="这机器有些古怪，那颗珍珠更古怪，不过表哥不用担心，他们绝对打不过SR军团的。" npcId="50">					
+						<choice str="让你们这些坏蛋知道我的厉害！" taskId="254" action="54_254_fight254">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2551_gamelose"] = <config>
+					<context npcId="1" str="主人，还没有到达钟摆孤岛哦。">
+						<choice str="我再试试。"/>
+					</context>
+				</config>;
+         talk["1_2551_gamewin"] = <config>
+					<context npcId="1" str="哈哈主人，我们成功啦！">
+						<choice str="是呀。" action="2551_end"/>
+					</context>
+				</config>;
+         talk["1_2556_secondtalk"] = <config>
+					<context npcId="1" str="主人！是修罗！修罗来帮我们了！">
+						<choice str="是啊，太好了！">
+							<context npcId="540" str="还好我及时赶到。凯撒吸收了大量的黑暗力量，又吞食了愤怒与仇恨的负面情绪，变得十分强大，向它挑战简直是送死。">
+								<choice str="多亏你赶来，不然泽秒也一定会受伤的。">
+									<context npcId="1" iconId="16" str="HELLO觉得泽秒还是先带泽分去养伤吧，泽分看起来伤得不轻！">
+										<choice str="是啊，这里交给我们！">
+											<context npcId="643" iconId="3" str="不！我要亲手打败凯撒！"/>
+											<context npcId="1" iconId="16" str="可是泽分再不去养伤会很危险的！"/>
+											<context npcId="643" iconId="3" str="可是……好吧！我这就带二哥去时钟大殿养伤！">
+												<choice str="这就对了。" action="2556_end" taskId="2556"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2558_secondtalk"] = <config>
+					<context npcId="1" str="啊，主人你看，明灭之轮的封印解除了！封印水晶变回了泽时！">
+						<choice str="难道另一个就是紫渊？" action="2558_end" taskId="2558"/>
+					</context>
+				</config>;
+         talk["1_256_look"] = <config>
+					<context str="主人，快看，那颗巨大的珍珠有变化！" npcId="1">				
+						<choice str="哇！珍珠！" action="1_256_pearl"/>
+					</context>
+				</config>;
+         talk["1_256_wawa"] = <config>
+					<context str="怪不得可以发出这么大的能量，打破SR军团的钢之铠甲。" npcId="1">				
+						<choice str="辉之碎片到手喽！可可救回来喽！" taskId="256">
+						    <context str="谢谢你们的帮助！达斯特的黑市集团被打倒了，以后我可以和这里的亚比一起快乐的生活了。" npcId="49">	
+						        <choice str="谢谢你！去融合奥拉之辉喽！" action="task257_showbook" taskId="257"/>
+						    </context>	
+						</choice>
+					</context>
+				</config>;
+         talk["1_2586_secondtalk"] = <config>
+					<context npcId="1" str="哈哈，成功啦！你们感觉怎么样啦？"/>
+					<context npcId="540" str="嗯，我已经没事了。"/>
+					<context npcId="642" iconId="6" str="原来时钟大殿还有这样的机关！我已经好多了。">
+						<choice str="太好了！" action="2586_end" taskId="2586"/>
+					</context>
+				</config>;
+         talk["1_2589_interactionlose"] = <config>
+					<context npcId="1" str="主人，永夜徽章还没有拼接完哦！">
+						<choice str="我再试试！" action="2589_interaction"/>
+						<choice str="我再试试！"/>
+					</context>
+				</config>;
+         talk["1_258_fragment"] = <config>			
+					<context str="奥拉之辉已经成功融合了，我们快去向司令官报告吧！" npcId="1" taskId="258">
+			               <choice str="出发吧！"/>
+					</context>	
+				</config>;
+         talk["1_2591_fourthtalk"] = <config>
+					<context npcId="1" str="主人，是修罗！">
+						<choice str="我就说修罗不会死的！" action="2591_end"/>
+					</context>
+				</config>;
+         talk["1_2591_thirdtalk"] = <config>
+					<context npcId="1" iconId="14" str="不可能！修罗不可能会死！"/>
+					<context npcId="539" str="你们这些愚蠢的无名之辈，我也来送你们一程吧！哈哈哈……">
+						<choice str="大家小心啊！" action="2591_movie2"/>
+					</context>
+				</config>;
+         talk["1_2594_secondtalk"] = <config>
+					<context npcId="1" str="太棒了！修罗成功了！"/>
+					<context npcId="540" str="不对，我觉得事情应该没有这么简单。">
+						<choice str="等等！那是什么？" action="2594_movie2"/>
+					</context>
+				</config>;
+         talk["1_2595_fightwin"] = <config>
+					<context npcId="1" str="主人！我们成功了！凯撒真的被我们消灭了！">
+						<choice str="是呀！太好啦！" action="2595_end" taskId="2595"/>
+					</context>
+				</config>;
+         talk["1_2598_fourthtalk"] = <config>
+					<context npcId="1" iconId="15" str="真的不敢相信修罗就这样离我们而去了……修罗……"/>
+					<context npcId="641" iconId="3" str="这样它们两兄弟也算是永远地在一起了吧……#username#，你和我来雕刻时光沙滩吧，我有东西要送给你。">
+						<choice str="好吧……" action="2598_end" taskId="2598"/>
+					</context>
+				</config>;
+         talk["1_2598_thirdtalk"] = <config>
+					<context npcId="1" iconId="15" str="主人……我们以后再也见不到修罗了……修罗……呜……">
+						<choice str="好想念修罗……" action="2598_multipagecomic"/>
+					</context>
+				</config>;
+         talk["1_2599_secondtalk"] = <config>
+					<context npcId="1" str="主人主人，你看那不是伊修吗？修罗它没有死！只是变回了第一形态！HELLO好高兴啊！">
+						<choice str="是呀！太好了！另一个，难道是……">
+							<context npcId="559" str="#username#,我们又见面了。"/>
+							<context npcId="1" str="伊修！哈哈，HELLO太开心啦！又见到伊修了！">
+								<choice str="我就知道你一定不会死的！">
+									<context npcId="559" str="嗯，这就是宿命的安排吧！"/>
+									<context npcId="660" str="好亮的光芒呀……刺得人家眼睛痛痛……">
+										<choice str="这真的是凯撒吗？" action="2599_movie2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2599_thirdtalk"] = <config>
+					<context npcId="1" str="看来凯撒不仅变回了第一形态，而且以前的事情都不记得了……">
+						<choice str="看起来是这样的！" action="2599_end" taskId="2599"/>
+					</context>
+				</config>;
+         talk["1_2600_secondtalk"] = <config>
+					<context npcId="1" str="主人，HELLO好开心呀！修罗凯撒两兄弟，还有时间三兄弟都能够重新团聚，快乐地在一起了！">
+						<choice str="是呀！兄弟本该如此。" action="2600_end" taskId="2600">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2601_firsttalk"] = <config>
+					<context npcId="1" str="主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告吧！">
+						<choice str="出发！" action="2601_end" taskId="2601"/>
+					</context>
+				</config>;
+         talk["1_2653_AfterXingFenBackMovie"] = <config>
+					<context npcId="1" iconId="44" str="哇，刑风老师真的好帅啊，简直和HELLO心目中的王子长的一模一样！"/>
+					<context npcId="679" iconId="2" str="看你们的穿着打扮，应该是从奥拉星远道而来的朋友吧！"/>
+					<context npcId="1" iconId="44" str="哇，一眼就看得出来，刑风老师，你太厉害了，HELLO真是越来越佩服你了。">
+						<choice str="是啊，刑风老师简直是神人啊！">
+							<context npcId="666" iconId="5" str="那当然，你以为320的智商，189.55厘米的海拔，360度无死角的英俊面容是谁都能拥有吗？"/>
+							<context npcId="666" iconId="5" str="我们刑风老师才不会像罗格一样，只会招摇撞骗，故弄玄虚呢！"/>
+							<context npcId="679" str="罗格？该不会是前段时间说要来的新老师吧！"/>
+							<context npcId="1" iconId="44" str="哇，这都能猜到，刑风老师，你的智慧就像一把火，HELLO都快被你融化了。">
+								<choice str="嗯，我已经快五体投地了。" taskId="2653">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2665_AfterFailAvoidInteraction"] = <config>
+					<context npcId="1" iconId="30" str="主人快闪，别被打中啊。">
+						<choice str="我知道了。">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2666_AfterScripMovie"] = <config>
+					<context npcId="1" iconId="4" str="这是什么意思啊，HELLO都弄晕掉了！"/>
+					<context npcId="679" str="我想瑞阳已经知道罗格的真面目，而且现在地下密室里的情况肯定十分危险。"/>
+					<context npcId="679" str="瑞阳这么做应该是和我们演的一场戏，目的是想让我们早点注意罗格。"/>
+					<context npcId="667" iconId="2" str="这……这么说……说来……瑞阳是……是想当卧……卧底？">
+						<choice str="那我们现在要怎么办？">
+							<context npcId="679" str="事关若水和同学们的安全，所以我们得想一个万全之策才行！">
+								<choice str="嗯，得好好想一想。" taskId="2666">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["1_2687_AfterKnightStrengthMovie"] = <config>
+					<context npcId="1" iconId="33" str="主人，罗……罗格竟然是紫渊，难怪当时HELLO觉得它很熟悉。">
+						<choice str="嗯，太令人震惊了。">
+							<context npcId="652" str="凑齐这两份骑士之力，正好九十九份，刑风你可真是帮了我一个大忙。"/>
+							<context npcId="679" str="紫渊，我劝你还是早点停手，要不然，就别怪我不客气！">
+								<choice str="没错。" taskId="2687">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["1_2689_AfterYongYeHonorMovie"] = <config>
+					<context npcId="1" iconId="33" str="主人，HELLO是不是眼花了，HELLO刚才看到一个好邪恶的黑色影子。">
+						<choice str="没错，我也看到了。">
+							<context npcId="679" str="那个影子是夜王的灵魂的一部分，只是我没想到它竟然藏在了这个徽章里面。"/>
+							<context npcId="1" str="HELLO终于明白了，紫渊的目的就是骗取这些同学们的骑士之力点亮这个徽章。"/>
+							<context npcId="652" str="哈哈，可惜你们知道的太晚了。">
+								<choice str="你还想怎么样？" taskId="2689">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["1_2699_AfterAfterEnergyMovie"] = <config>
+					<context npcId="1" str="主人，我们赶紧去指挥中心向司令官报告吧！">
+						<choice str="好的。" taskId="2699">
+						</choice>				
+					</context>
+				</config>;
+         talk["1_26_aixiscene4_0"] = <config name="1_26_aixiscene4_0">
+					<context npcId="1" str="主人，加油呀！马上就能拿到辉之碎片了！">
+						<choice str="我要继续努力！"></choice>
+					</context>
+				</config>;
+         talk["1_2713_afterManhua"] = <config>
+					<context npcId="1" iconId="43" str="当当果然是睡神，睡觉都能闯祸……"/>
+					<context npcId="685" iconId="3" str="555555555……你做了个梦，我就不能飞了，你一定要赔我！"/>
+					<context npcId="683" iconId="1" str="那你来参加我们的“尖叫大赛”吧！冠军有好多奖金呢，够你修热气球了！">
+						<choice str="这主意不错！">
+							<context npcId="685" iconId="4" str="只要能让我重新启程，完成我的宇宙旅行，做什么都行！"/>
+							<context npcId="683" iconId="1" str="看来你是个旅行家……那跟我一起去开心园区，开幕式开始了呢。">
+								<choice str="好啊！你别又睡着了！" action="End2713"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2726_afterManhua2766"] = <config>
+					<context npcId="1" iconId="23" str="主人！那个东西HELLO好像在哪里看过呢！">
+						<choice str="我也觉得……" taskId="2766">
+						</choice>
+					</context>
 				</config>;
          talk["1_274_successFightWithThreeFireDing"] = <config>
 					<context npcId="1" str="主人，怎么烈焰鸟没有出现啊！"/>
@@ -2024,11 +4823,171 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["1_2771_afterMovie2771"] = <config>
+					<context npcId="1" iconId="21" str="夜王！主人，那个恐怖的黑影居然是夜王，它复活了！太糟糕了！">
+						<choice str="可恶！" taskId="2771"/> 
+					</context>
+				</config>;
+         talk["1_2779_afterMovie2779p2"] = <config>
+					<context npcId="1" iconId="1" str="主人！你看奇奇！太神奇了！好帅气的狼！好厉害！">
+						<choice str="哇，这是白灵族的超能力吗？" taskId="2779"/>
+					</context>
+				</config>;
+         talk["1_2788_secondtalk"] = <config>
+					<context npcId="1" iconId="20" str="说来说去，原来说的是你自己啊，害HELLO白白高兴了一场。"/>
+					<context npcId="705" iconId="5" str="喂，别小看我，我唱歌可是很有天赋的，不信我唱给你们听听！">
+						<choice str="那就让我们见识一下吧！" action="2788_end" taskId="2788"/>
+					</context>
+				</config>;
+         talk["1_2789_secondtalk"] = <config>
+					<context npcId="1" iconId="38" str="%&@*&￥#%……"/>
+					<context npcId="705" iconId="1" str="我都唱完了，你们不至于陶醉成这样吧，掌声在哪里？">
+						<choice str="o(╯□╰)o……">
+							<context npcId="705" iconId="6" str="喂，不管我唱得怎么样，好歹说点什么，表示一下吧！"/>
+							<context npcId="1" iconId="43" str="你的歌太……太雷人了，吓到HELLO和主人不要紧，吓到旁边的花花草草就不好了……">
+								<choice str="是啊，环保很重要！" action="2789_end" taskId="2789"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2790_fightwin"] = <config>
+					<context npcId="1" iconId="4" str="你的偶像唱得怎么样HELLO不知道，可是你唱得是真心难听！">
+						<choice str="嗯，我们可不想说假话骗你。">
+							<context npcId="705" iconId="8" str="真……真的有那么难听？">
+								<choice str="不是很难听，是非常难听。" action="2790_end" taskId="2790"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2794_secondtalk"] = <config>
+					<context npcId="1" iconId="12" str="HELLO觉得这位绿焰先生背后肯定有故事，现在很想见到它呢！">
+						<choice str="我也是。">
+							<context npcId="708" str="要见绿焰，那就去买门票啊，这次演唱会可谓是空前绝后，千万不能错过啊。"/>
+							<context npcId="707" str="是啊，不行了，我们得赶紧去买票了。">
+								<choice str="再见！" action="2794_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2798_secondtalk"] = <config>
+					<context npcId="1" iconId="3" str="奇奇，怎么是你？你怎么会在这里，HELLO没做梦吧！">
+						<choice str="是啊。" action="2798_end" taskId="2798"/>
+					</context>
+				</config>;
+         talk["1_27_aixiscene4_1"] = <config name="1_27_aixiscene4_1">
+					<context npcId="1" str="哈鲁达很强大，你准备好要和哈鲁达战斗了吗？">
+						<choice type="3" str="我已经做好充分准备了。" action="1_27_aixiscene4_1end"></choice>
+						<choice type="1" str="等我先给亚比分配经验再说。"></choice>
+					</context>
+				</config>;
+         talk["1_2806_secondtalk"] = <config>
+					<context npcId="1" iconId="31" str="哇，主人，主持人是奥力奥呢，HELLO好激动啊！">
+						<choice str="嗯，我也是。" action="2806_end" taskId="2806"/>
+					</context>
+				</config>;
+         talk["1_2807_secondtalk"] = <config>
+					<context npcId="1" iconId="31" str="哇，终于要见到绿焰了，HELLO好激动啊！">
+						<choice str="我也是。" action="2807_end" taskId="2807"/>
+					</context>
+				</config>;
+         talk["1_2811_secondtalk"] = <config>
+					<context npcId="1" iconId="31" str="不愧为天王巨星，这声音真是太美了，HELLO都快要听醉了。">
+						<choice str="果然是天籁之音啊！">
+							<context npcId="705" iconId="9" str="那当然，不过你们有没有仔细看，非蒙脖子上有一个很潮的纹身呢！"/>
+							<context npcId="705" iconId="9" str="现在我又有了新的目标——纹一个和非蒙一模一样的纹身！"/>
+							<context npcId="685" str="那个肯定不是纹身，因为我好像在哪里见过！">
+								<choice str="那会是什么？" action="2811_end"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2819_interactionlose"] = <config>
+					<context npcId="1" str="主人，加油哦！HELLO看好你！">
+						<choice str="我再试试看。" action="2819_interaction"/>
+						<choice str="我先准备一下。"/>
+					</context>
+				</config>;
          talk["1_281_hello"] = <config>
 					<context npcId="1" str="找到火山岩石碑喽！不过石板上的字迹都模糊了。"/>
 					<context npcId="1" str="啊！主人，你看！依稀可以看到署名竟然是“兰丁”呀！我们的三英雄之一兰丁！"/>
 					<context npcId="1" str="我们去费尔村落问问&lt;font color='#FF6600'&gt;&lt;b&gt; 村长希普&lt;/b&gt;&lt;/font&gt;有关石碑的事情吧！">
 						<choice type="0" str="好的！" action="281_showTipsMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["1_2848_secondtalk"] = <config>
+					<context npcId="1" iconId="22" str="路比不要啊。">
+						<choice str="淡定啊。" action="2848_end" taskId="2848"/>
+					</context>
+				</config>;
+         talk["1_2849_secondtalk"] = <config>
+					<context npcId="1" iconId="38" str="%&@*&￥#%……"/>
+					<context npcId="685" iconId="14" str="哇，绿焰好像失去控制力了，想不到路比的歌声这么有用。"/>
+					<context npcId="705" iconId="4" str="那我继续唱。"/>
+					<context npcId="685" str="先等一下，你要是继续唱下去，#username#他们也会吓出心脏病来的。">
+						<choice str="%&@*&￥#%……你……你有什么办法吗？" action="2849_movie2" taskId="2849"/>
+					</context>
+				</config>;
+         talk["1_2872_afterintroduce2"] = <config>
+					<context npcId="1" str="原来你们是奇奇的好朋友呀，HELLO之前有遇到过奇奇，听它提起过你们呢！">
+						<choice str="能见到你们真是太高兴了。" taskId="2872"/>
+					</context>
+				</config>;
+         talk["1_2874_challengefail"] = <config>
+					<context npcId="1" iconId="40" str="主人，你也太弱了！居然这么快就输了！">
+						<choice str="这铜人阵不好过啊，超难打。">
+							<context npcId="1" iconId="4" str="是吗？HELLO怎么觉得洛洛和小米打得超轻松呢！">
+								<choice str="不会吧？！" action="2874_easyPass"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2874_challengesuccess"] = <config>
+					<context npcId="1" iconId="44" str="主人，你真厉害！居然通关了！HELLO好佩服啊！">
+						<choice str="哇哈哈哈！小意思，小意思！">
+							<context npcId="1" str="不过比起洛洛和小米，主人的表现好像有点弱哦！">
+								<choice str="这……让我看看。" action="2874_easyPass"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2881_aftershow"] = <config>
+					<context npcId="1" str="主人，它们好像是在秀自己的成长呢！">
+						<choice str="哈，是呢！">
+							<context npcId="685" str="你们怎么这样啊，都不给我一个出风头的机会，看来我只能使出绝招了！"/>
+							<context npcId="735" iconId="2" str="等你的绝招好久了，快点亮出来吧！">
+								<choice str="绝招？难道是？" action="2881_qiqiBossSkill"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_2884_aftergo"] = <config>
+					<context npcId="1" str="主人，我们也赶紧跟上去吧。">
+						<choice str="好。" taskId="2884"/>
+					</context>
+				</config>;
+         talk["1_28_aixiscene4_2"] = <config name="1_28_aixiscene4_2">
+					<context npcId="1" str="主人！奥拉之辉已经成功融合了，我们快去向&lt;font color='#FF6600'&gt;&lt;b&gt;司令官&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;报告吧！">
+						<choice str="好！我们前往指挥中心吧！" taskId="28"></choice>
+					</context>
+				</config>;
+         talk["1_2911_afterready"] = <config>
+					<context npcId="1" iconId="16" str="主人！是红魔！它不是已经被封印了吗？！怎么会出现在这里！">
+						<choice str="我也不明白，晕，怎么回事啊？" taskId="2911"/>
+					</context>
+				</config>;
+         talk["1_2912_afterfight"] = <config>
+					<context npcId="1" iconId="16" str="主人，HELLO感觉到红魔身上的黑暗力量又增强了！">
+						<choice str="似乎是这样的。" taskId="2912"/>
+					</context>
+				</config>;
+         talk["1_2944_afterfight"] = <config>
+					<context npcId="1" iconId="16" str="主人，HELLO感觉到狼王并没有使出全力战斗呢！">
+						<choice str="我也觉得，狼王，你怎么了？">
+							<context npcId="744" str="……只要想到小米还在那里……我就无法使出全力啊……"/>
+							<context npcId="517" str="你这样可是不行的！">
+								<choice str="修罗！" action="2944_xiuluoCome"/>
+							</context>
 						</choice>
 					</context>
 				</config>;
@@ -2089,6 +5048,21 @@ package mmo.tasknpc
 						<choice type="0" str="好！我们去指挥中心吧。" taskId="351"/>
 					</context>
 				</config>;
+         talk["1_63_AfterShoot"] = <dialog>
+					<context str="水源恢复啰，快回去把这消息告诉淘吉吉吧。" npcId="1" iconId="1">
+						<choice type="0" str="好！现在就去通知淘吉吉。" action="62_ShowArrowTips"/>
+					</context>
+				</dialog>;
+         talk["1_68_AfterCollect"] = <config>
+	 				<context str="好不容易找齐了五个象形符号，这次这幅图又是什么呀？" npcId="16" viewId="1">
+					  	<choice str="看起来好像是藏宝图耶。">
+							<context str="藏宝图上面打着“X”的地方好像是在流沙区域，主人，我们去看看吧！" npcId="1" viewId="1">
+							  	<choice str="好的。" action="68_AfterCollectTalk">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["1_726_realface"] = <config>
 					<context npcId="1" str="不好了！主人！两个人好像在决斗！">
 						<choice str="让我把他们两个分开！" action="727_fight" taskId="726">
@@ -2132,6 +5106,221 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["1_751_temple2_petpetBubbleEnd"] = <config>
+					<context str="主人！赤月与炎风有危险了，我们快帮帮他们。">
+						<choice str="嗯！我来挡住它。" taskId="751" action="751_temple2_petpetBubbleEnd"/>
+					</context>
+				</config>;
+         talk["1_752_temple2_afterStroken"] = <config>
+					<context npcId="1" str="炎风！呜呜……主人！炎风快不行了！快想想办法！">
+						<choice str="怎么办？" taskId="752" action="752_temple2_afterStroken"/>
+					</context>
+				</config>;
+         talk["1_753_temple2_boyondsound1"] = <config>
+					<context npcId="1" str="主人！那是谁？有一种邪恶的感觉。">
+						<choice str="我也不知道！" action="753_temple2_boyondsound1"/>
+					</context>
+				</config>;
+         talk["1_753_temple2_boyondsound2"] = <config>
+					<context npcId="1" str="那个黑影，它好像在唤醒赤月的力量。">
+						<choice str="不！它在引导赤月走向邪恶。" action="753_temple2_boyondsound2"/>
+					</context>
+				</config>;
+         talk["1_789_temple2_1helloTalk"] = <config>
+					<context npcId="1" str="主人，他们好像商量着要去偷糖。">
+						<choice str="好像很好吃的样子。">
+							<context npcId="182" iconId="2" str="你们不是要……阻止我们吧！说我们去偷糖？"/>
+							<context npcId="1" str="不不不！不是的，我的意思是说，去……去拿糖。">
+								<choice str="嗯嗯嗯，去拿糖。">
+									<context npcId="183" iconId="3" str="我们不是去偷，哦不，去拿糖啦！我朋友也没有恶意，嘿嘿……"/>
+									<context npcId="182" iconId="2" str="不行！要让他们一起去！我可不放心这两个家伙！">
+										<choice str="我也想去看看呢！" taskId="789" action="789_loadto_temple3"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_790_temple3_1failHelloTalk"] = <config>
+					<context npcId="1" str="主人！难道这些木人就是炎风与赤月所说的危险？">
+						<choice str="看来是，得想办法打败他们。"/>
+					</context>
+				</config>;
+         talk["1_791_temple3_3moreHelloTalk"] = <config>
+					<context str="主人！这下糟糕了，越来越多了。炎风啊！赤月啊！帮帮我们吧！"/>
+					<context npcId="183" iconId="3" str="炎风，帮帮忙吧！看他们也挺可怜的。"/>
+					<context npcId="182" iconId="2" str="哼！看我的吧！">
+						<choice str="终于不用再打了。" action="791_temple3_3moreHelloTalk"/>
+					</context>
+				</config>;
+         talk["1_791_temple3_4winHelloTalk"] = <config>
+					<context str="哇！炎风好厉害！主人，你要是也那么厉害就好了。">
+						<choice str="……">
+							<context npcId="182" iconId="2" str="唉……总是添麻烦！"/>
+							<context npcId="183" iconId="3" str="它不是这个意思啦！炎风是说虽然你经常添麻烦，它还是会帮你解决的。"/>
+							<context npcId="182" iconId="2" str="我可没那么说过。"/>
+							<context npcId="183" iconId="3" str="这个……说过的，说过的，嘿嘿！你还是很强的。吃糖吧！最好吃的劲凉薄荷糖。">
+								<choice str="我也觉得，我还是很强的嘛！">
+									<context npcId="1" str="主人吹牛！">
+										<choice str="让我跟赤月比试一下就知道了。">
+											<context npcId="182" iconId="2" str="就你想打赢赤月？笑掉大牙！不过，最好吃的还是香橙薄荷糖啦！">
+												<choice str="我这就证明给你看！" taskId="791" action="791_end"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_79_end"] = <dialog>
+					<context npcId="1" str="主人！奥拉之辉已经成功融合了，我们快去向&lt;font color='#FF6600'&gt;&lt;b&gt;司令官&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;报告吧！">
+						<choice str="好！我们前往指挥中心吧！" taskId="79"></choice>
+					</context>
+				</dialog>;
+         talk["1_807_blackAppear"] = <config>
+					<context npcId="1" str="主人！我们不能让那个黑影带走炎风！">	
+						<choice str="我们快追！" taskId="807">
+						</choice>
+					</context>
+				</config>;
+         talk["1_807_leave"] = <config>
+					<context npcId="1" str="主人！难道…难道炎风要离开……">
+						<choice str="好像是，继续听听他们说什么。" action="807_leave2">
+						</choice>
+					</context>
+				</config>;
+         talk["1_807_leave2"] = <config>	
+					<context npcId="1" str="炎风！你要干什么？">
+						<choice str="是啊！你要做什么？" action="807_blackAppear">
+						</choice>
+					</context>
+				</config>;
+         talk["1_808_crazyWind"] = <config>
+					<context npcId="182" iconId="6" str="你们快走吧！">
+						<choice str="不行！" action="808_horror">
+						</choice>
+					</context>
+				</config>;
+         talk["1_808_horror"] = <config>
+					<context npcId="1" str="主人！是可怕的木人桩！">
+						<choice str="看我打败它！" taskId="808" action="809_fight">
+						</choice>
+					</context>
+				</config>;
+         talk["1_809_lose"] = <config>
+					<context npcId="203" str="你可以留下我吗？">	
+						<choice str="我不会让你带走炎风的！">
+						</choice>
+					</context>
+				</config>;
+         talk["1_809_redWinLeave"] = <config>
+					<context npcId="203" str="你不担心赤月吗？"/>
+					<context npcId="1" str="难道……难道你对赤月……"/>
+					<context npcId="1" str="主人！我们快去看看赤月！">
+						<choice str="可是……">
+							<context npcId="1" str="炎风牺牲这么多就是为了救赤月啊！主人，快去救赤月吧！">
+								<choice str="好！我们去救赤月。" taskId="809">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["1_809_win"] = <config>
+					<context npcId="203" str="#username#，你的实力终于有所提升了。不过和我战斗，为时太早！"/>
+					<context npcId="203" str="我们走吧！炎风！">
+						<choice str="不行！" action="809_redWinLeave">
+						</choice>
+					</context>
+				</config>;
+         talk["1_810_hamiAppear"] = <config>
+					<context npcId="183" iconId="7" str="我要去救炎风！"/>
+					<context npcId="124" str="哈！想被抓走？你打得过木人桩吗？你打得过神秘人吗？"/>
+					<context npcId="183" iconId="7" str="我……"/>
+					<context npcId="124" str="跟我走吧！让我来帮助你提升实力！你一定可以救回炎风的！"/>
+					<context npcId="183" iconId="7" str="我……"/>
+					<context npcId="1" str="是啊！赤月，现在的我们打不过那个神秘人的，赶快变强吧！"/>
+					<context npcId="183" iconId="7" str="对！阿风说过，我要变得越来越强。我一定要救阿风回来！">
+						<choice str="相信你一定可以办到的！" action="810_timeFlow">
+						</choice>
+					</context>
+				</config>;
+         talk["1_810_moonWakeup"] = <config>	
+					<context npcId="1" str="主人！炎风，炎风被黑影骗了，赤月没有恢复！">
+						<choice str="该怎么办？" action="810_hamiAppear">
+						</choice>
+					</context>
+				</config>;
+         talk["1_83_hellotips"] = <dialog>
+		        <context str="到了新世界了，让我们拍照吧。">
+		           <choice type="0" str="开始拍照" action="1_83_suolide1_picture"/>
+		           <choice type="1" str="下次再拍"/>
+		        </context>
+		    </dialog>;
+         talk["1_9_aixiscene2_1"] = <config name="1_9_aixiscene2_1">
+					<context npcId="1" str="主人，加油啊！还差一点就要完成了！">
+						<choice str="好的，休息一下，马上继续。"></choice>
+					</context>
+				</config>;
+         talk["1_9_aixiscene2_2"] = <config name="1_9_aixiscene2_2">
+					<context npcId="1" str="耶！冰雕完成，主人，我们出发去奇迹冰殿吧！">
+						<choice str="好的！" action="1_9_aixiscene2_2end"></choice>
+					</context>
+				</config>;
+         talk["201_11_aixiscene4_2"] = <config name="201_11_aixiscene4_2">
+					<context npcId="1" iconId="7" str="主人，你看！伊莎女王醒过来啦！">
+						<choice str="真是谢天谢地！">
+							<context npcId="201" iconId="2" str="吉蒂，辉之碎片没有被哈鲁达抢走吧……"></context>
+							<context npcId="2" iconId="2" str="你放心！它还在呢！而且，我找到了你在等的人！"></context>
+							<context npcId="201" iconId="2" str="是站你旁边这个人吧……呵呵，与拉贝尔还有几分相像呢！">
+								<choice str="原来当年是拉贝尔……先不说这个，伊莎女王，我们得想办法把你救出去！">
+									<context npcId="201" iconId="2" str="别费力气了，这不是普通的冰之封印，是无法用普通的方法解开的！">
+										<choice str="……无法解开的吗？" action="201_11_aixiscene4_2end"></choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["201_27_aixiscene4"] = <config name="201_27_aixiscene4">
+					<context npcId="201" str="要跟哈鲁达战斗，最好还是先给亚比分配经验再去吧！">
+						<choice type="0" str="我知道了"></choice>
+					</context>
+				</config>;
+         talk["20_61_suolide2"] = <dialog>
+					<context str="我们的猫王子最有爱心了！"/>
+				</dialog>;
+         talk["20_62_suolide2"] = <dialog>
+					<context str="我们的猫王子最有爱心了！"/>
+				</dialog>;
+         talk["20_63_suolide2"] = <dialog>
+					<context str="我们的猫王子最有爱心了！"/>
+				</dialog>;
+         talk["20_64_suolide2"] = <dialog>
+					<context str="王子殿下，您让我们重获水源，太感谢您啦！" npcId="20" iconId="1"/>
+					<context str="这里有一块精致的石板，是我们在打洞时发现的，一直珍藏到现在，现在拿它来送给我们未来伟大的猫王最合适啦！" npcId="20" iconId="1"/>
+					<context str="伟大的猫王？太不好意思啦，哈哈。呀！石板！得到爱心石板啦！谢谢你！" npcId="16" iconId="1"/>
+					<context str="好了，第一块石板到手了，我们一起去&lt;font color='#FF6600'&gt;&lt;b&gt;新世界&lt;/b&gt;&lt;/font&gt;询问&lt;font color='#FF6600'&gt;&lt;b&gt;猫王&lt;/b&gt;&lt;/font&gt;下一块石板的消息吧。" npcId="16" iconId="1">
+						<choice type="0" str="好，让我们到新世界寻找猫王。" action="64_GoNewWorldMovie"/>
+					</context>
+				</dialog>;
+         talk["213_3330_aixiscene1"] = <config>
+								<context str="(*^__^*) 我想要一个主人，你愿意当我的主人吗？">
+									<choice str="当然愿意，看我用亚比球收了你！" starterId="3330" action="3330_fight"/>
+									<choice str="等等，让我学习一下怎么抓住你！" starterId="3330" action="3330_movie"/>
+								</context>
+							</config>;
+         talk["213_3331_aixiscene1"] = <config>
+					<context str="(*^__^*) 我想要一个主人，你愿意当我的主人吗？">
+						<choice str="当然愿意，看我用亚比球收了你！" action="3330_fight"/>
+						<choice str="等等，让我学习一下怎么抓住你！" action="3330_movie"/>
+					</context>
+				</config>;
+         talk["213_3331_secondTalk"] = <config>
+					<context str="#username#，从今往后，你就是我最亲爱的主人啦！">
+						<choice str="嗯！让我们一起去冒险吧！" taskId="3331"/>
+					</context>
+				</config>;
          talk["21_270_failFightWithBlackSolder"] = <config>
                   <context npcId="21" str="奉长官命令，华丽丽地将你打败了！"/>
                   <context npcId="77" iconId="1" str="哎哟哟，就这种程度，居然可以打败多克特和古力德，你运气还真好。">
@@ -2150,10 +5339,117 @@ package mmo.tasknpc
 					   <choice type="0" str="别跑！" action="removeBlackSolder"/>
 					</context>
 				</config>;
+         talk["21_61_suolide4"] = <dialog>
+					<context str=""/>
+				</dialog>;
+         talk["21_62_0"] = <dialog>
+					<context str="可帕斯大人的飞船也敢动？真是不自量力,哼。" npcId="21" iconId="1">
+						<choice type="0" str="还是等我实力够了再来吧。"/>
+					</context>
+				</dialog>;
+         talk["21_62_1"] = <dialog>
+					<context str="你们等着，可帕斯大人饶不了你们！" npcId="21" iconId="1" action="62_HeiDaGoAway"/>
+					<context str="泉眼被飞船堵住了，怎么把飞船移开啊？" npcId="16" iconId="1"/>
+					<context str="主人，用强大的光能射线射击飞船试试看！" npcId="1" iconId="1">
+						<choice type="0" str="好！" action="21_62_suolide4_1"/>
+					</context>
+				</dialog>;
+         talk["21_62_suolide4"] = <dialog>
+					<context str="可帕斯大人的飞船你们也敢动？" npcId="21" iconId="1">
+						<choice type="3" str="这飞船挡住水源，非动不可。" action="21_62_suolide4"/>
+						<choice type="1" str="我准备一下再来战斗。"/>
+					</context>
+				</dialog>;
          talk["233_1613_youanmingzhou4"] = <config>
 					<context npcId="233" str="我说过了，在这月亮之殿中，没有人可以赢得了我。">
 						<choice type="0" str="不需要战胜，只要拖延时间就好了。" action="1613_fightFuyun"/>
 						<choice type="0" str="我还没有准备好。"/>
+					</context>
+				</config>;
+         talk["23_82_suolide1"] = <dialog>
+				<context str="绿洲、沙暴、曼珠沙华、守护神，我怎么什么都记不起来了？" npcId="23">
+				    <choice type="0" str="看来鲁阿鲁的记忆出现了一些问题，我应该帮助他一下。">
+				        <context str="绿州、绿洲，啊！我怎么什么都想不起来了？" npcId="23">
+				           <choice type="0" str="去照一张&lt;font color='#FF6600'&gt;&lt;b&gt;绿洲的相片&lt;/b&gt;&lt;/font&gt;，应该有助于鲁阿鲁恢复记忆。" taskId="82"/>
+				        </context>
+				    </choice>
+                </context>				        
+			</dialog>;
+         talk["23_84_suolide1"] = <dialog>
+		        <context str="我怎么什么都记不起来了？" npcId="23">
+		           <choice type="0" str="给鲁阿鲁看绿洲的照片。">
+		               <context str="对了，我想起来了，很久以前，索里德是一片大草原，到处开满了索里德之花。" npcId="23"/>
+		               <context str="然后，沙暴、沙暴，我的头好痛。">
+                          <choice type="0" str="看来，鲁阿鲁的记忆与沙暴有关。" taskId="84"/>
+                      </context> 
+		           </choice>
+		        </context>
+		    </dialog>;
+         talk["23_85_suolide1"] = <dialog>
+                  <context action="talk_what"/>
+            </dialog>;
+         talk["23_85_talk1"] = <dialog>
+		        <context str="我怎么什么都记不起来了？捕捉一只半沙之子，并把它设为跟随吧！" npcId="23"/>
+		    </dialog>;
+         talk["23_85_talk2"] = <dialog>
+		        <context str="不，不要，啊！曼珠沙华，不要。一定一定会有办法解决的，不要啊！" npcId="23">
+               <choice type="0" str="鲁阿鲁失去理智了，需要尽快制服他。" taskId="85"/>
+               </context>
+		    </dialog>;
+         talk["23_86_isfight"] = <dialog>
+		        <context str="鲁阿鲁很厉害，确定自己有能力制服鲁阿鲁才和他对战哦。" npcId="1">
+		           <choice type="0" str="我确定我很强大了。" action="fight"/>
+		           <choice type="1" str="我可能还不够强大呢。"/>
+		        </context>
+		    </dialog>;
+         talk["23_86_suolide1"] = <dialog>
+		        <context action="isfighting"/>		        
+		    </dialog>;
+         talk["23_87_end"] = <dialog>
+		        <context str="真是感谢你，否则我可能再也无法拥有这些珍贵的回忆。">
+		           <choice type="0" str="比起曼珠沙华，我所做的事太微不足道了。" taskId="87"/>
+		        </context>
+		    </dialog>;
+         talk["23_87_suolide1"] = <dialog>
+		        <context str="呜呜……我终于想起我的过去了，谢谢你，小勇士">
+		           <choice type="0" str="看你这么伤心，我相信你的故事一定十分动人。" action="playmovie"/>
+		        </context>
+		    </dialog>;
+         talk["23_91_suolide1"] = <config>
+					<context str="你已经收集齐了水、土壤和种子，可以开始种花了。">
+						<choice str="太好了！ " action="23_91_suolide1" taskId="91"/>
+					</context>
+				</config>;
+         talk["23_92_suolide1"] = <config>
+					<context str="谢谢你，哈里。终于见到索里德之花啦！这就是&lt;font color='#FF6600'&gt;&lt;b&gt;自然石板&lt;/b&gt;&lt;/font&gt;，放到如此有为的未来猫王手中，我也可以放心了。">
+						<choice str="耶！拿到三块石板啦！" action="23_92_suolide1"/>
+					</context>
+				</config>;
+         talk["244_1030_temple3"] = <config>
+					<context str="不错！知道来找我。">
+						<choice str="拉贝尔！？">
+							<context npcId="1" str="你……身为奥拉星三英雄之一的拉贝尔，竟然……">
+							</context>
+							<context npcId="244" str="竟然与达斯特为伍？胡作非为？哈哈！">
+							</context>
+							<context str="与其在这里废话，你们还是关注一下神武月与战无炎吧！">
+								<choice str="你……你快阻止他们。">
+									<context str="一切……都已经晚了。"/>
+									<context npcId="1" str="莫非你要对他们不利？主人！我们快去救他们。">
+										<choice str="拉贝尔，回到奥拉星吧！" action="1030_showMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["245_1032_temple2"] = <config>
+					<context npcId="1" str="主人，刚才那个是什么？难道神武月体内又有邪恶的力量了吗？">
+						<choice str="不！如果是邪恶的力量，不可能是金色。">
+							<context npcId="245" str="快！快救阿风！">
+								<choice str="好！" action="1032_showMovie1"/>
+							</context>
+						</choice>
 					</context>
 				</config>;
          talk["246_1042_fightspace1"] = <config name="246_1042_fightspace1">
@@ -2530,6 +5826,51 @@ package mmo.tasknpc
 				  </choice>
 				</context>
 			  </config>;
+         talk["24_73_AllAnswerRight"] = <dialog>
+					<context str="不错，三个迷题全答对了，但不要高兴的太早，还有一个更大的谜题在等着你。">
+						<choice type="0" str="看起来很难的样子。">
+							<context str="不过，只要你能记住生命与自然是和谐统一的，那么任何谜题都难不住你的。"/>
+							<context str="只要能记住生命与自然是和谐统一的，那么任何谜题都难不住我么？" npcId="16"/>
+							<context str="我记住了，索里克斯，谢谢你。请出下一道谜题吧。" npcId="16"/>
+							<context str="你看到你面前的圆盘了么？圆盘上面有一台天秤，围绕这个天秤的是象征着各种不同意义的符号，只有天秤的两端达到真正的平衡时，谜题才会解开。真正考验你的时刻到来了。" npcId="24">
+								<choice type="0" str="难不倒我的！" taskId="73" action="24_74"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["24_73_SomeAnswerWrong"] = <dialog>
+					<context str="超凡的智慧需要超凡的答案才能证明，如果你能答出下一个谜题，才算通过考验。">
+						<choice type="0" str="我知道了。">
+							<context str="不过，只要你能记住生命与自然是和谐统一的，那么任何谜题都难不住你的。"/>
+							<context str="只要能记住生命与自然是和谐统一的，那么任何谜题都难不住我么？" npcId="16"/>
+							<context str="我记住了，索里克斯，谢谢你。请出下一道谜题吧。" npcId="16"/>
+							<context str="你看到你面前的圆盘了么？圆盘上面有一台天秤，围绕这个天秤的是象征着各种不同意义的符号，只有天秤的两端达到真正的平衡时，谜题才会解开。真正考验你的时刻到来了。" npcId="24">
+								<choice type="0" str="难不倒我的！" taskId="73" action="24_74"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["24_73_suolide3"] = <dialog>
+					<context str="准备好挑战谜题了么？">
+						<choice type="0" str="是的，我准备好挑战谜题了。" action="73_ShowQuestionPanel">
+						</choice>
+					</context>
+				</dialog>;
+         talk["24_74_0"] = <dialog>
+					<context str="看来你还没能真正理解生命与环境的和谐与统一！请好好想想再来解决迷题吧。"/>
+				</dialog>;
+         talk["24_74_1"] = <dialog>
+					<context str="你明白为什么石盘上天秤的一边要放上人、动物、植物，另一边要放上土地、空气和水吗？"/>
+					<context str="没错，人与动植物构成了生命，而土地、空气与水构成了生命生存的环境，生命与其所处的环境应该是平等的。"/>
+					<context str="对环境的过度开采终会造成生命的毁灭，对其合理的利用则会得到大自然的回馈。"/>
+					<context str="我明白了，生命与环境是和谐统一的。谢谢你，索里克斯。" npcId="16"/>
+					<context str="我们还是去找猫王询问下一块石板的信息吧。" npcId="16">
+						<choice type="0" str="好！我们回新世界找猫王吧！" taskId="74"/>
+					</context>
+				</dialog>;
+         talk["24_74_suolide3"] = <dialog>
+					<context action="24_74"/>
+				</dialog>;
          talk["253_1057_afterMovie"] = <config>
                   <context npcId='253' str="唉……岁月不饶人啊！刚刚赶回这虚无空间，要说这么多话，我的嗓子都快哑了。"/>
 					<context npcId='1' str="主人，像风云这么厉害的人都会口渴呢。">
@@ -3752,6 +7093,165 @@ package mmo.tasknpc
          talk["290_1342_giantcordillera6"] = <config name="290_1342_giantcordillera6">
 					<context npcId="290" iconId="4" str="那台机器看起来很奇怪，不知有什么作用。"></context>
 				</config>;
+         talk["2_10_aixiscene4"] = <config name="2_10_aixiscene4">
+					<context npcId="2" iconId="2" str="伊莎女王！我们来救你了，再坚持一会儿！"></context>
+					<context npcId="1" str="主人，哈鲁达似乎没有守在这里，我们抓紧时间救出伊莎女王吧！">
+						<choice str="好的！">
+							<context npcId="1" str="主人，用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;射击伊莎女王的冰雕试试，也许能成功！">
+								<choice str="嗯，没问题！" taskId="10"></choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["2_11_aixiscene4"] = <config name="2_11_aixiscene4">
+					<context npcId="2" str="#username#，快用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;射击伊莎女王的冰雕！"></context>
+				</config>;
+         talk["2_12_aixiscene4"] = <config name="2_12_aixiscene4">
+					<context npcId="2" str="我们是不会向哈鲁达屈服的。">
+						<choice type="0" str="当然了。"></choice>
+					</context>
+				</config>;
+         talk["2_21_aixiscene4"] = <config name="2_21_aixiscene4">
+					<context npcId="2" str="#username#，你有想到什么办法了吗？">
+						<choice str="我正在想呢。咦，哈鲁达又来干嘛？" starterId="21"></choice>
+						<choice type="1" str="真是一个难题，待会儿再来考虑吧。"></choice>
+					</context>
+				</config>;
+         talk["2_22_aixiscene4"] = <config name="2_22_aixiscene4">
+					<context npcId="2" str="嗯？哈鲁达又来了？">
+						<choice str="真是个麻烦的家伙。" action="2_22_aixiscene4_end"></choice>
+					</context>
+				</config>;
+         talk["2_23_aixiscene4"] = <config name="2_23_aixiscene4">
+					<context npcId="2" str="唉……该怎么办才好？">
+						<choice str="我已经想到办法了。">
+							<context npcId="1" iconId="7" str="主人！你想到办法啦？">
+								<choice str="哈鲁达说，那是超级坚硬的封印。" action="2_23_aixiscene4_end"></choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["2_24_aixiscene4"] = <config name="2_24_aixiscene4">
+					<context npcId="2" str="用光能射线将奇迹冰殿中的冰块切下吧！">
+						<choice str="嗯，我们一起加油！"></choice>
+					</context>
+				</config>;
+         talk["2_24_aixiscene4_1"] = <config name="2_24_aixiscene4_1">
+					<context npcId="2" str="将冰块磨成一块凸透镜，我们就可以利用它来汇聚能量了。">
+						<choice str="嗯，我们一起加油！" action="2_24_aixiscene4_1end"></choice>
+					</context>
+				</config>;
+         talk["2_25_aixiscene4"] = <config name="2_25_aixiscene4">
+					<context npcId="2" str="让我们一起，开启辉之碎片吧！"></context>
+					<context npcId="201" iconId="2" str="为保护辉之碎片，我设置了一道迷阵，需要通过迷阵，才能拿到辉之碎片。"></context>
+					<context npcId="201" iconId="2" str="我现在被冰封，没有办法帮助你们了。">
+						<choice str="你已经做得够多了，现在看我们的吧！" action="2_25_aixiscene4_end"></choice>
+					</context>
+				</config>;
+         talk["2_26_aixiscene4"] = <config name="2_26_aixiscene4">
+					<context npcId="2" iconId="1" str="#username#，我们一起解开冰之迷阵吧！只要&lt;font color='#FF6600'&gt;&lt;b&gt;通过第一关&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;就可以咯！">
+						<choice type="0" str="好。" action="2_26_aixiscene4_end"></choice>
+					</context>
+				</config>;
+         talk["2_26_aixiscene4_1"] = <config name="2_26_aixiscene4_1">
+					<context npcId="2" iconId="8" str="太好啦！终于把伊莎救出来啦！"></context>
+					<context npcId="201" iconId="1" str="谢谢你们！没有你们的坚持与鼓励，我是无法控制好这股能量的。">
+						<choice str="真是太好啦！" action="2_26_aixiscene4_1end"></choice>
+					</context>
+				</config>;
+         talk["2_27_aixiscene4"] = <config name="2_27_aixiscene4">
+					<context npcId="2" str="一定要打败哈鲁达抢回辉之碎片！">
+						<choice type="0" str="好的。"></choice>
+					</context>
+				</config>;
+         talk["2_28_aixiscene4"] = <config name="2_28_aixiscene4_1">
+					<context npcId="2" str="#username#，谢谢你！"/>
+					<context npcId="201" str="谢谢你帮我们保住了辉之碎片，这个碎片，就当作是感激的礼物，送给你们吧！">
+						<choice str="哇！太棒了！" action="28_showCartoon"></choice>
+					</context>
+				</config>;
+         talk["2_3_aixiscene1"] = <config name="2_3_aixiscene1">
+					<context npcId="2" iconId="3" str="啊！那个人追上来了！">
+						<choice str="谁？谁追上来了？" action="2_3_aixiscene1_end"></choice>
+					</context>
+				</config>;
+         talk["2_3_aixiscene1_2"] = <config name="2_3_aixiscene1_2">
+					<context npcId="2" iconId="4" str="我是绝对不会把这东西交给像你这样的坏蛋的！"></context>
+					<context npcId="8" iconId="8" str="事到如今，也没有你选择的余地啦！早点交出来，还可以少受点苦哟！"></context>
+					<context npcId="2" iconId="4" str="这个东西，是伊莎女王用生命保留下来的！我绝对不会交给你！"></context>
+					<context npcId="1" str="这还真是狭路相逢，主人，看来我们是遇见传说中的坏蛋——达斯特了。">
+						<choice str="喂，哈鲁达，放开那个小姑娘！">
+							<context npcId="8" str="嗯？！看你这身打扮，应该是奥拉星的人吧！还真是冤家路窄啊！">
+								<choice str="╮(╯▽╰)╭" taskId="3"></choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["2_4_aixiscene1"] = <config name="2_4_aixiscene1">
+					<context npcId="2" iconId="3" str="请帮我打败哈鲁达吧，勇士！"></context>
+				</config>;
+         talk["2_5_aixiscene1"] = <config name="2_5_aixiscene1">
+					<context npcId="2" str="谢谢你们救了我！我、我要走了！">
+						<choice str="等等！你现在可是哈鲁达的目标，随便走动的话，可是很危险的！">
+							<context npcId="2" iconId="5" str="可是，如果我再不回去，就真的永远救不了我的朋友了！"></context>
+							<context npcId="2" iconId="5" str="它被哈鲁达用冰封印在了奇迹冰殿，随时都有生命危险！">
+								<choice str="究竟是什么东西把达斯特人引来了？">
+									<context npcId="2" str="这个，要从伊莎女王小时候说起了……">
+										<choice str="可以讲给我们听听吗？" action="2_5_aixiscene1_end"></choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["2_6_aixiscene1"] = <config name="2_6_aixiscene1">
+					<context npcId="2" iconId="2" str="伊莎女王一直等着那个能带走辉之碎片的人，没想到等来的却是坏人……"></context>
+					<context npcId="2" iconId="2" str="它为了守住辉之碎片，与哈鲁达战斗，却不小心被哈鲁达封印了！"></context>
+					<context npcId="2" iconId="2" str="在最后一刻，它将开启辉之碎片的钥匙交给了我，让我好好守住辉之碎片……">
+						<choice str="原来哈鲁达让你交给他的是开启辉之碎片的钥匙……">
+							<context npcId="1" iconId="16" str="主人，我们不能让吉蒂一个人回去救伊莎女王！">
+								<choice str="嗯！我明白！吉蒂，让我们陪你一起回去吧！">
+									<context npcId="2" iconId="6" str="真的吗？"></context>
+									<context npcId="1" iconId="37" str="没错，伊莎女王等了我们这么久，我们绝不会让它就这样牺牲的！"></context>
+									<context npcId="2" iconId="7" str="你们……难道就是那个勇士所说的，那个人吗？">
+										<choice str="没错！让我们一起去救伊莎女王吧！">
+											<context npcId="2" str="可是我们就这么去奇迹冰殿的话，很容易被哈鲁达发现的……"></context>
+											<context npcId="1" str="HELLO倒是有个好提议，我们可以伪装成冰雕前进呢！">
+												<choice str="没错！">
+													<context npcId="2" str="&lt;font color='#FF6600'&gt;&lt;b&gt;冰河瀑布&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;有很多可以用来做冰雕的冰块呢，可以去那里采集冰雕需要的材料！">
+														<choice str="好！" action="2_6_aixiscene1_end"></choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["2_7_aixiscene1"] = <config name="2_7_aixiscene1">
+					<context npcId="2" str="&lt;font color='#FF6600'&gt;&lt;b&gt;冰河瀑布&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;有很多可以用来做冰雕的冰块呢，可以去那里采集冰雕需要的材料！">
+						<choice str="好！"></choice>
+					</context>
+				</config>;
+         talk["2_7_aixiscene2"] = <config name="2_7_aixiscene2">
+					<context npcId="2" str="#username#，那里有一大块冰，很适合做冰雕哦！"></context>
+					<context npcId="1" str="主人，用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线射击&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;它吧！">
+						<choice str="好！交给我吧！" action="2_7_aixiscene2_end"></choice>
+					</context>
+				</config>;
+         talk["2_8_aixiscene2"] = <config name="2_8_aixiscene2">
+					<context npcId="2" str="接下来就看我的吧！先雕出一只耳朵……再雕出身体……">
+						<choice str="吉蒂加油，我们看好你！" starterId="8"></choice>
+						<choice type="1" str="我们待会儿再来帮你。"></choice>
+					</context>
+				</config>;
+         talk["2_9_aixiscene2"] = <config name="2_9_aixiscene2">
+					<context npcId="2" str="呼~基本完工，#username#，只剩下最后一点没完成了，能帮帮我吗？">
+						<choice str="没问题。" action="2_9_aixiscene2_end"></choice>
+					</context>
+				</config>;
          talk["303_1288_giantcordillera5"] = <config name="303_1288_giantcordillera5">
 					<context npcId="303" iconId="2" str="誓死追随主人！！"></context>
 				</config>;
@@ -3789,6 +7289,57 @@ package mmo.tasknpc
 				</config>;
          talk["303_1639_youanmingzhou5"] = <config>
 					<context npcId="303" action="1639_standUp"/>
+				</config>;
+         talk["313_1322_temple4"] = <config>
+					<context str="你，为何来到我的宝殿前？">
+						<choice str="我要挑战你！" action="task_1322"/>
+					 <choice str="我只是来看看。"/>
+					</context>
+				</config>;
+         talk["313_1322_temple8"] = <config>
+					<context str="你，为何来到我的宝殿前？">
+						<choice str="我要挑战你！" action="task_1322"/>
+					 <choice str="我只是来看看。"/>
+					</context>
+				</config>;
+         talk["313_1323_temple4"] = <config>
+					<context str="你很走运，竟然能来到玄武大道第二重。难道你还想继续挑战我？">
+						<choice str="我要挑战你！" action="task_1323"/>
+					 <choice str="我要再准备一下。"/>
+					</context>
+				</config>;
+         talk["313_1323_temple8"] = <config>
+					<context str="你很走运，竟然能来到玄武大道第二重。难道你还想继续挑战我？">
+						<choice str="我要挑战你！" action="task_1323"/>
+					 <choice str="我要再准备一下。"/>
+					</context>
+				</config>;
+         talk["313_1324_temple4"] = <config>
+					<context str="你，能来到第三重挑战，实力不错，不过，我立刻会让你明白上古力量的强大！">
+						<choice str="我要挑战你！" action="task_1324"/>
+					<choice str="我要再准备一下。"/>
+					</context>
+				</config>;
+         talk["313_1324_temple8"] = <config>
+					<context str="你，能来到第三重挑战，实力不错，不过，我立刻会让你明白上古力量的强大！">
+						<choice str="我要挑战你！" action="task_1324"/>
+					<choice str="我要再准备一下。"/>
+					</context>
+				</config>;
+         talk["314_1325_have"] = <config>
+					<context str="勇敢的孩子，你终于来到了最后的挑战。只要战胜我，我将赋予你保卫宇宙的力量。现在，战斗开始！">
+						<choice str="我要战胜你！" action="task_1325"/>
+					 <choice str="我要再准备一下。"/>
+					</context>
+				</config>;
+         talk["314_1325_nothave"] = <config>
+					<context str="只有带着玄武幼灵的奥拉，才有资格挑战我。">
+						<choice str="我会带上玄武幼灵再来挑战的！"/>
+					</context>
+				</config>;
+         talk["314_1325_temple9"] = <config>
+					<context action="task1325first">
+					</context>
 				</config>;
          talk["316_1378_mantenxiagu1"] = <config>
 					<context npcId='316' str="唉呀！哎呀！困扰死我了。我怎么变成了小小鸟呢？怎么回事？？？？">
@@ -4300,6 +7851,12 @@ package mmo.tasknpc
 						<choice str="好，就这么办！" taskId="1449" action="1449_showMovie"/>
 					</context>
 				</config>;
+         talk["353_145002_operateSucceed"] = <config>
+					<context str="这、这代表了什么意思？"/>
+					<context npcId="1" str="也许&lt;font color='#FF6600'&gt;&lt;b&gt;章鱼海湾的那扇巨大的门里，藏着什么秘密&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;！">
+						<choice str="说得对，我们得去看看。" action="1450_showMovie" taskId="1450"/>
+					</context>
+				</config>;
          talk["353_1453_starsea1"] = <config>
 					<context iconId="2" str="先别管他了，让我们&lt;font color='#FF6600'&gt;&lt;b&gt;赶紧想办法开启这扇门吧&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;。">
 						<choice str="嗯，赶紧赶紧！">
@@ -4555,6 +8112,21 @@ package mmo.tasknpc
 					<context npcId="356" iconId="3" str="SR军团崩溃！全员战斗计划失败！判定目前情况为达斯特失败！全员撤退！"></context>
 					<context npcId="355" iconId="4" str="糟糕糕！迪瑞恩的达斯特失败判定好像有错误！居然就进入了撤退模式！">
 						<choice str="看来还是个没有开发完毕的机器人嘛！" action="356_1482_starsea3end"></choice>
+					</context>
+				</config>;
+         talk["35_3338_starland"] = <config>
+								<context str="哎呀，小朋友，这么快就把钱花光光了吗？我芭芭拉教你几招，保证你晶币花不完哦~！">
+									<choice str="快告诉我吧！" starterId="3338" action="3338_showMovie"/>
+								</context>
+							</config>;
+         talk["35_3339_secondTalk"] = <config>
+					<context str="听傻了吧~乐开花了吧~！哈哈！快去赚钱，让你的钱包鼓起来吧！">
+						<choice str="太棒了！我要去赚钱！" taskId="3339"/>
+					</context>
+				</config>;
+         talk["35_3339_starland"] = <config>
+					<context str="哎呀，小朋友，这么快就把钱花光光了吗？我芭芭拉教你几招，保证你晶币花不完哦~！">
+						<choice str="快告诉我吧！" action="3338_showMovie"/>
 					</context>
 				</config>;
          talk["366_1509_diamondisland2"] = <config>
@@ -4825,6 +8397,111 @@ package mmo.tasknpc
 						<choice type='0' str="拉贝尔……" action="task1546movie2"/>
 					</context>
 				</config>;
+         talk["36_16102_siwude1"] = <config>
+					<context str="守护者大赛是思伍德一年一度的盛事。"/>
+					<context str="我可是上一届的冠军哦！你看，这是我获得的上一届大赛的优胜奖牌。"/>
+					<context str="主人，奖牌上的图案好像是&lt;font color='#FF6600'&gt;&lt;b&gt;辉之碎片&lt;/b&gt;&lt;/font&gt;呀！参加比赛，说不定能找到&lt;font color='#FF6600'&gt;&lt;b&gt;辉之碎片&lt;/b&gt;&lt;/font&gt;的线索。" npcId="1">
+						<choice type="0" str="怎么参加比赛？">
+							<context str="你需要向卡托尔报名，具体内容你问问他吧。" npcId="36">
+								<choice type="0" str=" 好，我现在就去找卡托尔。" taskId="161" action="161_End"/>
+							</context>
+						</choice>
+					 </context>
+			   </config>;
+         talk["36_161_siwude1"] = <config name="36_160_siwude1">
+					<context npcId="36" str="思伍德一年一度的守护者大赛开始喽！ 真兴奋呀！">
+						<choice str="真的？守护者大赛是什么？我想了解一下。" action="160_Start"/>
+						<choice str="嗯，好像没什么意思，等有空再来了解一下。"></choice>
+					</context>
+				</config>;
+         talk["36_167_failure"] = <config>
+					<context str="打败我可不容易，我可是思伍德区的最强战士哦！">
+						<choice type="0" str="我还没输呢。" action=""/>
+					</context>
+				</config>;
+         talk["36_167_siwude1"] = <config>
+					 <context str="想不到这么快就见面了，哈哈。">
+						<choice type="0" str="是啊，我很期待与你的战斗呢。">
+							<context str="我的木木鸟可是拥有无穷进化潜力的哦。你确定要和我对战吗？">
+								<choice type="0" str=" 确定。" action="ReadyToFight"/>
+							</context>
+						</choice>
+					 </context>
+			   </config>;
+         talk["36_167_success"] = <config>
+					<context str="想不到你这么厉害，真是英雄出少年啊！">
+						<choice type="0" str="你也很厉害啊！" action="36_167_Movie1">
+						</choice>
+					</context>
+				</config>;
+         talk["36_1845_siwude1"] = <config>
+					<context npcId="36" str="咳咳……"/>
+					<context npcId="1" str="杜克，你好像对木面仔的胜利有疑虑的样子？">	
+						<choice str="是啊！">	
+							<context npcId="36" str="嗯，因为现在的木面仔，还不算是真正的强大。"/>
+							<context npcId="441" str="我怎么不强了？你看！在思伍德区，谁还能打败我？"/>
+							<context npcId="402" iconId="3" str="抗议！抗议！木面仔最帅！木面仔最强！"/>
+							<context npcId="36" str="咳咳……">
+								<choice str="杜克，你到底是怎么想的呢？">	
+									<context npcId="36" str="其实，仅凭剑术，要成为真正强大的亚比还是非常困难的。"/>
+									<context npcId="441" iconId="2" str="那还需要什么？">
+										<choice str="是啊？" action="1845_MaskStory">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["36_190_siwude1"] = <dialog>
+					<context str="勇士，你救回了我的木木鸟么？">
+						<choice type="2" str="还没有。通向第四层的道路被阻挡住了。">
+							<context npcId="36" str="什么？多克特的屏障阻挡住了通往第四层的道路？"></context>
+							<context npcId="36" str="快去请教木匠&lt;font color='#FF6600'&gt;&lt;b&gt;卡波&lt;/b&gt;&lt;/font&gt;吧，他也许有办法。">
+								<choice type="0" str="谢谢！我这就去部落林地找卡波。" taskId="190" action="190_End"/>
+							</context>							
+						</choice>
+					</context>
+				</dialog>;
+         talk["36_191_siwude1"] = <dialog>
+					<context str="怎么样？卡波有没有办法可以帮你到达生命之树？"/>
+				</dialog>;
+         talk["36_192_siwude1"] = <dialog>
+					<context str="怎么样？卡波有没有办法可以帮你到达生命之树？"/>
+				</dialog>;
+         talk["36_193_siwude1"] = <dialog>
+					<context str="怎么样？卡波有没有办法可以帮你到达生命之树？"/>
+				</dialog>;
+         talk["36_196_siwude4"] = <dialog>
+					<context str="我一定要让木木鸟恢复正常。"/>
+				</dialog>;
+         talk["36_196_siwude4continue1"] = <dialog>
+					<context str="木木鸟，你怎么了？"/>
+					<context npcId="45" iconId="3" str="你是谁？我不认识你。"/>
+					<context npcId="36" str="多克特，你对木木鸟做了什么？"/>
+					<context npcId="46" str="哈哈哈，木木鸟的精神已经完全被我控制了。"/>
+					<context npcId="46" str="我的生物变异实验成功了，已经没人能阻止我的终极木木鸟了。">
+						<choice type="0" str="我不会让你的阴谋得逞的。" taskId="196" action="36_196_siwude4continue1_fight"/>
+					</context>
+				</dialog>;
+         talk["36_197_siwude4"] = <dialog>
+					<context str="我一定要让木木鸟恢复正常。"/>
+				</dialog>;
+         talk["36_197_siwude4fightwincontinue1"] = <dialog>
+					<context str="木木鸟，你难道认不出我了吗？"/>
+					<context npcId="45" iconId="3" str="为什么感觉这么熟悉？为什么我下不了手？啊！我的头好痛。">
+						<choice type="0" str="木木鸟需要帮助！" action="36_197_siwude4fightwincontinue1_hello"></choice>
+					</context>
+				</dialog>;
+         talk["36_198_siwude1"] = <dialog>
+					<context str="去请教木匠&lt;font color='#FF6600'&gt;&lt;b&gt;卡波&lt;/b&gt;&lt;/font&gt;，他也许有办法。" taskId="-999"/>
+				</dialog>;
+         talk["36_199_siwude4"] = <dialog>
+					<context str="谢谢你拯救了木木鸟，如果不是你，木木鸟就……就……。">
+						<choice type="2" str="不，是你与木木鸟之间真挚的感情才打破了多克特的精神控制。" action="36_showPetEggPanel">
+						</choice>
+					</context>
+				</dialog>;
          talk["374_1557_aftermovie1"] = <config>
 					<context npcId='374' str="我也要回家休息啦，刚才力量使用过度，好累啊！">
 						<choice type='0' str="哈哈，不如我们送你回家吧。">
@@ -4871,6 +8548,19 @@ package mmo.tasknpc
          talk["377_1571_fightFail"] = <config>
 					<context str="哈哈哈！这点力量，也想与念大人一较高下？">
 						<choice str="奥拉勇士是不畏艰难的。"/>
+					</context>
+				</config>;
+         talk["377_1846_afterFightFail"] = <config>
+					<context npcId="377" str="没本事还想逞英雄，不自量力！">
+						<choice str="你这个坏蛋，我们不会放弃的。">
+						</choice>
+					</context>
+				</config>;
+         talk["377_1846_siwude2"] = <config>
+					<context npcId="377" str="哪来的？连本少爷也敢打扰，不想活了！"/>
+					<context npcId="441" str="我看不想活的是你才对。">
+						<choice str="没错，如此明目张胆的做坏事，一定要教训一下你。" action="1846_FightWithMuMian">
+						</choice>
 					</context>
 				</config>;
          talk["378_1572_fightFail"] = <config>
@@ -4948,6 +8638,103 @@ package mmo.tasknpc
 						<choice str="让我们一起并肩作战吧！" action="1643_doorOpen"/>
 					</context>
 				</config>;
+         talk["379_218602_hexagrampalace1"] = <config>
+					<context npcId="379" iconId="1" str="原来你的力量并没有完全恢复，刚才与修罗的战斗中，已经消耗了你大部分力量吧。"/>
+					<context npcId="539" iconId="7" str="哼！要不是你们几个多事，我早就已经在刚才把修罗给干掉了！"/>
+					<context npcId="539" iconId="7" str="今天算你走运，修罗，我一定会再回来的！你等着吧！">
+						<choice str="想临阵逃脱吗，别想走！" action="2183_Movie3"/>
+					</context>
+				</config>;
+         talk["37_184_siwude1"] = <config>
+					<context npcId="37" str="杜克居然被扭扭军团俘虏了？还要用糯米糕来交换？真是太不小心了。"/>
+					<context npcId="37" str="我做糯米糕需要一点时间。能先请你帮帮忙吗？">
+						<choice type="0" str="没问题，你快说吧！">
+							<context npcId="37" str="最近我做的&lt;font color='#FF6600'&gt;&lt;b&gt;烟花&lt;/b&gt;&lt;/font&gt;会无故消失掉，请帮我&lt;font color='#FF6600'&gt;&lt;b&gt;调查&lt;/b&gt;&lt;/font&gt;下是怎么回事。">
+								<choice type="0" str="好的，我这就去。" taskId="184"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["37_186_siwude1"] = <config>
+					<context npcId="37" str="哈鲁达是谁？他为什么要偷走我的烟花呢？">
+						<choice type="0" str="哈鲁达是黑元首手下，我也不知道他为什么偷走烟花。">
+							<context npcId="37" str="看来我以后要注意防盗了。谢谢你，小勇士。">
+								<choice type="0" str="不用客气！">
+									<context npcId="37" str="你看，糯米糕做好了，快去&lt;font color='#FF6600'&gt;&lt;b&gt;救杜克&lt;/b&gt;&lt;/font&gt;吧！">
+										<choice type="0" str="好的，我马上出发。" action="37_186_gatherFood"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["37_191_siwude1"] = <dialog>
+					<context str="请问有什么事？">
+						<choice type="2" str="多克特阻断了通往生命之树的道路，杜克说您可能会有办法。">
+							<context str="通过恐怕是不太可能，屏障应该是由多克特来控制的。">
+								<choice type="2" str="啊！那该怎么办才好呢？">
+									<context str="哈哈！那就越过屏障，直接到达生命之树吧！">
+										<choice type="2" str="什么？越过屏障？直接到达？">
+											<context str="其实在很久以前，思伍德地区还很荒凉，并没有连接各层的通道，直到一位勇者的到来。"/>
+											<context str="勇者用神奇的力量创造出了生命之树，使得各种植物生长。"/>
+											<context str="最终，各层之间拥有了蔓藤连接，才成了现在的样子。">
+												<choice type="2" str="勇者？难道是……不过这和如何通向第四层有什么关系？">
+													<context str="那你知道没有蔓藤以前我的祖先们是如何在各层之间移动的么？"/>
+													<context str="是升云炮！哈哈哈，我刚好就有一门升云炮。不过因为年代久远，已经破损了。"/>
+													<context str="如果你愿意帮我收集&lt;font color='#FF6600'&gt;&lt;b&gt;修复升云炮的材料&lt;/b&gt;&lt;/font&gt;，我想，你就可以使用升云炮去第四层了。"/>
+													<context str="材料包括&lt;font color='#FF6600'&gt;&lt;b&gt;大炮齿轮&lt;/b&gt;&lt;/font&gt;、&lt;font color='#FF6600'&gt;&lt;b&gt;大炮瞄准器&lt;/b&gt;&lt;/font&gt;和&lt;font color='#FF6600'&gt;&lt;b&gt;大炮炮管&lt;/b&gt;&lt;/font&gt;。" action="37_191_connon_appear">
+														<choice type="0" str="好的，我这就去收集。" action="191_ShowSearchPanel" taskId="191"></choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["37_192_siwude1"] = <dialog>
+					<context str="请快点把材料收集齐吧!!!!!"/>
+				</dialog>;
+         talk["37_193_siwude1"] = <dialog>
+					<context str="材料收集齐了么？">
+						<choice type="0" str="收集齐了，给。">
+							<context npcId="37" str="太好了，我这就去原始林地安装升云炮。">
+								<choice type="0" str="我马上跟过去。" action="37_193_siwude1_kaboLeaving" taskId="-999"/>							
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["37_195_siwude3"] = <dialog>
+					<context str="哈哈，这就是思伍德区独有的升云炮。">
+						<choice type="2" str="这个升云炮怎么用？">
+							<context str="你坐进升云炮，我来发动。">
+								<choice type="0" str="好的。">
+									<context str="哈哈，让坏蛋们见识下我的升云炮。">
+										<choice type="0" str="太好了。" action="37_195_siwude3_dukecome"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["37_196_siwude3"] = <dialog>
+					<context str="哈哈，这就是思伍德区独有的升云炮。">
+						<choice type="0" str="请使用升云炮把我传送到生命之树旁." action="37_transform">
+						</choice>
+					</context>
+				</dialog>;
+         talk["37_197_siwude3"] = <dialog>
+					<context str="哈哈，这就是思伍德区独有的升云炮。">
+						<choice type="0" str="请使用升云炮把我传送到生命之树旁." action="37_transform">
+						</choice>
+					</context>
+				</dialog>;
+         talk["37_706_siwude1"] = <config>
+					<context action="findKabo">
+					</context>
+				</config>;
          talk["383_1591_youanmingzhou2"] = <config>
 					<context npcId="383" str="嗯？怎么回事呢？光柱怎么熄灭了？难道是力量不够了？"/>
 					<context npcId="383" str="不如，我们给它注入一点力量吧！"/>
@@ -4983,10 +8770,122 @@ package mmo.tasknpc
 						<choice str="看起来，确实是非常危险。" action="1595_showMovie"/>
 					</context>
 				</config>;
+         talk["385_2100_afterShow"] = <config>
+					<context npcId="385" str="而达斯特人也得知了此事，并且已经在暗中进行部署，企图与其中邪恶的一方相勾结。"/>
+					<context npcId="385" str="一旦达斯特人的阴谋得逞，终极能源落入他们手里，后果将不堪设想。">
+						<choice str="我们绝对不能允许这样的事情发生。" action="2100_houseFight"/>
+					</context>
+				</config>;
+         talk["385_2100_bingxuestar1"] = <config>
+					<context npcId="385" str="#username#，你没事吧？"/>
+					<context npcId="1" iconId="10" str="主人，是兰丁耶，哇，我们竟然被英雄救了！HELLO好激动啊！">
+						<choice str="谢谢兰丁，我没事，可是兰丁，你怎么会在这里呢？">
+							<context npcId="385" str="我原本是来调查黑元首的阴谋的，却在调查中发现六芒星系更为惊人的秘密。">
+								<choice str="什么秘密？">
+									<context npcId="385" str="是关于六芒星系的终极能源。"/>
+									<context npcId="1" str="终极能源？在海枯之星的时候HELLO有听拉贝尔提到过，但并不清楚是怎么回事。">
+										<choice str="是啊。" action="2100_theEnergy"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["385_2101_bingxuestar2"] = <config>
+					<context npcId="385" iconId="4" str="可帕斯，不要再为非作歹了。">
+						<choice str="是的，快把迪恩和豆豆放了。">
+							<context npcId="19" iconId="1" str="妄想！">
+								<choice str="迪恩和豆豆不过是不相干的人，你为什么要抓他们？">
+									<context npcId="19" iconId="1" str="你以为我不知道这个叫豆豆的体内蕴含着纯净能源吗？">
+										<choice str="可是现在豆豆的身体已经很虚弱了。">
+											<context npcId="19" str="哼，我只知道它体内的能源关系到我们黑元首大人的计划。">
+												<choice str="你怎么可以这么残忍？">
+													<context npcId="19" str="为了黑元首大人，没有什么是不可以的。"/>
+													<context npcId="385" str="既然如此，那就看你有没有能力带得走它了。">
+														<choice str="是的，我们是不会让你带走豆豆的。" taskId="2101">
+															<context npcId="19" iconId="1" str="你以为有兰丁在我就会怕吗？">
+																<choice type="3" str="哼，对付你，还用不着我们的英雄出手。" action="2101_fight"/>
+																<choice str="等我先去准备一下，待会再来和你打。"/>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["385_2132_bingxuestar2"] = <config>
+					<context npcId="385" str="终于赶回来了，希望不会太晚。">
+						<choice str="你身边这位是？">
+							<context npcId="385" str="它是这冰雪之星的山神，也是唯一可以救豆豆的人。"/>
+							<context npcId="520" iconId="2" str="山神，你一定可以治好豆豆的，对不对？"/>
+							<context npcId="538" iconId="1" str="放心吧，豆豆是我的孩子，我会尽力而为的。">
+								<choice str="豆豆是你的孩子？">
+									<context npcId="538" iconId="1" str="这件事情以后再解释吧，事不宜迟，让我先看看豆豆的病情吧。">
+										<choice str="好。" action="2132_seeDoctor"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["385_2145_lanDingLeave"] = <config>
+					<context npcId="385" str="我还有一件重要的事情要去处理，得先走一步了。">
+						<choice str="再见兰丁。 " action="2145_lanDingLeave"/>
+					</context>
+				</config>;
          talk["386_1585_youanmingzhou2"] = <config>
 					<context npcId="386" str="远离我……啊！这邪恶的力量，我要……消灭你们！">
 						<choice type="0" str="让我们来帮你解除痛苦。" action="1585_fightWuyan"/>
 						<choice type="0" str="我一会儿就来救你。"/>
+					</context>
+				</config>;
+         talk["38_162_siwude1"] = <config>
+					<context str="欢迎来到思伍德区，请问有什么事吗？">
+						<choice type="0" str="报名参加比赛。">
+							<context str="欢迎参加守护者大赛。不过正式比赛前，你先要获得参赛资格。">
+								<choice type="0" str="怎么才能获得资格呢？" taskId="162" action="160_BeforeFightsXiaohuabao"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["38_16302_siwude1"] = <config>
+					<context str="你的能力还不足以参加守护者大赛，请变强后再来吧！">
+						<choice type="0" str="我知道了。" taskId=""/>
+					</context>
+				</config>;
+         talk["38_163_siwude1"] = <config>
+					<context str="只要你能击败我的小花苞，就拥有参赛资格了。">
+						<choice type="0" str="我一定能赢的！" action="163_FightWithXiaohuabao"/>
+					</context>
+				</config>;
+         talk["38_164_siwude1"] = <config>
+					<context str="现在你可以参加守护者大赛了，你的对手在&lt;font color='#FF6600'&gt;&lt;b&gt;擂台上&lt;/b&gt;&lt;/font&gt;等着你呢。"> 
+						<choice type="0" str="好！我这就去。" taskId="164" action="164_End"/>
+					</context>
+				</config>;
+         talk["38_178_siwude1"] = <config>
+					<context npcId="38" str="你知道吗？我们这儿有个臭名昭著的扭扭军团，他们整天用各种各样的恶作剧作弄人。"/>
+					<context npcId="38" str="小勇士，请你去讨伐他们吧！">
+						<choice type="0" str="好，我这就去讨伐他们！">
+							<context npcId="36" str="我也去，比比谁打倒的扭扭比较多吧。">
+								<choice type="0" str="我肯定不会输的。" action="178_changeScene" starterId="178"/>
+							</context>
+						</choice>
+						<choice type="1" str="嗯，让我再想想吧。"/>
+					</context>
+				</config>;
+         talk["38_188_siwude1"] = <config>
+					<context npcId="38" str="小勇士，你回来了。哈哈，原来扭扭军团扑灭了大火，拯救了森林呀！">
+						<choice type="2" str="是啊！扭啊扭老大还答应不再恶作剧了。">
+							<context npcId="38" str="太好了，我正式授命扭扭军团为思伍德区的“地区消防队”了。">
+								<choice type="0" str="哈哈，扭扭军团成了英雄军团了。" taskId="188"/>
+							</context>
+						</choice>
 					</context>
 				</config>;
          talk["390_1598_fightFail1"] = <config>
@@ -5033,6 +8932,36 @@ package mmo.tasknpc
 						<choice type="0" str="我还没有准备好。"/>
 					</context>
 				</config>;
+         talk["3_3332_toolshop"] = <config>
+								<context str="亚比球是捕捉亚比的重要道具，去捉亚比前，一定要准备好足够的亚比球哦！">
+									<choice str="我想要亚比球，哪里才有呢？" starterId="3332" action="3332_Buy"/>
+								</context>
+							</config>;
+         talk["3_3333_secondTalk"] = <config>
+					<context str="真棒！之后也要记得常来店里买亚比球，捉更多更好的亚比哦！">
+						<choice str="我知道啦！谢谢！" taskId="3333"/>
+					</context>
+				</config>;
+         talk["3_3333_toolshop"] = <config>
+					<context str="亚比球是捕捉亚比的重要道具，去捉亚比前，一定要准备好足够的亚比球哦！">
+						<choice str="我想要亚比球，哪里才有呢？" action="3332_Buy"/>
+					</context>
+				</config>;
+         talk["3_3337_secondTalk"] = <config>
+					<context str="看来你的知识掌握的不错！快带着你的亚比去冒险吧，相信你的亚比很快就能成长起来啦！">
+						<choice str="耶！出发去冒险咯！" taskId="3337"/>
+					</context>
+				</config>;
+         talk["3_3337_toolshop"] = <config>
+					<context str="走过路过不要错过，米娜亚比饮食小站，让你的亚比更好更快更健康的成长！">
+						<choice str="亚比饮食小站，是什么东西？">
+							<context str="啊哈！这个问题问得好！亚比在战斗的过程中，总是会消耗许许多多的能量！"/>
+							<context str="这个时候，就需要吃点东西，补充一下营养啦！让我考考你，你知道亚比这时吃什么吗？">
+								<choice str="让我想想。" action="3336_showPanel"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["401_1646_mustFail"] = <config>
 					<context action="1646_breakOut"/>
 				</config>;
@@ -5040,6 +8969,834 @@ package mmo.tasknpc
 					<context npcId="401" str="让你们见识一下什么才是真正的黑暗。">
 						<choice str="于黑暗之中，才能见光明。" action="1646_fight"/>
 						<choice str="我还不想见识。"/>
+					</context>
+				</config>;
+         talk["417_1712_suolide4"] = <config>
+					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
+				</config>;
+         talk["417_1713_suolide4"] = <config>
+					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
+				</config>;
+         talk["417_1715_suolide4"] = <config>
+					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
+				</config>;
+         talk["417_1716_suolide4"] = <config>
+					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
+				</config>;
+         talk["417_1717_suolide4"] = <config>
+					<context npcId="417" iconId="1" str="沙麒麟太厉害了！"/>
+				</config>;
+         talk["418_1712_suolide4"] = <config>
+					<context npcId="418" iconId="2" str="555555……"/>
+				</config>;
+         talk["418_1712_thirdTalk"] = <config>
+					<context npcId="418" iconId="1" str="结果回来只剩下一丁点了……">
+						<choice str="原来是这样，我知道原因啦，水被你的身体吸收了。">
+							<context npcId="418" iconId="2" str="是我无法控制自己的能力，把大家吓跑了，可是……我真的想和它们做好朋友。"/>
+							<context npcId="1" iconId="1" str="原来是这样，主人，我们帮圆角羊去和木羊羊解释吧！">
+								<choice str="嗯！" action="1712finished" taskId="1712"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["418_1713_suolide4"] = <config>
+					<context npcId="418" iconId="2" str="555555……"/>
+				</config>;
+         talk["419_1714_suolide4"] = <config>
+					<context npcId="419" iconId="2" str="呜~~~，都是我不好！把大家吓跑了！">
+						<choice str="这不能够怪你！你只是不能控制你自己的能力而已。">
+							<context npcId="419" iconId="2" str="可我还是把大家吓跑了……哎，要是我能像我祖先一样就好了……"/>
+							<context npcId="419" iconId="1" str="听说我的祖先中很多都成为了索里德的守护者，他们能自如控制自己的能力，来保护大家。"/>
+							<context npcId="1" iconId="1" str="哇，真厉害！"/>
+							<context npcId="419" iconId="1" str="我也想成为这里的守护者，像我的祖先一样保护大家！"/>
+							<context npcId="419" iconId="1" str="我要去&lt;font color='#FF6600'&gt;&lt;b&gt;风暴沙漠&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;参加守护者考验！">
+								<choice str="&lt;font color='#FF6600'&gt;&lt;b&gt;风暴沙漠&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;？在哪里？是不是很远？">
+									<context npcId="419" iconId="1" str="不，&lt;font color='#FF6600'&gt;&lt;b&gt;风暴沙漠&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;可以通过新世界右边的入口进入。"/>
+									<context npcId="419" iconId="2" str="只是……">
+										<choice str="锐角羊龙，你还有什么事情吗？">
+											<context npcId="419" iconId="1" str="我放心不下木羊羊它们，#username#，你能帮我照顾它们吗？">
+												<choice str="放心吧，我现在就去找它们！">
+													<context npcId="419" iconId="1" str="那就交给你们了。">
+														<choice str="好！" action="1714finished" taskId="1714"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["419_1715_thirdTalk"] = <config>
+					<context npcId="419" iconId="1" str="我看到有艘黑色的飞船往这边来了，于是跟过来看看，发生什么事了吗？"/>
+					<context npcId="176" iconId="9" str="这个人要欺负我们。"/>
+					<context npcId="419" iconId="1" str="放心，我绝不让他伤害你们。">
+						<choice str="一定要收拾哈鲁达。">
+							<context npcId="8" iconId="1" str="那你们就一起上吧，让你尝尝优化SR战士的厉害。">
+								<choice str="谁怕谁。" action="startFight_1715" taskId="1715"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["419_1716_suolide4"] = <config>
+					<context npcId="419" iconId="1" str="哈鲁达太可恶了。"/>
+				</config>;
+         talk["41_181_siwude3"] = <config>
+					<context str="竟然敢来讨伐我的扭扭军团!">
+						<choice type="2" str="快把我的朋友放下来！">
+							<context npcId="41" str="哈哈，你们来讨伐我们，居然还让我们把俘虏放了，太可笑了，哈哈……">
+								<choice type="0" str="看来非得硬来了。" taskId="181"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["41_182_fightFailDialog"] = <config>
+					<context npcId="41" str="就这点水平还想来讨伐我们，太可笑啦！哈哈……"/>
+				</config>;
+         talk["41_182_siwude3"] = <config>
+					<context npcId="1" str="扭啊扭很强大，是否和扭啊扭进行对战？">
+						<choice type="0" str="是" action="ReadyToFight"/>
+						<choice type="1" str="否"/>
+					</context>
+				</config>;
+         talk["41_183_siwude3"] = <config>
+					<context npcId="41" str="啊呀呀，我打不过你，不过你朋友在我们手上呢。"/>
+					<context npcId="41" str="想救回他就拿&lt;font color='#FF6600'&gt;&lt;b&gt;糯米糕&lt;/b&gt;&lt;/font&gt;来交换吧！">
+						<choice type="2" str="你身为老大，要说话算数！我这就去取糯米糕。" taskId="183"/>
+					</context>
+				</config>;
+         talk["41_187_airShipAppear"] = <config>
+					<context npcId="41" str="那是什么？">
+						<choice type="0" str="不好，是达斯特飞船。" action="41_187_defenceMovie"/>
+					</context>
+				</config>;
+         talk["41_187_friendship"] = <config>
+					<context npcId="41" str="终于赶走坏人了，杜克，刚才真是很感谢你。"/>
+					<context npcId="36" str="不用客气！保护亚比可是我的责任哦！不过，希望你以后不要再恶作剧了。"/>
+					<context npcId="41" str="哈哈，我知道了，我向你保证，以后不会再恶作剧了。">
+						<choice type="0" str="哈哈！我可以回去向酋长卡托尔报告了。" taskId="187"/>
+					</context>
+				</config>;
+         talk["41_187_siwude3"] = <config>
+					<context npcId="41" str="糯米糕带来了么？">
+						<choice type="0" str="带来了，给。">
+							<context npcId="41" str="啊哈哈哈，我最喜欢吃糯米糕了。">
+								<choice type="0" str="这下你可以把杜克放了。" action="41_187_airShipAppearMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1743_catestar1"] = <config>
+					<context npcId="420" iconId="2" str="大家站好啦！排好队！一个一个投票啦！"/>
+					<context npcId="1" iconId="1" str="请问你们这是在干嘛呀？投什么票呢？"/>
+					<context npcId="420" iconId="2" str="一年一度的美食节就要开始了，你想要为哪个选手投票呢？"/>
+					<context npcId="420" iconId="2" str="如果你支持的选手获得了美食大厨的称号，我们也会为你送出一份精美的礼品哦！">
+						<choice str="这个……那我还真得好好考虑考虑。" action="movie1_1743"/>
+					</context>
+				</config>;
+         talk["420_1745_aftermovie1"] = <config>
+					<context npcId="420" iconId="1" str="后来这个习惯流传了下来，到今天，就变成了现在的美食节啦！">
+						<choice str="原来如此！">
+							<context npcId="420" iconId="1" str="每个有美食大厨梦想的亚比，都一定会参加美食节的！"/>
+							<context npcId="420" iconId="1" str="同样，每个有品尝天下美食梦想的亚比，也都一定会参加美食节的！"/>
+							<context npcId="1" iconId="1" str="主人！HELLO想留下来参加美食节！">
+								<choice str="说的我也心痒痒的。">
+									<context npcId="420" iconId="1" str="哈，这才是正确的选择！"/>
+									<context npcId="420" iconId="1" str="这么多人投票给露可，也不知道露可准备的怎么样了，能帮我去&lt;font color='#FF6600'&gt;&lt;b&gt;松软蛋糕店&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;问问它吗？">
+										<choice str="没问题。" action="1745_finished" taskId="1745"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1745_catestar1"] = <config>
+					<context npcId="420" iconId="2" str="哟，又是你，亲爱的外星人，怎么样，想好要投谁的票了吗？"/>
+					<context npcId="1" iconId="1" str="HELLO要投给露可，露可做的蛋糕最好吃了！"/>
+					<context npcId="420" iconId="1" str="露可可是美食之星上最受欢迎的亚比呢，今年美食节它的人气也是最高的。"/>
+					<context npcId="420" iconId="1" str="挺有眼光的嘛，大包子！"/>
+					<context npcId="1" iconId="1" str="HELLO叫HELLO，HELLO可不是大包子！">
+						<choice str="对了，奥力奥，能告诉我们美食节是怎么回事吗，露可说您知道的。">
+							<context npcId="420" iconId="1" str="这个可就说来话长啦……">
+								<choice str="愿闻其详。" action="movie1_1745"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1755_aftermovie1"] = <config>
+					<context npcId="420" iconId="3" str="是谁把这么邪恶的东西带来美食之星？"/>
+					<context npcId="420" iconId="3" str="难道是你们，邪恶的外星人？"/>
+					<context npcId="1" iconId="1" str="当然不是我们，如果是我们带来的，还找你鉴定干嘛？">
+						<choice str="就是。">
+							<context npcId="420" iconId="1" str="那倒也是，可是你们是怎么得到这味药的。">
+								<choice str="（还是不要告诉奥力奥的好）随便捡的！">
+									<context npcId="1" iconId="1" str="那这个东西有没有解药的呀？"/>
+									<context npcId="420" iconId="1" str="嗯……大包子的问题提的不错，把我难住了！"/>
+									<context npcId="420" iconId="1" str="看来我得翻翻书籍，给我点时间吧。">
+										<choice str="好，找到了一定要告诉我们哦！">
+											<context npcId="1" iconId="1" str="主人，我们再去&lt;font color='#FF6600'&gt;&lt;b&gt;松软蛋糕店&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;看看露丝回来没有吧，HELLO有点担心。">
+												<choice str="好的。" action="1755_finished" taskId="1755"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1755_catestar1"] = <config>
+					<context npcId="420" iconId="3" str="啊，这难道是……">
+						<choice str="嗯？你认识它？" action="movie1_1755"/>
+					</context>
+				</config>;
+         talk["420_1768_catestar1"] = <config>
+					<context npcId="420" str="哟，好久不见，外星的朋友！"/>
+					<context npcId="420" str="第二轮“为你最喜欢的美食节选手投票”活动就要开始啦，欢迎来投票哦！"/>
+					<context npcId="1" iconId="20" str="不知道如果大家知道了露可失去味觉的事情，还会不会给它投票呢……">
+						<choice type="0" str="哎，说不准，世事难料……">
+							<context npcId="420" str="你们嘀嘀咕咕说什么呢，我好像听到了“失去味觉”“世事难料”这样的字眼。"/>
+							<context npcId="1" str="（～￣▽￣～）没有，我们什么都没说！！"/>
+							<context npcId="1" str="对了，奥力奥，不知味的解药有线索了吗？我们可是给了你充裕的时间哦！"/>
+							<context npcId="420" str="这个就要悄悄地告诉你了，来来，耳朵附上来！">
+								<choice type="0" str="这么神秘！" action="1768_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1768_nextTalk"] = <config>
+					<context npcId="1" str="听起来很神的样子！究竟解药是什么？">
+						<choice type="0" str="是啊是啊，快告诉我们啊！">
+							<context npcId="420" str="那本书太旧了，字迹模糊不清。而且记载也很零星，是不是真的解药还不知道呢。">
+								<choice type="0" str="╮(╯▽╰)╭好吧。">
+									<context npcId="1" str="主人，露丝来了！">
+										<choice type="0" str="哪里？！" action="1768_showNextMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1774_catestar1"] = <config>
+					<context npcId="420" str="哦！外星人，还有大包子，真高兴又见到你们！"/>
+					<context npcId="1" str="都说好多遍了，我叫HELLO，不叫大包子，不过没时间和你计较了！">
+						<choice type="0" str="是啊，我们有重要的事情要你帮忙呢！">
+							<context npcId="420" str="嘿嘿，我知道！你还是想问不知味的解药的事情吧？">
+								<choice type="0" str="是啊，我们现在很需要它，能告诉我们解药到底是什么吗？">
+									<context npcId="420" str="其实我内心一直有一个很大的疑问，就是——你们究竟为什么要找解药？">
+										<choice type="0" str="这个……">
+											<context npcId="420" str="看你们犹犹豫豫的，到底发生了什么事情？">
+												<choice type="0" str="哎，其实是……是露可，它……它……">
+													<context npcId="420" iconId="3" str="露可它怎么了？"/>
+													<context npcId="1" iconId="14" str="露可被坏蛋暗算了……它服下了不知味，已经失去味觉了！"/>
+													<context npcId="420" iconId="3" str="什么？！被暗算？！失去味觉？！到底怎么回事？！"/>
+													<context npcId="1" iconId="20" str="哎，一时半会儿也说不清楚……总之，尽快让露可恢复味觉才是关键！">
+														<choice type="0" str="是啊，不能恢复味觉，什么都是白搭！" action="1774_showMovie"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1774_nextTalk"] = <config>
+					<context npcId="420" str="看来这个解药，不给你也不行了！好吧，拿去吧，少年！千万别掉了哦！"/>
+					<context npcId="420" str="再好心提醒你一下，配置解药的素材，在&lt;font color='#FF6600'&gt;&lt;b&gt;美食节广场&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;可以找到哦！">
+						<choice type="0" str="谢谢你！奥力奥，你真是个好人！" taskId="1774" action="1774_showNextMovie"/>
+					</context>
+				</config>;
+         talk["420_1779_catestar1"] = <config>
+					<context npcId="420" str="外星人，大包子，露可的味觉恢复了没有？">
+						<choice type="0" str="没有，而且事情越来越糟糕了。">
+							<context npcId="420" str="oh，my god，又发生什么事了？"/>
+							<context npcId="1" iconId="14" str="还不是因为你那张配方，我家主人把药煎好端给露可喝下后，露可就晕过去了！"/>
+							<context npcId="420" iconId="3" str="什么？！露可晕过去了？！"/>
+							<context npcId="420" iconId="3" str="让我再看看那张配方。">
+								<choice type="0" str="喏，给你。">
+									<context npcId="420" iconId="3" str="（看了配方以后）怎么回事，这可是一张毒药配方，根本不是我给你的那张呀……">
+										<choice type="0" str="什么，没道理会这样啊！">
+											<context npcId="1" iconId="14" str="啊！主人！HELLO想起来了！你还记得我们碰到的那个奇怪的黑影吗？"/>
+											<context npcId="1" iconId="14" str="当时配方被那个黑影撞得掉在了地上，很有可能在那个时候配方被掉包了！">
+												<choice type="0" str="（倒吸一口冷气）难道，那个人是达斯特人？">
+													<context npcId="1" iconId="14" str="看来很有可能……">
+														<choice type="0" str="那我们现在应该怎么办？" action="1779_showMovie"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1813_catestar1"] = <config>
+					<context npcId="420" str="很高兴又见到你们，露可醒过来了吗？"/>
+					<context npcId="1" str="露可已经醒了，它的味觉也恢复了。"/>
+					<context npcId="420" iconId="4" str="是吗，那太好了，看来露可一定会不负众望，夺取美食节大赛的冠军了！"/>
+					<context npcId="1" str="露可一定有这个实力的！只是HELLO担心如果露可赢了的话，露丝会有危险……"/>
+					<context npcId="420" iconId="3" str="露丝有会有危险？！oh my god，难道露丝也出事了？！">
+						<choice type="0" str="（把露丝的遭遇告诉了奥力奥）所以露可现在非常担心露丝的安危。">
+							<context npcId="420" str="看来露可和露丝所遭受的这一连串的事情，都是那个叫菲莉的人计划好的。"/>
+							<context npcId="1" str="是的，不过HELLO觉得奇怪，菲莉为什么一定要拿到美食大厨的称号呢？"/>
+							<context npcId="420" str="难道是为了得到美食大厨的奖品？">
+								<choice type="0" str="美食大厨的奖品？" action="1813_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1813_nextTalk"] = <config>
+					<context npcId="420" iconId="7" str="这颗珍珠香料就是本次美食大厨的奖品。"/>
+					<context npcId="1" iconId="33" str="主人，这颗珍珠香料就是我们一直在寻找的纯净能源！"/>
+					<context npcId="420" str="纯净能源？听起来好像很厉害的样子。">
+						<choice type="0" str="咳咳！所谓的纯净能源，就是一种有着能使星球正常运转，增强星球防御的能源！">
+							<context npcId="420" str="哇哦！外星人这么一解释，我觉得这东西果然很厉害，难怪菲莉要抢它！">
+								<choice type="0" str="有了这东西，达斯特人就又可以为所欲为了。" taskId="1813" action="1813_nextTalk"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1814_catestar1"] = <config>
+					<context npcId="420" iconId="5" str="那可不行，我们绝对不能让达斯特人拿走这颗珍珠香料。">
+						<choice type="0" str="是的，我们一定要保护好珍珠香料。">
+							<context npcId="1" str="而且我们不可以让露丝有危险。">
+								<choice type="0" str="嗯，没错，露丝可是露可的精神支柱呢！">
+									<context npcId="420" str="啊哈！我有一个好办法啦，大包子，外星人，耳朵凑上来听我说……">
+										<choice type="0" str="好吧，又要讲悄悄话了。" action="1814_showMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1814_nextTalk"] = <config>
+					<context npcId="1" str="这个计划太棒了，奥力奥，你真是我的偶像。">
+						<choice type="0" str="嗯，确实是个完美的计划，一石二鸟。">
+							<context npcId="420" iconId="6" str="别这么夸我，我会害羞的。"/>
+							<context npcId="420" str="现在我们分头行动，我去联络其他亚比，你们去把这个计划告诉露可吧！">
+								<choice type="0" str="嗯，好的，马上就去。" action="1814_showTipsMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1817_catestar4"] = <config>
+					<context npcId="420" iconId="4" str="露可，勇敢的外星人，还有大包子，你们终于来了！"/>
+					<context npcId="420" iconId="4" str="我和美食星上的小亚比们都说好了，一切准备就绪。">
+						<choice type="0" str="我们这边也很顺利。">
+							<context npcId="420" iconId="4" str="太好了，一切准备就绪！哇！好兴奋，有一种拍电影的感觉！">
+								<choice type="0" str="相信一定会非常精彩。" action="1817_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["420_1817_nextTalk"] = <config>
+					<context npcId="420" str="经过投票决定，最后只剩下露可、菲莉和雪糕仔三支队伍，让我们再次欢迎他们。">
+						<choice type="0" str="露可加油！" action="1817_showNextMovie"/>
+					</context>
+				</config>;
+         talk["420_1819_catestar4"] = <config>
+					<context npcId="420" str="哇，好香啊，我都快要流口水了！不行，要忍住，得让评委们先尝尝！">
+						<choice type="0" str="接下来就看评委们的投票啦！" action="1819_showMovie"/>
+					</context>
+				</config>;
+         talk["420_1820_catestar4"] = <config>
+					<context npcId="420" str="好！请在场的各位观众朋友们注意，接下来，我们就要开始真正的美食节大赛啦！">
+						<choice type="0" str="请大家给出最热烈的掌声哦！" action="1820_showMovie"/>
+					</context>
+				</config>;
+         talk["420_1820_thirdTalk"] = <config>
+					<context npcId="420" str="其实露可早就恢复味觉了，而且刚才的热身赛也是我们预先设计好的。"/>
+					<context npcId="66" iconId="8" str="气死我了，我不管那么多，珍珠香料必须属于我的。">
+						<choice type="0" str="那也要经过我的同意才行。" taskId="1820" action="1820_nextTalk"/>
+					</context>
+				</config>;
+         talk["420_2807_musicstar3"] = <config>
+					<context npcId="705" str="你们认识宇宙十佳主持人之一的奥力奥？"/>
+					<context npcId="1" iconId="51" str="是啊，在美食之星认识的，那时它经常把HELLO叫成大包子呢！"/>
+					<context npcId="705" iconId="14" str="哇，你们真是太厉害了。">
+						<choice str="一般一般了。" action="2807_movie1"/>
+					</context>
+				</config>;
+         talk["420_2808_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="哇，绿焰先生果然与众不同，出场都这么帅气，这么神秘！"/>
+					<context npcId="1" iconId="20" str="真遗憾，HELLO还是不知道它长得怎么样。"/>
+					<context npcId="685" iconId="13" str="它的气场很大，给人很强的压迫感，让我突然有种很不好的预感。">
+						<choice str="我也有一点。" action="2808_movie1"/>
+					</context>
+				</config>;
+         talk["420_2809_gamewin"] = <config>
+					<context npcId="420" str="乐感很差，但精神可嘉，值得鼓励。"/>
+					<context npcId="1" str="事隔这么久，奥力奥，你还是那么睿智，HELLO对你的崇拜又上升了。">
+						<choice str="是啊，描述得太精准了。" action="2809_end" taskId="2809"/>
+					</context>
+				</config>;
+         talk["420_2809_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="主持人，我和他们是一起的，你来测试一下我吧！"/>
+					<context npcId="420" str="既然如此，看在#username#和大包子的面子上，这个机会就给你吧。">
+						<choice str="奥力奥，你太给力了。" action="2809_gamestart"/>
+					</context>
+				</config>;
+         talk["420_2810_musicstar3"] = <config>
+					<context npcId="705" str="你们不用打击我，反正我觉得我是匹千里马，怪只怪你们不是我的伯乐。">
+						<choice str="⊙﹏⊙b汗……" action="2810_movie1"/>
+					</context>
+				</config>;
+         talk["420_2811_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="终于可以现场亲耳听非蒙唱歌了，嗷嗷……药药，切克闹……">
+						<choice str="淡定淡定……" action="2811_movie1"/>
+					</context>
+				</config>;
+         talk["421_1743_aftermovie1"] = <config>
+					<context npcId="421" iconId="1" str="一年一度的美食节又要开始啦，不知道这次会不会出现什么特别的美食？"/>
+					<context npcId="422" iconId="1" str="我还记得去年曾经有一只很厉害的亚比做了一种很好吃的糕点呢。"/>
+					<context npcId="421" iconId="1" str="啊，我也记得！那个味道真是终身难忘！"/>
+					<context npcId="422" iconId="1" str="今年的美食节不知道露可会给我们带来什么美食，好期待呀……"/>
+					<context npcId="1" iconId="1" str="你们说的露可是谁啊？">
+						<choice str="我也很好奇。">
+							<context npcId="421" iconId="1" str="哎呀，露可你都不知道？"/>
+							<context npcId="422" iconId="1" str="它可是我们这大名鼎鼎的蛋糕师哦！"/>
+							<context npcId="421" iconId="1" str="露可就在&lt;font color='#FF6600'&gt;&lt;b&gt;松软蛋糕店&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;里哦，它的蛋糕店可是我们这里最火的蛋糕店呢。">
+								<choice str="这么厉害，那我得去看看。" action="1743_finished" taskId="1743"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1744_catestar2"] = <config>
+					<context npcId="423" iconId="1" str="本店有最新鲜最美味口感最好的蛋糕哦，要不要来一个呢亲？"/>
+					<context npcId="1" iconId="1" str="哇，主人，这蛋糕闻起来好香呀，给HELLO买一个吧。">
+						<choice str="真的好香，（¯﹃¯）口水要流出来了。">
+							<context npcId="423" iconId="1" str="(*^__^*) 我从来没在美食之星上见过你们呢，你们是从别的星球来的吗？"/>
+							<context npcId="1" iconId="1" str="HELLO和主人是从奥拉星来的，因为听说这里有强大的洁净能源。">
+								<choice str="是呀，我们是特意来找洁净能源的，露可有听说过洁净能源吗？">
+									<context npcId="423" iconId="1" str="洁净能源……没听说过呢……">
+										<choice str="是吗……">
+											<context npcId="423" iconId="1" str="你也别着急，慢慢来嘛，美食节就要开始了，不如跟我们一起参加美食节吧！"/>
+											<context npcId="1" iconId="1" str="哇，听起来很好玩的样子，露可露可，美食节是干嘛的呀？">
+												<choice str="我也挺好奇的。" action="movie1_1744"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1746_catestar2"] = <config>
+					<context npcId="423" iconId="2" str="原来有这么多小亚比喜欢我做的蛋糕，真是太好了！我一定不会辜负它们的期望的！"/>
+					<context npcId="423" iconId="1" str="其实我已经准备好所有食材了，今天开始，就要全心全意的准备美食了！">	
+						<choice str="那你的蛋糕店怎么办呀？">
+							<context npcId="423" iconId="1" str="我的妹妹可以帮我打理呀！">
+								<choice str="啊？妹妹？" action="movie1_1746"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1747_catestar2"] = <config>
+					<context npcId="423" iconId="4" str="客人生气了，这可怎么办呀？"/>
+				</config>;
+         talk["423_1748_catestar2"] = <config>
+					<context npcId="423" iconId="1" str="谢谢你，帮我们保护了这家蛋糕店！">
+						<choice str="小事一桩啦！">
+							<context npcId="424" iconId="4" str="都、都是我不好……什么事都做不成……"/>
+							<context npcId="424" iconId="4" str="没有任何厨师天分，连蛋糕都做不好……我真是太没用了……">
+								<choice str="露丝……">
+									<context npcId="423" iconId="1" str="露丝，别难过！我相信你一定是有厨艺天分的，只是还没激发出来！"/>
+									<context npcId="424" iconId="4" str="姐姐……">
+										<choice str="是呀，露丝，你要对自己有信心！">
+											<context npcId="423" iconId="1" str="今天开始，我就要呆在露可的美食小屋里好好准备参加美食节的作品了。"/>
+											<context npcId="423" iconid="1" str="露丝，我们的蛋糕店，就交给你打理了哦！要加油哦！"/>
+											<context npcId="424" iconid="1" str="嗯！我一定会好好做的！">
+												<choice str="我们有空也一定会过来帮忙的！" action="movie1_1748"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1749_catestar3"] = <config>
+					<context npcId="423" iconId="3" str="呜呜呜……呜呜呜……">
+						<choice str="O口O!露可你怎么了！">
+							<context npcId="423" iconId="3" str="呜呜呜……呜呜呜……"/>
+							<context npcId="1" iconId="1" str="急死HELLO了，露可你到底怎么啦？"/>
+							<context npcId="423" iconId="3" str="呜呜呜……我……我失去味觉了，品尝不出食物的味道……做不出好吃的食物了……">
+								<choice str="怎么会这样？">
+									<context npcId="423" iconId="3" str="呜呜呜…………">
+										<choice str="这个状况是天降横祸，还是天妒英才呢？">
+											<context npcId="1" iconId="1" str="主人别傻了！HELLO保证，一定是有人眼红露可的人气和实力！"/>
+											<context npcId="1" iconId="1" str="然后用了某种方法让露可失去了味觉！">
+												<choice str="这个可能性也很大。">
+													<context npcId="423" iconId="3" str="呜呜呜……怎么办，没有了味觉，我再也做不出好吃的食物了！"/>
+													<context npcId="1" iconId="1" str="露可别怕！HELLO一定会想办法帮你恢复味觉的，主人你说是不是！">
+														<choice str="结果最后还是把事情推给了我嘛。">
+															<context npcId="1" iconId="1" str="主人，我们还是先去&lt;font color='#FF6600'&gt;&lt;b&gt;松软蛋糕店&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;把这个事情告诉露丝，看看它有没有什么办法。">
+																<choice str="嗯，也好。" action="1749_finished"/>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1752_catestar3"] = <config>
+					<context npcId="423" iconId="4" str="亲，你们回来了。">
+						<choice str="嗯，我们去了趟蛋糕店。">
+							<context npcId="1" iconId="1" str="露可，你感觉好点了吗？味觉有没有恢复？"/>
+							<context npcId="423" iconId="4" str="没有，不过，心情已经平复了一些了。">
+								<choice str="露可，你能回忆一下失去味觉之前发生过什么特殊的事情吗？" action="movie1_1752"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1754_catestar3"] = <config>
+					<context npcId="423" iconId="1" str="亲，露丝回来了吗？"/>
+					<context npcId="1" iconId="1" str="没有，也不知道露丝去哪里了，到处都没有看到它的踪影。">
+						<choice str="不过我们在店里发现了一张纸条……">
+							<context npcId="1" iconId="1" str="（HELLO把纸条的内容告诉了露可）虽然很残忍，但是还是觉得告诉你比较好。"/>
+							<context npcId="423" iconId="4" str="……我始终很难相信露丝会做出这种事情。">
+								<choice str="先不说这个了，我们在蛋糕店里发现了一种奇怪的食材，你看。">
+									<context npcId="423" iconId="1" str="亲，你们从哪里拿到这个东西的？">
+										<choice str="我们是在蛋糕店里捡到的。">
+											<context npcId="423" iconId="1" str="这个食材还真是从来没见过呢，不知道是什么，也许你们可以问问奥力奥。">
+												<choice str="行，那我们去问问奥力奥吧。" action="1754_finished" taskId="1754"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1767_catestar3"] = <config>
+					<context npcId="423" iconId="3" str="（听我们转述了露丝的那些话后）原来露丝这么讨厌我……"/>
+					<context npcId="423" iconId="3" str="也许露丝从来就没有喜欢过我这个姐姐，也许它认为我是个自私的姐姐……"/>
+					<context npcId="1" iconId="20" str="露可，不要这样数落自己了……露丝一定是一时气愤才会这样的。">
+						<choice type="0" str="嗯，等露丝想清楚了，一定会回来道歉的。">
+							<context npcId="423" iconId="3" str="露丝一定再也不想见到我了……呜呜……"/>
+							<context npcId="423" iconId="3" str="我该怎么办才好……">
+								<choice type="0" str="o(╯□╰)o到底要怎么安慰露可才好呀！">
+									<context npcId="1" iconId="20" str="主人，我们还是让露可自己先呆一会儿吧。"/>
+									<context npcId="1" iconId="20" str="现在这个情况，我们再怎么安慰也没有用的。">
+										<choice type="0" str="╮(╯▽╰)╭说的也是。">
+											<context npcId="1" str="不如我们先去找找奥力奥吧，也许它已经找到了恢复味觉的办法。">
+												<choice type="0" str="这个主意不错。">
+													<context npcId="1" str="是吧！奥力奥一定在&lt;font color='#FF6600'&gt;&lt;b&gt;冰淇淋大街&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，我们去那里找它吧。">
+														<choice type="0" str="好，出发！" taskId="1767" action="1767_showMovie"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1776_catestar3"] = <config>
+					<context npcId="423" str="#username#，听说这几天都是你在照顾蛋糕店，谢谢你哦！">
+						<choice type="0" str="不用谢，帮助朋友是应该的。">
+							<context npcId="1" str="露可，HELLO和主人还有奥力奥一起帮你找到了也许能帮你恢复味觉的药哦！"/>
+							<context npcId="423" iconId="3" str="是吗，可是……我不想喝……"/>
+							<context npcId="1" iconId="23" str="啊？！为什么？！"/>
+							<context npcId="423" iconId="3" str="如果我失去味觉，能够让露丝不再讨厌我，我愿意这一辈子都没有味觉！">
+								<choice type="0" str="傻露可！露丝可是拼死拼活想让你恢复味觉啊！">
+									<context npcId="1" str="（把露丝的遭遇告诉了露可）所以，露可，露丝喜欢你都来不及，怎么会讨厌你呢！">
+										<choice type="0" str="HELLO说的没错。" taskId="1776" action="1776_nextTalk"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1777_catestar3"] = <config>
+					<context npcId="423" iconId="5" str="如果能换回露丝，我的食谱算什么，菲莉要，那便给她好了。"/>
+					<context npcId="423" iconId="5" str="只要我能恢复味觉，总有一天能在美食节上实现我和露丝的梦想。">
+						<choice type="0" str="这么说，你愿意服下这药了？！">
+							<context npcId="423" iconId="5" str="没错，亲，你们这么辛苦为我找来药，怎么能辜负你们！ "/>
+							<context npcId="1" str="你愿意服下这药，HELLO真的很高兴！"/>
+							<context npcId="1" str="不过，露可，就如奥力奥所说，这碗药，无法100%保证让你的味觉恢复……"/>
+							<context npcId="1" str="也许它有毒也说不定，是不是要服用它，你要想清楚哦！"/>
+							<context npcId="423" iconId="5" str="我想，已经没有什么好犹豫的了！">
+								<choice type="0" str="既然这样，那我们就试试吧！">
+									<context npcId="1" str="主人，我们来帮露可煎药吧！">
+										<choice type="0" str="嗯，好的！" action="1777_startAlter"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1778_catestar3"] = <config>
+					<context npcId="423" iconId="5" str="怎么样，药已经煎好了吗？">
+						<choice type="0" str="煎好了，可是你真的要喝吗？">
+							<context npcId="423" iconId="5" str="嗯，给我吧！">
+								<choice type="0" str="小心烫！" action="1778_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1781_catestar3"] = <config>
+					<context action="1781_showMovie"/>
+				</config>;
+         talk["423_1806_catestar3"] = <config>
+					<context npcId="1" str="主人，露可好像还没有反应耶，是不是那块鳞片没有作用啊？">
+						<choice type="0" str="我们再等等吧，也许露可马上就醒了！" starterId="1806" action="1806_starter"/>
+						<choice type="0" str="我们现在还有事，待会再来吧。"/>
+					</context>
+				</config>;
+         talk["423_1807_catestar3"] = <config>
+					<context npcId="1" str="主人，露可好像还没有反应耶，是不是那块鳞片没有作用啊？">
+						<choice type="0" str="我们再等等吧，也许露可马上就醒了！" action="1806_starter"/>
+						<choice type="0" str="我们现在还有事，待会再来吧。"/>
+					</context>
+				</config>;
+         talk["423_1808_catestar3"] = <config>
+					<context npcId="423" str="亲，我这是怎么了？头好晕哦！"/>
+					<context npcId="423" str="而且嘴里也好苦哦……"/>
+					<context npcId="1" str="咦？露可刚说嘴里苦苦的……难道是……露可有味觉了？"/>
+					<context npcId="423" str="啊……好像真的是！亲！我能尝出味道了!">
+						<choice type="0" str="太感动了！这真是福从天降！">
+							<context npcId="1" str="嘘！主人！好像有一群人过来了！">
+								<choice type="0" str="一群人？" action="1808_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1810_catestar3"] = <config>
+					<context npcId="423" iconId="8" str="希望这份食谱能换来露丝的平安，这是我现在最大的心愿……"/>
+					<context npcId="1" str="可是HELLO真的觉得好可惜，一份这么好的食谱就这样送给了菲莉……"/>
+					<context npcId="423" str="不必担心，那不是一份完整的食谱，我还有一味重要的食材没有研制出来呢！">
+						<choice type="0" str="我们帮得上什么忙吗？">
+							<context npcId="423" iconId="9" str="我已经实验很多遍了，总觉得味道不对，可是我也不知道到底缺少了什么。"/>
+							<context npcId="423" iconId="7" str="美食节大赛就要开始了，现在食谱又落到坏人的手里。"/>
+							<context npcId="423" iconId="7" str="要是配不出那味食材，我可能要辜负那些支持我的亚比们的期望了。">
+								<choice type="0" str="这要怎么办才好呢？" action="1810_showMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1810_nextTalk"] = <config>
+					<context npcId="1" str="主人，是那只神兽耶，它好像又给我们留下了东西呢，快过去看看吧。">
+						<choice type="0" str="好的。" taskId="1810"/>
+					</context>
+				</config>;
+         talk["423_1812_talk"] = <config>
+					<context npcId="423" iconId="11" str="我知道那味重要的食材是什么了，就是刚才露丝提到的回香草!">
+						<choice type="0" str="真的太好了，看来有希望得到美食大厨的称号了！">
+							<context npcId="423" iconId="7" str="可是我担心，如果我拿下了美食大厨的称号，露丝也许会有生命危险……">
+								<choice type="0" str="说的也是啊，菲莉的目标就是拿下美食大厨称号呢。">
+									<context npcId="1" str="我们可以去&lt;font color='#FF6600'&gt;&lt;b&gt;冰淇淋大街找奥力奥&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;商量一下，说不定能想到对策呢！">
+										<choice type="0" str="对！也许奥力奥会有办法！" taskId="1812" action="1812_showTipsMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1816_catestar3"] = <config>
+					<context npcId="423" iconId="7" str="亲，我越来越犹豫了，觉得自己是不是不参加美食节比较好……">
+						<choice str="不行，一定要参加。">
+							<context npcId="1" str="我们来就是要和你说这件事呢，露可，尽管参加美食节吧，不怕的！">
+								<choice type="0" str="嗯，没错，我们和奥力奥已经商量出了一个完美的计划对付达斯特人！">
+									<context npcId="423" iconId="6" str="完美计划？">
+										<choice type="0" str="是啊……（告诉露可我们的计划）">
+											<context npcId="423" iconId="2" str="哇！这个计划太棒了，亲，我现在好兴奋哦！">
+												<choice type="0" str="所以露可你就安心参加美食节大赛吧。">
+													<context npcId="423" iconId="2" str="嗯，我一定会加油的，因为这次我代表的不只有自己，还有露丝。">
+														<choice type="0" str="我们会一直支持你们的。">
+															<context npcId="423" str="不如你们和我一起去参加美食节大赛吧，我正好缺少一位助手呢！">
+																<choice type="0" str="义不容辞，现在我们先来实验一下美食吧！" action="1816_showPanel"/>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事，待会再过来听你说。" action=""/>
+					</context>
+				</config>;
+         talk["423_1816_nextTalk"] = <config>
+					<context npcId="423" iconId="2" str="嗯，很好，要的就是这个味道，现在我们可以去参加美食节大赛了！"/>
+					<context npcId="1" str="Yeah！出发！去&lt;font color='#FF6600'&gt;&lt;b&gt;美食节广场&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;参加美食节啦！">
+						<choice type="0" str="我们走。" taskId="1816" action="1816_showTipsMovie"/>
+					</context>
+				</config>;
+         talk["423_1818_catestar4"] = <config>
+					<context npcId="423" str="亲，食材我已经放进锅里了，你来帮我添加调料好吗？">
+						<choice type="0" str="没问题。" action="1818_alter"/>
+					</context>
+				</config>;
+         talk["423_1818_loseInAlter"] = <config>
+					<context npcId="1" str="主人，味道不对呢，幸好还有时间，赶紧再来一次吧！">
+						<choice type="0" str="好的."/>
+					</context>
+				</config>;
+         talk["423_1818_winInAlter"] = <config>
+					<context npcId="423" iconId="2" str="哇，亲，这么快就做好了，谢谢你哦！">
+						<choice type="0" str="不用谢！">
+							<context npcId="1" str="主人，其他两个队也快做好了，我们让奥力奥把食物端给评委们尝尝吧！">
+								<choice type="0" str="好的，现在就去。" taskId="1818" action="1818_nextTalk"/>
+							</context> 
+						</choice>
+					</context>
+				</config>;
+         talk["423_1822_catestar4"] = <config>
+					<context npcId="423" iconId="2" str="亲，谢谢你们帮助，如果不是你们，我救不回露丝，也拿不到冠军！">
+						<choice type="0" str="这都是我们应该做的。">							
+							<context npcId="1" str="露可，恭喜你获得美食节大赛的冠军，你真的很棒喔！">
+								<choice type="0" str="是啊，露可做的美食是最好吃的。" action="1822_showMovie"/>
+							</context>	
+						</choice>
+					</context>
+				</config>;
+         talk["423_1822_nextTalk"] = <config>
+					<context npcId="423" str="亲，听奥力奥说这颗珍珠香料就是你们一直在寻找的纯净能源？">
+						<choice type="0" str="嗯，是的。">
+							<context npcId="423" iconId="2" str="我和露丝决定把这颗珍珠香料送给你们，当成我们友谊的见证。">
+								<choice type="0" str="真的吗？那太好了，谢谢你们！" taskId="1822">
+									<context npcId="424" iconId="7" str="先前都是我的错，不过以后我会虚心向姐姐求教，努力做出真正的美食。">
+										<choice type="0" str="露丝，我相信你一定会像露可一样出色的。">
+											<context npcId="1" str="主人，是时候融合辉之碎片啦！">
+												<choice type="0" str="好。" action="1822_showTipsMovie"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["423_1823_catestar4"] = <config>
+					 <context npcId="424" iconId="7" str="先前都是我的错，不过以后我会虚心向姐姐求教，努力做出真正的美食。">
+										<choice type="0" str="露丝，我相信你一定会像露可一样出色的。">
+											<context npcId="1" str="主人，是时候融合辉之碎片啦！">
+												<choice type="0" str="好。" action="1822_showTipsMovie"/>
+											</context>
+										</choice>
+						</context>
+				</config>;
+         talk["424_1746_aftermovie2"] = <config>
+					<context npcId="424" iconId="3" str="对、对不起！我不是故意的！"/>
+					<context npcId="425" iconId="1" str="哼，什么破蛋糕店，连个蛋糕都不会端！"/>
+					<context npcId="424" iconId="3" str="对、对不起！请、请不要生气！"/>
+					<context npcId="425" iconId="1" str="哼，我这身衣服可是万里挑一的，一个对不起可解决不了问题，赔我衣服吧！">
+						<choice str="喂，你别太过分，人家都已经道歉了！" action="1746_finished" taskId="1746"/>
+					</context>
+				</config>;
+         talk["424_1747_catestar2"] = <config>
+					<context npcId="424" iconId="3" str="都是我不好，都是我不好……"/>
+				</config>;
+         talk["424_1748_catestar2"] = <config>
+					<context npcId="424" iconId="3" str="都是我不好，都是我不好……"/>
+				</config>;
+         talk["424_1751_afterstart"] = <config>
+					<context npcId="424" iconId="5" str="怎么会这样……按理来说不该是这样啊……"/>
+					<context npcId="1" iconId="1" str="按理？按什么理？HELLO不明白……"/>
+					<context npcId="424" iconId="5" str="（开始不停地喃喃自语）怎么会这样……不应该是这样……"/>
+					<context npcId="1" iconId="1" str="露丝！露丝！你怎么了？">
+						<choice str="露丝的样子看起来有点奇怪。">
+							<context npcId="424" iconId="1" str="我、我得出门一趟。">
+								<choice str="你要去哪里？" action="movie1_1751"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["424_1751_catestar2"] = <config>
+					<context npcId="424" iconId="5" str="什么？！露可失去了味觉？！">
+						<choice str="是啊，露可受到了很大的打击……" action="1751_afterstart"/>
+						<choice str="我还有事，待会再来听你说。"/>
+					</context>
+				</config>;
+         talk["424_1764_catestar2"] = <config>
+					<context npcId="424" iconId="6" str="原来是你们，来蛋糕店有什么事情吗？">
+						<choice type="0" str="露丝，你回来了！我们等你好久了！" starterId="1764" action="1764_starter"/>
+						<choice type="0" str="待会儿再来找露丝吧。"/>
+					</context>
+				</config>;
+         talk["424_1765_catestar2"] = <config>
+					<context npcId="424" iconId="6" str="原来是你们，来蛋糕店有什么事情吗？">
+						<choice type="0" str="露丝，你回来了！我们等你好久了！" action="1764_starter"/>
+						<choice type="0" str="待会儿再来找露丝吧。"/>
+					</context>
+				</config>;
+         talk["424_1765_nextTalk"] = <config>
+					<context npcId="1" str="露丝露丝，你总算回来了，HELLO可担心你了，你去哪了呀？">
+						<choice type="0" str="是啊，我们都在找你呢。">
+							<context npcId="424" iconId="6" str="找我？找我干嘛？我好好的，还能有什么事不成。"/>
+							<context npcId="1" str="可是、可是我们担心你呀，露可听说你不见了，也很着急呢。"/>
+							<context npcId="424" iconId="6" str="让你们费心了，哼，我没这么容易出事。">
+								<choice type="0" str="露丝好奇怪，怎么像突然变了一个人似的。">
+									<context npcId="424" iconId="6" str="喂，你们两个，让开一点，别挡住路，我找东西呢。">
+										<choice type="0" str="找东西？" action="1765_showMovie"/>
+									</context>
+								</choice>
+							</context>	
+						</choice>
+					</context>
+				</config>;
+         talk["424_1765_nextTalk2"] = <config>
+					<context npcId="1" iconId="4" str="露丝，你找什么呢？需不需要我们帮忙？"/>
+					<context npcId="424" iconId="6" str="不用你们多操心！">
+						<choice type="0" str="……露丝，我想问你个问题……让露可失去味觉的，是不是你？" taskId="1765" action="1765_nextTalk"/>
+					</context>
+				</config>;
+         talk["424_1766_catestar2"] = <config>
+					<context npcId="424" iconId="6" str="没错，就是我！">
+						<choice type="0" str="…………">
+							<context npcId="1" iconId="23" str="露丝，HELLO不明白，为什么你要做这种事情？"/>
+							<context npcId="424" iconId="6" str="为什么？它的厨师光环这么多年一直压着我，现在我只是做了我一直想做的事情而已！">
+								<choice type="0" str="露丝……">
+									<context npcId="1" iconId="14" str="不管怎么说，对于一个厨师，味觉是件多么重要的事情，你难道不知道吗？"/>
+									<context npcId="1" iconId="14" str="这样对露可，实在是太残忍了！"/>
+									<context npcId="424" iconId="6" str="残忍？我可不觉得！"/>
+									<context npcId="424" iconId="6" str="好了，我得出去一趟了！不跟你们啰啰嗦嗦了。">
+										<choice type="0" str="…………" action="1766_showMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["424_1766_nextTalk"] = <config>
+					<context npcId="1" iconId="20" str="没想到真的是露丝做的，露可知道了，一定会很伤心吧。">
+						<choice type="0" str="是啊，这样的事情，要怎么开口啊……">
+							<context npcId="1" iconId="20" str="HELLO想，还是应该让露可知道这件事情的，隐瞒不会带来什么好处。">
+								<choice type="0" str="说的也是呢。">
+									<context npcId="1" str="HELLO陪主人一起去&lt;font color='#FF6600'&gt;&lt;b&gt;露可的美食小屋&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+										<choice type="0" str="嗯，我一个人还真没法开口呢！" taskId="1766" action="1766_showNextMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["425_1747_catestar2"] = <config>
+					<context npcId="425" iconId="1" str="哼，服务这么差，这家店早就该关门了。就当我做个人情，帮你砸了这家店吧。">
+						<choice str="我不会让你在这里乱来的。" action="startfight_1747"/>
+						<choice str="我准备一下再来教训你。"/>
+					</context>
+				</config>;
+         talk["425_1747_losefight"] = <config>
+					<context npcId="425" iconId="1" str="就你这三脚猫的功夫还想英雄救美，别傻了！">
+						<choice str="刚才只不过是个热身准备，现在开始才是真格的。"/>
+					</context>
+				</config>;
+         talk["425_1747_winfight"] = <config>
+					<context npcId="425" iconId="1" str="哼，今天算你们走运！">
+						<choice str="好走不送！" action="1747_finished" taskId="1747"/>
 					</context>
 				</config>;
          talk["43_1216_library"] = <config name="43_1216_library">
@@ -5062,10 +9819,1872 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["440_1844_siwude1"] = <config>
+					<context npcId="402" iconId="2" str="你们也是来看木面仔和蓝鹰斗士比赛的吗？">
+						<choice str="噢，原来这里有比赛啊，难怪这么热闹。">
+							<context npcId="402" iconId="2" str="对啊，这可是我们期盼已久的比赛呢，听你们这么说，看来你们是新来的哦！">
+								<choice str="嗯，我们是从奥拉星来的。">
+									<context npcId="402" iconId="2" str="欢迎你们，既然来了，就和我们一起支持木面仔吧！"/>
+									<context npcId="1" str="哇，木面仔人气这么高！它一定很强大吧！"/>
+									<context npcId="402" iconId="2" str="那当然，它不仅长得好看，而且一把花剑使得飘逸潇洒，简直帅呆了！"/>
+									<context npcId="1" str="真的这么厉害？"/>
+									<context npcId="402" iconId="2" str="当然！见过你就知道了。">
+										<choice str="嗯，那我们要好好见识一下。" action="1844_MuMianVictory">
+											<context npcId="1" str="哇！主人，木面仔真的超厉害的啊！">
+												<choice str="是呀！">
+													<context npcId="36" str="那可不一定……">
+														<choice str="杜克好像有不同看法呢。">
+															<context npcId="1" str="我们问问&lt;font color='#FF6600'&gt;&lt;b&gt;杜克&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;对木面仔有什么看法吧！">
+																<choice str="嗯，问问去！" taskId="1844">
+																</choice>
+															</context>	
+														</choice>
+													</context>	
+												</choice>
+											</context>				
+										</choice>
+									</context>				
+								</choice>
+							</context>			
+						</choice>
+					</context>
+				</config>;
+         talk["441_1845_afterMaskStory"] = <config>
+					<context npcId="441" str="我可不要变丑，要不然就不会有这么多MM支持我了！"/>
+					<context npcId="441" str="而且我觉得我现在已经很强了，根本不需要什么面具。">
+						<choice str="似乎实情也是这个样子哦！" action="1845_UrgencyInformation"/>
+					</context>
+				</config>;
+         talk["441_1849_siwude3"] = <config>
+					<context npcId="441" iconId="4" str="我一直以为自己的剑术很厉害，没想到竟然这么不堪一击。">
+						<choice str="别难过，你已经尽力了！">
+							<context npcId="441" str="不行，我不可以眼睁睁的看着我的伙伴们被抓走，我一定要救它们！">
+								<choice str="可是你现在都受伤了！" action="1849_BecomeMuMianXia">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["441_1850_siwude3"] = <config>
+					<context npcId="441" iconId="5" str="我……真是太丑陋了……">
+						<choice str="不对！看看你周围的朋友吧！">
+							<context npcId="402" str="木面仔，你真厉害，打败了那么多坏人，我好崇拜你哦！"/>
+							<context npcId="442" str="木面仔，谢谢你救了我们，你是我们思伍德区的英雄！"/>
+							<context npcId="443" str="木面仔，我爱死你了，你刚才真的太帅了！"/>		
+							<context npcId="444" str="木面仔，我们以你为荣！"/>
+							<context npcId="441" iconId="6" str="想不到大家一点也不嫌弃我！">
+								<choice str="而且似乎更加喜欢了哦！" action="1850_GiveName">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["445_1828_unicornstar1"] = <config>
+					<context npcId="445" str="先哲……先哲……先哲……">
+						<choice str="先哲？什么先哲？">
+							<context npcId="445" str="仙林……仙林……仙林……仙林……">
+								<choice str="这回又换成了仙林了，仙林又是什么啊？">
+									<context npcId="1" str="主人，这只亚比似乎伤得不轻，好像是在发高烧说胡话呢。">
+										<choice str="不能把病人扔开不管啊，HELLO你有什么好办法吗？">
+											<context npcId="1" str="让HELLO想想……啊，有了，听说荷叶上的露水对退烧非常有效！"/>
+											<context npcId="1" str="主人，&lt;font color='#FF6600'&gt;&lt;b&gt;往下走&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;的话一定是一个有很多荷叶的地方，可以收集到足够的露水！">
+												<choice str="好办法！" action="1828_tasktips1" taskId="1828"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["445_1829_unicornstar1"] = <config>
+					<context npcId="445" iconId="1" str="仙林……仙林……仙林……"/>
+				</config>;
+         talk["445_1830_unicornstar1"] = <config>
+					<context npcId="445" str="仙林……仙林……仙林……"/>
+					<context npcId="1" str="仙林到底是什么呀，为什么它一直在喊仙林呢？">
+						<choice str="我也挺好奇的，等它醒来直接问它吧。" action="1830_movie1"/>
+					</context>
+				</config>;
+         talk["446_1834_secondTalk"] = <config>
+					<context npcId="446" iconId="6" str="后来我才得知，原来是叔父叛变，要夺取王位！">
+						<choice str="哎，又是一场权力争夺的悲剧。">
+							<context npcId="446" iconId="1" str="我知道即使这样说，你们也一定无法完全相信我。"/>
+							<context npcId="446" str="也许看了这个，你们对我的怀疑就不会那么多了。">
+								<choice str="噢？是什么？" action="1834_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1835_AfterTask1827"] = <config>
+					<context npcId="446" iconId="4" str="现在我终于长大，当年的事情，我一刻也没有忘记！现在回来，就是要解决这一切！">
+						<choice str="所以你才想要入宫行刺现在的国王，结果却把自己弄得一身伤？" action="1835_afterstart" starterId="1835"/>
+					</context>
+				</config>;
+         talk["446_1836_secondTalk"] = <config>
+					<context npcId="446" iconId="4" str="……是的，我绝对不会放弃的！"/>
+					<context npcId="1" str="可是HELLO觉得，以你现在的实力，真的很难办到。">
+						<choice str="我也这么觉得。">
+							<context npcId="446" iconId="4" str="所以我有一个计划！">
+								<choice str="说来听听。" action="1836_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1836_thirdTalk"] = <config>
+					<context npcId="446" iconId="1" str="怎么样，听起来很完美吧？">
+						<choice str="一点都不完美，简直是破绽百出！">
+							<context npcId="1" str="是啊，首先你就没法把士兵都打晕呀！">
+								<choice str="对嘛，第一点就无法成立，后面就更不行了。">
+									<context npcId="446" str="…………"/>
+									<context npcId="446" str="说的也是呢！看来只能用计谋了！">
+										<choice str="什么计谋？">
+											<context npcId="446" str="跟我来&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;就知道啦！">
+												<choice str="好吧。" action="1836_movie2" taskId="1836"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1836_unicornstar2"] = <config>
+					<context npcId="446" iconId="4" str="现在我终于长大，当年的事情，我一刻也没有忘记！现在回来，就是要解决这一切！">
+						<choice str="所以你才想要入宫行刺现在的国王，结果却把自己弄得一身伤？" action="1835_afterstart"/>
+					</context>
+				</config>;
+         talk["446_1837_loseTalk"] = <config>
+					<context npcId="446" str="刚才实在是太粗心了，我们再试一次吧。">
+						<choice str="好，小心点，一定能成功的。"/>
+					</context>
+				</config>;
+         talk["446_1837_unicornstar1"] = <config>
+					<context npcId="446" str="你看，这里只有两三个士兵在巡逻。只要能够避开这两三个小兵，我们就能进去了！">
+						<choice str="说的有道理！不过要怎么才能避开呢？">
+							<context npcId="446" str="跟我来，我有办法！">
+								<choice str="好吧，只能听你的了。" action="1837_interaction"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1837_winTalk"] = <config>
+					<context npcId="446" str="看，我说能成功的吧！">
+						<choice str="太厉害了！居然能躲过这些士兵的巡逻！" action="1837_movie1" taskId="1837"/>
+					</context>
+				</config>;
+         talk["446_1860_secondTalk"] = <config>
+					<context npcId="446" str="是吗……是仙林它，想要救我吗……">
+						<choice str="仙林公主还是很在意你的，王子。">
+							<context npcId="446" str="…………"/>
+							<context npcId="446" str="（看到了铠甲独角兽）啊！铠甲将军！怎么是你？！">
+								<choice str="不会吧，你居然现在才看到它！">
+									<context npcId="454" str="多多王子，您终究还是不肯听劝，回来独角之星了。"/>
+									<context npcId="446" str="我明白当初你是为我好，但是血海深仇，怎么可能忘记！">
+										<choice str="将军当年有劝阻过王子吗？" action="1860_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1860_unicornstar4"] = <config>
+					<context npcId="446" str="#username#，谢谢你来救我！">
+						<choice str="其实，是仙林公主恳求我们来救你的！" action="1859_afterstart"/>
+					</context>
+				</config>;
+         talk["446_1861_unicornstar4"] = <config>
+					<context npcId="1" str="主人，好像有一群骑士战马赶来这里了。">
+						<choice str="可是这里要怎么才能出去呢，仙林公主都没告诉我们。">
+							<context npcId="446" str="我记得父王曾经告诉我，这里是有个机关可以开启去独角兽密林的通道的。"/>
+							<context npcId="446" str="试试看&lt;font color='#FF6600'&gt;&lt;b&gt;点击这两座士兵雕像&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧，我记得好像是&lt;font color='#FF6600'&gt;&lt;b&gt;先点左边的，再点右边的&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;。">
+								<choice str="让我来试试看。" action="1861_ShowTips"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1862_unicornstar3"] = <config>
+					<context npcId="446" iconId="7" str="啊，为什么独角兽密林漂浮着熟悉的味道？！">
+						<choice str="(⊙o⊙)我只闻到水的味道。">
+							<context npcId="1" str="之前将军也有说过类似的话，它说那柄法杖似乎有熟悉的味道呢！">
+								<choice str="没错，将军是这样说过。">
+									<context npcId="446" iconId="7" str="这柄法杖……似乎是父王之前使用的武器！">
+										<choice str="神马？！是之前国王用过的武器？！">
+											<context npcId="454" str="这样说来，我也有些印象了，当年侍奉老国王的时候，似乎是有见过这把武器。"/>
+											<context npcId="446" iconId="1" str="#username#，能帮忙把这柄法杖拿过来，让我们确认一下吗？">
+												<choice str="行，我来试试。" action="1862_end" taskId="1862"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["446_1863_unicornstar3"] = <config>
+					<context npcId="446" str="去帮忙把那柄法杖拿过来让我们确认一下吧。"/>
+				</config>;
+         talk["446_1864_secondTalk"] = <config>
+					<context npcId="446" str="哎，看来我得自己想办法解开父王残留的记忆里的谜了。">
+						<choice str="没事，我们会帮你的。" action="1864_movie2" taskId="1864"/>
+					</context>
+				</config>;
+         talk["446_1864_unicornstar2"] = <config>
+					<context npcId="446" str="其实我有时候想放下仇恨，做个隐居高人，因为我发现，持续恨着，真的很累。"/>
+				</config>;
+         talk["446_1865_unicornstar2"] = <config>
+					<context npcId="446" str="其实我有时候想放下仇恨，做个隐居高人，因为我发现，持续恨着，真的很累。"/>
+				</config>;
+         talk["446_1866_unicornstar1"] = <config>
+					<context npcId="446" str="其实我有时候想放下仇恨，做个隐居高人，因为我发现，持续恨着，真的很累。"/>
+				</config>;
+         talk["446_1868_secondTalk"] = <dialog>
+					<context str="铠甲将军！先哲！谢谢你们！"/>
+					<context npcId="1" iconId="34" str="主人，大家都来帮王子了呢，超讲义气的！HELLO好感动！">
+						<choice str="是啊，搞得我也热血沸腾的！" action="1869_showFirstTalk" taskId="1868"/>
+					</context>
+				</dialog>;
+         talk["446_1868_unicornstar1"] = <dialog>
+					<context str="我决定去救仙林和叔父，如果袖手旁观的话，那我也只是个恶人罢了。">
+						<choice str="说得好！" action="1868_showMovie"/>
+					</context>
+				</dialog>;
+         talk["446_1872_unicornstar4"] = <dialog>
+					<context str="看！仙林和叔父就在那个笼子里，可是笼子被锁住了。"/>
+					<context npcId="1" str="这种小事就交给我家主人吧！">	
+						<choice str="没错，我已经知道密码了，嘿嘿。" action="1872_showOperation"/>
+					</context>
+				</dialog>;
+         talk["447_1832_thirdTalk"] = <config>
+					<context npcId="447" str="一天不逮到它，星球一天不得安宁！"/>
+					<context npcId="1" str="主人，莫非我们救的是一个坏蛋？">
+						<choice str="……不知道……但，如果它真是个坏蛋，就让我们亲手把它抓回来吧。">
+							<context npcId="1" str="刚才的露水还不足以让它的身体恢复，也许我们还能在&lt;font color='#FF6600'&gt;&lt;b&gt;阳光荷塘&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;见到它。">
+								<choice str="好，那就去阳光荷塘找找。" action="1832_tasktips5" taskId="1832"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["447_1832_unicornstar1"] = <config>
+					<context npcId="447" str="纯净能源？没听说过，那是什么东西？">
+						<choice str="就是一种能源……╮(╯▽╰)╭算了，还是自己找吧。">
+							<context npcId="447" str="先别急着走，我们正在全星搜寻一个通缉犯，不知你们有没有见过。">
+								<choice str="让我们看看。" action="1832_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["447_1838_loseTalk"] = <config>
+					<context npcId="447" str="兄弟们，只要把那小子抬回皇宫，就能得到国王的赏赐啦！">
+						<choice str="一定要阻止它们才行！看我再战一轮！"/>
+					</context>
+				</config>;
+         talk["447_1838_unicornstar1"] = <config>
+					<context npcId="447" str="看来国王的陷阱布置得真是天衣无缝，果然在皇宫门口把这小子逮住了！"/>
+					<context npcId="447" str="兄弟们，上！把这小子抬回皇宫，好向国王邀赏！">
+						<choice str="你们想要抬走它，得先打赢我才行！" action="1838_startfight"/>
+						<choice str="我准备一下再来跟你们打！"/>
+					</context>
+				</config>;
+         talk["447_1838_winTalk"] = <config>
+					<context npcId="447" str="你究竟是何方人士，为什么要帮助这个小子，阻拦我们？">
+						<choice str="我只是看不惯你们以多欺少罢了！" action="1838_movie1" taskId="1838"/>
+					</context>
+				</config>;
+         talk["447_1839_unicornstar1"] = <config>
+					<context npcId="447" iconId="1" str="忠于国王是我一生中最重要的使命，无论是谁，都不能违抗国王半分。"/>
+				</config>;
+         talk["447_1840_unicornstar1"] = <config>
+					<context npcId="447" iconId="1" str="忠于国王是我一生中最重要的使命，无论是谁，都不能违抗国王半分。"/>
+				</config>;
+         talk["447_1856_unicornstar4"] = <config>
+					<context npcId="447" str="忠于国王是我一生中最重要的使命，无论是谁，都不能违抗国王半分。"/>
+				</config>;
+         talk["447_1857_unicornstar4"] = <config>
+					<context npcId="447" str="哼，就凭你们两个，休想从我们手中把犯人救走。">
+						<choice str="王子我们是救定了！" action="1857_startfight"/>
+						<choice str="我准备一下再来打。"/>
+					</context>
+				</config>;
+         talk["448_1840_unicornstar1"] = <config>
+					<context npcId="448" iconId="2" str="父亲，求您放王子一马吧！"/>
+					<context npcId="449" iconId="2" str="……仙林，你是怎么出来的，我明明让守卫看紧你了！">
+						<choice str="原来这位就是被王子念了668次的仙林！">
+							<context npcId="448" iconId="2" str="父亲，求您了，不要一错再错，放过王子吧！"/>
+							<context npcId="449" iconId="2" str="仙林……"/>
+							<context npcId="446" iconId="1" str="…………"/>
+							<context npcId="448" iconId="2" str="父亲！请慎重考虑啊！"/>
+							<context npcId="449" iconId="1" str="好吧，今日就留着王子一命！来人啊，先把王子关进地牢！"/>
+							<context npcId="448" iconId="2" str="谢谢父亲！">
+								<choice str="T_T王子得救了。" action="1840_movie1" taskId="1840"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["448_1841_unicornstar1"] = <config>
+					<context npcId="448" iconId="1" str="谢谢你，小勇士，之前多亏有你保护王子。">
+						<choice str="小事一桩，不过，你是？" action="1841_movie1"/>
+					</context>
+				</config>;
+         talk["448_1842_unicornstar1"] = <config>
+					<context npcId="448" str="多多王子曾经在梦里看到过一朵玫瑰色的莲花，说它很美，玫瑰色的莲花，不知道说的是不是我呢？"/>
+				</config>;
+         talk["448_1852_secondTalk"] = <config>
+					<context npcId="448" str="只要你们按照这个方法，就一定能到达皇宫地牢，见到多多王子！"/>
+					<context npcId="1" str="不过HELLO还是挺担心的，那里可是皇宫地牢，一定有重兵把守的。"/>
+					<context npcId="1" str="即使到达了皇宫地牢，也不知道能不能顺利救出王子呢。">
+						<choice str="说的也是，我毕竟没法以一当百……">
+							<context npcId="454" str="不用担心，让本将军来助你一臂之力！">
+								<choice str="是谁在那里？！" action="1852_movie2" taskId="1852"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["448_1852_unicornstar1"] = <config>
+					<context npcId="448" str="我听到了父亲下令让士兵们把王子关在了皇宫地牢里。"/>
+					<context npcId="448" str="那是一个非常隐蔽的地牢，一般很难进入，不过我知道一条秘密通道！">
+						<choice str="秘密通道在哪里呢？" action="1852_movie1"/>
+					</context>
+				</config>;
+         talk["448_1853_unicornstar1"] = <config>
+					<context npcId="448" str="多多王子曾经在梦里看到过一朵玫瑰色的莲花，说它很美，玫瑰色的莲花，不知道说的是不是我呢？"/>
+				</config>;
+         talk["448_1875_secondTalk"] = <dialog>
+					<context iconId="4" str="多多王子！"/>
+					<context npcId="456" iconId="2" str="哼哼，早就说了你不是对手啦！"/>
+					<context npcId="449" iconId="2" str="看来，我也不能再这样袖手旁观了！王子，传说中的纯净能源的另一半，就交给你了！">
+						<choice str="原来纯净能源的另外一半在这里！" action="1875_showMovie2"/>
+				`	</context>
+				</dialog>;
+         talk["448_1881_unicornstar5"] = <dialog>
+					<context iconId="6" str="啊……什么……这个……"/>
+					<context npcId="451" iconId="2" str="哎呀，仙林公主这么害羞的样子还真是从来没见过呢！">
+						<choice str="仙林公主，别犹豫了，快答应呀！">
+							<context npcId="448" iconId="6" str="我、我答应！"/>
+							<context npcId="457" iconId="6" str="仙林答应我了！仙林答应我了！"/>
+							<context npcId="451" iconId="2" str="王子，看来我们可以开始筹备您和公主的婚礼了呢！"/>
+							<context npcId="454" iconId="1" str="这可是举国欢庆的大事！得庆祝个三天三夜才行啊！">
+								<choice str="我也要帮忙！我也要帮忙！">
+									<context npcId="457" iconId="6" str="对了，#username#，我的新朋友，你愿意当我和仙林的证婚人吗？">
+										<choice str="当然愿意！">
+											<context npcId="451" iconId="2" str="看你这么热情，不如再麻烦你一下，把喜帖发到各个地方吧！"/>
+											<context iconId="1" str="喜帖需要送给&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城的骑士战马、阳光荷塘的小卫兵马&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，加油哦！">
+												<choice str="没问题，包在我身上！" taskId="1881"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["449_1839_unicornstar1"] = <config>
+					<context npcId="449" str="王子，我等你很久了，你终于还是来了！"/>
+					<context npcId="446" str="我也等你很久了，叔父！你终于肯露面了！">
+						<choice str="原来这位就是之前所说的叔父！">
+							<context npcId="449" str="今天我就要在这里，让先哲的预言全部落空！">
+								<choice str="所以说先哲究竟是谁啊？">
+									<context npcId="449" str="王子，这可是我为你特制的网，这张网所用的特殊材料，能封锁你所有的法力。"/>
+									<context npcId="449" str="你不用挣扎了，所有的挣扎都是徒劳的，今天，我就要让你和你的父母团聚！">
+										<choice str="糟糕！得想办法救王子！" action="1839_movie1" taskId="1839"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["449_1840_unicornstar1"] = <config>
+					<context npcId="449" str="我并不是执着于权力，咳咳……嗯，我只是执着于自己的渴望。"/>
+				</config>;
+         talk["44_260_aolatree"] = <config>
+											<context str="嗯，让我看看。咦？这是我们奥拉星的古文字啊！怎么会出现在沃尔特区呢？">
+												<choice str="我们的古文字？">
+													<context str="嗯。这样优雅的古文字，除了我、布拉德和拉贝尔，大概已经很少人能读懂了。">
+														<choice str="那这些文字是什么意思呢？">
+															<context str="这上面大概讲的是，粒子聚合器的使用需要强大的能量，而这能量与&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳城堡里的巨大贝壳&lt;/b&gt;&lt;/font&gt;有关。">
+																<choice str="好的！谢谢你！" taskId="260"/>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</config>;
+         talk["451_1841_thirdTalk"] = <config>
+					<context npcId="451" str="谁知后来竟然发生了叛变……可惜，可惜。"/>
+					<context npcId="1" str="都说人心难料，原来独角兽之心，也很难料。"/>
+					<context npcId="448" iconId="1" str="勇士，本人有个不情之请，可否帮我救出王子？！">
+						<choice str="这……似乎很困难，让我想想。" action="1841_1841end" taskId="1841"/>
+					</context>
+				</config>;
+         talk["451_1842_secondTalk"] = <config>
+					<context npcId="451" str="现在王子就在国王手里，如果不能及时救出王子，恐怕就……"/>
+					<context npcId="448" iconId="2" str="怎么会这样……原来一切，都是父亲计划好的吗？"/>
+					<context npcId="1" str="主人，我们不能袖手旁观，这样怎么对得起奥拉勇士的称号！">
+						<choice str="（一咬牙）好，我答应你们，一定救出多多王子！">
+							<context npcId="448" iconId="1" str="真的吗？太好了！"/>
+							<context npcId="448" str="我会帮忙去皇宫里打探去地牢的方法，打听到了，一定会来告诉你的！">
+								<choice str="好！就这么说定了！" action="1842_nextweek"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["451_1842_unicornstar1"] = <config>
+					<context npcId="451" str="如果连你们都无法救出多多王子，恐怕多多王子这次就真的要遭遇不幸了！">
+						<choice str="( ⊙ o ⊙ )啊！这话怎么说？" action="1842_movie1"/>
+					</context>
+				</config>;
+         talk["451_1865_unicornstar2"] = <config>
+					<context npcId="451" str="不会吧，铠甲独角兽这么快就跑路了，枉费我拼死拼活赶过来。"/>
+					<context npcId="446" str="先哲，只要是跟铠甲独角兽有关的事情，你都会预言落空呢。">
+						<choice str="看来先哲和铠甲独角兽一定是冤家。">
+							<context npcId="451" str="算了，先不管它了。多多王子，独角之星出大事了！"/>
+							<context npcId="446" str="( ⊙ o ⊙ )啊！出什么事了？"/>
+							<context npcId="451" str="仙林公主和国王被绑架了！">
+								<choice str="什么！！被绑架了！">
+									<context npcId="451" str="现在整个星球一片乱糟糟的，皇宫外城还张贴了绑架公告！"/>
+									<context npcId="1" str="居然有这种事，多多王子，主人，我们去&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;看看吧。">
+										<choice str="好！得赶紧过去！" action="1865_tasktips6" taskId="1865"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["451_1869_unicornstar1"] = <dialog>
+					<context str="我已经打听到了，绑架仙林公主和国王的哈鲁达已经在皇宫设下了重重陷阱。"/>
+					<context str="而且，据逃出来的士兵交代，仙林公主和国王已经被秘密地关在了皇宫地牢。"/>
+					<context str="所以我和铠甲独角兽有个计谋！">
+						<choice str="什么计谋？" action="1869_showMovie1"/>
+					</context>
+				</dialog>;
+         talk["451_1878_unicornstar5"] = <dialog>
+					<context str="啊哈，王子，你们来的正好，我和铠甲刚刚对这里进行了一个大清场！"/>
+					<context str="现在这里阳光明媚、空气清晰……喂，王子，你有听我说话吗？"/>
+					<context npcId="457" str="…………"/>
+					<context str="叔父，原来这么多年一直都误会了你，可是为什么你不告诉我真相呢？"/>
+					<context npcId="449" str="即使说了，你也很难相信吧，而且，我本身也不是一个好家伙，哈哈哈！"/>
+					<context npcId="457" str="我突然有个想法，我不想再计较之前的种种了。"/>
+					<context str="让我们大家都有一个新的开始吧，而现在，就让我们同心协力，把哈鲁达赶走！">
+						<choice str="说的没错！">
+							<context npcId="454" str="王子，我集合了一批跟随我的精锐士兵在皇宫外城。"/>
+							<context str="只要王子一声令下，它们必当竭尽全力，将哈鲁达及其所有势力赶出独角之星！"/>
+							<context npcId="457" iconId="3" str="好！我这就去&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;！">
+								<choice str="我也去！" action="1878_showMovie" taskId="1878"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["451_1882_continue"] = <dialog>
+					<context str="你还没有给&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城的骑士战马、阳光荷塘的小卫兵马&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;送去喜帖呢，赶紧送过去吧。">
+						<choice str="好的，我知道了。"/>
+					</context>
+				</dialog>;
+         talk["451_1882_continue1"] = <dialog>
+					<context str="你还没有给&lt;font color='#FF6600'&gt;&lt;b&gt;阳光荷塘的小卫兵马&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;送去喜帖呢，赶紧送过去吧。">
+						<choice str="好的，我知道了。"/>
+					</context>
+				</dialog>;
+         talk["451_1882_continue2"] = <dialog>
+					<context str="你还没有给&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫外城的骑士战马&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;送去喜帖呢，赶紧送过去吧。">
+						<choice str="好的，我知道了。"/>
+					</context>
+				</dialog>;
+         talk["451_1882_unicornstar5"] = <dialog>
+					<context action="1882_check"/>
+				</dialog>;
+         talk["451_1883_unicornstar5"] = <dialog>
+					<context str="辛苦你了，再过几天就能为王子和公主举行婚礼了，请耐心等待哦！">
+						<choice str="别说几天了，再等一个月也行。" action="1883_showMovie1"/>
+					</context>
+				</dialog>;
+         talk["453_1830_thirdTalk"] = <config>
+					<context npcId="453" iconId="2" str="没想到它们就追上来了……">
+						<choice str="它们？谁们？">
+							<context npcId="453" iconId="2" str="你，还有你，和我一起，先去&lt;font color='#FF6600'&gt;&lt;b&gt;阳光荷塘&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;躲起来吧！">
+								<choice str="好吧。" action="1830_movie3andtips3" taskId="1830"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["453_1831_unicornstar2"] = <config>
+					<context npcId="453" iconId="2" str="追兵快到了，只能先躲到荷叶下了。">
+						<choice str="好吧，看来也没有别的选择了。" action="1831_movie1"/>
+					</context>
+				</config>;
+         talk["453_1833_secondTalk"] = <config>
+					<context npcId="453" iconId="5" str="没错，我是硬闯皇宫所以被打伤了！但是，我从来不欺负平民百姓！"/>
+					<context npcId="453" iconId="5" str="它们都是我的子民啊，为什么我要欺负我的子民！">
+						<choice str="你刚才说，它们都是你的子民？" action="1833_1833end" taskId="1833"/>
+					</context>
+				</config>;
+         talk["453_1833_unicornstar2"] = <config>
+					<context npcId="453" str="咦，怎么是你们？"/>
+					<context npcId="1" str="我们刚才已经知道了士兵到处搜寻你的原因了！"/>
+					<context npcId="1" str="你是个坏蛋，你抢别人的东西，还打人！"/>
+					<context npcId="453" iconId="5" str="……什么？我抢别人东西还打伤人？就算你救了我，也不能污蔑我！">
+						<choice str="看来你是不肯认错了。">
+							<context npcId="453" iconId="5" str="哼，我根本没有错，何必认错！">
+								<choice str="看来不打一场是无法让你低头认错了！" action="1833_startfight"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["453_1834_unicornstar2"] = <config>
+					<context npcId="446" iconId="6" str="其实，我叫多多，本来是这颗星球的王子。">
+						<choice str="神马？！你是王子？！">
+							<context npcId="446" iconId="6" str="是的，我的父亲，曾是这个星球的国王。">
+								<choice str="真是难以置信。" action="1834_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["454_1853_unicornstar1"] = <config>
+					<context npcId="454" str="多多王子有难，本将军怎可坐视不管！"/>
+					<context npcId="448" iconId="3" str="铠甲将军！如果有你的帮助，多多王子一定能被顺利救出来的！">
+						<choice str="这位铠甲将军是？">
+							<context npcId="448" iconId="3" str="这位是铠甲将军，当年就是它一路护送多多王子到达安全的地方！">
+								<choice str="(⊙o⊙)原来是多多王子身边的大将军！">
+									<context npcId="454" str="多多王子现在身处险境，我们赶紧出发，救王子要紧！">
+										<choice str="将军神武！定能以一当百！这下就不用担心了！">
+											<context npcId="454" str="事不宜迟！现在马上前往&lt;font color='#FF6600'&gt;&lt;b&gt;阳光荷塘&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+												<choice str="好！" action="1853_tasktips1" taskId="1853"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["454_1854_unicornstar2"] = <config>
+					<context npcId="454" str="那片荷叶好像在发光，去点它试试看吧。"/>
+				</config>;
+         talk["454_1855_unicornstar3"] = <config>
+					<context npcId="1" str="主人，根据仙林独角兽的说法，穿过这个独角兽密林，就能到达皇宫地牢了！">
+						<choice str="没错，马上就能见到多多王子了！">
+							<context npcId="1" str="咦，主人你看，那棵树上面有一柄法杖！">
+								<choice str="真奇怪，为什么这里会有法杖呢？">
+									<context npcId="454" str="这柄法杖，好像带着熟悉的味道，有一种似曾相识的感觉……"/>
+									<context npcId="454" str="（摇了摇头）应该是错觉，#username#，继续走吧，&lt;font color='#FF6600'&gt;&lt;b&gt;穿过这里&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，就能达到皇宫地牢了！">
+										<choice str="嗯！马上就能见到多多王子啦！" action="1855_tasktips3" taskId="1855"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["454_1856_unicornstar4"] = <config>
+					<context npcId="454" str="#username#，准备好了吗？接下来迎接我们的，可是一场硬仗！">
+						<choice str="嗯！我可是已经摩拳擦掌了！">
+							<context npcId="454" str="好！我们上！">
+								<choice str="我已经迫不及待了！">
+									<context npcId="447" str="有声音！是谁偷偷摸摸地躲在那里！出来！"/>
+									<context npcId="454" str="本将军可是光明正大的来到这里的！快点把多多王子给放了！"/>
+									<context npcId="447" str="哼，国王有令！任何人等，不得接近这里！快点离开，否则就对你们不客气了！">
+										<choice str="不救出王子，我们是绝对不会走的！" action="1856_end" taskId="1856"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["454_1857_unicornstar4"] = <config>
+					<context npcId="454" str="我们上！一定要救出王子！"/>
+				</config>;
+         talk["454_1860_thirdTalk"] = <config>
+					<context npcId="454" str="之后我隐居山林，再不理朝政之事，但心里总是担心着。"/>
+					<context npcId="454" str="王子血气方刚，本将军一直担心王子回来复仇。然而真是担心什么就来什么啊！">
+						<choice str="不过父母之仇，也真的是很难咽下嘛。">
+							<context npcId="454" str="这些以后再说，此地不宜久留，我们还是走吧。">
+								<choice str="对，还是先离开这里吧！" action="1860_end" taskId="1860"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["454_1860_unicornstar4"] = <config>
+					<context npcId="454" str="保护多多王子是我一生的职责，绝对不能让这位王室继承人受到任何伤害！"/>
+				</config>;
+         talk["454_1861_unicornstar4"] = <config>
+					<context npcId="454" str="保护多多王子是我一生的职责，绝对不能让这位王室继承人受到任何伤害！"/>
+				</config>;
+         talk["454_1862_unicornstar3"] = <config>
+					<context npcId="454" str="保护多多王子是我一生的职责，绝对不能让这位王室继承人受到任何伤害！"/>
+				</config>;
+         talk["454_1863_unicornstar3"] = <config>
+					<context npcId="454" str="保护多多王子是我一生的职责，绝对不能让这位王室继承人受到任何伤害！"/>
+				</config>;
+         talk["454_1864_unicornstar2"] = <config>
+					<context npcId="454" str="多多王子，能平安将您救出来真是太好了。"/>
+					<context npcId="454" str="现在我必须离开了，有我在身边，只怕会引来太多人的注目，增加不必要的危险。">
+						<choice str="这么拉风的独角兽，确实够引人注目的。">
+							<context npcId="446" str="今后，我们还会再见吗？"/>
+							<context npcId="454" str="当然，只要您有危险，我一定会及时出现在您身边的！现在，就告辞了！">
+								<choice str="铠甲独角兽的作风真是太有型了！" action="1864_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["454_1879_unicornstar1"] = <dialog>
+					<context str="报告王子，哈鲁达及其所有势力已全部撤离独角之星，我们胜利了！"/>
+					<context npcId="457" str="太好了！让我们回&lt;font color='#FF6600'&gt;&lt;b&gt;皇宫大殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，庆祝这一刻吧！">
+						<choice str="好嘞！" action="1879_showMovie" taskId="1879"/>
+					</context>
+				</dialog>;
+         talk["456_1873_unicornstar4"] = <dialog>
+					<context iconId="2" str="喔，传说中的多多王子，还有你，我的宿敌，#username#。"/>
+					<context str="今天终于能把你们统统逮住啦！黑元首和黑王子一定会夸奖我的！">
+						<choice str="我们才不会那么容易被逮住呢！">
+							<context str="这可是我哈鲁达大人精心设计的陷阱啊，才不会让你们那么简单就跑掉！"/>
+							<context str="当然，如果多多王子肯乖乖把那半颗纯净能源交出来的话，什么都好说啦！"/>
+							<context npcId="446" iconId="5" str="那是父王的遗物，我可不会轻易交给任何人！">
+								<choice str="没错，尤其不能交给你。" action="1874_showFirstTalk" taskId="1873"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["456_1874_unicornstar4"] = <dialog>
+					<context iconId="2" str="既然不肯主动交出来，那我就只好来硬的了！">
+						<choice str="那就来比比看谁的拳头硬吧！" action="1874_fight"/>
+						<choice str="我准备一下再来跟你打！"/>
+					</context>
+				</dialog>;
+         talk["456_1875_thirdTalk"] = <dialog>
+					<context iconId="5" str="完整的纯净能源力量果然强大，这次我一定要把它拿到手！"/>
+					<context npcId="457" iconId="1" str="哈鲁达，原来所有的一切都是你干的，今天我就要把你打飞！">
+						<choice str="王子，我也来帮忙。" action="1876_showFirstTalk" taskId="1875"/>
+					</context>
+				</dialog>;
+         talk["456_1875_unicornstar4"] = <dialog>
+					<context iconId="2" str="多多王子，看来今天你就要走上和你父王一样的命运啦！"/>
+					<context str="我可不会告诉你，你的父王是被我暗算的！"/>
+					<context npcId="446" iconId="7" str="什么？！"/>
+					<context npcId="456" iconId="2" str="哎呀，一不小心说漏嘴了……"/>
+					<context npcId="446" iconId="5" str="今天我绝对不会放过你的，哈鲁达！">
+						<choice str="(⊙o⊙)多多王子！" action="1875_showMovie1"/>
+					</context>
+				</dialog>;
+         talk["456_1876_unicornstar4"] = <dialog>
+					<context iconId="2" str="这块纯净能源就交给我哈鲁达大人，我会好好帮你们保管的！">
+						<choice str="所以说这东西绝对不能交给你啦！" action="1876_fight"/>
+						<choice str="你等等，我准备一下就来把你pia飞。"/>
+					</context>
+				</dialog>;
+         talk["457_1876_fightFail"] = <dialog>
+					<context str="这家伙果然厉害，#username#，我们也不能输啊！">
+						<choice str="没错，绝对不能输给哈鲁达。"/>
+					</context>
+				</dialog>;
+         talk["457_1880_secondTalk"] = <dialog>
+					<context iconId="4" str="仙林，你怎么……我已经不想追究任何事情了，为什么你还是要走？"/>
+					<context npcId="448" iconId="5" str="我知道，可是，我必须陪伴在父亲的身边！"/>
+					<context npcId="449" iconId="1" str="仙林，我还年轻着呢，别把我当老人家看！"/>
+					<context npcId="448" str="可是我不能让你孤孤单单地在外面！"/>
+					<context npcId="449" str="傻孩子，难道王子的心意，你不明白吗？">
+						<choice str="是啊，王子可舍不得仙林公主了。">
+							<context str="我只是去四处走走，散散心，沿途顺便做做善事，弥补我之前所犯下的错误。"/>
+							<context str="我既不会想不开，也不会变成音讯全无的父亲！我还想抱孙子呢，你就放心吧！"/>
+							<context npcId="448" iconId="6" str="父亲，您在说什么啊……"/>
+							<context npcId="449" iconId="1" str="混小子，你还在等什么呢？昨天不是跟我说的超诚恳吗，现在快点讲出来啊！"/>
+							<context npcId="457" iconId="5" str="……仙林，我是认真的！做我的王后吧！">
+								<choice str="哇，王子求婚啦！" action="1881_showFirstTalk" taskId="1880"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["457_1880_unicornstar5"] = <dialog>
+					<context str="对了，#username#，能麻烦你把仙林和叔父找来，和我们一起庆祝吗？">
+						<choice str="好的，没问题！" action="1880_showMovie"/>
+					</context>
+				</dialog>;
+         talk["457_1888_unicornstar5"] = <dialog>
+					<context iconId="7" str="今天非常开心，能与仙林在一起，真是太好了。"/>
+					<context str="借着这个机会，我还要宣布一件事情！"/>
+					<context iconId="2" str="这块完整的纯净能源，我打算送给#username#，听说他们的星球，非常需要它！">
+						<choice str="( ⊙ o ⊙ )啊！真的可以吗？！它对你来说，可是很重要的东西呢！">
+							<context str="#username#，虽然我们只是萍水相逢的朋友，可是你超级讲义气！"/>
+							<context str="在我需要帮助的时候，你一定会准时出现，在我心里，你的分量，早已比这纯净能源不知重多少！"/>
+							<context str="#username#，别犹豫了，收下吧！这可是我们友谊的见证呢！">
+								<choice str="恭敬不如从命，那，我就收下了！" action="1888_showMovie1" taskId="1888"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["457_1889_unicornstar5"] = <dialog>
+             <context str="谢谢你一路对我的帮助，谢谢！">
+					<choice str="说什么呢，我们不是朋友吗？">	
+                   <context npcId="1" str="主人，我们也差不多该去融合纯净能源啦！">
+						<choice str="说的是呢。" action="task1889_showbook"/>
+					</context>
+                </choice>
+             </context>
+				</dialog>;
+         talk["45_197_siwude4"] = <dialog>
+					<context npcId="1" str="经多克特改造过的木木鸟异常强大，你确定要和它战斗？">
+						<choice type="0" str="确定。" action="45_197_siwude4fight"/>
+						<choice type="1" str="先等等。"/>
+					</context>
+				</dialog>;
+         talk["462_1892_fairytalestar1"] = <config>
+					<context npcId="462" str="是谁啊？快说吧！">
+						<choice str="……这个问题我还真没考虑过。">
+							<context npcId="462" str="难道，这是一个没有答案的结局？"/>
+							<context npcId="462" str="啊！忘了自我介绍，我叫童心，欢迎来到童话之星！">
+								<choice str="我是来自奥拉星的奥拉小勇士。">
+									<context npcId="462" iconId="2" str="原来你是奥拉星的勇士，早就听说过奥拉勇士的故事，不如讲给我听吧。"/>
+									<context npcId="462" iconId="2" str="把这些故事写成童话一定很棒！">
+										<choice str="其实……我们来是想请你帮忙……" taskId="1892" action="1892_Next">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1893_fairytalestar1"] = <config>
+					<context npcId="462" str="哦？请我帮忙？我能帮你们什么忙呢？">
+						<choice str="我们想借童话之书。">
+							<context npcId="1" str="我们想借助童话之书的纯净能源恢复奥拉之辉。"/>
+							<context npcId="462" str="恢复奥拉之辉？"/>
+							<context npcId="1" iconId="30" str="奥拉星上有一颗能量巨大的奥拉之辉。但是，在拯救风暴星系中。我们使用了奥拉之辉的能量。"/>
+							<context npcId="1" str="听说童话之星上有一本神奇的童话之书!我们猜测童话之书中拥有神奇的纯净能源。">
+								<choice str="所以我们想借用童话之书的力量。">
+									<context npcId="462" iconId="3" str="我最乐意帮助人啦！"/>
+									<context npcId="462" iconId="3" str="不过，童话之书的力量要借给热爱童话的人，我先考考你们才行。">
+										<choice str="这个难不倒我，尽管来吧。" taskId="1893" action="1893_Next">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1894_FailAnswerQuestions"] = <config>
+					<context npcId="462" str="这怎么能让我放心把童话之书交给你呢！你要加油啊！">
+						<choice str="我要再试一次呢。" action="1894_AnswerQuestions"/>
+						<choice str="让我再考虑考虑吧。"/>
+					</context>
+				</config>;
+         talk["462_1894_SuccessAnswerQuestions"] = <config>
+					<context npcId="462" iconId="3" str="不错嘛，这么快通过了我的考验，那我就告诉你童话之书在哪里吧。">
+						<choice str="在哪里？">
+							<context npcId="462" str="嗯……童话之书被白雪公主借走了，你可以去&lt;font color='#FF6600'&gt;&lt;b&gt;公主森林&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;找她哦！"/>
+							<context npcId="462" iconId="4" str="嘿嘿……"/>
+							<context npcId="1" str="( ⊙o⊙ )哇，白雪公主！主人！我们这就去&lt;font color='#FF6600'&gt;&lt;b&gt;公主森林&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;找她吧！">
+								<choice str="好！我们出发吧~！" taskId="1894" action="1894_Tips1">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1894_fairytalestar1"] = <config>
+					<context npcId="462" str="只要你能答对我的三个问题，我就把童话之书借给你。">
+						<choice str="我都等不及大展身手了！" action="1894_AnswerQuestions">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1896_fairytalestar1"] = <config>
+					<context npcId="462" str="让我猜猜看，你一定猜到第三次龟兔赛跑的结果啦！">
+						<choice str="现在有比这个更严重的事情！">
+							<context npcId="462" iconId="5" str="什么事情这么严重？">	
+								<choice str="我们在公主森林发现了七个白雪公主！">
+									<context npcId="462" iconId="5" str="一定是你看花眼了吧！怎么可能有七个白雪公主。">	
+										<choice str="真的是七个白雪公主在吵架！">
+											<context npcId="462" iconId="4" str="不应该啊！#username#，我们赶快去公主森林看看。">	
+												<choice str="嗯，总觉得这件事情怪怪的。" taskId="1896" action="1896_Tips1">
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1898_FailToFind"] = <config>
+					<context npcId="462" str="一定要找出假白雪公主。">
+						<choice str="好！我们继续加油！" action="1898_TrueSnowPrincess"/>
+						<choice str="我先去想想其它办法吧！"/>
+					</context>
+				</config>;
+         talk["462_1898_fairytalestar2"] = <config>
+					<context npcId="462" str="对啦！记得真的白雪公主手中好像拿着一个苹果。">
+						<choice str="哦？苹果？我知道怎么找出真的白雪公主啦！" action="1898_TrueSnowPrincess">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1901_AfterFirstKissMovie"] = <config>
+					<context npcId="462" iconId="3" str="哇！你们通过了我的考验！你们是真正热爱童话的人。">
+						<choice str="怎么回事？">
+							<context npcId="1" str="HELLO也糊涂了……"/>
+							<context npcId="462" iconId="3" str="童话之书无比强大，为了防止坏人拿到童话之书，我特地准备了两道考验。"/>
+							<context npcId="462" iconId="3" str="拯救白雪公主的世界，是对你们是否真心热爱童话故事的真正考验！恭喜你，通过考验啦！">
+								<choice str="原来是这样。">
+									<context npcId="462" iconId="11" str="能够掌控童话之书力量的人，必须有一颗热爱童话的心。"/>
+									<context npcId="462" str="如果随意改变童话，整个童话世界就会混乱。">
+										<choice str="差点犯了大错。">
+											<context npcId="462" str="童话世界是我的挚爱，我不仅要创造他们，还要保护好他们。"/>
+											<context npcId="1" str="哇！童心，你真厉害！你才是真正热爱童话之星的人。"/>
+											<context npcId="462" iconId="2" str="哎呀~~这样夸我，会不好意思啦！"/>
+											<context npcId="462" iconId="3" str="现在，跟我回童心小屋拿童话之书吧！">
+												<choice str="终于可以见到神奇的童话之书啦！" taskId="1901" action="1901_Tips1">
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1901_fairytalestar2"] = <config>
+					<context npcId="462" str="说的对!童话故事中,王子亲吻了白雪公主使她苏醒，#username#，现在就靠你了。">
+						<choice str="放心吧！我一定可以将公主吻醒的。" action="1901_FirstKissMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1902_AfterFairyTaleBookMovie"] = <config>
+					<context npcId="462" iconId="7" str="你是什么人？赶快把书还回来。"/>
+					<context npcId="1" str="啊！主人！是哈鲁达！"/>
+					<context npcId="8" iconId="3" str="哈哈哈！神奇的童话之书被我哈鲁达抢到手啦！"/>
+					<context npcId="8" iconId="3" str="黑王子大人一定会大大地奖励我！"/>
+					<context npcId="462" iconId="7" str="心存邪恶之人，只要离开童话之星，就无法使用童话之书的力量。"/>
+					<context npcId="8" str="那你说该怎么用啊？"/>
+					<context npcId="462" iconId="7" str="除非你能创造新的童话故事，否则根本无法驾驭童话之书的力量。">
+						<choice str="哎呀！不好！把使用方法告诉哈鲁达了。">
+							<context npcId="8" iconId="3" str="原来是这样，我哈鲁达大人最擅长撒谎了，不，是编故事，哈哈！你们就等着瞧吧！">
+								<choice str="哈鲁达，你别跑！" taskId="1902" action="1902_HaLuDaMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1902_fairytalestar1"] = <config>
+					<context npcId="462" iconId="3" str="#username#，你也是一样热爱童话的人。"/>
+					<context npcId="462" iconId="3" str="现在我就把童话之书交给你们，希望你们好好的利用。">
+						<choice str="嗯，我一定好好保管童话之书。" action="1902_FairyTaleBookMovie"/>
+					</context>
+				</config>;
+         talk["462_1903_fairytalestar1"] = <config>
+					<context npcId="462" str="刚才那个坏蛋跑向公主森林了，我们要赶快追上他。">
+						<choice str="对！眼下最重要的就是夺回童话之书。">
+							<context npcId="462" iconId="8" str="我有不详的预感，童话之星可能会有一场灾难！"/>
+							<context npcId="462" iconId="8" str="不！应该不会的……故事中的角色，不会那么容易被改变……"/>
+							<context npcId="1" str="主人……童心在说什么？HELLO不是很明白。">
+								<choice str="我也不清楚……">
+									<context npcId="462" str="嗯，总之，现在我们赶快去追那个坏蛋吧！">
+										<choice str="好！我们一起去追那个坏蛋！" taskId="1903" action="1903_Tips1">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1904_AfterHaLuDaStoryMovie"] = <config>
+					<context npcId="462" iconId="8" str="我担心的事情还是发生了，有人修改了童话之书，童话世界开始动摇了。">
+						<choice str="一定要夺回童话之书！">
+							<context npcId="1" str="不知道会发生什么事情！"/>
+							<context npcId="462" iconId="8" str="哈鲁达去了丑小鸭世界，我们这就去追哈鲁达，找回童话之书！">
+								<choice str="好！" taskId="1904" action="1904_Tips1">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1904_fairytalestar2"] = <config>
+					<context npcId="462" str="你这个坏蛋，快点把童话之书还回来！"/>
+					<context npcId="8" iconId="8" str="那可不行，还没让你们领教我哈鲁达大人的童话世界呢！">
+						<choice str="你！你要干嘛！" action="1904_HaLuDaStoryMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1906_AfterDuckEggMovie"] = <config>
+					<context npcId="462" str="丑小鸭就要诞生了，哈鲁达涂写了童话之书，真希望丑小鸭的世界不会被改变！"/>
+					<context npcId="1" str="主人！童心！你们快看！丑小鸭好像马上就要出生啦！">
+						<choice str="嗯，好像还需要我们帮一下忙。" action="1906_HatchEgg">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1906_AfterHatchEggMovie"] = <config>
+					<context npcId="462" iconId="8" str="童话之星，从丑小鸭世界开始，真的被改变了！">
+						<choice str="难道原版的丑小鸭故事不是这样的？" taskId="1906" action="1906_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1906_FailHatchEgg"] = <config>
+					<context npcId="462" str="只有看到丑小鸭出现，才能了解到丑小鸭世界是不是被改变了，一定要有耐心哦！">
+						<choice str="一定要孵化鸭蛋。" action="1906_HatchEgg"/>
+						<choice str="我先去想想其它办法吧！"/>
+					</context>
+				</config>;
+         talk["462_1906_fairytalestar3"] = <config>
+					<context npcId="462" iconId="10" str="咦？难道丑小鸭的世界没有改变？"/>
+					<context npcId="1" str="童心，你在说什么？"/>
+					<context npcId="462" str="你们看！那就是丑小鸭的蛋，我们过去看看，希望这个世界没有被改变。">
+						<choice str="嗯！我们过去看看。" action="1906_DuckEggMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1907_fairytalestar3"] = <config>
+					<context npcId="1" str="真实的故事是什么样的？为什么其它鸭子那么崇拜它？">
+						<choice str="不对，一定是哈鲁达在捣鬼！">
+							<context npcId="462" str="丑小鸭世界讲述的是一个丑小鸭经历挫折蜕变成白天鹅的故事。"/>
+							<context npcId="462" str="这个故事让人懂得只有经历磨难才会体会到幸福和美丽。">
+								<choice str="这么美好的故事。">
+									<context npcId="462" str="我给你们看一看真实的丑小鸭故事！">
+										<choice str="我真想看看丑小鸭是个什么样子！" action="1907_UglyDuckCartoon">
+											<context npcId="462" str="这就是真实的丑小鸭的故事。">
+												<choice str="原来丑小鸭经过蜕变会变成一只白天鹅呢！">
+													<context npcId="1" str="赶快告诉丑小鸭真相吧！">
+														<choice str="一定要告诉丑小鸭真相，不能受到达斯特人的迷惑。" taskId="1907">
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1908_AfterDuckTalkMovie"] = <config>
+					<context npcId="462" str="丑小鸭的事情给了我一个警示，童话之星可能要面临前所未有的危机。"/>
+					<context npcId="462" iconId="8" str="难道……它不满足于现在的故事？难道……这才是它们真实的想法？">
+						<choice str="问题还没有完全清楚，你不要多想啦！">
+							<context npcId="462" str="#username#，我觉得是时候重新思考我写的故事了。"/>
+							<context npcId="462" str="我一定要让丑小鸭世界恢复原来的面貌。">
+								<choice str="一定会的！" taskId="1908">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1915_AfterTask1899"] = <config>
+					<context npcId="462" str="#username#，经过我认真的思考，我已经做出了决定。">
+						<choice str="相信童心的决定一定会让大家满意的！" starterId="1915" action="1915_Next"/>
+						<choice str="我还有其他事情要做。"/>;
+			</context>
+		</config>;
+         talk["462_1916_AfterEnjoyingDuckMovie"] = <config>
+					<context npcId="1" iconId="30" str="看来，要改变丑小鸭，难度还不小……"/>
+					<context npcId="462" iconId="3" str="没有挑战的事情做起来也不会有趣啊！让我们一起加油吧！">
+						<choice str="嗯，加油吧！" taskId="1916">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1916_fairytalestar3"] = <config>
+					<context npcId="462" str="我仔细想过啦！丑小鸭喜欢现在的生活是理所应当的啊！"/>
+					<context npcId="1" str="哇！童心！怎么刚过了一阵你都变糊涂啦！">
+						<choice str="是啊！">
+							<context npcId="462" str="谁都喜欢被捧着的感觉啊！谁都不喜欢变丑。"/>
+							<context npcId="462" str="我理解丑小鸭！我相信丑小鸭也会理解我们的苦心。"/>
+							<context npcId="462" iconId="11" str="所以，丑小鸭，一定会恢复之前的样子的！"/>
+							<context npcId="1" iconId="26" str="嗯，童心，我们也相信你，因为你信任着你童话故事里的角色。">
+								<choice str="让我们一起帮助丑小鸭，改变它吧！" action="1916_EnjoyingDuckMovie">
+								</choice>		
+							</context>				
+						</choice>
+					</context>
+				</config>;
+         talk["462_1918_AfterUglyDuckComeMovie"] = <config>
+					<context npcId="462" iconId="13" str="唉……多说无用，无药可救啦！无药可救啦！"/>
+					<context npcId="464" iconId="7" str="求求你！快告诉我怎么回事吧！"/>
+					<context npcId="462" iconId="12" str="既然这样，我就告诉你吧！"/>
+					<context npcId="462" iconId="12" str="你已经慢慢变肥，这样下去，你会肥啊！肥啊……"/>
+					<context npcId="462" iconId="12" str="越来越肥，越来越肥，肥成一只被人煮来吃的肥鸭！"/>
+					<context npcId="464" iconId="12" str="嘎！原来你想我放弃美食，早就有人跟我说过，说你们都不是好人。"/>
+					<context npcId="464" iconId="12" str="想骗我？没门！我再怎么肥也是英俊潇洒，风流倜傥的肥鸭！">
+						<choice str="完了，忽悠失败……" action="1918_UglyDuckLeaveMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["462_1918_AfterUglyDuckLeaveMovie"] = <config>
+					<context npcId="1" str="看来激将法没成功……">
+						<choice str="白忙活了。">
+							<context npcId="462" iconId="3" str="没白忙，你们看！天气变啦！机会来啦！">
+								<choice str="什么机会？" taskId="1918" action="1918_AutumnComeMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1918_fairytalestar2"] = <config>
+					<context npcId="462" iconId="3" str="丑小鸭担心自己的安危，肯定会跟过来的。">
+						<choice str="真的吗？" action="1918_UglyDuckComeMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1919_AfterAutumnDuckMovie"] = <config>
+					<context npcId="462" iconId="3" str="看！我说得没错吧！我们的机会来喽！"/>
+					<context npcId="1" iconId="7" str="难道童心指的是秋天来了，鸭子们要迁徙？">
+						<choice str="看来没错。">
+							<context npcId="464" iconId="4" str="嘎嘎！好冷啊！鸭子兄弟们！嘎！帮帮忙，带我一起迁徙吧！"/>
+							<context npcId="467" str="你那么肥，我可带不走！"/>
+							<context npcId="468" str="就是。我要赶紧走了喽！不然会被冻死。"/>
+							<context npcId="464" iconId="12" str="你们！刚才还请你们大吃大喝！你们怎么能这样？"/>
+							<context npcId="469" str="嘿嘿！吃货！只知道吃，现在知道痛苦了吧！"/>
+							<context npcId="464" iconId="8" str="求求你们，带我走吧！我不想被冻死！嘎嘎~呜呜～～"/>
+							<context npcId="467" str="拜拜喽！"/>
+							<context npcId="468" str="吃货！"/>
+							<context npcId="469" str="丑八怪！">
+								<choice str="患难时刻见真情啊！" action="1919_DucksFlyAwayMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1919_AfterDucksFlyAwayMovie"] = <config>
+					<context npcId="1" str="嗯，我们要不要帮丑小鸭啊？"/>
+					<context npcId="462" str="当然，丑小鸭，可是我最爱的鸭子啊！那边有&lt;font color='#FF6600'&gt;&lt;b&gt;一些枯枝&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，可以生火取暖。">
+						<choice str="交给我好了。" taskId="1919" action="1919_Tips">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1919_fairytalestar3"] = <config>
+					<context npcId="462" iconId="3" str="嘿嘿，看下去你就知道了！">
+						<choice str="喔？是吗？" action="1919_AutumnDuckMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1920_AfterFindSticks"] = <config>
+					<context npcId="462" str="够了，够了，枯枝够了，点燃枯枝，帮丑小鸭取暖吧！"/>
+					<context npcId="1" str="主人，光能射线要大显神威了，快用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;点燃火堆吧。">
+						<choice str="好！看我的吧。" action="1920_BeginShootSticks">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1921_AfterSuccessToSwimMovie"] = <config>
+					<context npcId="462" iconId="3" str="哦耶！超级无敌丑小鸭减肥大作战之超人丑小鸭游泳计划！成功！"/>
+					<context npcId="1" iconId="7" str="多亏了童心呢！">
+						<choice str="想必丑小鸭也非常高兴吧！" taskId="1921" action="1921_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1921_FailToSwim"] = <config>
+					<context npcId="462" str="坚持、坚持、再坚持，才是游泳的真谛！继续加油吧！">
+						<choice str="继续游泳大作战！" action="1921_DuckSwimGame"/>
+						<choice str="稍等一下吧！"/>
+					</context>
+				</config>;
+         talk["462_1921_fairytalestar3"] = <config>
+					<context npcId="462" iconId="3" str="让我们一起来，超级无敌丑小鸭减肥大作战之超人丑小鸭游泳计划！"/>
+					<context npcId="464" iconId="10" str="游泳计划！耶！">
+						<choice str="大家都好兴奋……">
+							<context npcId="462" iconId="3" str="准备好喽！我们要开始啦！&lt;font color='#FF6600'&gt;&lt;b&gt;只要通过一关就行啦！&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;">
+								<choice str="加油！" action="1921_DuckSwimGame">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1925_AfterPigsFallMovie"] = <config>
+					<context npcId="462" str="哎，看来小猪之家已经被哈鲁达改变了，小猪们居然会追着大灰狼跑……">
+						<choice str="不知曾经的小猪世界是怎么样的……" taskId="1925" action="1925_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1925_fairytalestar4"] = <config>
+					<context npcId="1" str="哎呀，大灰狼要被小猪们追上啦！"/>
+					<context npcId="462" str="#username#，赶紧阻止三只小猪，别让它们追上大灰狼，一定要让大灰狼逃掉。"/>
+					<context npcId="462" str="如果大灰狼被小猪抓住吃掉，这个童话世界就再也无法挽回了！">
+						<choice str="⊙﹏⊙b可是现在要怎么做才好呢？">
+							<context npcId="462" str="快把&lt;font color='#FF6600'&gt;&lt;b&gt;香蕉皮&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;放到小猪的前面，阻止小猪追大灰狼。">
+								<choice str="好的！" action="1925_DropBanana">
+								</choice>
+							</context>
+						</choice>		
+					</context>				
+				</config>;
+         talk["462_1926_fairytalestar4"] = <config>
+					<context npcId="462" str="其实在真实的故事中，是大灰狼要吃那三只小猪。"/>
+					<context npcId="462" str="于是三只小猪努力建造坚固的房子，并团结起来战胜了大灰狼。">
+						<choice str="它们的故事在哪里，借我看看吧。" action="1926_ThreePigsCartoon">
+							<context npcId="462" str="这才是小猪之家真实的故事。">
+								<choice str="现在它们竟然颠倒过来了。">
+									<context npcId="462" str="如果大灰狼被小猪吃了，童话之星就会彻底混乱，童话之书的力量也会归哈鲁达所有。"/>
+									<context npcId="462" str="看来想要阻止哈鲁达的阴谋，必须让这里恢复原状。">
+										<choice str="不如我们先去找大灰狼谈谈吧。">
+											<context npcId="462" str="刚才混乱之中，大灰狼好像跑去了&lt;font color='#FF6600'&gt;&lt;b&gt;公主森林&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;了，我们去那儿看看吧。">
+												<choice str="好的。" taskId="1926" action="1926_Tips">
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1927_AfterWolfGoBackMovie"] = <config>
+					<context npcId="1" str="主人，怎么样，果然还是HELLO最有办法了吧！">
+						<choice str="（竖拇指）厉害！">
+							<context npcId="462" str="虽然大灰狼鼓起勇气回去了，但现在小猪横行，大灰狼可能不是它们的对手。"/>
+							<context npcId="462" str="我们还是回&lt;font color='#FF6600'&gt;&lt;b&gt;小猪之家&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，再找小猪们聊聊，说不定能有点作用。">
+								<choice str="说的有道理，走！" taskId="1927" action="1927_Tips">
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1928_AfterWolfRunAwayMovie"] = <config>
+					<context npcId="1" str="哎，一切没有发生任何改变，如果我会法术，一定要给大灰狼灌满勇气！"/>
+					<context npcId="462" iconId="3" str="HELLO,你倒提醒了我，我想我有办法啦！">
+						<choice str="什么办法？" taskId="1928" action="1928_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1929_AfterCatchPigMovie"] = <config>
+					<context npcId="1" str="HELLO好头大，三只小猪还是不怕大灰狼！"/>
+					<context npcId="462" iconId="3" str="看来我们只能用第二招，假扮大灰狼，吓小猪！">
+						<choice str="看来只能这样啦！" taskId="1929" action="1929_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1929_FailToBuildUpWomanWolf"] = <config>
+					<context npcId="462" str="不是这样叠罗汉的啦，再试一次吧。">
+						<choice str="好，我知道了。" action="1929_BuildUpWomanWolf">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1929_SuccessToBuildUpWomanWolf"] = <config>
+					<context npcId="462" str="耶，成功变身为母狼！现在我们去找大灰狼吧。">
+						<choice str="好的。" action="1929_WomanWolfComeMovie">
+							<context npcId="471" str="……你是？"/>
+							<context npcId="476" iconId="2" str="哼，连你的老情人都不认识啦？"/>
+							<context npcId="471" iconId="4" str="我……我……想起来了！"/>
+							<context npcId="476" iconId="3" str="我饿了，想吃猪肉，去抓只小猪回来吃！"/>
+							<context npcId="471" iconId="2" str="这……这……"/>
+							<context npcId="476" str="这都做不到吗？"/>
+							<context npcId="471" str="遵、遵命！我这就去抓小猪！你等等哦！">
+								<choice str="嘿嘿，大灰狼果然上当啦！" action="1929_CatchPigMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1929_fairytalestar4"] = <config>
+					<context npcId="462" str="我有一个妙计！"/>
+					<context npcId="1" str="什么妙计，快点告诉HELLO，这妙计能让大灰狼变回以前的样子吗？"/>
+					<context npcId="462" str="地球人都知道，大灰狼最怕母狼。"/>
+					<context npcId="462" str="我们三个叠罗汉，变成一只凶巴巴的母狼，然后让它帮我们抓一只小猪回来！">
+						<choice str="好主意。" action="1929_BuildUpWomanWolf">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1930_FailToBuildUpWolf"] = <config>
+					<context npcId="462" str="还差一点点就成功了，再试一次吧。">
+						<choice str="好的。" action="1930_BuildUpWolf">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1930_SuccessToBuildUpWolf"] = <config>
+					<context npcId="462" str="太棒了，我们成功变身为凶恶的大灰狼了！走，吓唬小猪去！">
+						<choice str="嗯！出发！" taskId="1930" action="1930_Tips">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1930_fairytalestar4"] = <config>
+					<context npcId="462" str="#username#，我们和上次一样叠罗汉扮大灰狼吧！">
+						<choice str="嗯，这次扮大灰狼。" action="1930_BuildUpWolf">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1931_AfterEvilWolfMovie"] = <config>
+					<context npcId="1" str="主人，太好了！三只小猪的世界终于恢复了正常。"/>
+					<context npcId="462" str="这才是小猪之家的故事嘛，哈哈！"/>
+					<context npcId="1" str="童心你真厉害！这回哈鲁达的阴谋又一次被我们正义的拳头粉碎啦！">
+						<choice str="有童心在，哈鲁达怎么可能有机会得逞！">
+							<context npcId="462" str="这也多亏了有你们的帮助，三只小猪世界才恢复正常！">
+								<choice str="大功告成！" taskId="1931" action="1931_VoiceMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1932_AfterAngryHaLuDaMovie"] = <config>
+					<context npcId="462" str="糟糕，哈鲁达在童话之书上胡写一通，会让童话世界更加混乱，无法收场！">
+						<choice str="这……我们现在该怎么办……">
+							<context npcId="462" str="事到如今，我们也只能做好各种准备，应对随时会发生的情况。"/>
+							<context npcId="462" str="我一定会抓紧时间找出解救童话之星的办法，绝对不能让童话之星毁灭！">
+								<choice str="要加油！我们会等你找到解救的办法的！" action="1932_ForenoticeMovie">
+								</choice>
+							</context>	
+						</choice>
+					</context>
+				</config>;
+         talk["462_1934_AfterTask1924"] = <config>
+					<context npcId="462" iconId="11" str="接下来和达斯特人的战斗会非常艰辛，你们，准备好了吗？">
+						<choice str="当然！我可是从来都没怕过啊！" starterId="1934" action="1934_Next"/>
+						<choice str="还是让我准备一下好了。"/>;
+					</context>
+				</config>;
+         talk["462_1935_fairytalestar4"] = <config>
+					<context npcId="462" iconId="3" str="我就知道，你们一定最义气啦！"/>
+					<context npcId="462" iconId="3" str="和我一起回童心小屋，看看达斯特人的情况吧！"/>
+					<context npcId="1" iconId="4" str="刚才明明那么紧张，现在一副悠闲的样子，你到底在想什么啊！">
+						<choice str="创造童话的亚比啊！难以捉摸……">
+							<context npcId="462" str="快走吧！先回我家，要跟上我哦！">
+								<choice str="好的。" taskId="1935" action="1935_GoToForestMovie">
+								</choice>
+							</context>
+						</choice>		
+					</context>				
+				</config>;
+         talk["462_1936_fairytalestar1"] = <config>
+					<context npcId="462" str="我们要赶快阻止哈鲁达，要不然要出大事了！">
+						<choice str="我也有不祥的预感。">
+							<context npcId="8" iconId="3" str="嘿嘿~这次我哈鲁达大人，绝对不会失败！">
+								<choice str="哈鲁达，放弃吧！不要再做梦了。" action="1936_FightWithHaLuDa">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1937_AfterSnowPrincessComeMovie"] = <config>
+					<context npcId="462" iconId="3" str="你看！我说吧！大家会来帮忙的。"/>
+					<context npcId="1" iconId="35" str="这也……至少白雪公主也要率领七个小矮人的联合军队什么的。">
+						<choice str="是啊！然后来个大决战啊！">
+							<context npcId="462" iconId="3" str="哎呀！哈哈！那样就不是白雪公主了嘛，而且有个苹果也不错嘛。">
+								<choice str="汗……">
+									<context npcId="462" iconId="3" str="接下来再去&lt;font color='#FF6600'&gt;&lt;b&gt;丑小鸭世界找丑小鸭&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;帮忙，看能不能想出些办法吧！">
+										<choice str="希望能有奇迹出现。" taskId="1937" action="1937_GoToDuckWorldMovie">
+										</choice>				
+									</context>
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1937_fairytalestar2"] = <config>
+					<context npcId="462" iconId="11" str="哈鲁达还没有控制好童话之书的力量，我们还有机会！"/>
+					<context npcId="1" iconId="30" str="已经有那么多的达鲁战士了，我们该怎么办？">
+						<choice str="是啊！这是无法胜利的战争。">
+							<context npcId="462" iconId="11" str="不会的啦！哈鲁达肯定会收回一部分达鲁战士。"/>
+							<context npcId="462" iconId="3" str="要不然，他自己岂不是也被达鲁战士踩瘪啦？">
+								<choice str="说得好像有道理。">
+									<context npcId="462" iconId="11" str="我们要抓住这个机会，找大家来帮忙！">
+										<choice str="大家？？">
+											<context npcId="462" str="是啊，白雪公主它们一定会帮助我们的！">
+												<choice str="对啊，我怎么没想到。" action="1937_SnowPrincessComeMovie">
+												</choice>				
+											</context>			
+										</choice>				
+									</context>
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1938_fairytalestar3"] = <config>
+					<context npcId="462" iconId="3" str="小丑鸭！丑小鸭！快出来！快出来！">
+						<choice str="丑小鸭现在已经变成白天鹅啦！">
+							<context npcId="462" iconId="3" str="对哦！小丑鹅！丑小鹅！快出来！">
+								<choice str="……" action="1938_SwanComeMovie">
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1940_AfterWolfAndPigsMovie"] = <config>
+					<context npcId="462" iconId="3" str="太好啦！又见到你们啦！"/>
+					<context npcId="472" iconId="2" str="救命！救命！大灰狼要吃我们啊！"/>
+					<context npcId="462" iconId="3" str="对啊！对啊！吃你们才对啊！">
+						<choice str="……">
+							<context npcId="471" iconId="6" str="好饿啊！我要吃小猪！"/>
+							<context npcId="462" iconId="3" str="不要老想着吃嘛！我是来找你们帮忙的。">
+								<choice str="哈鲁达要摧毁童话之星了，你们能帮我们吗？">
+									<context npcId="471" str="咕咕……咕噜……肚子饿得咕咕叫，你看！锅都空了，没有力气啊！"/>
+									<context npcId="472" str="这么多砖摆在这儿，天天被大灰狼追，房子也没盖完呢！"/>
+									<context npcId="462" iconId="3" str="哦？这么说，大锅和砖头都没有什么用喽！那我就先借走啦！">
+										<choice str="咦？借这些东西有什么用呢？">
+											<context npcId="462" iconId="3" str="我已经想出对策啦！我们一起去&lt;font color='#FF6600'&gt;&lt;b&gt;公主森林&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;准备一下，准备大反攻！">
+												<choice str="不知道是什么样的对策。" taskId="1940" action="1940_GoToForestMovie">
+												</choice>				
+											</context>
+										</choice>				
+									</context>
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1940_fairytalestar4"] = <config>
+					<context npcId="462" iconId="3" str="大灰狼！小猪！快出来啊！">
+						<choice str="不知道它们现在怎么样。" action="1940_WolfAndPigsMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1941_FailCookApple"] = <config>
+					<context npcId="462" str="我们想想办法，搭好炉灶，将苹果汤熬好吧！">
+						<choice str="嗯！好！">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1941_SuccessCookApple"] = <config>
+					<context npcId="462" str="太好啦！现在可以执行我们的第二步计划啦！">
+						<choice str="什么计划？" taskId="1941" action="1941_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1941_fairytalestar2"] = <config>
+					<context npcId="462" iconId="3" str="和我来一起完成伟大的计划吧！">
+						<choice str="还是先把计划和我们说说吧！">
+							<context npcId="462" iconId="3" str="哈鲁达变出了这么多达鲁，一定很混乱，我们就伪装成达鲁，趁乱过去。"/>
+							<context npcId="462" iconId="3" str="将这些能迷倒人的苹果煮成的汤给它们喝下，然后夺回童话之书！"/>
+							<context npcId="1" iconId="7" str="太棒啦！童心，你是怎么想到的，而且材料这么齐全。"/>
+							<context npcId="462" iconId="3" str="(*^__^*) 嘻嘻……不告诉你！">
+								<choice str="事不宜迟！我们开始吧！" action="1941_CookApple">
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1942_fairytalestar2"] = <config>
+					<context npcId="462" iconId="3" str="我们要重演叠罗汉，变成达鲁啦！"/>
+					<context npcId="1" iconId="12" str="不是吧！之前叠罗汉好辛苦啊！">
+						<choice str="嗯嗯嗯……">
+							<context npcId="462" iconId="3" str="为了拯救童话之星，灌晕达斯特，我们还是要付出一点点努力的。"/>
+							<context npcId="462" iconId="3" str="准备好了吗？叠罗汉要开始喽！">
+								<choice str="好吧！" action="1942_PyramidMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["462_1943_AfterKickOut"] = <config>
+					<context npcId="1" str="主人！我们的伪装失败了，我们找童心伪装一下，重新潜入吧！">
+						<choice str="好！">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1943_fairytalestar1"] = <config>
+					<context npcId="462" str="（悄悄对我们说）大家小心啦！可不要说错话，要不然就惨啦!"/>
+					<context npcId="1" str="放心吧！HELLO可是非常机灵的。">
+						<choice str="嗯，我也会小心的。">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1943_fairytalestar2"] = <config>
+					<context npcId="462" iconId="3" str="准备好了吗？叠罗汉要开始喽！">
+						<choice str="好吧！" action="1942_PyramidMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1944_fairytalestar2"] = <config>
+					<context npcId="462" iconId="3" str="准备好了吗？叠罗汉要开始喽！">
+						<choice str="好吧！" action="1942_PyramidMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1945_fairytalestar2"] = <config>
+					<context npcId="462" iconId="3" str="准备好了吗？叠罗汉要开始喽！">
+						<choice str="好吧！" action="1942_PyramidMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1950_AfterFellowComeMovie"] = <config>
+					<context npcId="462" iconId="14" str="白雪公主、白天鹅、大灰狼和三只小猪，谢谢你们！"/>
+					<context npcId="462" iconId="14" str="你们如此相信我！我一定会夺回童话之书，把你们恢复原来的样子。">
+						<choice str="童心！让我们一起加油吧！" taskId="1950" action="1950_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1951_FailToSeal"] = <config>
+					<context npcId="462" str="一定要封印黑暗之门。">
+						<choice str="知道啦。">
+						</choice>
+					</context>
+				</config>;
+         talk["462_1951_fairytalestar1"] = <config>
+					<context npcId="462" str="点击&lt;font color='#FF6600'&gt;&lt;b&gt;黑暗之门&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;封印它吧！">
+						<choice str="嗯，封印黑暗之门！" action="1951_SealDoorInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["463_1897_fairytalestar2"] = <config>
+					<context npcId="463" str="我才是真的白雪公主，你们要相信我，她们是假的。"/>
+					<context npcId="1" str="HELLO头都大了，到底谁才是真正的白雪公主啊？"/>
+					<context npcId="462" str="真的白雪公主很善良，受到小动物们的喜爱。"/>
+					<context npcId="1" iconId="6" str="主人，童心说真的白雪公主很善良。"/>
+					<context npcId="1" iconId="6" str="这是不是在暗示我们辨别真假白雪公主的方法呢？">
+						<choice str="有可能，那我们就试着找出真的白雪公主吧。" taskId="1897" action="1897_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["463_1898_SuccessToFind"] = <config>
+					<context npcId="463" str="谢谢你！#username#，假的白雪公主终于消失了，你真是一个勇士。">
+						<choice str="过奖啦！">
+							<context npcId="463" iconId="2" str="咦？怎么忽然感觉……头有一些晕……"/>
+							<context npcId="463" iconId="2" str="难道刚才……我……我……">
+								<choice str="白雪公主你怎么了？" taskId="1898" action="1898_SnowPrincessFallMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["463_1899_AfterTask1891"] = <config>
+					<context npcId="1" str="白雪公主快醒醒！">
+						<choice str="快醒醒！" starterId="1899" action="1900_AppleMovie"/>	
+					</context>
+				</config>;
+         talk["463_1900_AfterAppleMovie"] = <config>
+					<context npcId="1" iconId="12" str="白雪公主！怎么会这样？">
+						<choice str="难道有人暗中伤害了白雪公主？">
+							<context npcId="1" iconId="16" str="主人，你看，地上有个被咬了一口的苹果。"/>
+							<context npcId="462" str="白雪公主一定是吃了有毒的苹果，怎么办？该怎么办？"/>
+							<context npcId="1" str="我想起来了，童话记载中，王子亲吻了公主，才令公主苏醒。">
+								<choice str="事到如今，我也只好为正义现身……！！亲吻公主啦！" taskId="1900" action="1900_Next">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["463_1900_fairytalestar2"] = <config>
+					<context npcId="1" str="白雪公主快醒醒！">
+						<choice str="快醒醒！" action="1900_AppleMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["464_1908_fairytalestar3"] = <config>
+					<context npcId="464" action="1908_DuckTalkMovie">
+					</context>
+				</config>;
+         talk["464_1917_fairytalestar3"] = <config>
+					<context npcId="464" iconId="4" str="嘎嘎！别打扰我，跟我说什么大道理！"/>
+					<context npcId="464" iconId="4" str="看到没？这就是我现在的生活，两个字——幸福！"/>
+					<context npcId="462" iconId="8" str="哎呀！哎呀！完啦!完啦！"/>
+					<context npcId="462" iconId="8" str="嗯，没错！后果很严重……非常严重……">
+						<choice str="？？？">
+							<context npcId="464" iconId="4" str="嘎嘎嘎！说什么呐？什么后果很严重啊！你…你可别乱说……"/>
+							<context npcId="462" iconId="12" str="哎呀！命不久矣！唉……可怜啊！"/>
+							<context npcId="464" iconId="5" str="嘎嘎……嘎嘎……你说什么呢？快！有什么事情要发生，快告诉我！"/>
+							<context npcId="1" iconId="4" str="（悄悄对主人说）主人，童心是不是在忽悠丑小鸭啊？">
+								<choice str="好像是啊！">
+									<context npcId="462" iconId="12" str="我已经看出，你大限将至，命不久矣……可怜一条性命啊！"/>
+									<context npcId="464" iconId="6" str="真的？真的吗？快告诉我，该怎么办？"/>
+									<context npcId="462" iconId="3" str="（悄悄对我们说）我们去&lt;font color='#FF6600'&gt;&lt;b&gt;公主森林&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，丑小鸭会跟来的。">
+										<choice str="好！听你的。" taskId="1917" action="1917_GoToForestMovie">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["464_1920_AfterShootSticks"] = <config>
+					<context npcId="464" iconId="9" str="嘎嘎嘎！谢谢你们！都……都是我不好，还说你们是坏人。"/>
+					<context npcId="462" iconId="3" str="哈哈！没关系啦！不过树枝只能暂时保暖哦！要度过冬天，还要靠你自己啊！"/>
+					<context npcId="464" iconId="13" str="我一定会努力的，嘎！可是我这么肥，该怎么办？"/>
+					<context npcId="462" iconId="3" str="让我们一起，实施童心减肥计划——减肥大作战吧！"/>
+					<context npcId="462" iconId="3" str="不过，过程可是非常地艰辛哦！"/>
+					<context npcId="464" iconId="10" str="我相信你们，有你们这样对我不离不弃，我什么都不怕！"/>
+					<context npcId="462" iconId="3" str="呜呜……我也要激动死了呢！我会帮助你，度过难关的。">
+						<choice str="到底是什么主意，快开始吧！" taskId="1920" action="1920_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["464_1922_fairytalestar3"] = <config>
+					<context npcId="464" iconId="11" str="嘎嘎！谢谢~谢谢你们！我~嘎~我可以飞啦！"/>
+					<context npcId="462" str="要经过努力，才会体会到成功！这才是真正的丑小鸭啊！">
+						<choice str="太好了，这样你就可以飞走啦！" action="1922_DuckBecomeSwanMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["46_169_siwude2"] = <config>
+					<context str="这么快就追来了，有点本事。"/>
+					<context str="不过，嘿嘿嘿，让你见识下我强大的变异蔓藤吧！看你还能不能追过来。">
+						<choice type="0" str="我不会放弃的！" action="46_169_Movie"/>
+					</context> 
+				</config>;
+         talk["46_171_siwude3"] = <config>
+					<context str="嘿嘿嘿，想不到你居然敢追来。">
+						<choice type="0" str="你是谁？有什么目的？">
+							<context str="我？哈哈哈，我就是达斯特首席科学家——多克特。至于目的嘛，现在就让你知道。">
+								<choice type="0" str="我不会让你得逞的！" taskId="171" action="46_171_Movie"/>
+							</context>
+					   </choice>
+					</context>
+				</config>;
+         talk["46_172_failure"] = <config>
+					<context str="你就这点程度么？哈哈，我的实验品果然是无敌的。">
+						<choice type="0" str="我还没发挥实力呢！" action="45_172_siwude3"/>
+					</context>
+				</config>;
+         talk["46_172_siwude3"] = <config>
+					<context str="嘿嘿嘿，进化后的木木鸟可是很强大的，你能打赢它吗？">
+						<choice type="0" str="当然没问题。" action="GotoFight"/>
+					 <choice type="0" str="先让我准备一下。"/>
+				   </context>
+				</config>;
+         talk["46_172_success"] = <config>
+					<context str="嘿嘿，这次让你侥幸逃过了，下次可没有这么幸运哦，哈哈。">
+						<choice type="0" str="无论来多少次都会打败你。" action="46_172_Movie"/>
+					</context>
+				</config>;
+         talk["46_1848_siwude3"] = <config>
+					<context npcId="46" iconId="4" str="哈哈，等我把这些亚比交给王子殿下，他一定会夸奖我的！">
+						<choice str="多克特，你想得太美了。">
+							<context npcId="46" str="怎么，难道你们想阻止我？"/>
+							<context npcId="441" iconId="3" str="没错，赶紧把我的伙伴们放了，要不然我不会放过你的。"/>
+							<context npcId="46" str="听这口气，看来刚才把我手下打伤的就是你们了。"/>
+							<context npcId="441" iconId="3" str="没错，就是我们，就凭那三脚猫的功夫还敢在我面前撒野。"/>
+							<context npcId="46" str="哟，还挺横的嘛，不过刚才只是一个热身，所以先别太得意。"/>
+							<context npcId="441" str="那就拿出你最大的本事来，我倒是想看看究竟有多厉害。"/>
+							<context npcId="46" str="既然这样，我就让你见识一下！">
+								<choice str="木面仔小心！" action="1848_MuMianHurt">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["46_196302_magicstar2"] = <config>
+					<context npcId="46" iconId="10" str="哈哈哈……想不到我达斯特首席科学家多克特依然如此犀利！">
+						<choice str="刚才只是个热身，没尽全力，这次才是真正的实力！"/>
+					</context>
+				</config>;
+         talk["46_196303_magicstar2"] = <config>
+					<context npcId="46" iconId="3" str="谁说科学家不懂艺术，人家只不过是想看场魔术表演而已，你们至于这么残暴吗……">
+						<choice str="⊙﹏⊙b汗……达斯特的科学家果然疯狂。">
+							<context npcId="1" iconId="30" str="主人，我们不要和他多废话了，赶紧去阻止摩么卡吧，要不然就来不及了！">
+								<choice str="嗯，阻止摩么卡要紧！" taskId="1963" action="1963_End">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["46_1963_magicstar2"] = <config>
 					<context npcId="46" iconId="7" str="连我达斯特首席科学家多克特都敢撞，看来得给你点颜色看看才行。">
 						<choice str="那就比比谁更厉害吧！" action="fightwithduokete"/>
 						<choice str="我先准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["46_196_siwude4"] = <dialog>
+					<context str="哈哈哈，我的实验终于成功了。">
+						<choice type="2" str="啊~~~~！" action="46_196_siwude4_woodevolution"/>
+					</context>
+				</dialog>;
+         talk["46_197_siwude4"] = <dialog>
+					<context str="我创造出的变异木木鸟是无敌的，哈哈哈哈……"/>
+				</dialog>;
+         talk["46_197_siwude4fightlose"] = <dialog>
+					<context str="我创造出的变异木木鸟是无敌的，哈哈哈哈……">
+						<choice type="2" str="绝不让你伤害木木鸟。"/>
+					</context>
+				</dialog>;
+         talk["46_197_siwude4fightwin"] = <dialog>
+					<context str="别以为这样就战胜我的变异木木鸟了，我多克特的实验品是无敌的。">
+						<choice type="2" str="像你这种把亚比当作实验品的人是不会成功的！" action="45_197_siwude4win">
+						</choice>
+					</context>
+				</dialog>;
+         talk["46_197_siwude4fightwincontinue2"] = <dialog>
+					<context str="不可能，我的实验居然失败了！"/>
+					<context str="奥拉之辉真是太不可思议了。这次就先放过你们，下次走着瞧。">
+						<choice type="0" str="你永远都不会得逞的。" taskId="197" action="46_197_siwude4fightwincontinue2_doketeleave"/>
+					</context>
+				</dialog>;
+         talk["46_198902_magicstar3"] = <config>
+					<context npcId="46" iconId="4" str="哈哈哈……达斯特首席科学家多克特前进的步伐果然是无人可挡！">
+						<choice str="哼，刚才没尽全力，现在让你看看我真正的实力！"/>
+					</context>
+				</config>;
+         talk["46_198903_magicstar3"] = <config>
+					<context npcId="46" iconId="1" str="哼，武力向来都不是我的强项，但是摩么卡是绝对逃不出我的手心的。">
+						<choice str="别太自以为是！" taskId="1989" action="1989_End"/>
+					</context>
+				</config>;
+         talk["46_1989_magicstar3"] = <config>
+					<context npcId="46" iconId="1" str="达斯特首席科学家多克特岂是你可以阻止得了的？">
+						<choice str="不试试怎么知道。" action="1986_fightWithDuokete"/>
+						<choice str="我先准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["46_1990_magicstar3"] = <config>
+					<context npcId="46" iconId="1" str="没有我多克特办不到的事，摩么卡，我劝你还是乖乖帮我把能量提取出来吧！"/>
+					<context npcId="487" iconId="7" str="你妄想，我才不会帮助你这种坏蛋呢！"/>
+					<context npcId="46" iconId="4" str="听说摩么卡是由一位老太婆抚养长大的，不知道如果我把她给抓了会怎样？"/>
+					<context npcId="487" iconId="7" str="坏蛋，不许你动我奶奶。">
+						<choice str="有我在，你休想动安迪奶奶一根毫毛。" action="1986_Movie3">
+						</choice>
+					</context>
+				</config>;
+         talk["46_199201_magicstar1"] = <config>
+					<context npcId="46" iconId="4" str="哈哈……不错嘛，连我多克特的障眼法都能逃脱，不过你们还是晚了一步！"/>
+					<context npcId="487" iconId="7" str="坏蛋，快把我奶奶给放了。"/>
+					<context npcId="46" iconId="4" str="放这个老太婆可以，那得看你肯不肯合作了！">
+						<choice str="多克特，你简直太过分了！">
+							<context npcId="46" iconId="7" str="哼，我没有时间和你们理论，摩么卡，你快点决定，要不然我就撕票了!"/>
+							<context npcId="487" iconId="10" str="你们不可以动我奶奶，你得先把我奶奶给放了，我再考虑。">
+								<choice str="对，先放了安迪奶奶再说。" action="1986_Movie5"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["46_199202_magicstar1"] = <config>
+					<context npcId="46" iconId="4" str="怎么？摩么卡，你是不是改变主意了？"/>
+					<context npcId="487" iconId="10" str="我……我答应你！"/>
+					<context npcId="46" iconId="4" str="哈哈……我就知道你不会坐视不管的，果然不出我所料。">
+						<choice str="多克特，你别太得意了！" taskId="1992" action="1992_End">
+						</choice>
+					</context>
+				</config>;
+         talk["46_1992_magicstar1"] = <config>
+					<context npcId="46" iconId="4" str="哈哈……不错嘛，连我多克特的障眼法都能逃脱，不过你们还是晚了一步！">
+						<choice str="快把安迪奶奶放了。" action="1986_Movie4"/>
+					</context>
+				</config>;
+         talk["46_199302_magicstar1"] = <config>
+					<context npcId="46" iconId="4" str="所以你只要把魔术棒里面的能量释放出来就可以了。"/>
+					<context npcId="487" iconId="1" str="好的，我明白了，我帮你就是，现在可以把我奶奶放了吧。"/>
+					<context npcId="46" iconId="1" str="那可不行，你身边有这个碍事的小奥拉，我不会这么轻易上当的。">
+						<choice str="⊙﹏⊙b汗……" taskId="1993" action="1993_End">
+						</choice>
+					</context>
+				</config>;
+         talk["46_1999_magicstar3"] = <config>
+					<context npcId="46" iconId="4" str="哈哈……你们现在才来，也太迟了吧！"/>
+					<context npcId="487" iconId="15" str="怎么会迟呢？#username#，奶奶的东西应该准备好了吧？">
+						<choice str="嗯，是的，已经准备好了。">
+							<context npcId="487" iconId="15" str="把东西拿在手上不要动，下面就等着见证奇迹吧！">
+								<choice str="好的！" action="1995_Movie4"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["46_2000_magicstar3"] = <config>
+					<context npcId="46" iconId="6" str="我才没那么笨呢，你以为我会相信吗？我是不会上当的！"/>
+					<context npcId="487" iconId="12" str="既然不信，那我就打开我的魔术盒让你看看。">
+						<choice str="嗯，得让他看看才行。" action="1995_Movie5"/>
+					</context>
+				</config>;
+         talk["46_200102_magicstar3"] = <config>
+					<context npcId="46" iconId="6" str="这是我新研制出的钢铁科克，至今还没有遇到过对手。"/>
+					<context npcId="46" iconId="6" str="所以我劝你们还是乖乖把能量交出来，也免得受皮肉之苦。"/>
+					<context npcId="487" iconId="7" str="是你们害死了我妈妈，我是绝对不会把能量交给你的。"/>
+					<context npcId="486" iconId="1" str="现在看来，要打败多克特，就只有一个办法了。">
+						<choice str="什么办法？" taskId="2001" action="2001_End"/>
+					</context>
+				</config>;
+         talk["46_2001_magicstar3"] = <config>
+					<context npcId="46" iconId="7" str="既然如此，我就让你们见识一下我多克特钢铁科克的厉害！">
+						<choice str="我可不怕你。" action="2001_Fight"/>
+						<choice str="还没准备好，待会再来和你较量。"/>
+					</context>
+				</config>;
+         talk["46_200302_magicstar3"] = <config>
+					<context npcId="46" iconId="4" str="哈哈哈……看来我的钢铁科克已经所向披靡了！">
+						<choice str="别太得意，刚才能力没有完全发挥，再来一次！"/>
+					</context>
+				</config>;
+         talk["46_200303_magicstar3"] = <config>
+					<context npcId="46" iconId="3" str="不会的，我的极品科克是不会被打败的，怎么会这样？">
+						<choice str="这是事实！" taskId="2003" action="2003_End"/>
+					</context>
+				</config>;
+         talk["46_2003_magicstar3"] = <config>
+					<context npcId="46" iconId="6" str="不要以为换了一个马甲，就可以战胜我的钢铁科克，那是不可能的。">
+						<choice str="一切皆有可能！" action="2003_Fight"/>
+						<choice str="我还没有准备好，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["46_223802_hexagrampalace3"] = <config>
+					<context npcId="46" iconId="1" str="凯撒大人，这是我多克特最新研制出的产品，只要服下它，就能力量大增，战无不胜！"/>
+					<context npcId="539" iconId="1" str="哈哈哈哈！黑王子，想不到关键时候，你们达斯特还是对我有点帮助的！">
+						<choice str="这下糟糕！" action="2236_Movie2"/>
+					</context>
+				</config>;
+         talk["46_704_siwude5"] = <config>
+					<context str="我看你就是个只会喊口号的小孩子，还是乖乖回家去吧。">
+						<choice str="可恶！就让你看看正义勇士的实力吧！" action="t698Fight2"/>//与多克特对战
+					</context>
+				</config>;
+         talk["470_1938_AfterSwanComeMovie"] = <config>
+					<context npcId="470" str="嘎嘎！哎呀！以前习惯当鸭子了，现在叫起来还是“嘎啊嘎的”。"/>
+					<context npcId="462" iconId="3" str="我可遇上大麻烦了，就是之前的坏蛋，它们要毁灭童话之星。"/>
+					<context npcId="470" str="嘎啊！！！！！！！！这群坏蛋！哦！对喽！我这儿有几件秘密法宝，一定可以帮到你！">
+						<choice str="（眼睛一亮）真的？什么法宝？">
+							<context npcId="470" str="就在那边的&lt;font color='#FF6600'&gt;&lt;b&gt;芦苇堆&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;里，你去看看吧！">
+								<choice str="这么奇怪的宝物。" taskId="1938" action="1938_ReedSwingMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["470_1939_AfterFindClothes"] = <config>
+					<context npcId="470" str="嘎！我的宝物啊！藏得这么深，还是被你们找到啦！"/>
+					<context npcId="1" iconId="35" str="你这是坑我们啊！白天鹅，我们都成收垃圾的了。">
+						<choice str="是啊！破衣服能有什么用？">
+							<context npcId="462" iconId="3" str="不不不！这个一定能派上大用场。太谢谢你啦！白天鹅！">
+								<choice str="……">
+									<context npcId="462" iconId="3" str="我们现在去&lt;font color='#FF6600'&gt;&lt;b&gt;小猪之家&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，看看能得到什么帮助吧！">
+										<choice str="好的。" action="1939_GoToPigsHomeMovie">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["470_1939_AfterGoToPigsHomeMovie"] = <config>
+					<context npcId="1" iconId="4" str="主人啊！HELLO完全不明白童心在想些什么……">
+						<choice str="童心一定有自己的道理，我们去小猪之家吧。" taskId="1939" action="1939_Tips">
+						</choice>
+					</context>
+				</config>;
+         talk["471_1927_fairytalestar2"] = <config>
+					<context npcId="471" iconId="2" str="好恐怖……好恐怖，小猪要吃我！"/>
+					<context npcId="471" iconId="2" str="天，我一定赶紧找个安全的地洞钻进去！">
+						<choice str="看来大灰狼已经被吓到脚软了，得想个办法让它拿出点勇气才行啊！">
+							<context npcId="1" str="有了！HELLO觉得应该可以采取激将法！嘿嘿！看HELLO的吧！">
+								<choice str="嗯……可以试试。">
+									<context npcId="1" str="喂，大灰狼！怎么说你也是个男子汉，居然被区区三只小猪吓成这样，真是胆小鬼。"/>
+									<context npcId="471" iconId="3" str="我、我才不是胆小鬼呢！"/>
+									<context npcId="471" iconId="3" str="……哼，别、别小瞧我！我这就回去给、给你瞧瞧我有多勇敢！">
+										<choice str="加油！加油！我们会帮你的！" action="1927_WolfGoBackMovie">
+										</choice>				
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["472_1928_fairytalestar4"] = <config>
+					<context npcId="472" str="╮(╯▽╰)╭肚子好饿啊，再不吃一顿香喷喷的狼肉，估计我就要饿死啦！"/>
+					<context npcId="473" str="是啊是啊！"/>
+					<context npcId="474" str="嘿嘿嘿，今天一定要逮住那只大灰狼，这样晚上才有狼肉火锅吃！">
+						<choice str="⊙﹏⊙第一次见到这么凶狠的小猪，还真是心里发毛。">
+							<context npcId="462" str="其实，你们如果肚子饿了，可以吃这里的草啊！看，这草多绿多鲜嫩啊！"/>
+							<context npcId="472" str="啊？吃草？呸呸呸，那么难吃的东西谁要吃啊！"/>
+							<context npcId="473" str="就是就是！"/>
+							<context npcId="474" str="你才吃草呢，你全家都吃草！">
+								<choice str="大家冷静啊，有话好好说，别暴粗话！">
+									<context npcId="462" str="你们想想呀，这里才一只大灰狼，吃掉了，就没有啦！"/>
+									<context npcId="475" str="嗯嗯，是啊，就一只。"/>
+									<context npcId="462" str="如果大灰狼没有了，你们又生出很多的小猪，那到时候说不定连草都要被你们吃光。"/>
+									<context npcId="462" str="到最后，你们也只能被活活饿死啦！"/>
+									<context npcId="472" str="嗯……好像说的有点道理…"/>
+									<context npcId="473" str="没错没错！"/>
+									<context npcId="474" str="哎呀，你们别听这家伙的歪道理！它肯定是想自己独吃大灰狼才会这么说的！"/>
+									<context npcId="475" str="没错！一定是这样！">
+										<choice str="o(╯□╰)o童心的劝说完败！" action="1928_WolfRunAwayMovie">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["472_1931_AfterWolfComeMovie"] = <config>
+					<context npcId="472" str="大灰狼，来的正好。"/>
+					<context npcId="473" str="正好正好！"/>
+					<context npcId="474" str="这次绝不会让你跑掉，我们晚上还要吃狼肉火锅呢！"/>
+					<context npcId="471" iconId="5" str="我发现猪肉是最好吃的，哎呀……不好意思，嘴没擦干净……"/>
+					<context npcId="475" str="…………"/>
+					<context npcId="471" iconId="5" str="我女朋友要吃猪肉，你们谁愿意让我吃呀！">
+						<choice str="（心想）看你们怕不怕。" action="1931_EvilWolfMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["472_1931_fairytalestar4"] = <config>
+					<context npcId="472" action="1931_WolfComeMovie">
+					</context>
+				</config>;
+         talk["477_1943_Choice1"] = <config>
+					<context npcId="477" str="达鲁编号1才是真正的达鲁编号1。警报！警报！有人入侵！">
+						<choice str="不好！被发现啦！" action="KickOutSceneMovie"/>
+					</context>
+				</config>;
+         talk["477_1943_Choice2"] = <config>
+					<context npcId="477" str="编号9999，哇！现在达鲁已经有这么多啦！">
+						<choice str="哈鲁达大人嘉奖大家，特地命我来送汤！">
+							<context npcId="477" str="哈鲁达大人最疼爱我们了！哈鲁达大人万岁！">
+								<choice str="喝汤吧！" taskId="1943" action="1943_DaLuSleepMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["477_1943_Choice3"] = <config>
+					<context npcId="477" str="每一个达鲁都有编号，你是假达鲁。警报！警报！有人入侵！">
+						<choice str="不好！被发现啦！" action="KickOutSceneMovie"/>
+					</context>
+				</config>;
+         talk["477_1943_fairytalestar1"] = <config>
+					<context npcId="477" str="为确保没有奸细，哈鲁达大人要求，报上编号！">
+						<choice str="我是编号1。" action="1943_Choice1"/>
+						<choice str="我是编号9999。" action="1943_Choice2"/>
+						<choice str="我没有编号。" action="1943_Choice3"/>
+					</context>
+				</config>;
+         talk["478_1944_Choice12"] = <config>
+					<context npcId="478" str="黑元首大人才是仙福永享、寿与天齐、宇宙第一！你是间谍！">
+						<choice str="啊！被发现了！" action="KickOutSceneMovie"/>
+					</context>
+				</config>;
+         talk["478_1944_Choice3"] = <config>
+					<context npcId="478" str="哦耶！我们伟大的宇宙第二的哈鲁达大人，万岁！">
+						<choice str="哈鲁达大人奖励大家，派我来送汤。">
+							<context npcId="478" str="不愧是伟大的宇宙第二的哈鲁达大人，对我们这么贴心！">
+								<choice str="快喝吧！" taskId="1944" action="1944_DaLuSleepMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["478_1944_fairytalestar1"] = <config>
+					<context npcId="478" str="为防止有假冒达鲁，请报上口号！">
+						<choice str="哈鲁达大人是宇宙第一，万岁！" action="1944_Choice1"/>
+						<choice str="哈鲁达大人仙福永享、寿与天齐！" action="1944_Choice2"/>
+						<choice str="伟大的宇宙第二的哈鲁达大人，万岁！" action="1944_Choice3"/>
+					</context>
+				</config>;
+         talk["479_1945_Choice1"] = <config>
+					<context npcId="479" str="有这份丰功伟绩！哈鲁达大人一定会带领我们升官发财！">
+						<choice str="嗯，很好！大家辛苦，哈鲁达大人派我来送汤。">
+							<context npcId="479" str="如此英俊潇洒，聪明绝顶的哈鲁达大人，竟然对我们这么贴心！">
+								<choice str="快喝吧！" action="1945_DaLuSleepMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["479_1945_Choice23"] = <config>
+					<context npcId="479" str="连哈鲁达大人的丰功伟绩都记错！你肯定是奸细！">
+						<choice str="啊！被发现了！" action="KickOutSceneMovie"/>
+					</context>
+				</config>;
+         talk["479_1945_fairytalestar1"] = <config>
+					<context npcId="479" str="身份确认系统启动！请回答哈鲁达大人在童话之星的丰功伟绩！">
+						<choice str="哈鲁达大人抢夺童话之书、改变丑小鸭和三只小猪的世界！" action="1945_Choice1"/>
+						<choice str="哈鲁达大人抢夺童话之书、改变白雪公主和丑小鸭的世界！" action="1945_Choice2"/>
+						<choice str="哈鲁达大人抢夺童话之书、改变三只小猪和白雪公主的世界！" action="1945_Choice3"/>
+					</context>
+				</config>;
+         talk["480_1953_AfterForeverMovie"] = <config>
+					<context npcId="1" iconId="12" str="哇！童心！哈鲁达哪里去了呢？"/>
+					<context npcId="480" iconId="2" str="他啊！他可是被我放到了一个关于万圣节的童话中了呢！他应该会玩得很开心吧！嘿嘿~">
+						<choice str="哈哈！这下哈鲁达可要受苦了啊！">
+							<context npcId="480" str="我现在想要把我的童话伙伴们变回原样。">
+								<choice str="当然啊！它们可是大功臣。">
+									<context npcId="480" str="不过这样！可能就无法将童话之书的力量借给你们……恢复奥拉之辉了。">
+										<choice str="（犹豫一下）放心吧！我们会找到新的纯净能源的。">
+											<context npcId="480" str="谢谢你们！等童话之书的力量恢复，我会去帮助你们的！"/>
+											<context npcId="1" iconId="7" str="我们都是好朋友啦！还客气什么。主人！我们也要和童心告别啦！">
+												<choice str="是啊！要回指挥中心，向司令官报告了。" taskId="1953" action="1953_HaLuDaMovie">
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["480_1953_fairytalestar1"] = <config>
+					<context npcId="480" str="#username#，让我们一起，战胜哈鲁达和他的钢铁达鲁吧！">
+						<choice str="我们与童心的组合，无敌天下！" action="1953_TeamFightWithSteelDaLu">
+						</choice>
 					</context>
 				</config>;
          talk["484_1960_magicstar1"] = <config>
@@ -5085,6 +11704,18 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["486_196202_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="孩子，奶奶跑不动了，你们能帮奶奶把摩么卡追回来吗？"/>
+					<context npcId="1" iconId="4" str="可是安迪奶奶，HELLO不太明白您为什么不让摩么卡参加魔术表演啊？">
+						<choice str="我们刚才还听说它是个很厉害的魔术师呢！" action="1959_Movie4"/>
+					</context>
+				</config>;
+         talk["486_196203_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="我不能让它破坏星球的规矩，所以才要阻止它的。">
+						<choice str="原来是这样，安迪奶奶放心，我们这就去阻止摩么卡！" taskId="1962" action="1959_Tips1">
+						</choice>
+					</context>
+				</config>;
          talk["486_1962_magicstar1"] = <config>
 					<context npcId="1" iconId="30" str="老奶奶，你没事吧，吓坏HELLO了！"/>
 					<context npcId="486" iconId="3" str="哦，我没事，你们不用担心，不过安迪奶奶好像从来没有见过你们呢？"/>
@@ -5092,6 +11723,155 @@ package mmo.tasknpc
 						<choice str="是啊，您这样跑可是很危险呢！">
 							<context npcId="486" iconId="2" str="因为我要阻止它参加魔术表演，要不然它会惹祸的！">
 								<choice str="魔术表演？惹祸？有点不明白。" action="1959_Movie3"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["486_1973_magicstar1"] = <config>
+					<context npcId="486" iconId="1" str="孩子们，看你们急急忙忙的样子，是不是发生什么事了？"/>
+					<context npcId="1" iconId="30" str="是啊，安迪奶奶，出大事情了，摩么卡要被大家赶出魔术之星了。">
+						<choice str="是啊，现在大家很生气呢！">	
+							<context npcId="1" iconId="30" str="而且摩么卡的魔术棒被人盗走了，它以前依靠魔术棒表演的事情也被揭发了。"/>
+							<context npcId="486" iconId="2" str="噢，怎么会这样，我可怜的孩子，我得赶紧看看去。">
+								<choice str="安迪奶奶，您慢点。" action="1969_Movie4">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["486_197402_magicstar2"] = <config>
+					<context npcId="486" iconId="2" str="摩么卡，我的孩子，你吓坏了吧！"/>
+					<context npcId="487" iconId="5" str="奶奶，我错了，都怪我没有听您的话，才惹出这么大的麻烦，您责罚我吧!"/>
+					<context npcId="486" iconId="3" str="奶奶怎么舍得罚你，只是你出了事，奶奶怎么向你死去的母亲交待呢！"/>
+					<context npcId="1" iconId="34" str="呜呜……好感人哦，如果摩么卡的妈妈在世的话，一定也会被感动的。"/>
+					<context npcId="1" iconId="1" str="安迪奶奶，刚才HELLO有听到亚比们提到摩么卡的妈妈，似乎很尊重它呢！"/>
+					<context npcId="487" iconId="1" str="当然，妈妈不仅是位出色的魔术师，还是魔术之星的大英雄呢。"/>
+					<context npcId="1" iconId="1" str="哇，真的吗， HELLO最爱听英雄事迹啦！">
+						<choice str="是啊，我也想听听！" taskId="1974" action="1974_End">	
+						</choice>
+					</context>
+				</config>;
+         talk["486_1974_magicstar2"] = <config>
+					<context npcId="486" iconId="1" str="大家不要这样，不要这样……">
+						<choice str="大家先听安迪奶奶说。" action="1969_Movie5"/>
+					</context>
+				</config>;
+         talk["486_197503_magicstar2"] = <config>
+					<context npcId="486" iconId="2" str="摩么卡这孩子性子冲动，你们能帮奶奶在看着它点儿吗？"/>
+					<context npcId="1" iconId="1" str="安迪奶奶放心，HELLO和主人一定会看好摩么卡的！主人，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;魔术广场&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+						<choice str="安迪奶奶您保重，我们这就去追摩么卡！" taskId="1975" action="1969_Tips3"/>
+					</context>
+				</config>;
+         talk["486_1975_magicstar2"] = <config>
+					<context npcId="486" iconId="1" str="你们刚才在魔术广场应该有看到中央的雕像吧，那就是摩么卡的母亲摩奇！">
+						<choice str="真让人意外！" action="1969_Pic1"/>
+					</context>
+				</config>;
+         talk["486_197604_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="孩子们，你们有找到摩么卡吗？"/>
+					<context npcId="1" iconId="30" str="对不起，安迪奶奶，摩么卡，可能出事了…… ">
+						<choice str="（把刚才我们想到的事情告诉了安迪奶奶）">
+							<context npcId="486" iconId="2" str="达斯特又来到魔术之星了吗……看来，他们还是不肯放弃那根魔术棒啊！">
+								<choice str="安迪奶奶，别担心，我们一定会找到摩么卡的！">
+									<context npcId="486" iconId="1" str="安迪奶奶会让大家帮忙寻找摩么卡的踪迹，孩子，你辛苦了！先休息一下吧！">
+										<choice str="嗯！安迪奶奶，一有消息的话，一定要马上通知我啊！" action="1969_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["486_1986_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="#username#,你来得真巧，我正要找你呢！">
+						<choice str="安迪奶奶找我应该是和摩么卡有关系吧！" starterId="1986" action="1987_01_End"/>
+						<choice str="我现在还有事，待会再来听您说！"/>
+					</context>
+				</config>;
+         talk["486_198702_magicstar1"] = <config>
+					<context npcId="486" iconId="1" str="是啊，睡梦小呆告诉我，它看到摩么卡追着一个人去了魔术小镇。"/>
+					<context npcId="486" iconId="2" str="听说他们好像因什么事情起了争执，然后打起来了。"/>
+					<context npcId="1" iconId="1" str="主人，HELLO觉得这个人很有可能就是多克特。">
+						<choice str="我也这么认为。">
+							<context npcId="486" iconId="2" str="奶奶现在很担心，你们可以帮奶奶把摩么卡找回来吗？"/>
+							<context npcId="1" iconId="1" str="安迪奶奶放心，HELLO和主人一定会把摩么卡找回来的。"/>
+							<context npcId="1" iconId="1" str="主人，我们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;魔术小镇&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+								<choice str="好的，出发！" taskId="1987" action="1987_Tips1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["486_1987_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="#username#,你来得真巧，我正要找你呢！">
+						<choice str="安迪奶奶找我应该是和摩么卡有关系吧！" action="1987_01_End"/>
+						<choice str="我现在还有事，待会再来听您说！"/>
+					</context>
+				</config>;
+         talk["486_199402_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="摩么卡，听奶奶的话，不可以帮助他们，魔术棒里的能量绝对不能落入他们的手里。"/>
+					<context npcId="487" iconId="1" str="如果摩么卡不这么做，就没有办法救出奶奶了。"/>
+					<context npcId="46" iconId="1" str="好了，别再唧唧歪歪的了，摩么卡，你该帮我干正事了！"/>
+					<context npcId="487" iconId="1" str="我还有一句很重要的话没有和奶奶说呢。">
+						<choice str="什么话？" action="1986_Movie8">
+						</choice>
+					</context>
+				</config>;
+         talk["486_1995_magicstar1"] = <config>
+					<context npcId="486" iconId="1" str="多克特要摩么卡帮他提取能量，暂时应该不会伤害它，所以孩子们，不用担心。">
+						<choice str="嗯，安迪奶奶分析的有道理，那我们现在应该怎么办？">
+							<context npcId="486" iconId="1" str="其实刚才摩么卡说的那些话是在暗示奶奶，让奶奶帮它准备一些东西。">
+								<choice str="什么东西？" starterId="1995" action="1995_Movie1"/>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事，待会再来听你说。" action=""/>
+					</context>
+				</config>;
+         talk["486_199602_magicstar1"] = <config>
+					<context npcId="486" iconId="1" str="摩么卡是想利用这个魔术把多克特盒子里的能量转移出来。"/>
+					<context npcId="1" iconId="10" str="HELLO明白了，刚才摩么卡问多克特提取能量的原理应该就是为了这个吧！"/>
+					<context npcId="486" iconId="1" str="是啊，所以奶奶得在最短的时间里做出相同原理的魔术盒。">
+						<choice str="可是这么短的时间我们怎么能做出那么高科技的东西呢？">
+							<context npcId="486" iconId="1" str="奶奶曾经有过这方面的研究，所以刚才听到多克特的描述就差不多明白了。"/>
+							<context npcId="486" iconId="1" str="不过#username#,奶奶需要一些魔术材料，得要你去魔术馆里取。">
+								<choice str="什么材料？">
+									<context npcId="486" iconId="1" str="&lt;font color='#FF6600'&gt;&lt;b&gt;一块感应魔术板，一个微型吸收器，一瓶蓝色荧光粉，一个钻头&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，它们都可以在&lt;font color='#FF6600'&gt;&lt;b&gt;魔术馆&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;里找到。">
+										<choice str="好的，我现在就去。" taskId="1996" action="1996_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["486_1996_magicstar1"] = <config>
+					<context npcId="486" iconId="1" str="多克特要摩么卡帮他提取能量，暂时应该不会伤害它，所以孩子们，不用担心。">
+						<choice str="嗯，安迪奶奶分析的有道理，那我们现在应该怎么办？">
+							<context npcId="486" iconId="1" str="其实刚才摩么卡说的那些话是在暗示奶奶，让奶奶帮它准备一些东西。">
+								<choice str="什么东西？" action="1995_Movie1"/>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事，待会再来听你说。" action=""/>
+					</context>
+				</config>;
+         talk["486_1998_magicstar1"] = <config>
+					<context npcId="486" iconId="4" str="哇，真不错，这么快就找好了。">
+						<choice str="嗯，下面就看安迪奶奶您大显身手了！" action="1995_Movie2"/>
+					</context>
+				</config>;
+         talk["486_2002_magicstar3"] = <config>
+					<context npcId="486" iconId="1" str="这个办法就是依靠偷天换日之力。">
+						<choice str="偷天换日之力？" action="1995_Movie6"/>
+					</context>
+				</config>;
+         talk["487_196402_magicstar2"] = <config>
+					<context npcId="487" iconId="2" str="所以我一定要参加这次表演，而且我相信我一定会成功的！"/>
+					<context npcId="1" iconId="1" str="可是HELLO觉得，如果是为了实现妈妈的遗愿，就不应该借助外界的力量！">
+						<choice str="是的，要依靠自己的能力才对。">
+							<context npcId="487" iconId="7" str="我当然是依靠自己的能力，不信我可以让你们见识一下我的魔术。">
+								<choice str="我们也正好要认证一下。">
+									<context npcId="487" iconId="12" str="不过先说好了，倘若我没有借助外界力量，你们就不要再纠缠我。">
+										<choice str="如果你的魔术确实精彩，并且是凭着真功夫，我们绝对不会再阻止你！" taskId="1964" action="1964_End">
+										</choice>
+									</context>
+								</choice>
 							</context>
 						</choice>
 					</context>
@@ -5104,6 +11884,21 @@ package mmo.tasknpc
 							<context npcId="487" iconId="7" str="更何况我还要实现妈妈遗愿！">
 								<choice str="妈妈的遗愿(⊙o⊙)？" action="1959_Movie7"/>
 							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["487_196502_magicstar2"] = <config>
+					<context npcId="1" iconId="1" str="HELLO觉得这个魔术虽然不错，可是还没有我们在魔术广场上看到的神奇呢！">
+						<choice str="嗯，我也有同感。">
+							<context npcId="487" iconId="1" str="当然，这不过是个小魔术，为了表明我是一个专业的魔术师，我还可以为你们揭秘。">
+								<choice str="看来我得好好学学。" action="showCaricature1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["487_196503_magicstar2"] = <config>
+					<context npcId="487" iconId="12" str="下面该让你们看看我的绝技了，不过这个魔术需要你们的参与。">
+						<choice str="我会极力配合的。" taskId="1965" action="1965_End">
 						</choice>
 					</context>
 				</config>;
@@ -5127,6 +11922,197 @@ package mmo.tasknpc
 						<choice str="除非你跟我们回去。" action="1959_Movie11"/>
 					</context>
 				</config>;
+         talk["487_1969_magicstar2"] = <config>
+					<context npcId="487" iconId="3" str="我的魔术棒不见了……怎么办……我现在应该怎么办？">
+						<choice str="发生什么事了？">
+							<context npcId="1" iconId="1" str="摩么卡，你先不要慌，告诉我们发生什么事了，说不定HELLO和主人可以帮助你呢！">
+								<choice str="是的，也许我们能帮得上忙。">
+									<context npcId="487" iconId="4" str="我把妈妈留给我的魔术棒弄丢了，我实现不了它的愿望了！"/>	
+									<context npcId="487" iconId="2" str="魔术棒是妈妈留给我的遗物，我必须要去把它找回来。">	
+										<choice str="我帮你一起找吧。" starterId="1969" action="1969_Movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还有更重要的事情，过一会再来听你说。" action=""/>
+					</context>
+				</config>;
+         talk["487_197002_magicstar2"] = <config>
+					<context npcId="487" iconId="10" str="这些观众应该很希望看到我的表演，如果我就这样走了，他们会很伤心吧！">
+						<choice str="嗯，应该是的。">
+							<context npcId="487" iconId="1" str="妈妈以前说过，作为一个魔术师，在舞台上一定不能让自己的观众失望。">	
+								<choice str="那你现在打算怎么办？">
+									<context npcId="487" iconId="1" str="要不这样吧，我用另外一个魔术替代，不过#username#,我需要你的帮忙。">
+										<choice str="一定竭尽全力！" taskId="1970" action="1970_End"/>
+									</context>	
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["487_1970_magicstar2"] = <config>
+					<context npcId="487" iconId="3" str="我的魔术棒不见了……怎么办……我现在应该怎么办？">
+						<choice str="发生什么事了？">
+							<context npcId="1" iconId="1" str="摩么卡，你先不要慌，告诉我们发生什么事了，说不定HELLO和主人可以帮助你呢！">
+								<choice str="是的，也许我们能帮得上忙。">
+									<context npcId="487" iconId="4" str="我把妈妈留给我的魔术棒弄丢了，我实现不了它的愿望了！"/>	
+									<context npcId="487" iconId="2" str="魔术棒是妈妈留给我的遗物，我必须要去把它找回来。">	
+										<choice str="我帮你一起找吧。" action="1969_Movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还有更重要的事情，过一会再来听你说。" action=""/>
+					</context>
+				</config>;
+         talk["487_1971_magicstar2"] = <config>
+					<context npcId="487" iconId="1" str="我要表演的这个魔术叫单数双数，因为是临时表演，所以需要先处理一下道具。"/>
+					<context npcId="487" iconId="1" str="我这里有一些扑克牌，你需要在短时间里把它们&lt;font color='#FF6600'&gt;&lt;b&gt;分成单数双数&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;两份。">
+						<choice str="嗯，放心交给我吧。" action="1969_Game"/>
+					</context>
+				</config>;
+         talk["487_1972_magicstar2"] = <config>
+					<context npcId="487" iconId="8" str="#username#,谢谢你，可是我真的一点把握也没有，但愿不要丢妈妈的脸。">
+						<choice str="摩么卡，你一定可以的，我们支持你。" action="1969_Movie2"/>
+					</context>
+				</config>;
+         talk["487_198802_magicstar3"] = <config>
+					<context npcId="487" iconId="13" str="哼，我告诉你，魔术棒离开了魔术之星就无法释放能量，所以就算你拿了也没用。"/>
+					<context npcId="46" iconId="4" str="哈哈……这个我当然知道，但别忘了我可是达斯特首席科学家多克特。"/>
+					<context npcId="46" iconId="4" str="我其实早就研制好了一个可以提取魔术棒能量的魔术盒。">
+						<choice str="多克特，你简直太卑鄙了！">
+							<context npcId="46" iconId="4" str="那又怎么样，为了伟大的达斯特军，一切手段都是可行的！"/>
+							<context npcId="487" iconId="13" str="别高兴的太早，我还忘了告诉你，魔术棒只有我们摩氏一族才可以使用。"/>
+							<context npcId="487" iconId="13" str="所以即便你有神马魔术盒，也得不到魔术棒里的能量。">
+								<choice str="看来多克特是白忙活了。" action="1986_Movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["487_198803_magicstar3"] = <config>
+					<context npcId="487" iconId="13" str="哼，现在相信了吧，魔术棒的能量是属于我们摩氏一族的。"/>
+					<context npcId="46" iconId="1" str="既然这样，那我只有把你也抓来为我们达斯特效力了。">
+						<choice str="有我在，你休想抓摩么卡！" taskId="1988" action="1988_End">
+						</choice>
+					</context>
+				</config>;
+         talk["487_1988_magicstar3"] = <config>
+					<context npcId="487" iconId="1" str="魔术棒是我的。"/>
+					<context npcId="46" iconId="1" str="可是现在它是我的了，哈哈……">
+						<choice str="多克特，果然是你拿了魔术棒。" action="1988_Movie1">
+						</choice>
+					</context>
+				</config>;
+         talk["487_199002_magicstar3"] = <config>
+					<context npcId="487" iconId="14" str="不好，是障眼法。">
+						<choice str="障眼法？什么是障眼法？">
+							<context npcId="487" iconId="1" str="障眼法是魔术惯用的一种手法，就是给人造成幻觉，让人分不清真假。">
+								<choice str="那我们应该怎么办？">
+									<context npcId="487" iconId="1" str="只要不受假像迷惑，消除制造假像的真身就可以破解它了！">
+										<choice str="那就交给我吧！" taskId="1990" action="1990_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["487_199103_magicstar3"] = <config>
+					<context npcId="487" iconId="1" str="哇，真厉害，这么快就把障眼法给破了，我们赶紧去追多克特吧！">
+						<choice str="嗯，事不宜迟，走吧！" taskId="1991" action="1991_End"/>
+					</context>
+				</config>;
+         talk["487_1993_magicstar1"] = <config>
+					<context npcId="487" iconId="1" str="我可以答应你，不过在帮你之前，还有个问题需要解决。"/>
+					<context npcId="46" iconId="1" str="什么问题？"/>
+					<context npcId="487" iconId="1" str="我只会使用魔术棒，但是不知道怎么提取里面的能量，你得先告诉我方法才行。"/>
+					<context npcId="1" iconId="1" str="主人，HELLO觉得摩么卡说这些话似乎另有深意。">
+						<choice str="我也是这么认为的。" action="1986_Movie6">
+						</choice>
+					</context>
+				</config>;
+         talk["487_1994_magicstar1"] = <config>
+					<context npcId="487" iconId="1" str="要不这样，让你的手下把我绑起来，然后用我交换奶奶总可以了吧？"/>
+					<context npcId="46" iconId="4" str="这个主意似乎不错，我们带着这个老太婆也不方便，那就这么办吧！"/>
+					<context npcId="1" iconId="1" str="主人，摩么卡到底想干什么啊，HELLO现在有点看不明白呢！">
+						<choice str="我也不知道。" action="1986_Movie7">
+						</choice>
+					</context>
+				</config>;
+         talk["487_199902_magicstar3"] = <config>
+					<context npcId="487" iconId="12" str="哈哈，多克特，你终于还是上了我的当。"/>
+					<context npcId="46" iconId="6" str="上当？上什么当？"/>
+					<context npcId="487" iconId="12" str="我刚才已经用偷天换日把你盒子里的能量转移到我这个盒子里了。"/>
+					<context npcId="46" iconId="6" str="开玩笑，这怎么可能。"/>
+					<context npcId="487" iconId="12" str="对于一个魔术师来说没有什么不可能的，不信的话就打开你的盒子看看吧。">
+						<choice str="就是。" taskId="1999" action="1999_End"/>
+					</context>
+				</config>;
+         talk["48_220_woerte2"] = <config>
+					<context str="嘿嘿，我们家世代都是最好的美食商人，父亲说，人鱼是他见过的最美丽的生物，但是据说人鱼很害羞，所以几乎没人见过。">
+						<choice str="哇！那怎么样才有机会见到人鱼呢？">
+							<context str="传闻说不懂得亚比语言的人是看不到的。要用回音海岸的&lt;font color='#FF6600'&gt;&lt;b&gt;回音海螺&lt;/b&gt; &lt;/font&gt;向大海呼唤，人鱼就才有可能会出现，但我从来没见到过。">
+								<choice str="这么困难！惨了，没希望了！">
+									<context npcId="1" str="笨主人，我能听懂亚比的语言啊。快！我们快去海边看人鱼吧！">
+										<choice str="哇！！好兴奋啊！我们快去试试看吧！" taskId="220"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+			   </config>;
+         talk["48_222_woerte2"] = <config>
+						<context str="让人回味无穷的沃尔特美食哟！不好吃不要钱啦！">
+							<choice str="请问你有闪光泡泡珠吗？">
+								<context str="闪光泡泡珠啊！真不巧，因为实在是太美味啦！卖完啦！">
+									<choice str="可是人鱼可可想要品尝，这可怎么办？">
+										<context str="哇！原来你真的遇上人鱼啦！看你这么幸运的份上，你去帮我收集一条&lt;font color='#FF6600'&gt;&lt;b&gt;泡泡光片鱼&lt;/b&gt; &lt;/font&gt;，我用它做闪光泡泡珠给你！记得哦，到&lt;font color='#FF6600'&gt;&lt;b&gt;回音海岸&lt;/b&gt; &lt;/font&gt;和&lt;font color='#FF6600'&gt;&lt;b&gt;泡泡闪光河豚&lt;/b&gt; &lt;/font&gt;对战，就可以得到泡泡光片鱼哦！">
+											<choice str="好啊！我很快就回来！" taskId="222"/>
+										</context>
+									</choice>
+								</context>
+							</choice>
+						</context>
+			   </config>;
+         talk["48_224_endTalk"] = <config>
+					<context str="勇士！谢谢你！不过得罪了古尔德，你可能会有麻烦，古尔德可是有达斯特军团的支持，下次碰到他们要小心了。">
+					</context>
+					<context str="你这么快就搜集好泡泡光片鱼了啊！这是你要的闪光泡泡珠，送给你吧！" action="224_showGain">
+						<choice str="哇！怎么好意思呀！谢谢你！">
+							<context str="主人，我们快把泡泡光片鱼送到&lt;font color='#FF6600'&gt;&lt;b&gt;回音海岸&lt;/b&gt;给人鱼可可吧！">
+								<choice str="好的。" taskId="224"/>
+							</context>
+						</choice>
+					</context>
+			   </config>;
+         talk["48_227_woerte2"] = <config>
+						<context str="啊！古……古……古尔德！你想要怎么样啊？">
+							<choice str="咦？雷米好像被谁欺负呀？">
+								<context npcId="50" str="嘿嘿！做好1000份泡泡珠美食，送我那儿去！马上！听见了没有！不然小心吃我1000个拳头！">
+									<choice str="怎么能容忍这种人横行霸道！">
+										<context str="哪来的小鬼，不教训教训你是不知道我古尔德的厉害哟！">
+											<choice str="谁怕谁！我赢了就不许为难雷米！" action="50_227_fight"/>
+											<choice str="看起来很厉害，我还是准备准备吧！"/>
+										</context>
+									</choice>
+								</context>
+							</choice>
+						</context>
+			   </config>;
+         talk["48_230_woerte2"] = <dialog>
+					<context str="小勇士，你怎么这么慌张啊？别着急！美食有的是！" npcId="48">
+						<choice str="人鱼……人鱼可可不见了！你看，这是人鱼鳞片！">
+							<context str="小勇士，这可就严重了！我们这儿有个黑市，据说达斯特军团是幕后主使，黑市就在水下广场，不卖别的，专门贩卖珍贵的亚比！"/>
+							<context str="那个可恶的古尔德，刚才扛个大包袱去了水下广场！包袱里可能就是人鱼了！">
+								<choice str="糟了！人鱼可可一定是被他抓去了！">
+									<context str="你们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;水下广场&lt;/b&gt; &lt;/font&gt;找人鱼可可吧。">
+										<choice str="我这就去。" taskId="230">
+										</choice>
+									</context>							        
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
          talk["48_284_aftersomeonecome"] = <config>
 					<context npcId="66" iconId="1" str="嘿哟哟，看见达斯特最美丽的大将菲莉，是不是觉得，我真的很美？">
 						<choice type="0" str="你来这里有什么目的？">
@@ -5175,11 +12161,1089 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["491_2004_magicstar3"] = <config>
+					<context npcId="491" iconId="1" str="#username#，谢谢你的帮助，才让我保住了妈妈留下的东西。">
+						<choice str="这是我应该做的。">
+							<context npcId="1" iconId="1" str="摩么卡，刚才你真厉害，HELLO好崇拜你哦！"/>
+							<context npcId="1" iconId="1" str="不过HELLO没想到魔术棒威力这么大，真的能让你实现偷天换日。 "/>
+							<context npcId="486" iconId="1" str="其实魔术棒已经没有能量了，刚才的魔术是摩么卡凭借自己的实力成功的。"/>
+							<context npcId="486" iconId="1" str="这也是奶奶今天觉得最欣慰的事情。">
+								<choice str="那魔术棒里的能量究竟去哪里了？" action="1995_Movie9"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["491_2005_magicstar3"] = <config>
+					<context npcId="491" iconId="1" str="妈妈遗留的魔术棒，我会继续保留着，能量就当成是我们友谊的见证吧！">
+						<choice str="既然这样，那我就不客气了。" action="2005_Movie10"/>
+					</context>
+				</config>;
+         talk["492_201101_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="海枯之星可真是一个神奇的地方，你看远处的瀑布，啧啧，竟然是倒流的。"/>
+					<context npcId="493" iconId="1" str="听说海枯之星上还有一颗神奇的&lt;font color='#FF6600'&gt;&lt;b&gt;海枯之石&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，其中蕴涵着非常强大的力量。"/>
+					<context npcId="1" iconId="5" str="真的这么神奇吗？主人！这次我们有希望恢复奥拉之辉的能量了。">
+						<choice str="说得对！可是这瀑布怎么来的？海枯之石在哪里呢？" action="2010_Movie2"/>
+					</context>
+				</config>;
+         talk["492_2011_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="哇！#username#，是你啊！你在奥拉星非常有名呢！你也是来探索海枯之星的吗？">
+						<choice str="嗯，是的，我来寻找纯净能源。" action="2011_start"/>
+						<choice str="哦！不！我只是路过看看。"/>
+					</context>
+				</config>;
+         talk["492_2014_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="计划是什么？俺的吃的都吃光了，没力气打架了。"/>
+					<context npcId="493" iconId="1" str="呜呜……"/>
+					<context npcId="494" iconId="1" str="科学地讲，我们还是有几率可以胜利的。">
+						<choice str="我带了大蒜，用大蒜的味道赶走它。" action="2010_Game"/>
+					</context>
+				</config>;
+         talk["492_2444_windmillstar1"] = <config>
+					<context npcId="492" iconId="2" str="前些日子司令官麦哲伦说，风车谷这里似乎探测到了纯净能源，于是我就来了。"/>
+					<context npcId="492" iconId="2" str="但是你看，一个既没有薯条又没有可乐的地方怎么会有纯净能源嘛！">
+						<choice str="晕，薯条和可乐跟纯净能源有什么关系，是你太贪吃了吧。">
+							<context npcId="492" iconId="2" str="司令官太坏了，我吃完这根薯条就要回奥拉星了，读书虫和爱哭鬼还在等我一起去干大事儿呢！">
+								<choice str="好……好吧。" action="2444_movie1" taskId="2444"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["493_2011_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="哇！#username#，是你啊！你在奥拉星非常有名呢！你也是来探索海枯之星的吗？">
+						<choice str="嗯，是的，我来寻找纯净能源。" action="2011_start"/>
+						<choice str="哦！不！我只是路过看看。"/>
+					</context>
+				</config>;
+         talk["493_2014_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="计划是什么？俺的吃的都吃光了，没力气打架了。"/>
+					<context npcId="493" iconId="1" str="呜呜……"/>
+					<context npcId="494" iconId="1" str="科学地讲，我们还是有几率可以胜利的。">
+						<choice str="我带了大蒜，用大蒜的味道赶走它。" action="2010_Game"/>
+					</context>
+				</config>;
+         talk["494_2011_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="哇！#username#，是你啊！你在奥拉星非常有名呢！你也是来探索海枯之星的吗？">
+						<choice str="嗯，是的，我来寻找纯净能源。" action="2011_start"/>
+						<choice str="哦！不！我只是路过看看。"/>
+					</context>
+				</config>;
+         talk["494_201202_haikustar1"] = <config>
+					<context npcId="494" iconId="1" str="嗯，这团光圈好像来历不明，要先带回实验室研究一下才行。">
+						<choice str="坏蛋都要来啦！研究你个大头鬼啊！">
+							<context npcId="1" iconId="1" str="就是！就是！主人！它好像受伤了，我们帮帮它吧！"/>
+							<context npcId="492" iconId="1" str="怎么办？坏蛋就要来了，我的吃的都要被抢走了。"/>
+							<context npcId="493" iconId="2" str="呜呜……呜呜……">
+								<choice str="大家不要慌，不要急，我有办法！">
+									<context npcId="1" iconId="33" str="主人……主人……你要对我做什么？">
+										<choice str="嘿嘿，一会儿你就知道了……小光圈，快藏到亚比球里来！" taskId="2012" action="2012_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["494_2014_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="计划是什么？俺的吃的都吃光了，没力气打架了。"/>
+					<context npcId="493" iconId="1" str="呜呜……"/>
+					<context npcId="494" iconId="1" str="科学地讲，我们还是有几率可以胜利的。">
+						<choice str="我带了大蒜，用大蒜的味道赶走它。" action="2010_Game"/>
+					</context>
+				</config>;
+         talk["495_201302_haikustar1"] = <config>
+					<context npcId="495" iconId="1" str="哼！欺负你怎么了！咦？你身上有&lt;font color='#FF6600'&gt;&lt;b&gt;海枯之石&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;的味道！">
+						<choice str="（悄悄对HELLO说）HELLO！开始和伙伴们商量备用计划！" taskId="2013" action="2013_End"/>
+					</context>
+				</config>;
+         talk["495_2013_haikustar1"] = <config>
+					<context npcId="495" iconId="2" str="你们，有没有看见一只白色的亚比？"/>
+					<context npcId="492" iconId="1" str="没有！没有！"/>
+					<context npcId="494" iconId="1" str="从科学上来讲，见与不见是个哲学问题。"/>
+					<context npcId="493" iconId="1" str="呜呜……你……欺负人……呜呜……"/>
+					<context npcId="495" iconId="2" str="你们几个吵吵嚷嚷的，我头都大了，是在耍我吗？"/>
+					<context npcId="495" iconId="2" str="敢忽悠你黑爷我，让你们尝尝我黑爷的厉害。">
+						<choice str="好你个亚比，敢随便欺负人！" action="2010_fightWithXiaohei"/>
+					</context>
+				</config>;
+         talk["495_203302_haikustar2"] = <config>
+					<context npcId="495" iconId="2" str="哼！你们等着瞧，我会回来找你算账的。">
+						<choice str="随时奉陪。" action="2032_Movie1"/>
+					</context>
+				</config>;
+         talk["495_203303_haikustar2"] = <config>
+					<context npcId="495" iconId="1" str="哈哈！本大爷气消了，先走了！">
+						<choice str="走好不送！" action="2032_Movie1"/>
+					</context>
+				</config>;
+         talk["495_2033_haikustar2"] = <config>
+					<context npcId="495" iconId="2" str="哼！该死的肥鱼古力德！专门让我黑爷来做些吃力的活！"/>
+					<context npcId="495" iconId="2" str="哼！等我还完了债，看我怎么收拾你！">
+						<choice str="又是那个坏人达黑黑！你想干嘛？">
+							<context npcId="495" iconId="2" str="嗯？又是你们，快点把白京京和海枯之石的下落告诉黑爷我！ ">
+								<choice str="不知道！知道也不告诉你。">
+									<context npcId="495" iconId="2" str="你现在是不说也得说！">
+										<choice str="这水里也不是你能说了算的。" action="2032_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="先不跟你计较。" action=""/>
+					</context>
+				</config>;
+         talk["496_2015_haikustar1"] = <config>
+					<context npcId="496" iconId="1" str="……啊……好痛（＞﹏＜）……什么气味……好晕……"/>
+					<context npcId="1" iconId="30" str="看来HELLO的大蒜攻击实在太猛烈了。">
+						<choice str="我们要怎么才能帮助你呢？">
+							<context npcId="496" iconId="1" str="带我去海枯之海……我在那里长大……">
+								<choice str="好！我们这就去海枯之海。" taskId="2015" action="2015_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_201602_haikustar2"] = <config>
+					<context npcId="497" iconId="1" str="后来就是我请求你们帮助，赶走达黑黑的事情了，真是谢谢你们。"/>
+					<context npcId="1" iconId="7" str="小菜一碟啦！主人！看来海枯之石的传说可能是真的。">
+						<choice str="对！你知道海枯之石的事情吗？">
+							<context npcId="1" iconId="7" str="对呀！海枯之石在哪里？还有你的恩人是怎么回事呢？"/>
+							<context npcId="497" iconId="1" str="海枯之石呀！这个我也不知道是怎么回事……"/>
+							<context npcId="497" iconId="3" str="不过……我的恩人，其实，事情是这样的……">
+								<choice str="快给我们讲讲吧！" taskId="2016" action="2016_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_2017_haikustar2"] = <config>
+					<context npcId="497" iconId="1" str="那时的我还很小，有一天，我在海面上游玩……">
+						<choice str="然后呢？" action="2010_Movie11"/>
+					</context>
+				</config>;
+         talk["497_2018_haikustar2"] = <config>
+					<context npcId="497" iconId="1" str="我教给你一句话，我会为这句话注入魔力。"/>
+					<context npcId="497" iconId="1" str="当你对着那个人说出这句话，就可以看到他以前的样子。">
+						<choice str="这么神奇？快教我吧！">
+							<context npcId="497" iconId="1" str="你可要记好了哦！这句话就是“矮老虎哟”！">
+								<choice str="不是什么损人的话吧！">
+									<context npcId="497" iconId="1" str="不是！不是！不过，说多了也不太好……">
+										<choice str="嗯，让我试试！矮老虎哟！" starterId="2018" action="2018_Start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还不想学哦！" action=""/>
+					</context>
+				</config>;
+         talk["497_201903_haikustar2"] = <config>
+					<context npcId="497" iconId="1" str="我们先到&lt;font color='#FF6600'&gt;&lt;b&gt;观星海岸&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，再分头寻找吧！">
+						<choice str="我们先去观星海岸吧！" taskId="2019" action="2019_End"/>
+					</context>
+				</config>;
+         talk["497_2019_haikustar2"] = <config>
+					<context npcId="497" iconId="1" str="我教给你一句话，我会为这句话注入魔力。"/>
+					<context npcId="497" iconId="1" str="当你对着那个人说出这句话，就可以看到他以前的样子。">
+						<choice str="这么神奇？快教我吧！">
+							<context npcId="497" iconId="1" str="你可要记好了哦！这句话就是“矮老虎哟”！">
+								<choice str="不是什么损人的话吧！">
+									<context npcId="497" iconId="1" str="不是！不是！不过，说多了也不太好……">
+										<choice str="嗯，让我试试！矮老虎哟！" starterId="2018" action="2018_Start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还不想学哦！" action=""/>
+					</context>
+				</config>;
+         talk["497_2020_haikustar1"] = <config>
+					<context npcId="497" iconId="4" str="你们救了我，又要麻烦你们，真是非常感谢你们。"/>
+					<context npcId="1" iconId="1" str="不要这么客气啦！我们快分头去找你的恩人吧！">
+						<choice str="是啊！我们分头去找吧！">
+							<context npcId="497" iconId="4" str="我去海枯之山那边，你们去海枯小镇吧！记住那句神奇的话哦！">
+								<choice str="嗯，相信你一定很快可以和恩人见面了。" taskId="2020" action="2020_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_202202_haikustar1"] = <config>
+					<context npcId="497" iconId="5" str="不…我…我不是妖怪，我不会伤害大家的……"/>
+					<context npcId="1" iconId="24" str="不好！主人，白京京被村民围攻了，我们要帮助白京京。">
+						<choice str="白京京小心。" action="2018_Game"/>
+					</context>
+				</config>;
+         talk["497_202303_haikustar1"] = <config>
+					<context npcId="497" iconId="7" str="书恩，你…你没事吧！"/>
+					<context npcId="501" iconId="1" str="放心吧！我没事。"/>
+					<context npcId="497" iconId="8" str="谁！敢打伤我的恩人？">
+						<choice str="白京京！你要去哪？" action="2018_Movie10"/>
+					</context>
+				</config>;
+         talk["497_203602_haikustar2"] = <config>
+					<context npcId="497" iconId="7" str="呼……幸好我赶来，要不这误会就大了。"/>
+					<context npcId="497" iconId="7" str="龟爷爷！你不认识我啦！"/>
+					<context npcId="508" iconId="2" str="呵呵，怎么会不认识我可爱的白京京了呢？这两个是你的朋友吗？"/>
+					<context npcId="497" iconId="4" str="是啊！他们是我的朋友，我还担心您记性不好，忘了我呢！"/>
+					<context npcId="508" iconId="2" str="你别看我老，我记性好着呢！你旁边这两个陌生人是谁啊？？？？">
+						<choice str="……">
+							<context npcId="497" iconId="1" str="哈哈！好好！龟爷爷你记性最好了。每次问您我是哪来的，您都不知道。"/>
+							<context npcId="1" iconId="1" str="白京京，太好了，见到你，我们就可以放心地跟书恩交代了。"/>
+							<context npcId="497" iconId="3" str="书恩……他很关心我吗？">
+								<choice str="当然！是他特地拜托我们来找你呢。">
+									<context npcId="1" iconId="1" str="现在好了，终于找到你了，不过我们找到了龟爷爷身上一块神秘的龟壳。"/>
+									<context npcId="497" iconId="1" str="哦！让我看看！（看了一会儿……也是十分不解的样子）不如我们&lt;font color='#FF6600'&gt;&lt;b&gt;问问龟爷爷&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+										<choice str="好吧！这块龟壳一定藏有一些秘密。" taskId="2036" action="2036_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_203702_haikustar2"] = <config>
+					<context npcId="497" iconId="6" str="原来，海枯之星上还有这样一段历史……"/>
+					<context npcId="1" iconId="40" str="还以为可以找到海枯之石的下落……完全没关系啊！">
+						<choice str="嗯，是啊！" action="2032_Movie4"/>
+					</context>
+				</config>;
+         talk["497_2046_haikustar1"] = <config>
+					<context npcId="497" iconId="7" str="怎么办呢？怎么救书恩？……唉……我真的不知道海枯之石在哪里。">
+						<choice str="我们可以做一颗假的海枯之石。">
+							<context npcId="497" iconId="4" str="假的海枯之石？"/>
+							<context npcId="1" iconId="7" str="对啊！你忘记了无所不能的HELLO了吗？"/>
+							<context npcId="1" iconId="7" str="就让HELLO来变成海枯之石吧！">
+								<choice str="可是这样，一定会被那只达黑黑认出来。">
+									<context npcId="497" iconId="4" str="是啊！它好像能嗅出海枯之石的气味。对！气味！">
+										<choice str="你想到什么了吗？" starterId="2046" action="2046_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="恩，我也不知道该怎么办。" action=""/>
+					</context>
+				</config>;
+         talk["497_204702_haikustar1"] = <config>
+					<context npcId="497" iconId="4" str="说不定达黑黑是嗅到了我发动力量时，身上散发出的气味，误以为是海枯之石。">
+						<choice str="有道理。">	
+							<context npcId="497" iconId="4" str="所以，我只要把一部分力量注入HELLO身上，就可以伪装成功啦！">
+								<choice str="说干就干，我们开始吧！" taskId="2047" action="2047_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_2047_haikustar1"] = <config>
+					<context npcId="497" iconId="7" str="怎么办呢？怎么救书恩？……唉……我真的不知道海枯之石在哪里。">
+						<choice str="我们可以做一颗假的海枯之石。">
+							<context npcId="497" iconId="4" str="假的海枯之石？"/>
+							<context npcId="1" iconId="7" str="对啊！你忘记了无所不能的HELLO了吗？"/>
+							<context npcId="1" iconId="7" str="就让HELLO来变成海枯之石吧！">
+								<choice str="可是这样，一定会被那只达黑黑认出来。">
+									<context npcId="497" iconId="4" str="是啊！它好像能嗅出海枯之石的气味。对！气味！">
+										<choice str="你想到什么了吗？" action="2046_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="恩，我也不知道该怎么办。" action=""/>
+					</context>
+				</config>;
+         talk["497_204803_haikustar1"] = <config>
+					<context npcId="497" iconId="12" str="让我们出发，去&lt;font color='#FF6600'&gt;&lt;b&gt;海枯之山&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;一起救书恩吧！">
+						<choice str="白京京，你没事吧！" action="2046_Movie2"/>
+					</context>
+				</config>;
+         talk["497_204804_haikustar1"] = <config>
+					<context npcId="497" iconId="12" str="没有多少时间了，我只是有点累，我们快去&lt;font color='#FF6600'&gt;&lt;b&gt;海枯之山&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;救书恩。">
+						<choice str="你要小心，我们出发吧！" taskId="2048" action="2048_End"/>
+					</context>
+				</config>;
+         talk["497_2048_haikustar1"] = <config>
+					<context npcId="497" iconId="1" str="我们来一起，将HELLO伪装成海枯之石吧！">
+						<choice str="好！说干就干。" action="2046_Jiaohu1"/>
+					</context>
+				</config>;
+         talk["497_205001_haikustar4"] = <config>
+					<context npcId="497" iconId="12" str="这块龟壳是用来记载历史的，不值什么钱。">
+						<choice str="对！你们留着也没有用。">
+							<context npcId="54" iconId="2" str="看你们这么紧张，就知道一定是宝贝！"/>
+							<context npcId="54" iconId="2" str="废话少说，达黑黑！快看一下，他们带来的海枯之石是不是真货。">
+								<choice str="检查完了就赶快放了书恩！" action="2046_Movie5"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_2050_haikustar4"] = <config>
+					<context npcId="497" iconId="12" str="咦？那好像是……好像是我们之前见到的……">
+						<choice str="快拿来看看。" action="2046_Movie4"/>
+					</context>
+				</config>;
+         talk["497_205802_haikustar2"] = <config>
+					<context npcId="497" iconId="12" str="只要我重回海枯之石中，就可以恢复海枯之石的力量。"/>
+					<context npcId="497" iconId="12" str="这样，我们就可以救书恩了。"/>
+					<context npcId="1" iconId="7" str="太好了！这下书恩有救了。">
+						<choice str="真的吗？">
+							<context npcId="508" iconId="1" str="……">
+								<choice str="大海龟一定还有什么没告诉我们。">
+									<context npcId="508" iconId="3" str="如果…白京京重新回到海枯之石中，恐怕就再也无法出来了。"/>
+									<context npcId="508" iconId="3" str="而且，书恩好像伤得很严重，救活书恩的话，海枯之石……">
+										<choice str="会怎么样？">
+											<context npcId="508" iconId="3" str="海枯之石有可能耗尽能量，白京京也会无法苏醒……">
+												<choice str="这样不行！！">
+													<context npcId="1" iconId="30" str="这样的话，书恩如果问起你的下落，我们该怎么交代？">
+														<choice str="是啊！白京京！你不能这么做！" taskId="2058" action="2058_End"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_2058_haikustar2"] = <config>
+					<context npcId="497" iconId="12" str="难道我……我真的是海枯之石的心吗？"/>
+					<context npcId="497" iconId="12" str="我…我只记得…只记得曾经有一位少年，他救了我……"/>
+					<context npcId="1" iconId="30" str="主人，看来白京京也记不起以前的事情了呢！">
+						<choice str="是啊！这该怎么办？">
+							<context npcId="497" iconId="12" str="但是，为了书恩，我愿意试一试……">
+								<choice str="白京京！" action="2055_Movie4"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["497_2059_haikustar2"] = <config>
+					<context npcId="497" iconId="12" str="在海枯之石中，我可以有千万年去等待……"/>
+					<context npcId="497" iconId="12" str="可是，现在的书恩，已经没有时间可以等了……"/>
+					<context npcId="497" iconId="12" str="能用我的等待，换取书恩的生命，我，何其幸运！"/>
+					<context npcId="508" iconId="1" str="唉……我这只老龟……还是健忘比较好。"/>
+					<context npcId="1" iconId="32" str="哇哇哇~白京京！">
+						<choice str="白京京！" action="2055_Movie5"/>
+					</context>
+				</config>;
+         talk["498_202102_haikustar3"] = <config>
+					<context npcId="498" iconId="1" str="年轻人要讲礼貌，不要这么莽莽撞撞的。">
+						<choice str="对不起，我知道了。"/>
+					</context>
+				</config>;
+         talk["498_202103_haikustar3"] = <config>
+					<context npcId="498" iconId="1" str="救命呀！救命呀！有人欺负人啦！"/>
+					<context npcId="1" iconId="11" str="大叔，大叔，别紧张，“矮老虎哟”其实是“你好”的意思。">
+						<choice str="对啊！对啊！是我们专门来问候别人用的。">
+							<context npcId="498" iconId="1" str="哦！原来是这样，真不好意思，矮老虎哟啊，矮老虎哟！">
+								<choice str="没关系，大叔，矮老虎哟！" action="2018_Movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["498_2021_haikustar3"] = <config>
+					<context npcId="498" iconId="1" str="哦！陌生人，欢迎来到海枯小镇。">
+						<choice str="矮老虎哟！">
+							<context npcId="498" iconId="1" str="好心好意欢迎你，你竟然说我矮！">
+								<choice str="啊！我不是故意的！" action="2018_fight"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["498_2022_haikustar1"] = <config>
+					<context npcId="498" iconId="2" str="大家警惕了！这里有一个妖怪！">
+						<choice str="糟糕！白京京被误认为妖怪了！" action="2021_Movie6"/>
+					</context>
+				</config>;
+         talk["498_202903_haikustar3"] = <config>
+					<context npcId="498" iconId="3" str="你们快看！我们的房子这么快就修好了。"/>
+					<context npcId="499" iconId="3" str="哎呀！真是谢谢你们，唉……都是那只白京京……破坏我们的房子。"/>
+					<context npcId="506" iconId="1" str="不！爸爸，房子是一只黑色的亚比和一群穿紫色衣服的人破坏的。">
+						<choice str="是真的吗？" taskId="2029" action="2029_End"/>
+					</context>
+				</config>;
+         talk["499_2021_haikustar3"] = <config>
+					<context npcId="499" iconId="1" str="HELLO！欢迎来到海枯小镇，今天天气真不错啊！">
+						<choice str="初次见面！矮老虎哟！">
+							<context npcId="499" iconId="1" str="老虎！？海枯之星哪来的老虎？">
+								<choice str="（头都大了）没有老虎，我是说……">
+									<context npcId="1" iconId="1" str="没有老虎啦！是……是我们独有的问候的话语啦（为了白京京，只好说一些善意的谎话了）。"/>
+									<context npcId="499" iconId="1" str="哦！哦！这样啊！矮老虎哟！矮老虎哟！">
+										<choice str="（汗……）矮老虎哟！呵呵……矮老虎哟！" action="2018_Movie3"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["499_2022_haikustar1"] = <config>
+					<context npcId="498" iconId="2" str="大家警惕了！这里有一个妖怪！">
+						<choice str="糟糕！白京京被误认为妖怪了！" action="2021_Movie6"/>
+					</context>
+				</config>;
+         talk["499_203002_haikustar3"] = <config>
+					<context npcId="499" iconId="1" str="看来，我们是错怪了白京京……"/>
+					<context npcId="501" iconId="3" str="啊！我想起来了！刚才的黑影！"/>
+					<context npcId="501" iconId="3" str="刚才我们收集物品时，东西总是很快就出现。"/>
+					<context npcId="1" iconId="34" str="盖房子，也是一下子就盖好了。">
+						<choice str="原来是这样，一定是白京京！">
+							<context npcId="501" iconId="4" str="恩，一定是白京京，白京京为了不让我们为难，所以躲藏起来。"/>
+							<context npcId="1" iconId="34" str="原来白京京一直都在默默地帮助我们，等大家回来，白京京就离开了。">
+								<choice str="白京京在默默地报恩……">
+									<context npcId="501" iconId="1" str="现在我们要赶快找到白京京，希望它不要做什么傻事……"/>
+									<context npcId="1" iconId="1" str="刚才黑影跑向观星海岸了！说不定能在那儿找到白京京。">
+										<choice str="好！我们去观星海岸吧！" taskId="2030" action="2030_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["499_2052_haikustar3"] = <config>
+					<context npcId="499" iconId="4" str="唉呀！这是书恩，怎么伤得这么严重！"/>
+					<context npcId="1" iconId="30" str="高大叔，麻烦你照顾书恩，我们会想办法来救他的。"/>
+					<context npcId="499" iconId="1" str="放心吧，你们赶快去想办法，这段时间就交给我吧！">
+						<choice str="谢谢高大叔。">
+							<context npcId="1" iconId="23" str="主人，我们也去找海枯之石吧！">
+								<choice str="可惜现在还没有什么线索。">
+									<context npcId="1" iconId="23" str="从海枯之山上得到的龟壳说不定与海枯之石有关。">
+										<choice str="那我们去问问大海龟吧！" taskId="2052" action="2052_End"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["499_2060_haikustar3"] = <config>
+					<context npcId="499" iconId="4" str="哎呀！不好啦！这书恩，就我去请大夫的这一会儿，就不见啦！"/>
+					<context npcId="1" iconId="30" str="书恩拖着受伤的身体，一定走不远的。"/>
+					<context npcId="499" iconId="4" str="之前，他晕着的时候，就念着“白京京、白京京”，我也不知道是怎么回事。">
+						<choice str="不用担心，我们会找到他的。">
+							<context npcId="1" iconId="30" str="主人！书恩一定是去找白京京了，他应该是在&lt;font color='#FF6600'&gt;&lt;b&gt;观星海岸&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;。">
+								<choice str="恩，我们去观星海岸找他。" taskId="2060" action="2060_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["49_221_woerte1"] = <config>
+						<context str="啊，回音海螺的声音依旧那么动听呢！呀！你是谁呀？">
+							<choice str="我是奥拉星的小勇士，你好漂亮啊！">
+								<context str="呵呵，谢谢！我叫可可哦！">
+								</context>
+								<context str="小勇士，听说沃尔特水都有一种特别的美食叫&lt;font color='#FF6600'&gt;&lt;b&gt;闪光泡泡珠&lt;/b&gt; &lt;/font&gt;，你能帮我带回一个吗？">
+									<choice str="没问题！">
+										<context str="谢谢你！听说在沃尔特区的&lt;font color='#FF6600'&gt;&lt;b&gt;水上都市有美食商人&lt;/b&gt; &lt;/font&gt;在卖闪光泡泡珠哦！">
+											<choice str="水上都市！好啊！我这就去！" taskId="221"/>
+										</context>
+									</choice>
+								</context>								
+							</choice>
+						</context>
+			   </config>;
+         talk["49_231_woerte3"] = <dialog>
+					<context str="小勇士，救救我！请不要让他们把我卖掉。" npcId="49">
+					</context>
+				</dialog>;
+         talk["49_232_woerte3"] = <dialog>
+					<context str="小勇士，救救我！请不要让他们把我卖掉。" npcId="49">
+					</context>
+				</dialog>;
+         talk["49_233_woerte3"] = <dialog>
+					<context str="小勇士，救救我！请不要让他们把我卖掉。" npcId="49">
+					</context>
+				</dialog>;
+         talk["49_234_woerte3"] = <dialog>
+					<context str="小勇士，救救我！请不要让他们把我卖掉。" npcId="49">
+					</context>
+				</dialog>;
+         talk["49_251_woerte4"] = <config>
+					<context str="主人，他们竟然用锁链锁住可可，快用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;切断锁链。" npcId="1">
+						<choice str="好！看我的！" taskId="251" action="251_InitShootTips">
+						</choice>
+					</context>
+				</config>;
+         talk["49_252_aftershoot"] = <config>
+					<context str="谢谢你！小勇士！" npcId="49">
+						<choice str="我们快离开这里。" action="49_253_somethingcoming">
+						</choice>
+					</context>
+				</config>;
+         talk["49_252_woerte4"] = <config>
+					<context str="小勇士，救救我！" npcId="49">
+					</context>
+				</config>;
+         talk["49_253_woerte4"] = <config>
+					<context str="小勇士，救救我！" npcId="49">
+					</context>
+				</config>;
+         talk["49_254_woerte4"] = <config>
+					<context str="小勇士，救救我！" npcId="49">
+					</context>
+				</config>;
+         talk["49_255_woerte4"] = <config>
+					<context str="小勇士，救救我！" npcId="49">
+					</context>
+				</config>;
+         talk["49_256_woerte4"] = <config>
+					<context str="小勇士，快看看贝壳有什么变化吧！" npcId="49">
+					</context>
+				</config>;
+         talk["49_257_woerte4"] = <config>
+                                  <context str="谢谢你们的帮助！达斯特的黑市集团被打倒了，以后我可以和这里的亚比一起快乐的生活了。" npcId="49">	
+											<choice str="谢谢你！去融合奥拉之辉喽！" action="task257_showbook" taskId="257"/>
+										</context>	
+							</config>;
+         talk["49_258_woerte4"] = <config>
+					<context str="小勇士，快去融合奥拉之辉吧！" npcId="49">
+					</context>
+				</config>;
+         talk["49_261_woerte4"] = <config>
+					<context str="小勇士，救救我！" npcId="49">
+					</context>
+				</config>;
+         talk["500_2021_haikustar3"] = <config>
+					<context npcId="500" iconId="1" str="你好！你好！最近海枯之星上来了好多陌生人啊！">
+						<choice str="是啊！矮老虎哟！">
+							<context npcId="500" iconId="1" str="矮老虎油，没听说过这种油啊！好吃吗？">
+								<choice str="这个……">
+									<context npcId="500" iconId="1" str="海枯之星这儿都是生产鱼油，从来没听过有“矮老虎油”啊！"/>
+									<context npcId="1" iconId="1" str="主人，我觉得这个人不像啊！">
+										<choice str="怎么样都得试试。矮老虎哟！" action="2018_Movie4"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["500_2022_haikustar1"] = <config>
+					<context npcId="498" iconId="2" str="大家警惕了！这里有一个妖怪！">
+						<choice str="糟糕！白京京被误认为妖怪了！" action="2021_Movie6"/>
+					</context>
+				</config>;
+         talk["501_2023_haikustar1"] = <config>
+					<context npcId="501" iconId="1" str="大家请冷静，白发并不代表是妖怪，我们老了的时候，头发都会变白。"/>
+					<context npcId="501" iconId="1" str="它虽然对大家说了奇怪的话，但是大家现在还是好好的。"/>
+					<context npcId="501" iconId="1" str="海枯之星虽然最近不平静，但没有人亲眼看见是它所为。">
+						<choice str="说得有道理。">
+							<context npcId="497" iconId="6" str="感动中……"/>
+							<context npcId="1" iconId="31" str="如果真是妖怪，又有强大的力量，怎么会甘心被大家围住呢？"/>
+							<context npcId="498" iconId="1" str="这……"/>
+							<context npcId="499" iconId="1" str="好像有道理……"/>
+							<context npcId="500" iconId="1" str="难道我们错怪好人了？">
+								<choice str="当然是你们错怪白京京啦！">
+									<context npcId="1" iconId="7" str="（悄悄对你说）主人，我们好像没有对这个人念过那句话哦！">
+										<choice str="说得对！书恩，矮老虎哟！" action="2018_Movie8"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["501_202402_haikustar3"] = <config>
+					<context npcId="501" iconId="2" str="怎么会变成这样？">
+						<choice str="这下要麻烦了。">
+							<context npcId="1" iconId="27" str="主人！我们快使用&lt;font color='#FF6600'&gt;&lt;b&gt;冰冻射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，将大火扑灭吧！">
+								<choice str="嗯，灭火要紧。" taskId="2024" action="2024_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["501_2026_haikustar3"] = <config>
+					<context npcId="501" iconId="1" str="房子都被烧毁了，但是镇上的小孩们都没有受伤，并且都在屋子外面。"/>
+					<context npcId="501" iconId="1" str="我觉得，孩子们一定知道些什么。">
+						<choice str="我们问问孩子吧！">
+							<context npcId="506" iconId="1" str="呜呜……呜呜……"/>
+							<context npcId="507" iconId="1" str="哇……啊……哇啊啊……"/>
+							<context npcId="501" iconId="1" str="小孩子家园被毁，又受到惊吓，一时很难恢复过来。">
+								<choice str="我们先帮助他们把家园建好吧！">
+									<context npcId="1" iconId="1" str="嗯，建好家园，他们一定会高兴的，我们&lt;font color='#FF6600'&gt;&lt;b&gt;在这里找找&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，看有没有可以利用的&lt;font color='#FF6600'&gt;&lt;b&gt;材料&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+										<choice str="好的。" starterId="2026" action="2026_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="待会儿再来问这些孩子。" action=""/>
+					</context>
+				</config>;
+         talk["501_2027_haikustar3"] = <config>
+					<context npcId="501" iconId="1" str="房子都被烧毁了，但是镇上的小孩们都没有受伤，并且都在屋子外面。"/>
+					<context npcId="501" iconId="1" str="我觉得，孩子们一定知道些什么。">
+						<choice str="我们问问孩子吧！">
+							<context npcId="506" iconId="1" str="呜呜……呜呜……"/>
+							<context npcId="507" iconId="1" str="哇……啊……哇啊啊……"/>
+							<context npcId="501" iconId="1" str="小孩子家园被毁，又受到惊吓，一时很难恢复过来。">
+								<choice str="我们先帮助他们把家园建好吧！">
+									<context npcId="1" iconId="1" str="嗯，建好家园，他们一定会高兴的，我们&lt;font color='#FF6600'&gt;&lt;b&gt;在这里找找&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，看有没有可以利用的&lt;font color='#FF6600'&gt;&lt;b&gt;材料&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+										<choice str="好的。" taskId="2027" action="2026_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="待会儿再来问这些孩子。" action=""/>
+					</context>
+				</config>;
+         talk["501_202805_haikustar3"] = <config>
+					<context npcId="501" iconId="1" str="没想到，材料这么快就齐全了，现在我们帮助居民们修房子吧!"/>
+					<context npcId="1" iconId="31" str="主人，坏掉的房子就在那边，HELLO要大展身手喽！">
+						<choice str="恩，我们一起加油吧！" taskId="2028" action="2028_End"/>
+					</context>
+				</config>;
+         talk["501_203102_haikustar1"] = <config>
+					<context npcId="501" iconId="1" str="这条小傻鱼，不要头脑发热，做什么傻事……"/>
+					<context npcId="1" iconId="34" str="想出办法，得到大家的认可，到底是要怎么做呢？">
+						<choice str="难道是要利用海枯之石的力量？">
+							<context npcId="501" iconId="1" str="海枯之石是海枯之星传说中的神奇物品，白京京如果想要拿到它，一定非常危险。"/>
+							<context npcId="501" iconId="5" str="你们一定要找到白京京，告诉它村民已经不怪它了，不需要去找海枯之石。"/>
+							<context npcId="501" iconId="5" str="我无法潜入到深海，拜托，拜托你们，请把白京京带回来。">
+								<choice str="放心，我们一定会找到白京京的。" action="2031_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["501_2051_haikustar4"] = <config>
+					<context npcId="501" iconId="7" str="白京京……你没事……真是太好了！"/>
+					<context npcId="497" iconId="11" str="书恩，书恩！！！！你…你怎么样？怎么样了？"/>
+					<context npcId="501" iconId="7" str="呵呵！放心吧！你的恩还没有报完，我不会死的。">
+						<choice str="书恩，你要坚持住啊！" action="2046_Movie7"/>
+					</context>
+				</config>;
+         talk["501_2061_haikustar1"] = <config>
+					<context npcId="501" iconId="9" str="白京京……白京京……"/>
+					<context npcId="1" iconId="30" str="啊！主人，书恩病情好像更加严重了。">
+						<choice str="他生命垂危，快用海枯之石吧！" action="2055_Movie7"/>
+					</context>
+				</config>;
+         talk["501_206602_haikustar1"] = <config>
+					<context npcId="1" iconId="1" str="主人！主人！书恩好像缓过来了！">
+						<choice str="太好了！书恩，你没事吧？">
+							<context npcId="501" iconId="1" str="咦？#username#，我怎么会在这里？"/>
+							<context npcId="1" iconId="1" str="哇！太好啦！你还记得我们！">
+								<choice str="白京京怎么样了？" action="2066_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["506_2030_haikustar3"] = <config>
+					<context npcId="506" iconId="1" str="当时，房子着火了，就有一位漂亮的银发姐姐，把我们救了出来。">
+						<choice str="详细的情形是什么样？" action="2026_Movie6"/>
+					</context>
+				</config>;
+         talk["508_2036_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="竟然这么没有礼貌，拔我这个老人家的龟壳！">
+						<choice str="哎呀！我不是故意的。" action="2032_fightWithHaigui"/>
+					</context>
+				</config>;
+         talk["508_2037_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="咦？？？这块龟壳上的图案啊！这是怎么刻上去的呢？">
+						<choice str="— —||大海龟爷爷不会也不知道吧！">
+							<context npcId="508" iconId="1" str="可别小看你大海龟爷爷！这图案我可记得清清楚楚的呢！">
+								<choice str="到底是怎么回事呢？" action="2032_Pic2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["508_2053_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="唉？你们是谁啊？"/>
+					<context npcId="1" iconId="30" str="龟伯伯，是我们啊！我是HELLO，这是我家主人啊！">
+						<choice str="你不会不认识我了吧！">
+							<context npcId="508" iconId="1" str="说什么呐！我大海龟记性最好了，你呀，叫白京京，对不？ ">
+								<choice str="……">
+									<context npcId="1" iconId="1" str="龟伯伯，你看看这片龟壳，看看能不能想起什么。"/>
+									<context npcId="508" iconId="1" str="唉呀！是它呀！它不是长在我身上吗？怎么跑到你们手里了？">
+										<choice str="快告诉我们，上面写了什么吧！" taskId="2053" action="2046_Movie11"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["508_2054_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="唉……真是不想回忆起这段历史啊！">
+						<choice str="龟伯伯，你快告诉我们吧！" action="2046_Picture2"/>
+					</context>
+				</config>;
+         talk["508_2055_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="你们……还想知道些什么事情吗？">
+						<choice str="嗯，能告诉我们关于海枯之石的事吗？">
+							<context npcId="508" iconId="1" str="唉……海枯之石啊！">
+								<choice str="是啊！我们急需海枯之石来救人呢！">
+									<context npcId="508" iconId="1" str="想不到，这么多年的事情，我还记得呢！">
+										<choice str="快告诉我们海枯之石的下落吧！">
+											<context npcId="508" iconId="1" str="唉……那就让你们见一下这海枯之石吧！">
+												<choice str="真的？" starterId="2055" action="2055_start"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我一会儿再来找你聊天。" action=""/>
+					</context>
+				</config>;
+         talk["508_2056_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="你们……还想知道些什么事情吗？">
+						<choice str="嗯，能告诉我们关于海枯之石的事吗？">
+							<context npcId="508" iconId="1" str="唉……海枯之石啊！">
+								<choice str="是啊！我们急需海枯之石来救人呢！">
+									<context npcId="508" iconId="1" str="想不到，这么多年的事情，我还记得呢！">
+										<choice str="快告诉我们海枯之石的下落吧！">
+											<context npcId="508" iconId="1" str="唉……那就让你们见一下这海枯之石吧！">
+												<choice str="真的？" action="2055_start"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我一会儿再来找你聊天。" action=""/>
+					</context>
+				</config>;
+         talk["508_2057_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="唉……说起这海枯之石，其实你们也跟它相处很久了。"/>
+					<context npcId="1" iconId="29" str="我们也跟它相处很久了，龟伯伯，你在开玩笑吧！">
+						<choice str="是啊！我们从来都没见过它啊！">
+							<context npcId="508" iconId="1" str="今天，你们帮我找到这另外半片龟壳，我才想起许多事情。">
+								<choice str="那海枯之石是怎么回事呢？" action="2055_Movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["50_224_woerte2"] = <config>
+						<context str="居然……我一定会让你后悔的！">
+							<choice str="我才不怕你！" action="50_224_runAway"/>
+						</context>
+			   </config>;
+         talk["50_227_fightLost"] = <config>
+						<context str="哈哈哈哈！说了打不过我的吧！去练多1000年再来吧！">
+							<choice str="可恶！我一定会打败你的!">
+								<context str="哪来的小鬼，不教训教训你是不知道我古尔德的厉害哟！">
+									<choice str="谁怕谁！我赢了就不许为难雷米！" action="50_227_fight"/>
+									<choice str="看起来很厉害，我还是准备准备吧！"/>
+								</context>
+							</choice>
+						</context>
+			   </config>;
+         talk["50_231_woerte3"] = <dialog>
+					<context str="谁敢得罪我古尔德，我就让我表哥古力德送他1000个拳头！" npcId="50">
+					</context>
+				</dialog>;
+         talk["50_232_woerte3"] = <dialog>
+					<context str="谁敢得罪我古尔德，我就让我表哥古力德送他1000个拳头！" npcId="50">
+					</context>
+				</dialog>;
+         talk["50_233_woerte3"] = <dialog>
+					<context str="哇！又是你！你竟然敢来我古尔德的地盘撒野！" npcId="50"/>
+					<context str="不过……嘿嘿！我古尔德大人不记仇。如果你要是出大价钱买下这人鱼的话，这回就放过你。你看，多漂亮的人鱼啊！">	
+						<choice str="你敢强行捕捉人鱼，还进行黑市交易？">
+							<context str="我可是有古力德大人的庇护哟！知道古力德吗？他可是宇宙无敌的达斯特军团大将。"/>
+							<context str="吓破胆了吧。怎么样？小鬼，你敢对我动手吗？乖乖地掏钱吧。">
+								 <choice str="绝不放过你！" taskId="233" action="13_233_end"/>
+								 <choice str="让我想想看。" taskId="233"/>
+							</context>
+						</choice>
+					</context>			    
+				</dialog>;
+         talk["50_234_lost"] = <dialog>
+					<context str="小鬼，连我都打不过，还想救人鱼。还是盼望自己成为一个富翁，我还可以考虑把人鱼卖给你。" npcId="50">
+						<choice str="我一定会救回人鱼可可的。"/>
+					</context>
+				</dialog>;
+         talk["50_234_woerte3"] = <dialog>
+					<context str="古尔德很强大，是否准备和他交战。" npcId="50">
+						<choice str="准备好了。" action="13_234_fight"/>
+						<choice str="我准备一下就来。"/>
+					</context>
+				</dialog>;
+         talk["517_2065_haikustar1"] = <config>
+					<context npcId="517" iconId="1" str="是你们唤醒了我？"/>
+					<context npcId="86" iconId="1" str="好强的压迫感！这只亚比身上，竟然蕴藏着如此强大的能量！">
+						<choice str="连海枯之星上的天气都发生了异变。">
+							<context npcId="517" iconId="1" str="我在问，是你们，唤醒了我？">
+								<choice str="对！就是我唤醒了你。">
+									<context npcId="517" iconId="1" str="有勇气！能唤醒我，你也有几分本领。"/>
+									<context npcId="517" iconId="1" str="说出你的愿望吧！虽然现在我还很虚弱，但我会尽量满足你的。">
+										<choice str="唤醒你？愿望？突然说出这些奇怪的话，你到底什么来历？" action="2055_Picture1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_206601_haikustar1"] = <config>
+					<context npcId="517" iconId="1" str="我已经满足了你们的愿望，是时候离开，去完成我的使命了！"/>
+					<context npcId="86" iconId="1" str="等等！我还有事情想要问问你！">
+						<choice str="拉贝尔，你别走啊！" action="2055_Movie14"/>
+					</context>
+				</config>;
+         talk["517_2066_haikustar1"] = <config>
+					<context npcId="517" iconId="1" str="说出你们的愿望吧！"/>
+					<context npcId="501" iconId="1" str="你说你可以满足我的愿望，我想知道白京京的下落。"/>
+					<context npcId="517" iconId="1" str="……嗯……白京京是海枯之石的心。"/>
+					<context npcId="517" iconId="1" str="现在，为了救你，耗尽能量，它就是这块没有了生机的海枯之石。"/>
+					<context npcId="501" iconId="8" str="什么？白京京就是这海枯之石？"/>
+					<context npcId="501" iconId="4" str="那，你……你要救活白京京。"/>
+					<context npcId="517" iconId="1" str="我已经答应了你的愿望，告知你了白京京的下落。">
+						<choice str="那就请满足我的愿望吧！希望你救活白京京。">
+							<context npcId="517" iconId="1" str="白京京耗尽全部能量，救活白京京，与起死回生无异，我刚刚苏醒，不知道能否恢复力量。"/>
+							<context npcId="517" iconId="1" str="如果，真要救活白京京，我需要一样东西作为交换。">
+								<choice str="什么东西？" action="2055_Movie12"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2176_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="原来是你，#username#！来的真不是时候，我劝你，还是赶快离开吧！">
+						<choice str="那可不行，我不能留你独自在这里！" taskId="2176" action="2175_Start"/>
+					</context>
+				</config>;
+         talk["517_217702_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="凯撒，你终于来了！我等你很久了！"/>
+					<context npcId="539" iconId="1" str="哼！修罗，今天就让我们把千年的恩怨做个了结吧！">
+						<choice str="修罗小心！" taskId="2177" action="2175_Movie2"/>
+					</context>
+				</config>;
+         talk["517_2177_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="暴风雨即将来临，而你，正处在这暴风雨的中心。"/>
+					<context npcId="517" iconId="1" str="不想被撕成碎片的话，就赶紧离开这里！">
+						<choice str="喂，不要这样啦！我是把你当朋友才想来帮你啊！">
+							<context npcId="517" iconId="1" str="这里是即将成为战场的地方，如果你待在这里，会阻碍我发挥出全部的力量。">
+								<choice str="我、我不会当吊车尾啦！">
+									<context npcId="517" iconId="1" str="哼，还真是胡来！随你的便好了！"/>
+									<context npcId="517" iconId="1" str="不过，黑暗的力量已经开始向这边靠近了！保护好自己，它要来了！！">
+										<choice str="是凯撒吗？来得还真快！" action="2175_Movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2184_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="2" str="怎么、怎么又是你们，不是让你们走吗！">
+						<choice str="不行，我们坚决不走！" taskId="2184" action="2183_start"/>
+					</context>
+				</config>;
+         talk["517_2185_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="2" str="这场宿命的战斗，由我背负就好，你们，还是离开吧。">
+						<choice str="不，我们要与你一起战斗！">
+							<context npcId="517" iconId="2" str="千年前，与凯撒的大战，几乎祸及整个六芒星系的生命……"/>
+							<context npcId="517" iconId="2" str="这次，我决不能……决不能，再让这种事情发生！你们快点离开！"/>
+							<context npcId="539" iconId="1" str="离开？恐怕已经来不及了，哈哈哈哈哈！今天我就要把你们统统消灭掉！">
+								<choice str="可恶的凯撒！" action="2183_Movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_218702_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="3" str="这铃铛，从哪儿来的？"/>
+					<context npcId="1" iconId="1" str="这铃铛是奇灵王给我们的，它还告诉HELLO和主人，说我们是被命运选中的，来帮助你的人！">
+						<choice str="事情是这样的（把灵力空间的事告诉了修罗）。">
+							<context npcId="379" iconId="1" str="奇灵王真是深谋远虑！修罗，奇灵王的决定一定有它的道理，我觉得也许是可行的！"/>
+							<context npcId="80" iconId="1" str="这样的话，我们也能安心回去了，修罗，你要保重！"/>
+							<context npcId="303" iconId="1" str="千万别死了啊！">
+								<choice str="各位，再见！" action="2183_Movie5"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_218703_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="3" str="#username#，带我去灵力空间吧，我要去看看奇灵王。">
+						<choice str="嗯，好！">
+							<context npcId="1" iconId="1" str="主人，那座&lt;font color='#FF6600'&gt;&lt;b&gt;石像&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;说不定就是通往灵力空间的钥匙，点击试试吧！">
+								<choice str="好，我知道了！" taskId="2187" action="2187_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2187_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="3" str="烈焰鸟，神武月，战无炎，谢谢！"/>
+					<context npcId="80" iconId="1" str="修罗，你实在是太乱来了，如果刚才不是我们及时赶到，你就真的没命了！"/>
+					<context npcId="379" iconId="1" str="好在刚才我、阿风还有#username#已经重创凯撒，短时间内，它是不会再来了！"/>
+					<context npcId="303" iconId="1" str="好了好了，别叙旧了！修罗，赶紧找个地方恢复实力吧，这种渣渣的实力，是敌不过凯撒的！"/>
+					<context npcId="517" iconId="3" str="可是……我不能让你们冒险……"/>
+					<context npcId="1" iconId="32" str="修罗是为了救HELLO和主人才被凯撒伤成这样的，都是HELLO和主人不好……">
+						<choice str="修罗，让我们与你并肩作战吧！" action="2183_Movie4"/>
+					</context>
+				</config>;
+         talk["517_2188_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="3" str="奇灵王……果然是你。"/>
+					<context npcId="517" iconId="3" str="这么久不见，没想到重逢后，你第一件事就是扔了个小鬼给我。"/>
+					<context npcId="1" iconId="5" str="主人，修罗是在跟奇灵王说话吗？可是HELLO没看到奇灵王说话呀！">
+						<choice str="你看，水晶石正在发光呢，也许就是奇灵王在说话吧。">
+							<context npcId="517" iconId="3" str="也罢，既然是你的决定，那我也没有什么好说的了。"/>
+							<context npcId="517" iconId="3" str="这小鬼，我就收下了。">
+								<choice str="咦？水晶石开始发光了！" action="2183_Movie7"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2210_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="1" str="准备好了吗，地狱般的修炼就要开始了！">
+						<choice str="我已经准备好了！请锻炼我吧！" starterId="2210" action="2210_Start"/>
+					</context>
+				</config>;
+         talk["517_2211_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="1" str="准备好了吗，地狱般的修炼就要开始了！">
+						<choice str="我已经准备好了！请锻炼我吧！" taskId="2211" action="2210_Start"/>
+					</context>
+				</config>;
+         talk["517_221202_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="7" str="你现在的实力，还是太弱了。">
+						<choice str="我明白，我会努力锻炼自己的。" action="2210_Movie1"/>
+					</context>
+				</config>;
+         talk["517_221203_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="1" str="不错，只要我的力量完全恢复，加上你的实力，打败凯撒，并不是不可能。">
+						<choice str="太棒了！" action="2210_Movie1"/>
+					</context>
+				</config>;
+         talk["517_2212_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="1" str="我不会手下留情，使出全力，与我战斗吧！">
+						<choice str="我才不会放水呢，接招吧！" action="2210_Fight1"/>
+					</context>
+				</config>;
+         talk["517_2213_hexagrampalace2"] = <config>
+					<context npcId="1" iconId="30" str="修罗，你没事吧！不要吓HELLO和主人啊！">
+						<choice str="看来修罗并没有真正恢复。">
+							<context npcId="517" iconId="3" str="看来，已经到了不得不使用千年奇灵果的时候了。">
+								<choice str="千年奇灵果？那是什么？">
+									<context npcId="517" iconId="3" str="在六芒神殿，有一棵奇灵神树，每当新的星系守护神诞生时，奇灵神树上便会结出一颗千年奇灵果。">
+										<choice str="哇，这么神奇，千年奇灵果有什么特别的地方吗？" action="2210_Pic1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_221402_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="3" str="我这里有一些彩虹石，能帮助你们辨认守护剑，你们带去吧！"/>
+					<context npcId="517" iconId="3" str="你们……要小心。">
+						<choice str="（感动中）放心吧！">
+							<context npcId="1" iconId="1" str="主人，我们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;奇灵神树&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+								<choice str="好，出发！" taskId="2214" action="2214_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2214_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="3" str="看，远处的那棵树，就是奇灵神树。"/>
+					<context npcId="517" iconId="3" str="千年奇灵果，就在那树上。"/>
+					<context npcId="1" iconId="1" str="剩下的就交给HELLO和主人吧，我们去把千年奇灵果拿来！你在这好好休息养伤哦！">
+						<choice str="嘿嘿，真不愧是我的HELLO，和我想到一块儿去了！">
+							<context npcId="517" iconId="3" str="但是，奇灵神树周围布有结界，没有我一同前往的话，你们会被困在结界里。"/>
+							<context npcId="1" iconId="1" str="连小小的结界都打破不了，HELLO和主人还怎么和你一起对抗凯撒呀！">
+								<choice str="没错，摘千年奇灵果这种小事，就交给我们吧！">
+									<context npcId="517" iconId="3" str="你这小鬼……仅仅凭着这股莫名其妙的信心，可是不够的。"/>
+									<context npcId="517" iconId="3" str="奇灵神树周围的结界很危险，既然你执意要去，我就给你个提示吧。">
+										<choice str="再危险我也不怕，说吧，什么提示！" action="2210_Pic2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2222_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="#username#，你果然如约带回了千年奇灵果。">
+						<choice str="说好的事情，当然要做到！">
+							<context npcId="539" iconId="1" str="哼，连千年奇灵果都抢不到手，菲莉和可帕斯果然是没用的家伙！"/>
+							<context npcId="539" iconId="1" str="修罗，别以为有千年奇灵果的帮助，你就能反败为胜了！今天，我要让你完败！">
+								<choice str="修罗小心！" action="2218_Movie3"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2223_hexagrampalace4"] = <config>
+					<context npcId="517" iconId="1" str="凯撒，不要再挣扎了，以你现在的实力，根本不是我的对手。"/>
+					<context npcId="517" iconId="1" str="今天，我就要在这六芒内殿里，处决你！"/>
+					<context npcId="539" iconId="8" str="哈哈哈！是吗？谁处决谁，还不一定呢！">
+						<choice str="还真是嘴硬。" action="2218_Movie4"/>
+					</context>
+				</config>;
+         talk["517_2224_hexagrampalace4"] = <config>
+					<context npcId="517" iconId="6" str="看来，只能先阻止这波巨大的能量弹了，六芒神殿不能被毁！"/>
+					<context npcId="539" iconId="8" str="哈哈哈！这波能量弹可是威力巨大，能阻止的话，就阻止看看吧！">
+						<choice str="修罗，我也来帮忙！" action="2218_Jiaohu1"/>
+					</context>
+				</config>;
+         talk["517_223302_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="上次与你战斗完后，我能量耗尽，晕倒了过去。"/>
+					<context npcId="517" iconId="1" str="晕倒的时间里，我好像做了一个很长很长的梦。">
+						<choice str="咦，修罗怎么突然开始讲故事了。">
+							<context npcId="517" iconId="1" str="我梦到曾经我和你还没出生的时候，你告诉我，你想要成为有史以来最厉害的亚比。"/>
+							<context npcId="517" iconId="1" str="这样，你就可以守护你想要守护的东西。">
+								<choice str="这个梦听起来怪怪的。">
+									<context npcId="517" iconId="1" str="可是我又梦到你对我说，你身体里有一股你无法支配的破坏冲动，让你想毁灭整个宇宙。">
+										<choice str="难道修罗说的，是它和凯撒过去的往事吗？">
+											<context npcId="517" iconId="1" str="曾经因为这些话，我无法下决心消灭你，但是现在，我不会再心软了。"/>
+											<context npcId="539" iconId="1" str="现在再说这些，你以为我就会放过你，放过六芒神殿和这片星系吗？别天真了！">
+												<choice str="修罗小心！" action="2227_Movie6"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2233_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="#username#，谢谢你，没有你的帮助的话，我是无法顺利恢复力量的。">
+						<choice str="这是我们该做的。">
+							<context npcId="517" iconId="1" str="这样，我就能与凯撒对抗了！">
+								<choice str="我们也会和你一起作战的。" action="2227_Movie5"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["517_2234_hexagrampalace3"] = <config>
+					<context npcId="517" iconId="1" str="凯撒，这里是你我出生的地方，就让你在这里死去吧。">
+						<choice str="修罗，我来和你并肩作战了！" action="2227_Fight1"/>
+					</context>
+				</config>;
+         talk["517_2235_hexagrampalace3"] = <config>
+					<context npcId="517" iconId="1" str="凯撒，今天，就让你葬身在这棵树下吧！"/>
+					<context npcId="539" iconId="1" str="哈哈哈！怎么可能，我居然要死在你的手上！哈哈哈哈！">
+						<choice str="事实就是如此，接受吧！" action="2235_End"/>
+					</context>
+				</config>;
+         talk["517_223803_hexagrampalace3"] = <config>
+					<context npcId="517" iconId="1" str="看来，我是无法从这场战斗中全身而退了，只可惜，奇灵神树上还没有结出下一颗神兽果。"/>
+					<context npcId="539" iconId="1" str="哈哈哈！没关系，你死了的话，我会代替你“好好照顾”这里的！ ">
+						<choice str="少嚣张了。" taskId="2238" action="2238_End"/>
+					</context>
+				</config>;
+         talk["517_2239_hexagrampalace3"] = <config>
+					<context npcId="517" iconId="1" str="#username#，准备好了吗？这场艰难战斗，就要开始了！">
+						<choice str="准备好了，让我们开始战斗吧。" action="2236_Fight1"/>
+					</context>
+				</config>;
+         talk["517_224302_hexagrampalace3"] = <config>
+					<context npcId="517" iconId="5" str="就让一切，都在此刻结束吧。">
+						<choice str="光明必胜！" action="2236_Movie9"/>
+					</context>
+				</config>;
+         talk["517_2243_hexagrampalace3"] = <config>
+					<context npcId="517" iconId="5" str="#username#，这是我们与凯撒的生死决战，你已经准备好了吗？">
+						<choice str="我已经准备好了，开始战斗吧！" action="2236_Fight2"/>
+					</context>
+				</config>;
+         talk["517_2945_afterthing"] = <config>
+					<context npcId="517" str="这里，有整个诺亚星系的亚比的梦想和勇气。"/>
+					<context npcId="517" str="大家都在为你打气加油，希望你能消灭夜王，让大家有一个光明和值得期待的明天。"/>
+					<context npcId="517" str="请你用尽全力，与夜王战斗吧。">
+						<choice str="狼王，要加油啊！" action="2945_flash"/>
+					</context>
+				</config>;
+         talk["517_2945_bailingstar4"] = <config>
+					<context npcId="517" str="狼王，我了解你的痛苦，千年之前，我与凯撒大战时，也是抱着和你一样的想法，不忍下手。"/>
+					<context npcId="517" str="但是软弱和迟疑只会带来更多的战争，想要拯救你的朋友，就更应该全力打败夜王！"/>
+					<context npcId="744" str="我……"/>
+					<context npcId="517" str="来，有些很珍贵很珍贵的东西，我想要送给你。">
+						<choice str="也给我看看吧。" action="2945_importandThing"/>
+					</context>
+				</config>;
+         talk["517_2947_bailingstar4"] = <config>
+					<context npcId="517" str="夜王已死，永夜族溃败！我的使命到此也该结束，是时候回六芒神殿了！">
+						<choice str="修罗，谢谢你，一路走好！" action="2947_friendMeet"/>
+					</context>
+				</config>;
          talk["519_2073_bingxuestar1"] = <config>
 					<context npcId="519" iconId="1" str="暴……暴风雪要来了，赶紧跑吧，要不然就没命了。">
 						<choice str="暴风雪？" action="2073_storm"/>
 					</context>
 				</config>;
+         talk["51_226_woerte1"] = <config>
+						<context str="我是泡泡闪光河豚，我最爱吃泡泡光片鱼。">
+							<choice str="就是你了！看我打败你！" action="51_226_fightHeTun"/>
+						</context>
+			   </config>;
          talk["520_2074_afterAppear"] = <config>
 					<context npcId="520" iconId="3" str="豆豆是我妹妹，它有些怕生，不太爱说话。">
 						<choice str="没关系，你好，豆豆！">
@@ -5264,6 +13328,293 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["520_2080_bingxuestar2"] = <config>
+					<context npcId="520" str="现在只有暴雪冰山的冰崖上才有冰凌花，要采到它非常不容易。">
+						<choice str="为了帮豆豆，我愿意一试。" starterId="2080" action="2080_talkContinue"/>
+						<choice str="这样啊，那我还是不要去了。"/>
+					</context>
+				</config>;
+         talk["520_2081_bingxuestar2"] = <config>
+					<context npcId="520" iconId="2" str="你们是远方的客人，我怎么能让你们去冒险，这种事情还是让我自己来吧。"/>
+					<context npcId="520" iconId="2" str="如果我真的发生了什么意外，希望你们帮我照顾好豆豆。">
+						<choice str="迪恩……" action="2081_doudouWantGo"/>
+					</context>
+				</config>;
+         talk["520_2084_bingxuestar2"] = <config>
+					<context npcId="1" str="迪恩，迪恩，快醒醒，我家主人采到冰凌花了。">
+						<choice str="迪恩这是怎么了。">
+							<context npcId="1" iconId="40" str="HELLO也不知道是怎么回事，而且一直依赖迪恩的豆豆也不见了。">
+								<choice str="是啊，豆豆哪里去了呢？" action="2084_footprint"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2087_bingxuestar1"] = <config>
+					<context npcId="520" iconId="8" str="豆豆……豆豆不见了，你们有看到它吗？">
+						<choice str="（把所有的事情告诉迪恩）">
+							<context npcId="520" iconId="2" str="黑色影子，蝴蝶？我怎么从来都不知道。"/>
+							<context npcId="1" str="豆豆好像和那个黑影达成了什么协议，而且言语中有提到你呢？">
+								<choice str="是的，似乎是为了实现你的心愿。">
+									<context npcId="520" iconId="9" str="难怪每个晚上我都会莫名其妙的睡着，醒来后家里就会多出一堆东西来。"/>
+									<context npcId="520" iconId="9" str="不行，我一定要找到豆豆，我绝对不允许它做出什么傻事来。">
+										<choice str="可是现在我们根本不知道豆豆被带去了哪里。">
+											<context npcId="520" iconId="6" str="那我就在这里等，直到豆豆出现为止……"/>
+											<context npcId="1" str="主人，现在我们应该怎么办？">
+												<choice str="先让迪恩一个人静一静吧！" taskId="2087"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2088_bingxuestar1"] = <config>
+					<context npcId="520" iconId="1" str="#username#，你不用管我，这里太冷，你先回去吧！">
+						<choice str="我怎么能让你一个人在这里。" starterId="2088">
+							<context npcId="520" str="我不知道豆豆是不是还能回来，所以不想连累你们。">
+								<choice str="你这说的是什么话，我们不是朋友吗？" action="2088_diEnFallIll"/>
+							</context>
+						</choice>
+						<choice str="正好我现在有事，待会再过来看你。"/>
+					</context>
+				</config>;
+         talk["520_2089_bingxuestar1"] = <config>
+					<context npcId="520" str="我不知道豆豆是不是还能回来，所以不想连累你们。">
+						<choice str="你这说的是什么话，我们不是朋友吗？" action="2088_diEnFallIll"/>
+					</context>
+				</config>;
+         talk["520_2090_bingxuestar1"] = <config>
+					<context npcId="520" iconId="6" str="你们不用劝我，等不到豆豆，我是不会回去的。">
+						<choice str="可是你这样子身体会吃不消的。">
+							<context npcId="520" iconId="6" str="豆豆已经成了我生活的一部分。"/>
+							<context npcId="520" iconId="6" str="如果它有什么三长两短，我不知道我还有没有勇气一个人活下去。">
+								<choice str="不要说丧气，豆豆一定不会有事的。">
+									<context npcId="1" iconId="30" str="是啊，HELLO觉得如果豆豆看到你现在这个样子一定会很伤心的。"/>
+									<context npcId="520" iconId="6" str="我知道你们是一番好意，不过，我意已决，你们不用再说了。"/>
+									<context npcId="1" iconId="6" str="主人，迪恩一直这么等下去，身体肯定会受不了的。"/>
+									<context npcId="1" iconId="6" str="不如我们把他绑回去吧！">
+										<choice str="非常时刻看来只能用非常手段了。" action="2090_butterflyAppear"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2093_bingxuestar1"] = <config>
+					<context npcId="520" iconId="2" str="豆豆，豆豆，你快醒醒，不要吓我啊！"/>
+					<context npcId="1" str="主人，看豆豆的样子应该是发烧了，HELLO觉得还是先把它带回家去比较好。">
+						<choice str="有道理，而且再待下去迪恩也会受不了的。">
+							<context npcId="520" iconId="10" str="都怪我一时太紧张，忘记了豆豆的处境，我们现在赶紧回家吧！">
+								<choice str="嗯，我来把豆豆抱回去吧！" action="2093_goHouse"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2094_bingxuestar2"] = <config>
+					<context npcId="520" iconId="2" str="豆豆现在烧得厉害，我得先给它喂药。">
+						<choice str="迪恩，你已经很累了，所以让我来吧！" action="2094_feedDoudou"/>
+					</context>
+				</config>;
+         talk["520_2103_afterGet"] = <config>
+					<context npcId="520" iconId="8" str="豆豆，它会不会有事？"/>
+					<context npcId="385" str="它的情况很不乐观，不过好在有冰凌花护住了心脉，所以还能支撑一段时间。">
+						<choice str="那有办法能让它醒过来吗?">
+							<context npcId="385" str="我也不知道，现在看来只有它可以救豆豆了。">
+								<choice str="谁啊 ？" action="2103_lanDingGo"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2103_bingxuestar2"] = <config>
+					<context npcId="520" iconId="11" str="#username#，还有这位英雄，谢谢你们救了我和豆豆。">
+						<choice str="这是我们应该做的。" action="2103_weakDoudou"/>
+					</context>
+				</config>;
+         talk["520_2104_bingxuestar2"] = <config>
+					<context npcId="520" iconId="2" str="豆豆不会有事的对不对？">
+						<choice str="嗯，放心吧，兰丁是我们奥拉星的大英雄，我相信他会有办法让豆豆好起来的。">
+							<context npcId="1" str="是啊，迪恩， HELLO可是一直都很崇拜兰丁的，他一定不会让豆豆有事的。"/>
+							<context npcId="520" iconId="2" str="可是豆豆现在的情况很危险……">
+								<choice str="豆豆一定会坚持住的，因为我还准备带它去奥拉星去过圣诞节呢。">
+									<context npcId="520" iconId="6" str="圣诞节，对，豆豆一定舍不得错过今年的圣诞节的。">
+										<choice str="所以就让我们一起等兰丁的好消息吧。" taskId="2104"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2129_bingxuestar2"] = <config>
+					<context npcId="520" str="#username#，我等不下去了，我要自己想办法救豆豆。">
+						<choice str="迪恩，耐心点，再等等吧，我想兰丁快回来了！" starterId="2129" action="">
+							<context npcId="520" iconId="2" str="对不起，不是我不相信兰丁，只是我真的等不及了。"/>
+							<context npcId="520" iconId="2" str="我做不到就这么眼睁睁的看着豆豆的病情恶化下去。">
+								<choice str="我能理解你的心情，那你有什么好的打算没有？">
+									<context npcId="520" iconId="2" str="冰凌花对豆豆的病有作用，所以我决定将暴雪冰山上所有的冰凌花都采下来。">
+										<choice str="不行，那太危险了，我不能让你这个时候去冒险。">
+											<context npcId="1" iconId="30" str="是啊，如果你出了事，不是白费了豆豆的良苦用心吗？"/>
+											<context npcId="520" iconId="8" str="豆豆的良苦用心？什么意思？">
+												<choice str="（将豆豆和黑色影子的事情告诉迪恩）">
+													<context npcId="520" iconId="8" str="豆豆是想用自己的性命换来冰雪之星的繁荣，实现我的心愿吗?它怎么能这么傻。">
+														<choice str="是啊，所以为了豆豆你要保持冷静。" taskId="2130" action="2130_continue"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事情，待会再来听你说。"/>
+					</context>
+				</config>;
+         talk["520_2130_bingxuestar2"] = <config>
+					<context npcId="520" iconId="2" str="对不起，不是我不相信兰丁，只是我真的等不及了。"/>
+					<context npcId="520" iconId="2" str="我做不到就这么眼睁睁的看着豆豆的病情恶化下去。">
+						<choice str="我能理解你的心情，那你有什么好的打算没有？">
+							<context npcId="520" iconId="2" str="冰凌花对豆豆的病有作用，所以我决定将暴雪冰山上所有的冰凌花都采下来。">
+								<choice str="不行，那太危险了，我不能让你这个时候去冒险。">
+									<context npcId="1" iconId="30" str="是啊，如果你出了事，不是白费了豆豆的良苦用心吗？"/>
+									<context npcId="520" iconId="8" str="豆豆的良苦用心？什么意思？">
+										<choice str="（将豆豆和黑色影子的事情告诉迪恩）">
+											<context npcId="520" iconId="8" str="豆豆是想用自己的性命换来冰雪之星的繁荣，实现我的心愿吗?它怎么能这么傻。">
+												<choice str="是啊，所以为了豆豆你要保持冷静。" taskId="2130" action="2130_continue"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2131_afterFight"] = <config>
+					<context npcId="520" iconId="12" str="#username#，我并不是有意要和你打架，我真的是太担心豆豆了。">
+						<choice str="我明白的。" action="2131_lanDingBack"/>
+					</context>
+				</config>;
+         talk["520_2131_bingxuestar2"] = <config>
+					<context npcId="520" iconId="12" str="你觉得我现在能冷静得下来吗？不行，我这就去采冰凌花。">
+						<choice str="我是绝对不会让你去的。">
+							<context npcId="520" iconId="12" str="不要再阻止我，要不然我就不客气了。">
+								<choice type="3" str="那我只有通过武力来让你冷静了。" action="2130_fight"/>
+								<choice str="我先准备一下，待会再来阻止你。"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["520_2137_protect"] = <config>
+					<context npcId="520" iconId="6" str="#username#，为了豆豆，我们一定要把好关，绝对不能出差错。">
+						<choice str="我会非常小心的。" action="2137_blackShadow"/>
+					</context>
+				</config>;
+         talk["520_2145_afterLeave"] = <config>
+					<context npcId="520" iconId="13" str="#username#，真的非常感谢你，了却了我的心愿，也帮豆豆恢复了健康。"/>
+					<context npcId="522" iconId="2" str="谢……谢谢你。">
+						<choice str="不用谢，这是我应该做的。">
+							<context npcId="520" iconId="3" str="有了这个虚幻之春，今年圣诞节的礼物就不用愁了。"/>
+							<context npcId="538" iconId="1" str="嗯，今年圣诞节一定会有意外的惊喜。"/>
+							<context npcId="522" iconId="2" str="那……那就让……让我们一起去准备圣诞礼物吧。"/>
+							<context npcId="1" str="主人，我们也该去&lt;font color='#FF6600'&gt;&lt;b&gt;指挥中心&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;向司令官报告了。">
+								<choice str="嗯，我们走吧。" taskId="2145"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["521_2085_afterMovie"] = <config>
+					<context npcId="521" iconId="3" str="敢在我的眼皮底下抢人，胆子可不小。"/>
+					<context npcId="1" iconId="21" str="好……好大的气场啊，HELLO感觉呼吸都困难了。">
+						<choice str="你……你是谁？你要豆豆帮你做什么？">
+							<context npcId="521" iconId="2" str="你没有资格知道我是谁。"/>
+							<context npcId="521" iconId="2" str="至于和我豆豆之间的事情，更轮不到你来插手。">
+								<choice str="我绝对不会让你伤害豆豆的。" taskId="2085" action="2085_nextTask"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["521_2086_bingxuestar1"] = <config>
+					<context npcId="521" iconId="3" str="简直是自不量力，找打。">
+						<choice str="反……反正我是不会让你欺负豆豆的。" action="2086_doudouGoaway"/>
+					</context>
+				</config>;
+         talk["521_2096_afterAppear"] = <config>
+					<context npcId="521" iconId="3" str="我还以为是豆豆这么快醒来了，原来是你们。">
+						<choice str="听你这么说应该知道豆豆的身体是怎么回事了！">
+							<context npcId="521" iconId="3" str="我当然知道。">
+								<choice str="那告诉我们吧！" taskId="2096"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["521_2097_bingxuestar4"] = <config>
+					<context npcId="521" str="凭你们的能力还奈何不了我，所以告诉你们也无妨。">
+						<choice str="那快点说说吧！" starterId="2097">
+							<context npcId="521" iconId="3" str="事情还要从很久以前的那一场大战开始说起。">
+								<choice str="大战？什么大战？" action="2097_theWar"/>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事情要做，过一会再来听你说。"/>
+					</context>
+				</config>;
+         talk["521_2098_afterRecall"] = <config>
+					<context npcId="521" iconId="3" str="果不其然，没过多久，豆豆便来到了这里。">
+						<choice str="那你到底对豆豆做了什么？">
+							<context npcId="521" iconId="3" str="一个各取所需的交易而已。">
+								<choice str="交易？什么交易？" taskId="2098">
+									<context npcId="521" iconId="3" str="它让我吸取它体内的能量，我帮它把虚幻之春永远保留下来。"/>
+									<context npcId="1" iconId="34" str="主人，看来豆豆真的是为了迪恩呢，如果迪恩知道一定会很难过的。">
+										<choice str="是啊，那现在有没有办法让豆豆好起来呢？">
+											<context npcId="521" iconId="3" str="好起来？哈哈……这简直是天大的玩笑。">
+												<choice str="你这话是什么意思？">
+													<context npcId="521" iconId="3" str="若不是它体内有一种特殊的物质阻挡我的进度，它早就灰飞烟灭了。"/>
+													<context npcId="521" iconId="3" str="不过等我把它体内所有的能量都吸完，这里的一切也就该消失了。">
+														<choice str="你是说你不会履行对豆豆的承诺了？">
+															<context npcId="521" iconId="3" str="承诺？哈哈，我想也只有豆豆那么傻才会相信。">
+																<choice str="简直太可恶了，我不会让你的阴谋得逞的。">
+																	<context npcId="521" iconId="3" str="就凭你，还不配和我动手。">
+																		<choice str="为朋友打抱不平是我的责任。" action="2099_fallAway"/>
+																	</context>
+																</choice>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["521_2098_bingxuestar4"] = <config>
+					<context npcId="521" iconId="3" str="事情还要从很久以前的那一场大战开始说起。">
+						<choice str="大战？什么大战？" action="2097_theWar"/>
+					</context>
+				</config>;
+         talk["521_2099_bingxuestar4"] = <config>
+					<context npcId="521" iconId="3" str="它让我吸取它体内的能量，我帮它把虚幻之春的繁荣永远保留下来。"/>
+					<context npcId="1" iconId="34" str="主人，看来豆豆真的是为了迪恩呢，如果迪恩知道一定会很难过的。">
+						<choice str="是啊，那现在有没有办法让豆豆好起来呢？">
+							<context npcId="521" iconId="3" str="好起来？哈哈……这简直是天大的玩笑。">
+								<choice str="你这话是什么意思？">
+									<context npcId="521" iconId="3" str="若不是它体内有一种特殊的物质阻挡我的进度，它早就灰飞烟灭了。"/>
+									<context npcId="521" iconId="3" str="不过等我把它体内所有的能量都吸完，这里的一切也就该消失了。">
+										<choice str="你是说你不会履行对豆豆的承诺了？">
+											<context npcId="521" iconId="3" str="承诺？哈哈，我想也只有豆豆那么傻才会相信。">
+												<choice str="简直太可恶了，我不会让你的阴谋得逞的。">
+													<context npcId="521" iconId="3" str="就凭你，还不配和我动手。">
+														<choice str="为朋友打抱不平是我的责任。" action="2099_fallAway"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["522_2076_bingxuestar2"] = <config>
 					<context npcId="1" str="主人，你把HELLO顶到上面去，让HELLO把豆豆抱下来吧！">
 						<choice str="好的。" action="2076_getDoudou"/>
@@ -5274,16 +13625,553 @@ package mmo.tasknpc
 						<choice str="是啊，或许我们可以帮助你哦！" action="2078_doudouShy"/>
 					</context>
 				</config>;
+         talk["522_2085_bingxuestar1"] = <config>
+					<context npcId="1" str="主人，是豆豆！">
+						<choice str="它想要干什么？">
+							<context npcId="1" iconId="23" str="哇，主人，你看到了没有，蝴蝶，这冰天雪地之中竟然会有蝴蝶！">
+								<choice str="是啊，太不可思议了！" action="2085_bossAppear"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["523_2082_afterClickFlower"] = <config>
+					<context npcId="523" str="哪个不要命的竟敢打扰本姑奶奶睡觉。">
+						<choice str="对不起，我是来摘冰凌花的，并不是故意打扰你的。">
+							<context npcId="523" str="我说这冰凌花最近怎么老是莫名其妙的变少了，原来是有你这个“采花贼”。"/>
+							<context npcId="523" str="今天终于被我给逮到了，得给你点颜色瞧瞧才行。">
+								<choice str="为了冰凌花，我只好勉为其难和你打一场。" action="2082_fight"/>
+								<choice str="看你很厉害的样子，我现在还不想和你打。"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["523_2082_cullOrNotCull"] = <config>
+					<context npcId="523" str="今天终于逮到了你这个“采花贼”，得给你点颜色瞧瞧才行。">
+						<choice str="为了冰凌花，我只好勉为其难和你打一场。" action="2082_fight"/>
+						<choice str="看你很厉害的样子，我现在还不想和你打。"/>
+					</context>
+				</config>;
+         talk["523_2082_fightFail"] = <config>
+					<context npcId="523" str="就凭你，也敢打这仙物的主意！">
+						<choice str="刚才没尽全力，下面让你见识我真正的本领。"/>
+					</context>
+				</config>;
+         talk["523_2082_fightWin"] = <config>
+					<context npcId="523" str="这冰凌花可是我家山神大人种下，为了指引它失忆的孩子回家的，你们这是强取豪夺。">
+						<choice str="我们是拿它治病救人的（将豆豆的事情告诉它）。">
+							<context npcId="523" str="看在你还算善良的份上，我就让你摘上一小朵。"/>
+							<context npcId="523" str="不过我好心提醒你，要摘到冰凌花得有些本事才行。">
+								<choice str="我会尽力而为的。" taskId="2082" action="2082_permitted"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["52_242_woerte3"] = <config>
+								<context str="贝壳城堡外是一片超高压水域，古力德有SR军团的保护，我们需要借助一位朋友的帮助，通过贝壳城堡中秘密的超高压水域进入城堡。">
+									<choice str="哇！鲸鱼呀！">
+										<context str="是呀！它就是我可爱的朋友。其实，我是贝壳城堡真正的主人，达斯特军团的古尔德与古力德霸占了我的城堡，让我帮他们看守城堡大门。">
+										</context>
+										<context str="他们还抢夺了我最珍爱的亚比们！他们竟然做黑市交易！贩卖珍贵的亚比！">
+											<choice str="我会打败他们的！">
+												<context str="守卫着贝壳城堡的古力德有着无坚不摧的SR军团，他们实在太强大了。不过，曾经有位英雄，用&lt;font color='#FF6600'&gt;&lt;b&gt;“粒子聚合器”&lt;/b&gt;&lt;/font&gt;打败过古力德的SR军团！">
+												</context>
+												<context str="这是英雄送给我的“粒子聚合器”，可我却无法使用它，它需要消耗的能量实在太大了！">
+													<choice str="能让我看一看吗？">
+														<context str="这是粒子聚合器，如果你能够找到方法启动它的话，应该就可以打败SR军团了。">
+														</context>
+														<context npcId="1" str="主人！粒子聚合器上有很多奇怪的文字，我们到&lt;font color='#FF6600'&gt;&lt;b&gt;奥拉之树&lt;/b&gt;&lt;/font&gt;下，找到&lt;font color='#FF6600'&gt;&lt;b&gt;萨鲁奇&lt;/b&gt;&lt;/font&gt;，请教粒子聚合器上的奇怪文字。">
+															<choice str="嗯！我们立即去找他。" taskId="242"/>
+														</context>	
+													</choice>
+												</context>
+											</choice>
+										</context>
+									</choice>
+								</context>
+							</config>;
+         talk["52_251_woerte3"] = <config>
+					<context str="我相信你一定可以救出人鱼可可的。" npcId="52"/>					
+				</config>;
+         talk["52_252_woerte3"] = <config>
+					<context str="我相信你一定可以救出人鱼可可的。" npcId="52"/>					
+				</config>;
+         talk["52_253_woerte3"] = <config>
+					<context str="我相信你一定可以救出人鱼可可的。" npcId="52"/>					
+				</config>;
+         talk["52_254_woerte3"] = <config>
+					<context str="什么时候，才能与我珍爱的亚比，一起欢聚在贝壳城堡？" npcId="52"/>					
+				</config>;
+         talk["52_255_woerte3"] = <config>
+					<context str="什么时候，才能与我珍爱的亚比，一起欢聚在贝壳城堡？" npcId="52"/>					
+				</config>;
+         talk["52_265_woerte3"] = <config>
+														<context str="原来能量与贝壳城堡的巨大贝壳有关。事不宜迟！赶快&lt;font color='#FF6600'&gt;&lt;b&gt;进入鲸鱼的嘴中&lt;/b&gt;&lt;/font&gt;，前往贝壳城堡吧！">
+															<choice str="嗯！出发吧！" taskId="265"/>
+														</context>
+													</config>;
+         talk["531_2091_bingxuestar1"] = <config>
+					<context npcId="531" str="你们是什么人，待在这里干什么？">
+						<choice str="我们是在这儿等一个朋友，不知道你们有没有看到过它？">
+							<context npcId="531" str="我不管你什么朋友不朋友的，你们挡住了我们的路，赶紧闪开。">
+								<choice str="可是……" action="2090_doudouAppear"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["531_2092_afterFight"] = <config>
+					<context npcId="531" str="若不是还有公事在身，我一定饶不了你们。今天算你们走运，我们撤。">
+						<choice str="话还没有说清楚呢……" action="2092_butterflyLeave"/>
+					</context>
+				</config>;
+         talk["531_2092_bingxuestar1"] = <config>
+					<context npcId="531" str="好了，任务完成，得回去向主人报告了。">
+						<choice str="等等，话还没有说清楚，不许走！你们到底对我朋友做了什么？">
+							<context npcId="531" str="除了主人，还没有人敢对我们大呼小叫，我看你们是找打！">
+								<choice type="3" str="那我就来领教领教！" action="2092_fightButterfly"/>
+								<choice str="我还没有做好准备，待会再来和你打。"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["532_2095_bingxuestar1"] = <config>
+					<context npcId="532" str="如果你们能帮我找到翅膀，我就带你们去一个漂亮的地方。"/>
+					<context npcId="1" str="主人，看，粉色的蝴蝶，HELLO记得上次豆豆消失的时候它有出现过。"/>
+					<context npcId="1" str="也许它能给我们带来什么线索，不如我们先帮它找&lt;font color='#FF6600'&gt;&lt;b&gt;翅膀&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+						<choice str="嗯，好！" action="2095_getWing"/>
+					</context>
+				</config>;
+         talk["532_2096_bingxuestar4"] = <config>
+					<context npcId="532" iconId="2" str="这个地方很漂亮吧！"/>
+					<context npcId="1" iconId="23" str="哇，这……这是哪里？简直太漂亮了！主人，我们该不会穿越了吧？">
+						<choice str="我也不知道，真是让人匪夷所思。">
+							<context npcId="532" iconId="2" str="谢谢你们帮我找到翅膀，我要去找我的伙伴了！">
+								<choice str="再见！" action="2096_darkBall"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["538_2132_afterSee"] = <config>
+					<context npcId="538" iconId="1" str="情况比我想像中的要严重，看来只有用最后的办法了。">
+						<choice str="什么办法？" taskId="2132">
+							<context npcId="538" iconId="1" str="要治好豆豆的病，现在只有依靠冰雪溶洞里的冰凌花了。">
+								<choice str="冰雪溶洞？听起来好像是个很危险的地方。">
+									<context npcId="538" iconId="1" str="嗯，虽然冰雪溶洞里险境重重，但是里面的千年冰凌花却是救命良药。"/>
+									<context npcId="520" iconId="2" str="那还等什么，我们赶紧去冰雪融洞里采冰凌花救豆豆吧！"/>
+									<context npcId="538" iconId="1" str="冰雪溶洞里的冰凌花离开溶洞便会融化成水，是无法采摘的。">
+										<choice str="那该怎么办？">
+											<context npcId="538" iconId="1" str="必须带豆豆进入洞中，让它在洞中将冰凌花吃掉才行。"/>
+											<context npcId="520" iconId="8" str="冰雪溶洞在哪？我这就带豆豆进去。"/>
+											<context npcId="538" iconId="1" str="冰雪溶洞在&lt;font color='#FF6600'&gt;&lt;b&gt;暴雪冰山&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，你们现在就和我一起去吧！">
+												<choice str="好的。" action="2133_goAway"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["538_2133_bingxuestar2"] = <config>
+					<context npcId="538" iconId="1" str="要治好豆豆的病，现在只有依靠冰雪溶洞里的冰凌花了。">
+						<choice str="冰雪溶洞？听起来好像是个很危险的地方。">
+							<context npcId="538" iconId="1" str="嗯，虽然冰雪溶洞里险境重重，但是里面的千年冰凌花却是救命良药。"/>
+							<context npcId="520" iconId="2" str="那还等什么，我们赶紧去冰雪融洞里采冰凌花救豆豆吧！"/>
+							<context npcId="538" iconId="1" str="冰雪溶洞里的冰凌花离开溶洞便会融化成水，是无法采摘的。">
+								<choice str="那该怎么办？">
+									<context npcId="538" iconId="1" str="必须带豆豆进入洞中，让它在洞中将冰凌花吃掉才行。"/>
+									<context npcId="520" iconId="8" str="冰雪溶洞在哪？我这就带豆豆进去。"/>
+									<context npcId="538" iconId="1" str="冰雪溶洞在&lt;font color='#FF6600'&gt;&lt;b&gt;暴雪冰山&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，你们现在就和我一起去吧！">
+										<choice str="好的。" action="2133_goAway"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["538_2135_bingxuestar3"] = <config>
+					<context npcId="538" iconId="1" str="这里就是冰雪溶洞，能不能治好豆豆就在此一举了。">
+						<choice str="就让我带豆豆进去吧！" action="2135_playGame"/>
+					</context>
+				</config>;
+         talk["538_2135_gameWin"] = <config>
+					<context npcId="538" iconId="1" str="嗯，非常好，看来现在只差取出豆豆体内的纯净能源了！"/>
+					<context npcId="1" iconId="30" str="不可以，豆豆就是因为身体的能量被吸走，才会变成这样的呢！">
+						<choice str="是啊。">
+							<context npcId="385" str="不用担心，豆豆已经吃了千年冰凌花，不再需要纯净能源支撑了。">
+								<choice str="什么意思？" taskId="2135">
+									<context npcId="538" str="豆豆原本是冰凌花花神，因为身体受损才需要依靠纯净能源的。">
+										<choice str="豆豆？冰凌花花神？" action="2136_picture"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["538_2136_afterEat"] = <config>
+					<context npcId="538" str="有一天豆豆趁我不注意，离开家门，就再也没有回来。"/>
+					<context npcId="385" str="当时我追查黑元首至此，正碰到山神在找豆豆，所以才清楚这件事情。"/>
+					<context npcId="1" iconId="7" str="HELLO明白了，那块千年寒冰应该就是我们在寻找的纯净能源了。"/>
+					<context npcId="538" str="刚才豆豆吃下了千年冰凌花，身体已经恢复，所以纯净能源还留在体内只会起反作用。"/>
+					<context npcId="520" iconId="2" str="既然如此，那就赶紧把豆豆身体里的纯净能源取出来吧！">
+						<choice str="嗯，现在就开始吧！" taskId="2136">
+							<context npcId="538" iconId="1" str="以我一人之力恐怕不够。"/>
+							<context npcId="520" str="我也可以出一份力的。">
+								<choice str="还有我。">
+									<context npcId="385" str="#username#，迪恩，这件事情让我和山神来吧，你们还有更重要的任务。">
+										<choice str="什么任务？">
+											<context npcId="385" str="提取纯净能源绝对不能有丝毫分心，所以你们不要让任何人打扰我们。">
+												<choice str="好的，放心吧。" action="2137_getPower"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["538_2136_bingxuestar3"] = <config>
+					<context npcId="538" str="豆豆原本是冰凌花花神，因为身体受损才需要依靠纯净能源的。">
+						<choice str="豆豆？冰凌花花神？" action="2136_picture"/>
+					</context>
+				</config>;
+         talk["538_2137_bingxuestar3"] = <config>
+					<context npcId="538" iconId="1" str="以我一人之力恐怕不够。"/>
+					<context npcId="520" str="我也可以出一份力的。">
+						<choice str="还有我。">
+							<context npcId="385" str="#username#，迪恩，这件事情让我和山神来吧，你们还有更重要的任务。">
+								<choice str="什么任务？">
+									<context npcId="385" str="提取纯净能源绝对不能有丝毫分心，所以你们不要让任何人打扰我们。">
+										<choice str="好的，放心吧。" action="2137_getPower"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["538_2140_afterMovie"] = <config>
+					<context npcId="538" str="还好，还好够及时，要不然又将是一场大灾难。">
+						<choice str="是啊，刚才真是太可怕了。" action="2140_kaiSaLeave"/>
+					</context>
+				</config>;
+         talk["539_2137_kaiSa"] = <config>
+					<context npcId="539" iconId="4" str="纯净能源是属于我的东西，你们谁也休想得到。"/>
+					<context npcId="520" iconId="10" str="你是什么人？"/>
+					<context npcId="1" iconId="22" str="它……它就是那个企图骗取豆豆体内纯净能源的黑色影子。">
+						<choice str="嗯，没错。" taskId="2137"/>
+					</context>
+				</config>;
+         talk["539_2138_bingxuestar3"] = <config>
+					<context npcId="539" str="没错，豆豆的病是我造成的，而现在我就是来取它的性命的。">
+						<choice str="我是不会让你再伤害豆豆的。" starterId="2138" action="">
+							<context npcId="539" iconId="5" str="我的厉害你是见识过的，你觉得凭你能阻止得了我吗？"/>
+							<context npcId="520" iconId="10" str="还有我呢，你那样对豆豆，我是不会放过你的。">
+								<choice str="没错，我们合力，一定可以打败你的。" action="2139_xiuLuoAppear"/>
+							</context>
+						</choice>
+						<choice str="你身上的邪气太重，我还是不惹为妙。"/>
+					</context>
+				</config>;
+         talk["539_2139_afterAppear"] = <config>
+					<context npcId="539" iconId="6" str="怎么是你？"/>
+					<context npcId="540" iconId="2" str="没错，是我。"/>
+					<context npcId="1" iconId="4" str="主人，这是什么状况，HELLO都晕掉了。">
+						<choice str="我也不知道。" taskId="2139">
+							<context npcId="539" iconId="3" str="千年前的那场战斗胜负未分，看来今天终于可以了结了。"/>
+							<context npcId="540" iconId="3" str="胜负，其实已分，只是，你不肯承认罢了。"/>
+							<context npcId="1" iconId="30" str="主人，它们的气场太强了，如果它们一旦动起手来，那就糟糕了。">
+								<choice str="嗯，得赶紧想办法阻止它们才行。" action="2140_fightMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_2139_bingxuestar3"] = <config>
+					<context npcId="539" iconId="5" str="我的厉害你是见识过的，你觉得凭你能阻止得了我吗？"/>
+					<context npcId="520" iconId="10" str="还有我呢，你那样对豆豆，我是不会放过你的。">
+						<choice str="没错，我们合力，一定可以打败你的。" action="2139_xiuLuoAppear"/>
+					</context>
+				</config>;
+         talk["539_2140_bingxuestar3"] = <config>
+					<context npcId="539" iconId="3" str="千年前的那场战斗胜负未分，看来今天终于可以了结了。"/>
+					<context npcId="540" iconId="3" str="胜负，其实已分，只是，你不肯承认罢了。"/>
+					<context npcId="1" iconId="30" str="主人，它们的气场太强了，如果它们一旦动起手来，那就糟糕了。">
+						<choice str="嗯，得赶紧想办法阻止它们才行。" action="2140_fightMovie"/>
+					</context>
+				</config>;
+         talk["539_2225_hexagrampalace4"] = <config>
+					<context npcId="539" iconId="9" str="这、这不可能！你们、你们居然阻止了这么大规模的能量弹！">
+						<choice str="只要有信心，没有什么不可能！" action="2218_Movie6"/>
+					</context>
+				</config>;
+         talk["539_2240_hexagrampalace3"] = <config>
+					<context npcId="539" iconId="10" str="哈哈哈哈！修罗很快就会被我的力量完全控制，变成行尸走肉了！">
+						<choice str="你为什么要这样对修罗！">
+							<context npcId="539" iconId="10" str="只有这样，才是对修罗最好的报复啊！哈哈哈哈！">
+								<choice str="可恶啊！">
+									<context npcId="562" iconId="1" str="我们达斯特的任务就到此结束了！"/>
+									<context npcId="562" iconId="1" str="凯撒，履行你的承诺吧！把整个六芒星系的纯净能源找到，交给我们！"/>
+									<context npcId="539" iconId="10" str="哈哈哈！好！我就满足你们达斯特的这桩小心愿吧！">
+										<choice str="可恶，到底要怎么办才好。" action="2236_Movie4"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_224102_hexagrampalace3"] = <config>
+					<context npcId="539" iconId="10" str="怎么样，修罗，这场较量很有意思吧！">
+						<choice str="修罗，快醒醒，不要被凯撒利用啊！">
+							<context npcId="539" iconId="10" str="没用的！无论你说什么，修罗都听不见了！哈哈哈！">
+								<choice str="修罗！！快醒醒！！" taskId="2241" action="2236_Movie7"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_2241_hexagrampalace3"] = <config>
+					<context npcId="539" iconId="1" str="哈哈！大家都走了，接下来，我要怎么处置你才好呢！"/>
+					<context npcId="539" iconId="1" str="不如，让你和你的这位伙伴，进行一场生死较量怎么样？">
+						<choice str="凯撒你这个混蛋！" action="2236_Movie6"/>
+					</context>
+				</config>;
+         talk["539_224202_hexagrampalace3"] = <config>
+					<context npcId="539" iconId="11" str="什么？！黑暗力量对修罗的控制居然被这刺眼的光芒解除了！">
+						<choice str="黑暗是永远不可能战胜光明的！">
+							<context npcId="539" iconId="11" str="哼！说什么不可能战胜，这些借口还是留给你们这些弱小的人吧！"/>
+							<context npcId="517" iconId="5" str="凯撒，黑暗已经支配你的内心，现在的你，是不可能打败我的！"/>
+							<context npcId="539" iconId="11" str="能不能打败你，我说了算！">
+								<choice str="这次，一定是我们打败你！" taskId="2242" action="2242_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_2242_hexagrampalace3"] = <config>
+					<context npcId="539" iconId="1" str="没想到奇灵神树里面，还藏有这样的东西！该死的奇灵王，又在搞什么鬼！"/>
+					<context npcId="1" iconId="12" str="好强大的能量，HELLO从来没有见到过蕴含着这么大能量的纯净能源！">
+						<choice str="什么？！这个是……纯净能源吗？">
+							<context npcId="1" iconId="12" str="HELLO的感觉不会错的，这个一定是纯净能源！"/>
+							<context npcId="1" iconId="12" str="HELLO猜测，也许奇灵王的铃铛，就是开启这颗纯净能源的钥匙！">
+								<choice str="好神奇。" action="2236_Movie8"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_2513_windmillstar4"] = <config>
+					<context npcId='539' str="哈哈哈哈！这群无知的家伙，居然就这么相信了我！">
+						<choice type='0' str="你到底想干什么？">
+							<context npcId='539' str="它们说想要力量，我就给它们力量啊！"/>
+							<context npcId='539' str="成为了我身体的一部分，它们的就是我的，我的也就是它们的，还有比这更好的力量吗？">
+								<choice type='0' str="凯撒，你真是越来越邪恶了！">
+									<context npcId='539' str="不过我还是得谢谢它们的，要不是它们把我当成什么夜王大人来拜祭，我也不能这么快就得到恢复形体的力量。"/>
+									<context npcId='539' str="哈哈哈哈！听说修罗一直在找我，想要消灭我。"/>
+									<context npcId='539' str="你们可以尽管向修罗报信去，让我即将复活的消息响彻整个宇宙吧。"/>
+									<context npcId='539' str="到我复活之时，宇宙中就再也没有人能够阻止我称霸了。">
+										<choice type='0' str="别太嚣张了！" taskId="2513" action="task2513movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_2555_clockstar2"] = <config>
+					<context npcId="539" str="哈哈哈……我躲躲藏藏这么久，终于重见天日了！我要摧毁所有，我要把一切撕成碎片！整个宇宙都是我的！">
+						<choice str="凯撒！你不要这么嚣张，我们会阻止你的！">
+							<context npcId="1" iconId="3" str="主人，凯撒好像变得更加邪恶了……好可怕啊！难道凯撒这段时间就藏身在明灭之轮里面？"/>
+							<context npcId="539" str="哈哈哈，没错！我吸食了明灭之轮强大的黑暗力量，终于完成了复活。我现在的力量是无人能挡的！"/>
+							<context npcId="643" iconId="4" str="骗子！明灭之轮已经被我大哥封印了，你不可能得到黑暗力量！">
+								<choice str="没错！">
+									<context npcId="539" str="哈哈，那就多亏了你用纯净能源弱化了封印，黑暗力量才得以苏醒啊！"/>
+									<context npcId="643" iconId="4" str="你……哼！就算你复活了又怎样？我现在就消灭你！"/>
+									<context npcId="539" str="就凭你也想打败我？可笑！">
+										<choice str="泽秒小心啊！" action="2555_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["539_2556_clockstar2"] = <config>
+					<context npcId="539" str="哼，只要能让修罗神形俱灭，无论付出任何代价，我也在所不惜。"/>
+				</config>;
+         talk["539_2557_clockstar2"] = <config>
+					<context npcId="539" str="哈哈哈……修罗，你来得正好！你的死期到了！快来和我决一死战吧，我要让整个宇宙都知道，只有我凯撒才是最强大的！"/>
+					<context npcId="540" str="凯撒，既然宿命安排我们必然要为敌，那我就决不会手下留情的！"/>
+					<context npcId="539" str="哈哈……来吧！修罗，我等这天已经等了好久了！">
+						<choice type="3" str="修罗，我们并肩作战！" action="2557_startfight"/>
+						<choice str="等我准备一下！"/>
+					</context>
+				</config>;
+         talk["539_2558_clockstar2"] = <config>
+					<context npcId="539" str="我居然还是无法战胜修罗！这不可能！"/>
+					<context npcId="620" str="我们的夜王怎么这么轻易就受伤了？难道它不是我们的夜王？">
+						<choice str="凯撒本来就不是什么夜王。" action="2558_movie1"/>
+					</context>
+				</config>;
+         talk["539_2559_clockstar2"] = <config>
+					<context npcId="539" str="哼，只要能让修罗神形俱灭，无论付出任何代价，我也在所不惜。"/>
+				</config>;
+         talk["539_2560_clockstar2"] = <config>
+					<context npcId="539" str="哼，只要能让修罗神形俱灭，无论付出任何代价，我也在所不惜。"/>
+				</config>;
+         talk["539_2561_clockstar2"] = <config>
+					<context npcId="539" str="哈哈哈！明灭之轮既然白白送给我，那我就不客气了！"/>
+					<context npcId="540" str="你想怎样？"/>
+					<context npcId="539" str="当然是启动它了！我要让这个星域永远变成黑夜，我要把这个星域变成我称霸宇宙的开端，哈哈！"/>
+					<context npcId="540" str="我们一定会阻止你的，凯撒！">
+						<choice str="我们一定不会让你的阴谋得逞的！" action="2561_movie1"/>
+					</context>
+				</config>;
+         talk["539_2592_starttask"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start_task"/>
+					</context>
+				</config>;
+         talk["539_2593_clockstar4"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start"/>
+					</context>
+				</config>;
+         talk["539_2594_clockstar4"] = <config>
+					<context npcId="539" str="哈哈哈……不要做无谓的挣扎了，快过来受死吧！"/>
+					<context npcId="540" str="凯撒，来吧！看我用光明的力量消灭你！">
+						<choice str="修罗，加油！" action="2594_movie1"/>
+					</context>
+				</config>;
+         talk["539_2594_thirdtalk"] = <config>
+					<context npcId="539" str="哈哈……修罗，你还想用当初那一招再打败我吗？你太小看我了！这回可轮到你了！">
+						<choice str="修罗小心！" action="2594_movie3"/>
+					</context>
+				</config>;
+         talk["539_2595_clockstar2"] = <config>
+					<context npcId="539" str="哼，只要能让修罗神形俱灭，无论付出任何代价，我也在所不惜。"/>
+				</config>;
+         talk["539_2595_fightlose"] = <config>
+					<context npcId="539" str="说了你们根本就不是我的对手！哈哈！">
+						<choice str="我们一定会再来打败你的！"/>
+					</context>
+				</config>;
+         talk["539_2598_secondtalk"] = <config>
+					<context npcId="539" str="哈哈……我凯撒是永生的！修罗，我要你永远葬身于此！"/>
+					<context npcId="540" str="凯撒，看来一切都是宿命的安排了！">
+						<choice str="修罗……再见了……" action="2598_movie2"/>
+					</context>
+				</config>;
          talk["53_1475_starsea2_1"] = <config name="53_1475_starsea2_1">
 					<context npcId="53" str="报告！报告！敌人已被打败！敌人已被打败！"></context>
 					<context npcId="355" iconId="3" str="哎呀呀，都说了你不行的，这下相信了吧。">
 						<choice str="那又怎样，我不救回朋友绝不会放弃的。"></choice>
 					</context>
 				</config>;
+         talk["53_1716_suolide4"] = <config>
+					<context npcId="53" iconId="1" str="我们是宇宙超级无敌霹雳的SR军团！"/>
+				</config>;
+         talk["53_253_woerte4"] = <config>
+					<context str="你的能力是无法击败我的，我的钢之铠甲是无敌的。想要跟我打吗？小家伙！" npcId="53"/>
+					<context str="主人，我们用粒子聚合器来打败他们吧！先寻找&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳&lt;/b&gt;&lt;/font&gt;，找到能量源！" npcId="1">
+						<choice str="让我们找找看。" taskId="253">
+						</choice>
+					</context>
+				</config>;
+         talk["53_255_woerte4"] = <config>
+					<context str="想要跟我打吗？小家伙！" npcId="53">				
+						<choice str="打得你落花流水！" action="54_255_fight"/>
+                        <choice str="我先准备一下。"/>
+					</context>
+				</config>;
          talk["53_285_feier1"] = <config>
 					<context npcId="53" str="奉漂亮亮的菲莉大人的命令，华丽丽地将你打败。">
 						<choice type="0" str="教训教训你这手下败将。" action="48_285_fight"/>
 						<choice type="0" str="让我准备准备再说。"/>
+					</context>
+				</config>;
+         talk["540_2140_afterLeave"] = <config>
+					<context npcId="540" str="咳……咳……">
+						<choice str="修罗，你受伤了？" taskId="2140">
+							<context npcId="540" str="它也一样。">
+								<choice str="这是怎么回事？">
+									<context npcId="540" str="因为我们都没有完全恢复。"/>
+									<context npcId="1" iconId="12" str="没有恢复就差点引起一场大灾难，若是恢复了，那岂不是？ HELLO想想就觉得可怕。"/>
+									<context npcId="540" str="其实，千年前，我们已经打过一次了。">
+										<choice str="千年前？" action="2141_picture"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2141_afterPicture"] = <config>
+					<context npcId="540" str="直到千年后，我们被纯净能源的力量唤醒。">
+						<choice str="原来如此。" taskId="2141">
+							<context npcId="540" str="六芒神殿一战，终是难免，我要去履行我的使命了。">
+								<choice str="等等，修罗，你能帮我们一个忙吗？">
+									<context npcId="540" str="说。"/>
+									<context npcId="1" str="凯撒说虚幻之春会消失，可是豆豆需要它，你有办法让它保留下来吗？">
+										<choice str="是啊，能帮帮豆豆吗？">
+											<context npcId="540" str="除非有新的能量，要不然，无能为力。">
+												<choice str="新的能量？" action="2142_newPower"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2141_bingxuestar3"] = <config>
+					<context npcId="540" str="它也一样。">
+						<choice str="这是怎么回事？">
+							<context npcId="540" str="因为我们都没有完全恢复。"/>
+							<context npcId="1" iconId="12" str="没有恢复就差点引起一场大灾难，若是恢复了，那岂不是？ HELLO想想就觉得可怕。"/>
+							<context npcId="540" str="其实，千年前，我们已经打过一次了。">
+								<choice str="千年前？" action="2141_picture"/>
+							</context>	
+						</choice>
+					</context>
+				</config>;
+         talk["540_2142_afterShowPower"] = <config>
+					<context npcId="540" str="可以，不过，还需要布一个能量法阵。">
+						<choice str="那就麻烦你布阵吧！">
+							<context npcId="540" str="跟我去&lt;font color='#FF6600'&gt;&lt;b&gt;虚幻之春&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧。">
+								<choice str="好，我们走吧。" action="2142_goScene"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2142_bingxuestar3"] = <config>
+					<context npcId="540" str="六芒神殿一战，终是难免，我要去履行我的使命了。">
+						<choice str="等等，修罗，你能帮我们一个忙吗？">
+							<context npcId="540" str="说。"/>
+							<context npcId="1" str="凯撒说虚幻之春会消失，可是豆豆需要它，你有办法让它保留下来吗？">
+								<choice str="是啊，能帮帮豆豆吗？">
+									<context npcId="540" str="除非有新的能量，要不然，无能为力。">
+										<choice str="新的能量？" action="2142_newPower"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2144_afterLineup"] = <config>
+					<context npcId="540" str="这里，不会再消失了。"/>
+					<context npcId="522" iconId="2" str="哇，真的吗？我终于帮哥哥实现愿望了！">
+						<choice str="是的，真是太好了。" taskId="2144">
+							<context npcId="540" str="好了，我要去六芒神殿了，再见！">
+								<choice str="谢谢你，修罗。" action="2144_xiuluoLeave"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2144_bingxuestar4"] = <config>
+					<context npcId="540" str="#username#，能量法阵布好后，你必须将所有的人按照各自的属性放在相应的区域内。">
+						<choice str="好的。" action="2144_lineup"/>
+					</context>
+				</config>;
+         talk["540_2145_bingxuestar4"] = <config>
+					<context npcId="540" str="好了，我要去六芒神殿了，再见！">
+						<choice str="谢谢你，修罗。" action="2144_xiuluoLeave"/>
+					</context>
+				</config>;
+         talk["540_2289_yakestar1"] = <config>
+					<context npcId="540" iconId="6" str="果然不出我的所料，它真的还没死。">
+						<choice type="0" str="修罗，你在说什么啊？" starterId="2289"/>
 					</context>
 				</config>;
          talk["540_2290_nextTalk"] = <config>
@@ -5336,6 +14224,270 @@ package mmo.tasknpc
 						<choice type="0" str="什么东西？" action="2292_showSceneMovie"/>
 					</context>
 				</config>;
+         talk["540_2325_yakestar2"] = <config>
+					<context npcId="540" iconId="10" str="咳咳……还好我来得及时，要不然后果不堪设想。">
+						<choice type="0" str="修罗，这到底是怎么回事？">
+							<context npcId="540" iconId="11" str="玛雅山下有黑暗能量，只是现在被封印住了，目前还不会造成太大的威胁。"/>
+							<context npcId="540" iconId="11" str="若是刚才你们劈开了山体，可能会引发一场巨大的灾难。">
+								<choice type="0" str="幸好修罗你及时赶到。">
+									<context npcId="540" iconId="11" str="刚才我探查到那股黑暗能量已经找到了新的身体，并且在日益变强。"/>
+									<context npcId="540" iconId="11" str="若我预料不错，再过些时日它就可以自己破除封印，危害人间了。">
+										<choice type="0" str="你的意思该不会是黑暗能量附在了麦提父亲的身上了吧！">
+											<context npcId="540" str="是这样的，现在麦提的父亲已经完完全全被黑暗能量控制了。"/>
+											<context npcId="581" iconId="3" str="不会的，这绝对不可能。">
+												<choice type="0" str="那我们应该怎么办？">
+													<context npcId="540" str="趁早将它消灭，以绝后患。">
+														<choice type="0" str="你的意思是要消灭麦提的父亲？">
+															<context npcId="540" str="这是目前最直接的办法了，如果它的羽翼长成，恐怕我也不是它的对手。"/>
+															<context npcId="581" iconId="3" str="哼，我绝对不会让你们伤害父亲的。">
+																<choice type="0" str="麦提，你先别激动。" taskId="2325" action="2325_nextTalk"/>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2327_yakestar2"] = <config>
+					<context npcId="540" str="要拯救麦提的父亲，确实还有一个两全其美的办法，只是……"/>
+					<context npcId="581" iconId="7" str="只要能救父亲，又可不伤害他人，即便是刀山火海我也要闯一闯。">
+						<choice type="0" str="修罗，什么方法，快告诉我们吧！">
+							<context npcId="540" str="除非有纯净能量抑制住它体内的黑暗能量，然后再用外力将黑暗能量清除。"/>
+							<context npcId="540" str="只是现在一时半会我们无法找到可以与黑暗能量相抗的纯净能量。"/>
+							<context npcId="581" iconId="9" str="我想到了，用禾田玉石，它里面蕴含着巨大的能量，一定可以抵抗黑暗能量的。"/>
+							<context npcId="1" str="可是HELLO记得禾田玉石好像丢失了，我们到哪去找呢？">
+								<choice type="0" str="是啊。">
+									<context npcId="581" str="不会的，我有预感禾田玉石一定还在族长手中。">
+										<choice type="0" str="就算禾田玉石没有丢，族长也不会给我们啊。">
+											<context npcId="581" str="那我们就把它偷出来，我记得每天这个时候族长都会去部落巡逻，所以我们趁着这个机会赶紧走吧。"/>
+											<context npcId="540" str="虽然不怎么磊落，但是现在也只能这么做了。">
+												<choice type="0" str="嗯，大局为重。" action="2327_showLeaveScene"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2350_yakestar4"] = <config>
+					<context npcId="540" iconId="6" str="我们要做的事情关系重大，一个不慎可能就会引发一场灾难。"/>
+					<context npcId="540" iconId="6" str="现在由我来分配各自的任务，你们务必加倍小心。">
+						<choice type="0" str="修罗，你放心吧！">
+							<context npcId="540" str="首先由族长用禾田玉石压制住这山体上的黑暗能量。"/>
+							<context npcId="582" str="这个没问题。"/>
+							<context npcId="540" str="#username#，解开封印的任务就交给你了！">
+								<choice type="0" str="保证完成任务。">
+									<context npcId="540" str="封印解除后，麦提协助我将黑暗能量和麦爸的身体分离。"/>
+									<context npcId="581" iconId="3" str="放心交给我吧！"/>
+									<context npcId="540" str="那我们开始吧！">
+										<choice type="0" str="好的。" action="2350_addSceneMovie"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2351_loseInAlter"] = <config>
+					<context npcId="1" str="主人，我们还没有解开封印呢！">
+						<choice type="0" str="我再试一次！"/>
+					</context>
+				</config>;
+         talk["540_2351_yakestar4"] = <config>
+					<context npcId="540" str="#username#，快点将山体的封印解开吧！">
+						<choice type="0" str="好的。" action="2351_startAlter"/>
+					</context>
+				</config>;
+         talk["540_2557_clockstar2"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2557_secondtalk"] = <config>
+					<context npcId="540" str="看来……看来我还是无法打败凯撒……"/>
+					<context npcId="1" iconId="16" str="不过凯撒看起来也伤得不轻呢！">
+						<choice str="是啊！" action="2557_end" taskId="2557"/>
+					</context>
+				</config>;
+         talk["540_2558_clockstar2"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2559_clockstar2"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2560_clockstar2"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2561_clockstar2"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2584_afterstart"] = <config>
+					<context npcId="540" str="我们有没有什么办法可以将明灭之轮毁掉？"/>
+					<context npcId="641" iconId="2" str="只有进入明灭之轮的内部才能够将它摧毁。"/>
+					<context npcId="641" iconId="2" str="紫渊在明灭之轮的入口设置了结界，没有得到紫渊许可的人是不能够通过那道结界的！">
+						<choice str="那怎么办呢？">
+							<context npcId="641" iconId="2" str="看来我只能再次将它封印起来了！"/>
+							<context npcId="1" str="我们大家团结起来一定会有其他办法的！泽时，你的两个弟弟现在很需要你……">
+								<choice str="说得对！">
+									<context npcId="641" iconId="3" str="泽分，泽秒……不知道现在泽分的伤势怎么样了……"/>
+									<context npcId="641" iconId="2" str="好！我们现在回时钟大殿帮助泽分和修罗疗伤，然后再从长计议！">
+										<choice str="嗯，好的！" action="2584_end" taskId="2584"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2584_clockstar2"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2585_clockstar3"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2586_clockstar3"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2587_clockstar3"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2588_clockstar2"] = <config>
+					<context npcId="540" str="我会把凯撒引到雕刻时光沙滩，大家抓紧时间摧毁明灭之轮！">
+						<choice str="嗯，修罗你一定要小心。" action="2588_movie1"/>
+					</context>
+				</config>;
+         talk["540_2593_afterstart"] = <config>
+					<context npcId="540" str="消灭你是我的使命，我还没有完成使命是不会这么容易死掉的！"/>
+					<context npcId="539" str="哈哈哈……看来你要抱憾终生了！这里就是你们的葬身之地！"/>
+					<context npcId="641" iconId="2" str="凯撒，我们不会让你得逞的！修罗，#username#，我们联手一起对付凯撒！">
+						<choice type="3" str="好！胜负在此一战！" action="2593_startfight"/>
+						<choice str="让我准备一下。"/>
+					</context>
+				</config>;
+         talk["540_2593_clockstar4"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2593_secondtalk"] = <config>
+					<context npcId="540" str="不行！黑暗能量在凯撒体内已经逐渐壮大，再不消灭它就没有机会了！">
+						<choice str="那怎么办？" action="2593_end" taskId="2593"/>
+					</context>
+				</config>;
+         talk["540_2594_clockstar4"] = <config>
+					<context npcId="540" str="身为星系守护神，总是有许多需要一个人去背负的事情， 但是，这些并不是负担，反而是我的荣耀。"/>
+				</config>;
+         talk["540_2595_clockstar2"] = <config>
+					<context npcId="540" str="凯撒的力量已经被我刚刚的修罗流光斩削弱了一部分，快！我们就趁现在消灭它！"/>
+					<context npcId="642" iconId="2" str="这次我来帮你！"/>
+					<context npcId="539" str="哼！怎样你们都不是我的对手！哈哈哈……">
+						<choice type="3" str="那我们就试试！" action="2595_startfight"/>
+						<choice str="让我准备一下。"/>
+					</context>
+				</config>;
+         talk["540_2596_clockstar2"] = <config>
+					<context npcId="540" str="凯撒并没有死。">
+						<choice str="什么？没有死？">
+							<context npcId="540" str="没错，从刚刚凯撒被我的修罗流光斩击中后，又重新复活时，我就已经知道了，现在的凯撒已经是不死之身了。"/>
+							<context npcId="643" iconId="5" str="什么？不死之身？"/>
+							<context npcId="540" str="是的，明灭之轮的黑暗能量是不能够被消灭的。我们大家联手将它打散，但是很快又会重新复活的。"/>
+							<context npcId="642" iconId="2" str="难道我们永远都无法消灭凯撒了？"/>
+							<context npcId="540" str="看来只能用最后的办法了……">
+								<choice str="什么办法？">
+									<context npcId="540" str="黑暗能量不能被消灭，但是可以用强大的纯净能量去净化。"/>
+									<context npcId="1" str="净化？可是我们哪里有那么强大的纯净能量啊？"/>
+									<context npcId="540" str="我就是。">
+										<choice str="什么意思？" action="2596_multipagecomic"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2596_secondtalk"] = <config>
+					<context npcId="540" str="也就是说我本身就是一个巨大的纯净能源，我现在就要用我的纯净能量去净化凯撒的黑暗能量！"/>
+					<context npcId="641" iconId="2" str="难道你是要和凯撒同归于尽？不行！一定还有其他办法的！">
+						<choice str="我也绝对不答应！" action="2596_end" taskId="2596"/>
+					</context>
+				</config>;
+         talk["540_2597_clockstar2"] = <config>
+					<context npcId="540" iconId="10" str="我心意已决！既然我和凯撒同时来到这个世界上，宿命就已经把我们的命运牵连在一起。"/>
+					<context npcId="540" iconId="10" str="阻止凯撒是命运赋予我的使命！那么就让我们一同离开这个世界！这是命运的抉择！">
+						<choice str="可是……">
+							<context npcId="540" str="没有可是。#username#，我这一生有你这样并肩作战两肋插刀的朋友已经很满足了。">
+								<choice str="修罗，我也是。">
+									<context npcId="641" iconId="2" str="既然这样，那么我们三兄弟就负责汲取时间海洋的能量来注入你的体内吧！"/>
+									<context npcId="540" str="好的，多谢！我和凯撒也本是兄弟……我是多么羡慕你们，三兄弟能够一直不离不弃地并肩作战。"/>
+									<context npcId="642" iconId="6" str="其实你们本来也可以的。"/>
+									<context npcId="540" str="但愿还有机会……">
+										<choice str="修罗……" action="2597_end" taskId="2597"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["540_2598_clockstar2"] = <config>
+					<context npcId="540" str="凯撒马上就要再次复活了！时间兄弟，你们准备好！">
+						<choice str="快看！黑色力量又在汇聚了！" action="2598_movie1"/>
+					</context>
+				</config>;
+         talk["547_2178_hexagrampalace2"] = <config>
+					<context npcId="547" iconId="1" str="千年了，被命运选中的勇士啊，你终于来了吗？"/>
+					<context npcId="1" iconId="3" str="哇啊啊！主人，这颗水晶石居然开口说话了！">
+						<choice str="被选中？勇士？你在说什么啊？">
+							<context npcId="547" iconId="1" str="解开这颗水晶石上的封印吧，了解历史，才能掌握未来。"/>
+							<context npcId="547" iconId="1" str="天空的星辰，将为你打开通往过去的大门。">
+								<choice str="天空的星辰？">
+									<context npcId="1" iconId="1" str="主人，你看，这里的&lt;font color='#FF6600'&gt;&lt;b&gt;天空上有六颗黄色的星星&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，也许它们就是解开封印的关键。">
+										<choice str="行，我试试看。" taskId="2178" action="2175_Jiaohu1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["547_217902_hexagrampalace2"] = <config>
+					<context npcId="547" iconId="1" str="解开封印的钥匙便是&lt;font color='#FF6600'&gt;&lt;b&gt;天上那六颗黄色的星星&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，试着去点亮它们吧！">
+						<choice str="好的！" action=""/>
+					</context>
+				</config>;
+         talk["547_2180_hexagrampalace2"] = <config>
+					<context npcId="547" iconId="1" str="能解开这道封印，果然不愧是被命运选中的勇士！"/>
+					<context npcId="547" iconId="1" str="接下来，就为你们解开历史的面纱吧。">
+						<choice str="不知这历史，究竟是什么样的……" action="2175_Picture1"/>
+					</context>
+				</config>;
+         talk["547_2181_hexagrampalace2"] = <config>
+					<context npcId="547" iconId="1" str="没错，#username#，你就是那个勇士。"/>
+					<context npcId="1" iconId="30" str="可是，HELLO和主人根本不是凯撒的对手，凯撒一动，HELLO和主人就升天了。">
+						<choice str="是啊，我们在旁边，也许只会给修罗帮倒忙。">
+							<context npcId="547" iconId="1" str="勇士，要对自己有信心！只要心中坚定信念，没有什么是不能击倒的。">
+								<choice str="可是……">
+									<context npcId="547" iconId="1" str="修罗刚才那样对你，其实是怕你卷入战斗而受伤，并没有别的意思。">
+										<choice str="难道，刚才它赶我们走的那幕，你都看到了？">
+											<context npcId="547" iconId="1" str="没错，其实外面的一切，我在这里都能看得清清楚楚。"/>
+											<context npcId="547" iconId="1" str="现在外面的局势很不乐观，勇士，请助修罗一臂之力吧！">
+												<choice str="（一咬牙）好，我答应你！" taskId="2181" action="2181_End"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["547_218202_hexagrampalace2"] = <config>
+					<context npcId="547" iconId="1" str="被命运选中的勇士，请前往&lt;font color='#FF6600'&gt;&lt;b&gt;六芒前殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，帮助修罗阻止凯撒吧！">
+						<choice str="我明白！" taskId="2182" action="2182_End"/>
+					</context>
+				</config>;
+         talk["547_2182_hexagrampalace2"] = <config>
+					<context npcId="547" iconId="1" str="地上的石块里，有我的信物，相信修罗看到这个东西，就知道该怎么做了。"/>
+					<context npcId="1" iconId="1" str="主人，用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;应该可以打破石头，拿到信物！">
+						<choice str="我明白了。" action="2175_Jiaohu2"/>
+					</context>
+				</config>;
          talk["54_1519_diamondisland1"] = <config>
 					<context npcId='54' str="我古力德，可是绝对不会允许别人在我的面前把我的，哦，不，是达斯特的财宝拿走！">
 						<choice type='0' str="就凭你，不可能拦得住我的！" action="task1519gotofight"/>
@@ -5362,6 +14514,238 @@ package mmo.tasknpc
          talk["54_1545_win"] = <config>
 					<context npcId='54' iconId='3' str="你们这群小鬼头，真是太让人火大了！">
 						<choice type='0' str="自己水平不够，就不要生别人的气！" action="task1545movie"/>
+					</context>
+				</config>;
+         talk["54_2038_haikustar1"] = <config>
+					<context npcId="54" iconId="1" str="哼哼！想不到#username#，你也来了，可不要耽误我挣钱！">
+						<choice str="古力德！快放了书恩！">
+							<context npcId="497" iconId="8" str="快放了书恩！"/>
+							<context npcId="495" iconId="1" str="嘿嘿！这下子可被我们抓到你的弱点了，快说出海枯之石的下落！"/>
+							<context npcId="54" iconId="1" str="是啊！可别耽误我挣钱，这东西，一定能卖个好价钱。">
+								<choice str="你们别妄想了。" action="2032_Movie5"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["54_204901_haikustar4"] = <config>
+					<context npcId="54" iconId="1" str="哼！海枯之石带来没有？再不拿来，休怪我对这小子不客气了。"/>
+					<context npcId="501" iconId="6" str="不要相信他们，不要给他们海枯之石！你们快走！"/>
+					<context npcId="497" iconId="12" str="滴水之恩，当涌泉相报，何况恩情如海……"/>
+					<context npcId="497" iconId="12" str="书恩，白京京能见到你就…就很高兴了，海枯之石什么的，都不重要。"/>
+					<context npcId="497" iconId="10" str="海枯之石在这里！快放了书恩。"/>
+					<context npcId="54" iconId="2" str="放了书恩可以，这地下好像有什么东西，你先给我挖出来！"/>
+					<context npcId="497" iconId="12" str="你……"/>
+					<context npcId="54" iconId="2" str="书恩在我手里，你想怎么样？不挖！！？？ "/>
+					<context npcId="54" iconId="2" str="用旁边那把&lt;font color='#FF6600'&gt;&lt;b&gt;铁锹&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，赶紧给我把东西挖出来！">
+						<choice str="我们先帮他把东西挖出来。" action="2046_Jiaohu2"/>
+					</context>
+				</config>;
+         talk["54_2049_haikustar4"] = <config>
+					<context npcId="54" iconId="1" str="一直举着这小子，手都举酸了！干脆插到地上得了！">
+						<choice str="喂！你要对书恩做什么！" action="2046_Movie3"/>
+					</context>
+				</config>;
+         talk["54_205002_haikustar4"] = <config>
+					<context npcId="54" iconId="1" str="什么叫好像是真的？真的就是真的，假的就是假的。"/>
+					<context npcId="495" iconId="1" str="臭肥鱼！还敢给我脸色看！是真的，只不过好像力量小了点……"/>
+					<context npcId="54" iconId="2" str="哈哈哈！太好啦！拿到海枯之石，这下，我古力德要发达啦！">
+						<choice str="快放了书恩。" action="2046_Movie6"/>
+					</context>
+				</config>;
+         talk["54_206202_haikustar1"] = <config>
+					<context npcId="54" iconId="2" str="哈哈！看你还能耍什么花招。"/>
+					<context npcId="1" iconId="14" str="为了白京京，为了书恩，绝不能让你们拿走海枯之石！">
+						<choice str="对！你们这些坏蛋，休想得逞！" taskId="2062" action="2062_End"/>
+					</context>
+				</config>;
+         talk["54_2062_haikustar1"] = <config>
+					<context npcId="54" iconId="2" str="哈哈！我古力德大人今天可是要发一笔大财啊！"/>
+					<context npcId="54" iconId="2" str="#username#，真要感谢你帮我找到了海枯之石。">
+						<choice str="别得意，我不会让你得到海枯之石的。">
+							<context npcId="54" iconId="2" str="你难道看不出人数的差别吗？哈哈！"/>
+							<context npcId="54" iconId="2" str="把海枯之石交出来，我古力德大人可以考虑网开一面。">
+								<choice str="你休想！" action="2055_Fight1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["54_252_somethingcoming"] = <config>
+					<context str="想趁我不在，抢走人鱼吗？哈哈，没有钱你就别做梦了。" npcId="54"/>
+					<context str="没什么事可以瞒得过我表哥的，是吧？表哥。" npcId="50">					
+						<choice str="人鱼可可，我一定要救出去！">
+						    <context str="哈哈！就算我答应，我的宇宙无敌的SR军团可不答应。我花大价钱买下的超级机器人军团可不是酒囊饭袋！" npcId="54">		
+						        <choice str="那就试试看吧！" action="252_ShowNextTalk"/>
+						    </context>						
+						</choice>
+					</context>						
+				</config>;
+         talk["54_255_lost"] = <config>
+					<context str="哈哈！果然我这花大价钱买来的SR军团是无敌的！" npcId="54"/>
+					<context str="我的表哥就是厉害！" npcId="50">				
+						<choice str="我一定会救出人鱼可可的！">
+						</choice>
+					</context>
+				</config>;
+         talk["54_255_win"] = <config>
+					<context str="我的钱白花啦！得罪达斯特军团你要后悔的！" npcId="54"/>
+					<context str="表哥别生气。你们等着，我们会回来的。" npcId="50">					
+						<choice str="看你们以后还敢来作恶！" taskId="255" action="54_255_playMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["556_221602_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="你还有点实力嘛，看来不能太小看你了！">
+						<choice str="放马过来吧！" action="2210_Fight3"/>
+					</context>
+				</config>;
+         talk["556_2216_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="千年过去了，没想到还是有人垂涎千年奇灵果，既然到了这里，就别想再离开了！">
+						<choice str="看来只好先接招了！" action="2210_Fight2"/>
+						<choice str="我准备一下就来跟你打。" action=""/>
+					</context>
+				</config>;
+         talk["556_2217_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="这是奇灵王的铃铛！你们到底是谁，怎么拿到这铃铛的？">
+						<choice str="原来你认识奇灵王，那事情就好说了……（把事情告诉了守卫）">
+							<context npcId="556" iconId="1" str="没想到事情已经到这个地步，恶魔之子的凯撒吗，看来事情还真是很棘手啊！"/>
+							<context npcId="556" iconId="1" str="千年奇灵果，你们就拿去吧，希望对修罗能有所帮助。">
+								<choice str="谢谢你！">
+									<context npcId="556" iconId="1" str="如果修罗再受伤的话，你们就让它来这里吧，我会尽力帮助它的！">
+										<choice str="我会转告修罗的。" action="2210_Movie6"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["556_222602_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="原来是你们，怎么这么快又来了，难道修罗出事了？"/>
+					<context npcId="1" iconId="32" str="修罗它、它不知道为什么，突然变成了小时候的样子，而且还晕倒了！">
+						<choice str="事情是这样的（把刚才发生的事情告诉了守卫）">
+							<context npcId="556" iconId="1" str="原来是这样……看来修罗是力量使用过度了，才会变成现在这样。"/>
+							<context npcId="556" iconId="1" str="别担心，修罗只是需要休息，它太累了！">
+								<choice str="我们能为它做点什么吗？">
+									<context npcId="556" iconId="1" str="修罗就暂时放在奇灵神树下吧，这样有利于它的恢复。"/>
+									<context npcId="556" iconId="1" str="另外，奇灵神树每天都会结出一颗奇灵果，虽然效果不及千年奇灵果，但也有治疗作用。"/>
+									<context npcId="556" iconId="1" str="如果能每天来这里，给修罗喂下一颗奇灵果，就能让它更快恢复了！">
+										<choice str="我明白了。">
+											<context npcId="556" iconId="1" str="修罗恢复的期间，六芒神殿，就拜托你们了！">
+												<choice str="交给我吧！我一定会拼死保护这里的！" action="2226_End"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["556_2227_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="哎，看伊修的样子，一时半刻是无法好起来了。">
+						<choice str="它现在怎么样了？" starterId="2227" action="2227_Start"/>
+					</context>
+				</config>;
+         talk["556_2228_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="哎，看伊修的样子，一时半刻是无法好起来了。">
+						<choice str="它现在怎么样了？" taskId="2228" action="2227_Start"/>
+					</context>
+				</config>;
+         talk["556_2229_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="伊修的身体已经渐渐恢复了，但是要恢复之前的实力，还是有点困难。">
+						<choice str="这可怎么办才好……" action="2227_Movie1"/>
+					</context>
+				</config>;
+         talk["556_2230_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="方法就是，激发身体的潜能，让身体在短时间内力量爆发，以达到预期的效果。"/>
+					<context npcId="556" iconId="1" str="但这个方法虽然快速且有效，可是实际上对身体的损害是很大的。"/>
+					<context npcId="556" iconId="1" str="而且一旦在这种状态下被重创，有可能，会再也醒不过来。">
+						<choice str="这方法太危险了！不行，不能这样做！">
+							<context npcId="559" iconId="1" str="不，这个方法行得通，我要试一试。">
+								<choice str="伊修！这样太冒险了！会死的！">
+									<context npcId="559" iconId="1" str="从与凯撒对抗的这场战争开始，我就做好了死去的打算。"/>
+									<context npcId="559" iconId="1" str="如果能用我的生命，换来这片星系的和平，也是值得的。">
+										<choice str="伊修…… ">
+											<context npcId="559" iconId="1" str="守卫，告诉我吧，要怎样做，才能激发身体的潜能，让力量爆发？"/>
+											<context npcId="556" iconId="1" str="哎，既然你已经下了决心，那我也没什么好说的了。"/>
+											<context npcId="556" iconId="1" str="六芒前殿的那颗紫色晶石可以帮助你恢复力量，去那儿看看吧。">
+												<choice str="伊修，让我们陪你一起去吧！">
+													<context npcId="559" iconId="1" str="好吧，你们一起来吧。">
+														<choice str="好的！" taskId="2230" action="2230_End"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["559_223102_hexagrampalace1"] = <config>
+					<context npcId="559" iconId="1" str="原来只要静坐在这颗紫色晶石的顶端，就能恢复力量了。">
+						<choice str="看起来好像还挺容易的。" taskId="2231" action="2231_End"/>
+					</context>
+				</config>;
+         talk["559_2231_hexagrampalace1"] = <config>
+					<context npcId="559" iconId="1" str="这颗，就是守卫所说的紫色晶石了吧。"/>
+					<context npcId="1" iconId="5" str="主人，上面好像写了些东西，也许从里面能得到一些线索。">
+						<choice str="让我来看看。" action="2227_Movie3"/>
+					</context>
+				</config>;
+         talk["559_2232_hexagrampalace1"] = <config>
+					<context npcId="559" iconId="1" str="时间紧迫，现在就开始吧。">
+						<choice str="我们来帮你。" action="2227_Jiaohu"/>
+					</context>
+				</config>;
+         talk["559_2600_clockstar1"] = <config>
+					<context npcId="559" str="凯撒已经把曾经的一切都忘记了，我们千年的恩怨也就此归零了。"/>
+					<context npcId="1" str="变小了的阿凯好可爱……完全想象不到，那个邪恶的凯撒就是眼前的这个小不点儿……"/>
+					<context npcId="641" iconId="4" str="呵呵，真是让我想起了泽秒小不点儿的时候呢！"/>
+					<context npcId="642" iconId="6" str="爱哭鬼一个！"/>
+					<context npcId="643" iconId="4" str="乱说，我才没有！"/>
+					<context npcId="559" str="我已经决定了，要带着阿凯一起回到六芒神殿。"/>
+					<context npcId="559" str="像其他兄弟一样，一起快乐地长大！"/>
+					<context npcId="660" str="白色哥哥……我肚子饿了……"/>
+					<context npcId="559" str="好吧，我们这就回家吃好吃的去！#username#，时间兄弟，再见了！">
+						<choice str="嗯！伊修再见！" action="2600_movie1"/>
+					</context>
+				</config>;
+         talk["55_231_woerte3"] = <dialog>
+					<context str="哈哈！水下广场正在进行稀有人鱼交易，闲杂人等不得进入。" npcId="55">
+						<choice str="这种邪恶的交易，绝对不会让你们得逞的。">
+							<context str="哈哈！小不点，就凭你？">
+								<choice str="让你见识下我的实力！" taskId="231" action="13_231_end"/>
+								<choice str="我准备一下就来。" taskId="231"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["55_232_lost"] = <dialog>
+					<context str="哈哈！小不点，你就认输吧！" npcId="55">
+						<choice str="我不会放弃的。"/>
+					</context>
+				</dialog>;
+         talk["55_232_woerte3"] = <dialog>
+					<context str="巨人守卫很强大，是否准备和他交战。" npcId="55">
+						<choice str="准备好了。" action="13_232_fight"/>
+						<choice str="我准备一下就来。"/>
+					</context>
+				</dialog>;
+         talk["562_2236_hexagrampalace3"] = <config>
+					<context npcId="562" iconId="1" str="看来我们来得正是时候，再晚一步，凯撒就性命不保了。"/>
+					<context npcId="46" iconId="1" str="只要是黑王子您的决策，都是绝对不会错的！">
+						<choice str="黑王子居然来了，这下可怎么办？！" starterId="2236" action="2236_Start"/>
+					</context>
+				</config>;
+         talk["562_2237_hexagrampalace3"] = <config>
+					<context npcId="562" iconId="1" str="看来我们来得正是时候，再晚一步，凯撒就性命不保了。"/>
+					<context npcId="46" iconId="1" str="只要是黑王子您的决策，都是绝对不会错的！">
+						<choice str="黑王子居然来了，这下可怎么办？！" taskId="2237" action="2236_Start"/>
+					</context>
+				</config>;
+         talk["562_2238_hexagrampalace3"] = <config>
+					<context npcId="562" iconId="1" str="多克特，把那东西给凯撒吧。"/>
+					<context npcId="46" iconId="1" str="是！">
+						<choice str="你们要干嘛？！" action="2236_Movie1"/>
 					</context>
 				</config>;
          talk["581_2293_nextTalk"] = <config>
@@ -5422,6 +14806,348 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["581_2298_yakestar1"] = <config>
+					<context npcId="581" iconId="3" str="你帮了我这么多次，我们就是朋友，我干脆就把事情告诉你吧。">
+						<choice type="0" str="嗯，快说说吧，也许我能帮得上忙。" starterId="2298"/>
+					</context>
+				</config>;
+         talk["581_2299_yakestar1"] = <config>
+					<context npcId="581" iconId="5" str="我要去救我的父亲，它现在被封印在玛雅山下。">
+						<choice type="0" str="这究竟是怎么回事呢？" action="show_2299_showCartoon"/>
+					</context>
+				</config>;
+         talk["581_2300_yakestar1"] = <config>
+					<context npcId="581" iconId="6" str="哼，这还用说，当然是想独自霸占“禾田玉石”啦。">
+						<choice type="0" str="我不是很明白。">
+							<context npcId="581" str="据说“禾田玉石”会自然发光，里面蕴含着巨大的能量，是我们部落的保护伞。"/>
+							<context npcId="581" str="任何人都不可以独自使用或者将其占有。"/>
+							<context npcId="1" str="主人，HELLO觉得这块“禾田玉石”可能就是我们在寻找的纯净能源呢！">
+								<choice type="0" str="嗯，我也有这种感觉。">
+									<context npcId="581" str="我不知道你们说的纯净能源是什么，我只知道现在我要去救父亲。"/>
+									<context npcId="1" iconId="30" str="你身上有伤，HELLO认为还是不要着急的好。">
+										<choice type="0" str="是啊，身体要紧。">
+											<context npcId="581" iconId="7" str="你们不用劝我了，我已经决定了。">
+												<choice type="0" str="可是……" action="play_2300_showMaiDiLeave"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["581_2301_yakestar3"] = <config>
+					<context npcId="581" iconId="6" str="族长，快把我父亲放了。"/>
+					<context npcId="582" iconId="2" str="我劝你还是回去吧！至于麦爸……它丢失了圣物，我是绝对不会放了它的。"/>
+					<context npcId="1" iconId="4" str="主人，听族长的口气，HELLO怎么觉得它不像个大恶人呢！">
+						<choice type="0" str="我也有同感。" action="play_2301_showMaiDiChagrinMovie"/>
+					</context>
+				</config>;
+         talk["581_2303_yakestar1"] = <config>
+					<context npcId="581" iconId="8" str="我记得应该是这里没错的啊，到底在哪里呢？">
+						<choice type="0" str="麦提，你在说什么啊？" action="play_2303_showFindMovie"/>
+					</context>
+				</config>;
+         talk["581_2304_yakestar1"] = <config>
+					<context npcId="581" str="那当然，父亲和我说过，部落里有关于神罗鬼斧的记载，肯定不会有错的。">
+						<choice type="0" str="可是……" action="play_2304_showFindMovie2"/>
+					</context>
+				</config>;
+         talk["581_2305_nextTalk"] = <config>
+					<context npcId="1" iconId="12" str="主人，这上面的诗句是什么意思啊？HELLO看不懂呢！">
+						<choice type="0" str="我也不知道。">
+							<context npcId="581" str="这些诗句肯定是找到神罗鬼斧的重要线索，我需要好好研究一下。">
+								<choice type="0" str="那研究好了，一定要告诉我哦！" action="finish_2305"/>
+							</context>
+						</choice>
+					</context>	
+				</config>;
+         talk["581_2305_yakestar1"] = <config>
+					<context npcId="581" str="是的，所以我们赶紧用水试试，看它上面到底写了什么吧。">
+						<choice type="0" str="好的。" action="2305_alter"/>
+					</context>
+				</config>;
+         talk["581_2314_yakestar1"] = <config>
+					<context npcId="581" iconId="9" str="#username#，你来得正好，我有一个好消息要告诉你。">
+						<choice type="0" str="我想一定和神罗鬼斧有关吧！" starterId="2314"/>
+					</context>
+				</config>;
+         talk["581_2315_yakestar1"] = <config>
+					<context npcId="581" iconId="9" str="没错，经过反复研究，我终于发现了羊皮卷上那首诗里的秘密。">
+						<choice type="0" str="真的吗？那赶紧告诉我吧。" action="play_2315_showAnswerMovie"/>
+					</context>
+				</config>;
+         talk["581_2316_yakestar2"] = <config>
+					<context npcId="581" str="巨石之阵应该在这里。">
+						<choice type="0" str="但怎么才知道它的具体位置呢？">
+							<context npcId="581" str="看到那扇巨大的石门吗？我觉得巨石之阵肯定和它有关系。">
+								<choice type="0" str="那我们过去看看吧！" action="play_2316_showMagicMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["581_2317_yakestar2"] = <config>
+					<context npcId="581" str="这石门太高，以我一人之力，怕是上不去，你们能帮我一把吗？">
+						<choice type="0" str="当然没问题！" action="2317_startGame"/>
+					</context>
+				</config>;
+         talk["581_2318_yakestar2"] = <config>
+					<context npcId="581" iconId="10" str="神……神罗鬼斧，我终于找到了传说中的神罗鬼斧！"/>
+					<context npcId="1" iconId="7" str="果然是神器啊，HELLO这次算是开了眼了。">
+						<choice type="0" str="是啊。">
+							<context npcId="1" iconId="7" str="那我们赶紧拿它去玛雅山救麦提的父亲吧！">
+								<choice type="0" str="好的。" action="play_2318_showTouchMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["581_2319_yakestar2"] = <config>
+					<context npcId="581" str="虽然你们不是神器的有缘人，但是你们破解了巨石之阵。"/>
+					<context npcId="581" str="所以现在就让我试试和神器的默契吧！">
+						<choice type="0" str="嗯，看你的了。" action="play_2319_showGetWeaponMovie"/>
+					</context>
+				</config>;
+         talk["581_2323_yakestar2"] = <config>
+				  <context npcId="581" iconId="11" str="#username#，现在坏人被打跑了，我得去玛雅山救父亲了。">
+					<choice type="0" str="我和你一起去。" action="2322_showSceneMovie"></choice>
+				  </context>
+				</config>;
+         talk["581_2324_nextTalk"] = <config>
+				  <context npcId="581" iconId="7" str="#username#，我现在要救父亲，有什么事待会再说吧！">
+					<choice type="0" str="麦提，这里有黑暗能量，你先等一等。">
+					  <context npcId="581" iconId="7" str="我才不管什么黑暗能量，我是一刻都等不及了。"/>
+					  <context npcId="1" iconId="30" str="麦提，黑暗能量非常的危险，HELLO觉得你还是听我家主人的话吧。">
+						<choice type="0" str="是啊，等修罗过来你再救父亲也不迟。">
+						  <context npcId="581" iconId="7" str="这个时候谁阻止我也没有用，你们还是让开吧！">
+							<choice type="0" str="麦提……" action="2324_showStopMovie"></choice>
+						  </context>
+						</choice>
+					  </context>
+					</choice>
+				  </context>
+				</config>;
+         talk["581_2324_yakestar4"] = <config>
+				  <context npcId="581" iconId="13" str="父亲，儿子不孝，让你受了这么多苦，儿子现在就来救你。"/>
+				  <context npcId="1" iconId="34" str="哇……主人，麦提真孝顺，HELLO好感动哦！">
+					<choice type="0" str="我也是。" action="2324_showBellReflect"></choice>
+				  </context>
+				</config>;
+         talk["581_2326_loseInFight"] = <config>
+					<context npcId="581" str="今天谁也阻止不了我。">
+						<choice type="0" str="刚才没有准备好，我们再打一次。"/>
+					</context>
+				</config>;
+         talk["581_2326_winInFight"] = <config>
+					<context npcId="581" iconId="5" str="我不相信，父亲那么厉害，一定不会变成你们说的那样的。"/>
+					<context npcId="1" str="麦提，你先冷静一下，HELLO知道你很难接受，可是现在还是以大局为重啊。"/>
+					<context npcId="1" str="也许修罗还有别的办法，不如我们先问问它吧。">
+						<choice typ="0" str="是啊，我们先问问修罗吧。" taskId="2326" action="2326_nextTalk"/>
+					</context>
+				</config>;
+         talk["581_2326_yakestar2"] = <config>
+					<context npcId="581" str="哼，我根本不相信我的父亲会被黑暗能量附体，我现在就去把它救出来。">
+						<choice type="3" str="我是不会让你去的。" action="2326_startFight"/>
+						<choice type="0" str="等我准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["581_2328_yakestar1"] = <config>
+					<context action="2328_showLeaveMovie"/>
+				</config>;
+         talk["581_2329_loseInAlter"] = <config>
+					<context npcId="1" str="主人，你还没有解开牛头上面的机关呢？">
+						<choice type="0" str="我再试一次吧！"/>
+					</context>
+				</config>;
+         talk["581_2329_nextTalk"] = <config>
+					<context npcId="587" str="你们是什么人，竟然连我设的机关都能解开，够聪明，你们这群朋友我交定了。"/>
+					<context npcId="581" iconId="14" str="我们是奉族长之命来取禾田玉石的。"/>
+					<context npcId="1" str="（悄悄对主人说）主人，麦提真是临危不乱呢！">
+						<choice type="0" str="是啊，骗人还挺有一套的。" taskId="2329" action="2329_nextTalk"/>
+					</context>
+				</config>;
+         talk["581_2329_yakestar3"] = <config>
+					<context npcId="581" str="我记得以前禾田玉石是在这个牛头里面的，不过这上面好像有机关。">
+						<choice type="0" str="让我看看。" action="2329_alter"/>
+					</context>
+				</config>;
+         talk["581_2330_nextTalk"] = <config>
+					<context npcId="581" iconId="15" str="怎么……怎么会这样？">
+						<choice type="0" str="麦提，发生什么事了？">
+							<context npcId="581" iconId="15" str="禾……禾田玉石不能发光了，这……这怎么可能。">
+								<choice type="0" str="难道这块禾田玉石是假的？">
+									<context npcId="581" iconId="11" str="我也不知道，我现在脑子有点乱，让我一个人好好想一想。">
+										<choice type="0" str="嗯，好的，但是如果发现了什么一定要记得告诉我。" action="2330_showForeshow"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["581_2330_yakestar3"] = <config>
+					<context npcId="587" str="能解开锁上的机关，看来你们是族长派来的没错，我这就进去把禾田玉石拿给你们。"/>
+					<context npcId="1" str="（悄悄对主人说）主人，看来麦提猜得不错，禾田玉石果然没有丢呢！">
+						<choice type="0" str="是的。" action="2330_showGetTreasure"/>
+					</context>
+				</config>;
+         talk["581_2340_lastTalk"] = <config>
+					<context npcId="582" iconId="3" str="原本打算把这件事情一直瞒下去，现在看来是不行了。">
+						<choice type="0" str="什么事情？" taskId="2340" action="2340_nextTalk"/>
+					</context>
+				</config>;
+         talk["581_2340_nextTalk"] = <config>
+					<context npcId="581" iconId="16" str="我也不知道，这件事情只有族长清楚，所以我决定去找它问个明白。"/>
+					<context npcId="1" iconId="30" str="可是HELLO担心族长知道我们是来偷禾田玉石的，一定不会放过我们的。">
+						<choice type="0" str="是啊。">
+							<context npcId="581" iconId="3" str="现在管不了那么多了，为了救父亲，我只能这么做。">
+								<choice type="0" str="可是……" action="2340_npcComeBack"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["581_2340_yakestar3"] = <config>
+					<context npcId="581" iconId="3" str="#username#，我想这禾田玉石应该不是假的。">
+						<choice type="0" str="那怎么会变成这样呢？" action="2339_starterTalk"/>
+					</context>
+				</config>;
+         talk["581_2345_nextTalk"] = <config>
+					<context npcId="1" iconId="30" str="主人，是菲莉，HELLO觉得她来这里一定没什么好事。">
+						<choice type="0" str="嗯，我也是这么想的。">
+							<context npcId="66" iconId="9" str="啊哈哈，这可真是得来全不费功夫，快点把禾田玉石交出来吧。"/>
+							<context npcId="581" iconId="12" str="你休想，我是不会交给你的。"/>
+							<context npcId="66" iconId="8" str="我是不会让你们阻碍凯撒大人复活的，所以还是乖乖把禾田玉石交给我吧！"/>
+							<context npcId="581" iconId="12" str="你这个丑陋的坏女人快走开，要不然别怪我不客气。"/>
+							<context npcId="66" iconId="12" str="你敢骂我丑，哇呀呀，气死我了，看来非教训你一顿不可。">
+								<choice type="0" str="谁教训谁还不一定呢。" taskId="2345" action="2345_nextTalk"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["581_2345_yakestar1"] = <config>
+					<context npcId="581" iconId="19" str="哇……禾田玉石果然重新发光了，这下终于可以去救父亲了。">
+						<choice type="0" str="是啊，太好了。" action="2345_showEnemyAppear"/>
+					</context>
+				</config>;
+         talk["581_2348_nextTalk"] = <config>
+					<context npcId="540" str="多等一分钟，希望就少一分。"/>
+					<context npcId="582" str="事不宜迟，得赶紧才行。">
+						<choice type="0" str="嗯，我们走吧！" action="2348_showLeaveMovie"/>
+					</context>
+				</config>;
+         talk["581_2348_yakestar1"] = <config>
+					<context npcId="581" iconId="7" str="#username#，族长，修罗，现在让我们一起前往玛雅山吧！">
+						<choice type="0" str="麦提终于能如愿以偿了。" action="2347_starter"/>
+					</context>
+				</config>;
+         talk["582_2302_loseInFight"] = <config>
+					<context npcId="582" str="你的勇气可嘉，但是能力还是有限，所以不要再多管闲事了。">
+						<choice type="0" str="我一定会打败你的。" action="play_2302_showMaiDiLeave2"/>
+					</context>
+				</config>;
+         talk["582_2302_winInFight"] = <config>
+					<context npcId="582" str="确实有点能耐，但是想让我放了麦爸，那是不可能的。"/>
+					<context npcId="582" str="想救麦爸，除非你们有能力把玛雅山劈开。">
+						<choice type="0" str="你太过分了。" action="play_2302_showMaiDiLeave2"/>
+					</context>
+				</config>;
+         talk["582_2302_yakestar3"] = <config>
+					<context npcId="582" str="这是我们部落的事情，你还是不要插手的好。">
+						<choice type="3" str="你们欺负麦提，我就得管。" action="2302_startFight"/>
+					</context>
+				</config>;
+         talk["582_2341_nextTalk"] = <config>
+					<context npcId="582" str="我不忍心这么做，于是情急之下启用禾田玉石中的能量将它封印在了玛雅山下。"/>
+					<context npcId="582" str="可是禾田玉石在封印麦爸时，表面的散光镜碎裂，再也不能释放能量了。">
+						<choice type="0" str="原来是这样。" taskId="2341" action="2341_nextTalk"/>
+					</context>
+				</config>;
+         talk["582_2341_yakestar3"] = <config>
+					<context npcId="582" iconId="3" str="禾田玉石已经不能释放能量了，现在它和一块普通的玉石没什么两样。"/>
+					<context npcId="581" iconId="7" str="怎么会这样？"/>
+					<context npcId="582" iconId="3" str="这件事情要从那天晚上麦爸出事开始说起了。">
+						<choice type="0" str="麦提的父亲？" action="2341_showCartoon"/>
+					</context>
+				</config>;
+         talk["582_2342_nextTalk"] = <config>
+					<context npcId="581" iconId="9" str="这么说来只要修复散光镜，禾田玉石就可以重新发光了。">
+						<choice type="0" str="可是要怎么才能修复散光镜呢？" taskId="2342" action="2342_nextTalk"/>
+					</context>
+				</config>;
+         talk["582_2342_yakestar3"] = <config>
+					<context npcId="582" iconId="3" str="禾田玉石是部落的圣物，也是族人的精神支柱，我怕大家知道真相后，会乱了阵脚。"/>
+					<context npcId="582" iconId="3" str="于是对外界说麦爸丢失圣物，这样既可以掩饰麦爸的情况，又不至于让族人恐慌！">
+						<choice type="0" str="族长真不容易啊。">
+							<context npcId="581" iconId="17" str="族长，我错了，我不该把你想的那么坏。"/>
+							<context npcId="581" iconId="17" str="可是族长，你为父亲做了那么多，为什么连我也要瞒着呢？"/>
+							<context npcId="582" str="傻孩子，你那么崇拜麦爸，我怎么能毁了一个父亲在孩子心目中的形象呢！"/>
+							<context npcId="1" iconId="15" str="主人，族长宁愿自己被误会，也要成全麦提，真是太伟大了，呜呜……">
+								<choice type="0" str="是啊，真伟大！">
+									<context npcId="540" iconId="12" str="好了，大家都冷静一下，现在最重要是想办法拿到纯净能量救出麦爸。"/>
+									<context npcId="581" iconId="7" str="嗯，修罗说的对，我们得赶紧想办法才行。"/>
+									<context npcId="582" str="其实只要让禾田玉石重新亮起来就可以得到纯净能量了。">
+										<choice type="0" str="禾田玉石可以重新亮起来？" action="2342_showExplanation"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["582_2343_yakestar3"] = <config>
+					<context npcId="582" str="这几天我发现麦爸的邪恶力量在不断增加，所以我也在想办法修复散光镜。"/>
+					<context npcId="582" str="只是这散光镜是玄铁所制，必须找到当年神罗鬼斧劈开雅克星掉落的玄铁才行啊。">
+						<choice type="0" str="那玄铁在哪里才能找到呢？">
+							<context npcId="582" str="据说是掉落在了伊索部落。"/>
+							<context npcId="581" iconId="7" str="那还等什么，我们赶紧去伊索部落找找吧！">
+								<choice type="0" str="嗯，时间紧迫，我们赶紧走吧。" action="2343_showLeaveScene"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["582_2344_nextTalk"] = <config>
+					<context npcId="582" str="不错不错，竟然这么快就找到玄铁了，现在就让我来修复聚光镜吧。">
+						<choice type="0" str="族长，看你的了。" action="2344_showRepairMovie"/>
+					</context>
+				</config>;
+         talk["582_2344_yakestar1"] = <config>
+					<context npcId="582" str="玄铁应该就在部落里，仔细找找吧！">
+						<choice type="0" str="嗯，看我的吧！">
+							<context npcId="1" str="主人，快看，羊的身下压着一块东西呢，我们想办法把羊引开吧！">
+								<choice type="0" str="好的。" action="2344_sceneAlter"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["582_2353_nextTalk"] = <config>
+					<context npcId="582" str="#username#，麦提，我和修罗已经用力量将麦爸体内的黑暗能量压制到极限。"/>
+					<context npcId="582" str="现在你们必须在最短的时间里消灭麦爸，只有这样才可保我们部落平安。"/>
+					<context npcId="581" iconId="20" str="不，我不要……我不能失去父亲。">
+						<choice type="0" str="这确实很难为麦提。">
+							<context npcId="540" str="你们不要再犹豫了，我们支撑不了多久，现在不动手，就再也没有机会了。"/>
+							<context npcId="1" iconId="26" str="主人，HELLO觉得现在应该以大局为重，就让HELLO冲锋炮打头阵吧！">
+								<choice type="0" str="HELLO小心。" action="2353_showHelloMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["582_2353_yakestar4"] = <config>
+					<context npcId="540" str="不要再犹豫了，现在是它意志最低落的时候，我们快动手吧！&#9;"/>
+					<context npcId="582" iconId="4" str="看来事情已经往最坏的方面发展了，为了族人的安全，也只能这么做了。">
+						<choice type="0" str="族长，修罗，你们在说什么啊。" action="2353_addControlMovie"/>
+					</context>
+				</config>;
+         talk["582_2357_yakestar4"] = <config>
+					<context npcId="582" str="这样的结果我们都不想看到，确实是委屈麦提了，我们就让它在这里静一静吧！"/>
+					<context npcId="582" str="不过能避免这场灾难，多亏了#username#的帮忙，所以我决定把这块禾田玉石送给你作为报答。">
+						<choice type="0" str="禾田玉石可是你们族里的圣物，也是你们部落的支柱，我怎么能收呢！">
+							<context npcId="582" str="部落现在有麦提，不再需要它了，而且我怕麦提看到它会睹物思亲，更加伤心。">
+								<choice type="0" str="既然如此，那我就不客气了。">
+									<context npcId="540" str="凯撒的黑暗能量无处不在，为了避免别的星球遭遇不测，我得先行一步了。">
+										<choice type="0" str="再见修罗。" action="2357_showNpcLeave"/>
+									</context>	
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["583_2294_talkAfterFight"] = <config>
 					<context npcId="583" str="哼，敢伤小爷我，咱们走着瞧。">
 						<choice type="0" str="走着瞧就走着瞧。" taskId="2294" action="2294_showHousecarlLeave"/>
@@ -5432,6 +15158,692 @@ package mmo.tasknpc
 						<choice type="3" str="我可不怕你。" action="2294_startFight"/>
 					</context>
 				</config>;
+         talk["589_2355_nextTalk"] = <config>
+					<context npcId="1" iconId="15" str="主人，看来神罗鬼斧已经离开麦提体内了，麦提一直想着要救父亲，可是……"/>
+					<context npcId="1" iconId="15" str="不知道现在它该怎么面对，呜呜……HELLO心里好难受呢！">
+						<choice type="0" str="我也是！" taskId="2355" action="2355_nextTalk"/>
+					</context>
+				</config>;
+         talk["589_2355_yakestar4"] = <config>
+					<context npcId="589" str="这个少年太善良了，所以就让我来助它一臂之力吧！">
+						<choice type="0" str="你……你是谁？">
+							<context npcId="589" str="神罗鬼斧！"/>
+							<context npcId="1" iconId="46" str="神罗鬼斧，我的天啊！你是说现在是你在操控着麦提的身体？这也太不可思议了！"/>
+							<context npcId="589" str="保护族人和部落是我历来的使命，所以只能暂时委屈麦提了！">
+								<choice type="0" str="这样也好。" action="2355_showWinMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["589_2356_nextTalk"] = <config>
+					<context npcId="582" iconId="4" str="麦提，你不要太伤心了……"/>
+					<context npcId="589" str="我不会丢下父亲一个人的，我要在这里永远的陪着父亲。">
+						<choice type="0" str="麦提，你可不要做傻事啊！" action="2356_showSeal"/>
+					</context>
+				</config>;
+         talk["589_2356_yakestar4"] = <config>
+					<context npcId="589" iconId="2" str="爸爸……爸爸……你醒醒，看看麦提啊……">
+						<choice type="0" str="麦提……" action="2356_showEntrust"/>
+					</context>
+				</config>;
+         talk["590_2352_nextTalk"] = <config>
+					<context npcId="1" iconId="30" str="主人，修罗受伤了。">
+						<choice type="0" str="修罗，你怎么样？">
+							<context npcId="540" iconId="10" str="我没事，只是没想到它的力量会增长的这么快。"/>
+							<context npcId="581" iconId="5" str="爸爸……你怎么变成这个样子，你快醒醒啊，不要再为非作歹了。"/>
+							<context npcId="590" str="爸爸？啊哈哈，我怎么会有这么弱小的孩子。"/>
+							<context npcId="581" iconId="5" str="爸爸……我是麦提啊，你最疼爱的麦提啊，你连我不记得了吗？">
+								<choice type="0" str="麦提，现在不能感情用事。" action="2352_showMaiDiMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["590_2352_yakestar4"] = <config>
+					<context npcId="590" str="哼，你们以为就凭一块破石头就能镇住我吗？简直是痴心妄想。"/>
+					<context npcId="540" str="有我在，你的阴谋休想得逞。"/>
+					<context npcId="590" str="真是可笑之极，现在你还是我的对手吗？也好，今天就让你们见识一下现在的我。">
+						<choice type="0" str="修罗小心。" action="2352_showFightMovie"/>
+					</context>
+				</config>;
+         talk["590_2354_nextTalk"] = <config>
+					<context npcId="1" str="主人，快看麦提变身了！">
+						<choice type="0" str="是啊，终于见识到了神罗鬼斧的真正力量。" taskId="2354" action="2354_nextTalk"/>
+					</context>
+				</config>;
+         talk["590_2354_yakestar4"] = <config>
+					<context npcId="582" iconId="4" str="想不到它还有这么强大的力量,难道是天要绝我族人吗！"/>
+					<context npcId="1" iconId="15" str="呜呜，HELLO的冲锋炮失败了。">
+						<choice type="0" str="那现在该怎么办呢？">
+							<context npcId="1" iconId="31" str="HELLO想起来了，麦提不是有神罗鬼斧吗？也许用它可以对付麦爸！"/>
+							<context npcId="581" iconId="20" str="不，我是绝对不会伤害父亲的。">
+								<choice type="0" str="可是麦提……" action="2354_showChangeNpcMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["592_2364_candystar1"] = <config>
+					<context npcId="592" iconId="2" str="＞﹏＜好高…好怕怕…糖糖…你快来呀…"/>
+					<context npcId="1" iconId="29" str="主人你看，有人被气球吊在空中啊！我们帮他一把吧？">
+						<choice str="助人为乐我最喜欢了！" starterId="2364">
+							<context npcId="1" str="主人，快用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;射破气球，救下那个可怜的娃吧！">
+								<choice str="好，看我的！" action="2365_InitShootTips">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["592_2365_candystar1"] = <config>
+					<context npcId="592" iconId="2" str="＞﹏＜好高…好怕怕…糖糖…你快来呀…"/>
+					<context npcId="1" iconId="29" str="主人你看，有人被气球吊在空中啊！我们帮他一把吧？">
+						<choice str="助人为乐我最喜欢了！">
+							<context npcId="1" str="主人，快用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;射破气球，救下那个可怜的娃吧！">
+								<choice str="好，看我的！" action="2365_InitShootTips">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["592_2366_AfterCandyCartoon"] = <config>
+					<context npcId="592" iconId="6" str="我要告诉她我喜欢她，让她当我的好朋友～">
+						<choice str="－ －|||搞砸了你的计划…不好意思哦…">
+							<context npcId="592" iconId="7" str="没关系！我还有几个气球，你们帮我吹气球，让我再试一次吧！"/>
+							<context npcId="1" str="可是我们来糖果星是有正事的哦！我们来找纯净能源的！">
+								<choice str="不如我们帮你，你告诉我们纯净能源的下落吧！" taskId="2366">
+								</choice>		
+							</context>	
+						</choice>
+					</context>
+				</config>;
+         talk["592_2366_candystar1"] = <config>
+					<context npcId="592" iconId="3" str="……">
+						<choice str="朋友，你还好吧？">
+							<context npcId="592" iconId="4" str="我为什么会下来？！是你干的吗？！你坏了我的好事啊啊啊！"/>
+							<context npcId="1" iconId="29" str="你不是被气球吊在天上吗？你不是下不来吗？我们是在救你啊！"/>
+							<context npcId="592" iconId="5" str="～＞＿＜～哎呀，这气球是我自己做的！我要让糖糖看到我，当我的好朋友！你们居然…完蛋了啦！55555……">
+								<choice str="呃…谁是糖糖？" action="2366_CandyCartoon">
+								</choice>		
+							</context>				
+						</choice>
+					</context>
+				</config>;
+         talk["592_2367_AfterFlyUpMovie"] = <config>
+					<context npcId="592" iconId="9" str="哇咔咔！我又飞起来，谢谢你们哦！糖糖！做我的好朋友吧！"/>
+					<context npcId="1" iconId="10" str="哈哈，主人，你看，小白吐这次要成功咯！加油！">
+						<choice str="小白吐加油！" action="2367_CandyAppearMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2367_candystar1"] = <config>
+					<context npcId="592" iconId="8" str="纯净能源是啥？我不知道耶！如果你们帮我吹气球，我就帮你们找！">
+						<choice str="╮（￣▽￣）╭呃…也好！HELLO吹气球最拿手了！" action="2367_BalloonInteration">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2369_AfterFightToCandy"] = <config>
+					<context npcId="593" iconId="4" str="#username#你好厉害！其实我平时不打人的，我很温柔的！O(∩_∩)O">
+						<choice str="－ －|||别…我害怕……" taskId="2369">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2370_candystar1"] = <config>
+					<context npcId="592" iconId="10" str="被糖糖欺负，是我最快乐的事情！吃糖是第二快乐的事情！"/>
+					<context npcId="593" iconId="5" str="（完全不理小白吐）#username#，你们一定是来参观糖果工厂来的吧！难道你们找到&lt;font color='#FF6600'&gt;&lt;b&gt;金色巧克力&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;啦？哇，真是太厉害了！"/>
+					<context npcId="1" iconId="10" str="金色巧克力？我们不知道是什么耶…不过你说的是那个宇宙最大的&lt;font color='#FF6600'&gt;&lt;b&gt;TT糖果工厂&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！听说很厉害呢！"/>
+					<context npcId="593" iconId="5" str="没错！全宇宙最大的糖果工厂！宇宙所有的糖果，都是在TT糖果公司生产的！超酷！">
+						<choice str="听起来真棒！我们可以进去参观吗？">
+							<context npcId="592" iconId="1" str="当然不行！你们不知道吗？糖果工厂已经关闭N久了！如果要进去参观，需要有&lt;font color='#FF6600'&gt;&lt;b&gt;金色巧克力&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;！">
+								<choice str="金色巧克力？什么东东？" action="2370_CandyCompanyCartoon">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["592_2371_AfterScareBuyingMovie"] = <config>
+					<context npcId="592" iconId="5" str="完了…糖果都被秒杀了…我没希望了…5555555…">
+						<choice str="哇噻，这些人好疯狂！" taskId="2371"/>
+					</context>
+				</config>;
+         talk["592_2378_SuccessTakeApartCandyInteration"] = <config>
+					<context npcId="592" iconId="7" str="哇噻！金色巧克力！好闪啊！像糖糖一样闪！">
+						<choice str="（有点失望）只有一颗…全部糖果都拆完了……" taskId="2378">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2379_candystar2"] = <config>
+					<context npcId="592" iconId="12" str="我要把这宝贝存在肚子里，这样才不会被人偷走……"/>
+					<context npcId="592" iconId="12" str="它可以让我和糖糖一起去糖果工厂，我一定不会松口的！"/>
+					<context npcId="595" iconId="3" str="金色巧克力不能吃掉啊，它会在肚子里慢慢融化的！">
+						<choice str="爷爷你怎么不早说……" action="2379_SpitOutChocolateMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["592_2380_candystar2"] = <config>
+					<context npcId="592" iconId="13" str="……NO……NO……">
+						<choice type="3" str="小白吐，乖乖把巧克力吐出来吧！" action="2380_FightToLittleWhiteRabbit"/>
+						<choice str="让我准备一下再来！"/>
+					</context>
+				</config>;
+         talk["592_2381_candystar2"] = <config>
+					<context npcId="592" iconId="11" str="啊！！！再……再……再来一个？！"/>
+					<context npcId="593" iconId="8" str="笨蛋，你被打傻啦？什么再来一个？还想再打一次吗？">
+						<choice str="再来一个？！真的假的？" action="2381_OneMoreCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2402_AfterFinishTask2375"] = <config>
+					<context npcId="592" action="2402_Start">
+					</context>
+				</config>;
+         talk["592_2403_candystar1"] = <config>
+					<context npcId="592" action="2403_ReadyToGoMovie">
+					</context>
+				</config>;
+         talk["592_2405_AfterTrySwitchInteraction"] = <config>
+					<context npcId="592" iconId="15" str="……好厉害……">
+						<choice str="这些机器以为你是糖果了！哈哈！" taskId="2405">
+						</choice>				
+					</context>
+				</config>;
+         talk["592_2430_AfterShakeCandyClothesMovie"] = <config>
+					<context npcId="592" iconId="16" str="憋死我啦！这个破糖衣，闷得我都不能呼吸了！天啊啊啊啊啊！">
+						<choice str="小白吐！你出来啦！" taskId="2430">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2431_AfterEatCandyCartoon"] = <config>
+					<context npcId="592" iconId="7" str="所以，只要坚持不停地吃，就可以把这个破糖衣吃掉啦！"/>
+					<context npcId="593" iconId="7" str="这么说来，只要我们不停地吃，也可以救出那些被糖衣控制的TT兔啦？！"/>
+					<context npcId="1" iconId="10" str="没错！小白吐！我第一次觉得你这么聪明！">
+						<choice str="我也是！" taskId="2431">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2437_AfterRobotRabbitMovie"] = <config>
+					<context npcId="592" iconId="21" str="……"/>
+					<context npcId="593" iconId="2" str="坏蛋！你太过份了！居然欺负我的伙伴！我一定要把你打到满地找牙！">
+						<choice str="可恶！" action="2437_CandyEvolveMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["592_2439_candystar1"] = <config>
+					<context npcId="592" iconId="20" str="天啊！天啊！刚才那个黑色的东东是什么？好可怕！"/>
+					<context npcId="1" iconId="33" str="主人！那是…凯撒的黑色能量！原来凯撒一直寄生在糖先生身上……">
+						<choice str="怪不得糖先生会变得这么可怕！" action="2439_CandySmallMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2367_AfterCandyAppearMovie"] = <config>
+					<context npcId="593" iconId="2" str="小白吐！你这个笨蛋！每天飞一次不累啊！我不会答应你的！哼！"/>
+					<context npcId="592" iconId="10" str="糖糖…可爱的糖糖…你还是这么温柔…"/>
+					<context npcId="1" iconId="21" str="－ －|||好…好厉害的弹弓…这难道就是小白吐说的…温柔可爱的糖糖？">
+						<choice str="OH MY GOD！太可怕了！" taskId="2367">
+						</choice>				
+					</context>
+				</config>;
+         talk["593_2368_candystar1"] = <config>
+					<context npcId="593" iconId="3" str="O(∩_∩)O好萌的小东西哦！你们是来糖果星旅游的吗？呵呵，不好意思，刚刚有点激动呢！"/>
+					<context npcId="1" iconId="50" str="放…手…HELLO快喘不过气了…┬＿┬"/>
+					<context npcId="592" iconId="10" str="糖糖，虽然这是我第999次的失败，但是我不会放弃的！你一定会做我的好朋友的，是吗？"/>
+					<context npcId="593" iconId="2" str="笨蛋！大笨蛋！我一定要教训你一下！看我的无敌弹弓！">
+						<choice str="冷静一点啊！" action="2368_GoAfterMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2369_candystar1"] = <config>
+					<context npcId="593" iconId="2" str="死小白吐，我看你往哪里跑！"/>
+					<context npcId="1" iconId="43" str="主人…糖糖太过份了！小白吐可是一片真心啊…快阻止糖糖吧！"/>
+					<context npcId="592" iconId="5" str="＞﹏＜不行！你们不要碰糖糖啊！她是我的好朋友！">
+						<choice type="3" str="再不阻止她，你就死翘翘啦！" action="2369_FightToCandy"/>
+						<choice str="暴力萝莉太可怕，我先走了！"/>
+					</context>
+				</config>;
+         talk["593_2371_candystar1"] = <config>
+					<context npcId="593" iconId="7" str="当然是我啦！要不是我打得好，这傻瓜还不知道巧克力在他肚子里呢！"/>
+					<context npcId="592" iconId="5" str="可是…我排了一个星期的队，才买到它的…（说完就被糖糖飞踢）">
+						<choice str="悲剧。" action="2371_ScareBuyingMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2376_candystar1"] = <config>
+					<context npcId="593" iconId="7" str="爷爷你看！我找到一颗金色巧克力！我要去参观糖果工厂啦！"/>
+					<context npcId="595" iconId="2" str="只有一颗？那你的朋友们不能一起去啊。不过，爷爷倒有个好主意！">
+						<choice str="是吗爷爷？快告诉我们吧！">
+							<context npcId="595" iconId="2" str="呵呵，来来来，大家别在外面站着，进来爷爷的小店说吧！">
+								<choice str="哦，好啊！" taskId="2376">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["593_2378_candystar2"] = <config>
+					<context npcId="593" iconId="5" str="爷爷我爱死你啦！#username#、小白吐，我们赶快来找金色巧克力吧！"/>
+					<context npcId="592" iconId="6" str="哦，太好了，如果找到金色巧克力，我就能和糖糖一起去参观糖果工厂了！">
+						<choice str="说不定我们也能去哦！快动手吧！" action="2378_TakeApartCandyInteration">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2383_AfterCandyCompanyCartoon"] = <config>
+					<context npcId="593" iconId="4" str="爷爷！这个故事你讲了10000次了啦！"/>
+					<context npcId="1" str="哇噻，听起来好厉害，糖果工厂、超级糖果博物馆…主人，我也好期待呢！">
+						<choice str="嗯嗯，我都等不及啦！" taskId="2383">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2403_AfterDoorOpenMovie"] = <config>
+					<context npcId="593" iconId="4" str="HI！TT公司的大老板糖先生！我们就是你说的幸运儿，来参观糖果工厂啦！">
+						<choice str="对，我们拿到了金色巧克力！" taskId="2403">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2403_AfterReadyToGoMovie"] = <config>
+					<context npcId="593" iconId="9" str="一周过去啦！#username#！小HELLO！我们要去糖果工厂啦！耶！"/>
+					<context npcId="1" iconId="51" str="嗯嗯！HELLO昨天晚上高兴得睡不着呢！"/>
+					<context npcId="592" iconId="14" str="等等我呀，我带了好多零食，好重呀！">
+						<choice str="哇噻好兴奋，我们快走吧！" action="2403_DoorOpenMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2403_candystar1"] = <config>
+					<context npcId="593" action="2403_ReadyToGoMovie">
+					</context>
+				</config>;
+         talk["593_2406_AfterCandySirLeaveMovie"] = <config>
+					<context npcId="593" iconId="10" str="完…完了……出手重了点，碰到机器了……"/>
+					<context npcId="1" iconId="21" str="你什么时候出手不重啊！天啊！我们在机器上了……救命啊！">
+						<choice str="快想想办法吧！" taskId="2406">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2407_candystar3"] = <config>
+					<context npcId="593" iconId="11" str="看！这是糖果模型机器！快根据模型调整我们的动作，才不会被夹到！">
+						<choice str="啊？！" action="2407_TransportInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2408_candystar3"] = <config>
+					<context npcId="593" iconId="2" str="你对小白吐做了什么？！你要把我们都变成糖果吗！太可恶了！"/>
+					<context npcId="606" iconId="4" str="你不是还很崇拜我吗？过不了多久，你们就会像这个头脑简单的小朋友一样，变成糖果了！"/>
+					<context npcId="593" iconId="2" str="可恶！太可恶了！把小白吐放开！你这混蛋！吃我的弹弓吧！">
+						<choice str="糖糖，我来！">
+							<context npcId="606" iconId="4" str="小萝莉生气了！既然这样，那你们就一起受死吧！">
+								<choice type="3" str="休想把我们变成糖果！接招吧！" action="2408_FightToCandySir"/>
+								<choice str="我准备一下再来！"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["593_2411_AfterFinishTask2402"] = <config>
+					<context npcId="593" iconId="13" str="动了…动了…那些兔子在动……">
+						<choice str="什么？！" starterId="2411">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2412_AfterCandyRabbitMovie"] = <config>
+					<context npcId="593" iconId="12" str="啊！这些糖果兔被控制了！#username#，上！我在后面支持你！">
+						<choice str="－ －|||你不是很猛吗！" taskId="2412">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2412_candystar4"] = <config>
+					<context npcId="593" iconId="13" str="动了…动了…那些兔子在动……">
+						<choice str="什么？！" action="2412_CandyRabbitMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2413_AfterFightToThreeRabbit"] = <config>
+					<context npcId="593" iconId="2" str="混蛋！死肥兔！你们不要欺负我的朋友！#username#，我来帮你！"/>
+					<context npcId="607" iconId="3" str="紧急支援！TT陆军呼叫TT空军，人多速到！OVER！">
+						<choice str="搞什么啊？">
+							<context npcId="1" iconId="21" str="主人你看！会飞的TT兔来了…！">
+								<choice str="完了……" action="2413_FlyRabbitMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["593_2414_SuccessFightRabbieGame"] = <config>
+					<context npcId="593" iconId="7" str="哼哼！知道本小姐的厉害了吧！还不快给我滚蛋！">
+						<choice str="耶！糖糖好样的！" taskId="2414">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2414_candystar4"] = <config>
+					<context npcId="593" iconId="7" str="哼！会飞的东西本小姐最喜欢了！看我的弹弓！">
+						<choice str="糖糖加油！" action="2414_FightRabbieGame">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2415_AfterRabbitOpenMouseMovie"] = <config>
+					<context npcId="593" iconId="2" str="小！白！吐！你居然敢拿枪对我？！不要命啦？！">
+						<choice str="小白吐看起来已经失去意识了……">
+							<context npcId="607" iconId="2" str="新兵小白吐听令！向他们发射糖浆！OVER！"/>
+							<context npcId="610" iconId="4" str="遵命！OVER！">
+								<choice str="快闪，糖糖！" action="2415_CandyHideMovie">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["593_2416_AfterRabbitFallDownMovie"] = <config>
+					<context npcId="593" iconId="14" str="笨蛋！你看好了，我们都是你的朋友！你居然要打我们！别装了啦！快点起来！"/>
+					<context npcId="1" iconId="15" str="糖糖终于说自己是小白吐的朋友了……">
+						<choice str="现在不是哭的时候啦！" taskId="2416">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2418_candystar1"] = <config>
+					<context npcId="593" iconId="14" str="不知道小白吐怎么样……"/>
+					<context npcId="1" iconId="15" str="5555555……小白吐不会死吧！">
+						<choice str="别乱讲！现在我们只能去找糖爷爷了！" action="2418_CandyCryingGoMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2419_AfterCandyCryingMovie"] = <config>
+					<context npcId="593" iconId="14" str="5555555…爷爷，我们该怎么办？小白吐会不会死啊？">
+						<choice str="（把事情的经过告诉糖爷爷）">
+							<context npcId="595" iconId="5" str="咦？可是，我印象中的糖先生…并不是这样的人，莫非是…">
+								<choice str="那颗鼻涕味的糖？" action="2419_EatCandyCartoon">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["593_2426_AfterCandyDoorOpenMovie"] = <config>
+					<context npcId="593" iconId="18" str="爷爷！你干嘛拖我们呀？我们要去救人啦！"/>
+					<context npcId="595" str="小笨蛋！上次糖先生都已经认得你们了，这次还想从他眼皮底下钻进去吗？">
+						<choice str="好像有道理……" taskId="2426">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2426_candystar1"] = <config>
+					<context npcId="593" str="爷爷，你别送我们了！你要相信，你的糖糖是最棒的！"/>
+					<context npcId="1" str="是呀爷爷，还有我们呢！我家主人可厉害了，一定会保护糖糖的！">
+						<choice str="谦虚一点啦。" action="2426_CandyDoorOpenMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2428_AfterCandyRushOutMovie"] = <config>
+					<context npcId="593" iconId="2" str="大家不要相信这个混蛋！这里的糖果，通通是用我们的伙伴做的！">
+						<choice str="对！他把我们骗进来，为的是让我们变成他的糖果！" taskId="2428">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2428_candystar4"] = <config>
+					<context npcId="606" str="这是TT公司最新、最厉害的艺术成果！宇宙超级糖果博物馆！"/>
+					<context npcId="611" iconId="2" str="哇……"/>
+					<context npcId="606" str="这里的每一个糖果，不仅和你们一样大，而且拥有自己的思想！它们是本世纪最厉害的艺术品！"/>
+					<context npcId="611" iconId="2" str="哇……">
+						<choice str="这些兔子都被骗得团团转了……" action="2428_CandyRushOutMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2429_AfterHitRabbitInteraction"] = <config>
+					<context npcId="593" iconId="7" str="小白吐！笨蛋！你果然还没有死！太好了！">
+						<choice str="我们来救你了！" taskId="2429">
+						</choice>				
+					</context>
+				</config>;
+         talk["593_2429_candystar4"] = <config>
+					<context npcId="606" iconId="5" str="什么？你们两个小鬼居然还没死？！"/>
+					<context npcId="606" iconId="6" str="上次让你们溜了！这次别想活着出去！TT兔，给我上！">
+						<choice str="小心！" action="2429_HitRabbitInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2430_candystar4"] = <config>
+					<context npcId="606" str="哼！这么不舍得他，那你们就跟他一起，乖乖地做我的艺术品吧！">
+						<choice str="糖糖小心！" action="2430_ShakeCandyClothesMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2433_candystar4"] = <config>
+					<context npcId="593" iconId="2" str="你这个大坏蛋！谁叫你干了这么多坏事！活该！"/>
+					<context npcId="592" iconId="17" str="大坏蛋！谁叫你把我们变成糖！太可恶了！抓不到我们！哼哼哼！">
+						<choice str="我们快跑吧！" action="2433_RunAwayMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2439_AfterCandySmallMovie"] = <config>
+					<context npcId="593" iconId="7" str="哇！刚才真是太过瘾啦！耶！好好玩哦！"/>
+					<context npcId="1" str="咦？刚刚糖糖吃下的是金色巧克力吗？因为那个糖糖才变身的吗？"/>
+					<context npcId="595" iconId="2" str="没错！我研究了好久，发现金色巧克力富含一种非常珍贵的能量！可以激发我们的潜能！">
+						<choice str="真的吗？难道它就是我们要找的纯净能源？" taskId="2439">
+						</choice>
+					</context>
+				</config>;
+         talk["593_2441_candystar1"] = <config>
+					<context npcId="593" iconId="7" str="这个结局好棒哦！人人都是大英雄！我喜欢，哈哈哈！"/>
+					<context npcId="592" iconId="14" str="可是你还没有答应做我的好朋友……"/>
+					<context npcId="593" iconId="2" str="哼！打得过我再说吧！快去给我买糖吃！"/>
+					<context npcId="1" iconId="10" str="主人，我们也拿到了纯净能源，真是太好啦！">
+						<choice str="是呀(*^__^*)" action="2441_EnergyMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["594_2370_AfterHitChocolateMovie"] = <config>
+					<context npcId="594" iconId="1" str="金、金、金、金色巧克力！耶！我要去糖果工厂参观啦！">
+						<choice str="等一下…只有一个，好像只能一人去…" taskId="2370">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2375_AfterFinishTask2364"] = <config>
+					<context npcId="595" iconId="2" str="我的小糖糖，原来你在这，别到处乱跑，有危险怎么办呀？">
+						<choice str="晕…危险的是别人吧！" starterId="2375">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2377_AfterManyCandyMovie"] = <config>
+					<context npcId="595" iconId="2" str="刚才我只是拿一点存货把大家都骗走，现在，你们就专心找金色巧克力吧！">
+						<choice str="哇！糖爷爷好厉害！" taskId="2377">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2377_candystar2"] = <config>
+					<context npcId="595" iconId="2" str="啊哈哈…我真是太聪明啦！我们很快就能找到新的金色巧克力了！"/>
+					<context npcId="592" iconId="8" str="可是，大家已经把店里的糖果抢购一空啦！怎么可能啊？">
+						<choice str="难道……" action="2377_ManyCandyMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2379_AfterSpitOutChocolateMovie"] = <config>
+					<context npcId="595" iconId="3" str="天啊！老花眼又犯了…我的小糖糖，你没事吧！不要吓爷爷啊…"/>
+					<context npcId="1" iconId="47" str="糖糖不会有事的…主人，我们快拦下小白吐吧！要不巧克力就融化啦！">
+						<choice str="好！" taskId="2379">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2382_candystar2"] = <config>
+					<context npcId="595" iconId="2" str="糖果工厂关闭了这么久，你们居然能进去参观！爷爷真为你们骄傲！"/>
+					<context npcId="595" iconId="4" str="想当年，爷爷在糖果工厂努力工作，还受到糖先生的表扬呢！时间过得真快呀……">
+						<choice str="原来糖爷爷以前在糖果工厂工作呀！" taskId="2382">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2383_candystar1"] = <config>
+					<context npcId="595" iconId="4" str="孩子，你们看到吗，彩虹小城的尽头，就是TT糖果公司的工厂……它还是那么雄伟，那么亲切……"/>
+					<context npcId="592" iconId="11" str="那就是我的梦乡！里面有各种各样美味的糖果，和糖糖一样可爱！"/>
+					<context npcId="593" iconId="5" str="还有好多超厉害的机器…好酷的！"/>
+					<context npcId="1" str="看来糖爷爷对糖果工厂的感情很深哦！"/>
+					<context npcId="595" iconId="2" str="当然了孩子！要不是糖先生突然把工厂关了，我现在还在那里工作呢！">
+						<choice str="是吗？" action="2383_CandyCompanyCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2419_AfterEatCandyCartoon"] = <config>
+					<context npcId="595" str="糖先生唯一没变的，就是酷爱自己的艺术品，超过一切……小白吐是糖先生的艺术品，他不会伤害他的。"/>
+					<context npcId="595" str="我们只有等到“宇宙超级糖果博物馆”开放的那天，才是救人的最好时候！">
+						<choice str="啊……">
+							<context npcId="593" iconId="16" str="嗯！那我一定要在博物馆开放之前，练好弹弓，把那个混蛋打个落花流水！"/>
+							<context npcId="1" str="主人，我们也要变强，等到博物馆开放，把小白吐救出来！">
+								<choice str="嗯！一言为定！" taskId="2419">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["595_2425_AfterReadyToGoMovie"] = <config>
+					<context npcId="595" iconId="6" str="今天糖果博物馆开放，也是我们救人的时候啦！孩子们，你们准备好了吗？"/>
+					<context npcId="593" iconId="17" str="当然了！我已经进行了一周的魔鬼训练！等的就是今天！">
+						<choice str="嗯！我也是！" taskId="2425">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2425_candystar2"] = <config>
+					<context npcId="595" action="2425_ReadyToGoMovie">
+					</context>
+				</config>;
+         talk["595_2427_candystar1"] = <config>
+					<context npcId="595" str="救人要动脑筋的嘛！看爷爷的！这里有一个秘密入口…可以通往糖果博物馆！">
+						<choice str="真的？！" action="2427_SecretEntranceInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["595_2440_AfterCandySirWakeUpMovie"] = <config>
+					<context npcId="595" str="糖先生失忆了，他已经忘记自己吃了黑色糖果之后的一切事情了……"/>
+					<context npcId="593" iconId="10" str="糖先生看起来真是变了一个人呢！原来他一直被可怕的黑色糖果控制……">
+						<choice str="是啊……" action="2440_FinalResultCartoon">
+						</choice>				
+					</context>
+				</config>;
+         talk["595_2440_candystar1"] = <config>
+					<context npcId="595" iconId="2" str="是啊孩子！它就是你们要找的纯净能源！"/>
+					<context npcId="595" iconId="2" str="现在，爷爷把金色巧克力送给你，谢谢你救出了大家，谢谢你对糖果星的贡献！">
+						<choice str="太好了，谢谢爷爷！" action="2440_CandySirWakeUpMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2404_candystar1"] = <config>
+					<context npcId="606" iconId="2" str="哦？你们还真厉害！那跟我来吧，今天就让你们大开眼界！">
+						<choice str="好！" action="2404_GoInFactoryMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2405_candystar3"] = <config>
+					<context npcId="606" str="欢迎来到宇宙最大的TT糖果工厂！"/>
+					<context npcId="593" iconId="5" str="哇哇哇！我从来没有见过这么多、这么厉害的机器耶！超酷！"/>
+					<context npcId="606" str="这些机器还有更厉害的作用呢！想试一试吗？"/>
+					<context npcId="592" iconId="11" str="我要我要！让我试试吧！我要看看这些机器有多厉害！">
+						<choice str="怎么试啊？" action="2405_TrySwitchInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2406_candystar3"] = <config>
+					<context npcId="606" str="惊喜还不止这些呢！我准备了礼物要送给你们！你们在这里等我一下。"/>
+					<context npcId="593" iconId="4" str="哇，来参观工厂还送礼物呢！好开心哦！"/>
+					<context npcId="606" iconId="3" str="记住，不要碰这里的任何东西，否则…这些机器会把你们当成糖果哦！">
+						<choice str="哦……（听起来怎么有点恐怖）" action="2406_CandySirLeaveMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2407_AfterCandySirGiftMovie"] = <config>
+					<context npcId="606" iconId="4" str="这就是我送你们的礼物，一件华丽而且坚不可摧的糖衣！"/>
+					<context npcId="606" iconId="4" str="而你们，会变成我的艺术品，乖乖地放在我的超级糖果博物馆里！哈哈哈！">
+						<choice str="你……" taskId="2407">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2408_AfterFightToCandySir"] = <config>
+					<context npcId="606" iconId="4" str="身手不错嘛！但是我的机器可比你们厉害得多哦！">
+						<choice str="哼！" taskId="2408">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2408_candystar3"] = <config>
+					<context npcId="593" iconId="2" str="你对小白吐做了什么？！你要把我们都变成糖果吗！太可恶了！"/>
+					<context npcId="606" iconId="4" str="你不是还很崇拜我吗？过不了多久，你们就会像这个头脑简单的小朋友一样，变成糖果了！"/>
+					<context npcId="593" iconId="2" str="可恶！太可恶了！把小白吐放开！你这混蛋！吃我的弹弓吧！">
+						<choice str="糖糖，我来！">
+							<context npcId="606" iconId="4" str="小萝莉生气了！既然这样，那你们就一起受死吧！">
+								<choice str="休想把我们变成糖果！接招吧！" action="2408_FightToCandySir"/>
+								<choice str="我准备一下再来！"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["606_2409_candystar3"] = <config>
+					<context npcId="606" iconId="4" str="现在就交给这些机器吧！能在我的机器下变成糖果，你们应该感到荣幸！">
+						<choice str="什么？！" action="2409_LeaveMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2428_candystar4"] = <config>
+					<context npcId="606" str="这是TT公司最新、最厉害的艺术成果！宇宙超级糖果博物馆！"/>
+					<context npcId="611" iconId="2" str="哇……"/>
+					<context npcId="606" str="这里的每一个糖果，不仅和你们一样大，而且拥有自己的思想！它们是本世纪最厉害的艺术品！"/>
+					<context npcId="611" iconId="2" str="哇……">
+						<choice str="这些兔子都被骗得团团转了……" action="2428_CandyRushOutMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2429_candystar4"] = <config>
+					<context npcId="606" iconId="5" str="什么？你们两个小鬼居然还没死？！"/>
+					<context npcId="606" iconId="6" str="上次让你们溜了！这次别想活着出去！TT兔，给我上！">
+						<choice str="小心！" action="2429_HitRabbitInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2430_candystar4"] = <config>
+					<context npcId="606" str="哼！这么不舍得他，那你们就跟他一起，乖乖地做我的艺术品吧！">
+						<choice str="糖糖小心！" action="2430_ShakeCandyClothesMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2431_candystar4"] = <config>
+					<context npcId="606" iconId="5" str="不…不可能！你…你怎么可能解开我的无敌糖衣？">
+						<choice str="太不可思议了……" action="2431_EatCandyCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2432_AfterEatCandyInteraction"] = <config>
+					<context npcId="606" iconId="6" str="不！不！我的艺术品！我的心血！你们！啊！！！！！！">
+						<choice str="糖先生发怒了！" taskId="2432">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2434_AfterFinishTask2424"] = <config>
+					<context npcId="606" iconId="6" str="你们毁了我的艺术品，就想逃跑吗？做梦！我要你们付出代价！"/>
+					<context npcId="592" iconId="18" str="救命……"/>
+					<context npcId="593" iconId="2" str="可恶！大坏蛋！放开小白吐！有种我们来单挑啊！本小姐可不怕你！">
+						<choice str="我们不会让你伤害小白吐的！" starterId="2434">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2435_AfterTask2434Start"] = <config>
+					<context npcId="606" iconId="6" str="是吗？小鬼，那让你们见识一下，真正的机器！">
+						<choice str="真正的机器？" action="2435_BlackCandySirMovie1">
+						</choice>
+					</context>
+				</config>;
+         talk["606_2435_candystar3"] = <config>
+					<context npcId="606" iconId="6" str="你们毁了我的艺术品，就想逃跑吗？做梦！我要你们付出代价！"/>
+					<context npcId="592" iconId="18" str="救命……"/>
+					<context npcId="593" iconId="2" str="可恶！大坏蛋！放开小白吐！有种我们来单挑啊！本小姐可不怕你！">
+						<choice str="我们不会让你伤害小白吐的！">
+							<context npcId="606" iconId="6" str="是吗？小鬼，那让你们见识一下，真正的机器！">
+								<choice str="真正的机器？" action="2435_BlackCandySirMovie1">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["607_2413_candystar4"] = <config>
+					<context npcId="607" iconId="2" str="奉老大的命令，把你们变成人形糖果！ OVER！">
+						<choice type="3" str="做梦！快给我让开！" action="2413_FightToThreeRabbit"/>
+						<choice str="饶命啊！让我准备一下再来！"/>
+					</context>
+				</config>;
+         talk["607_2415_candystar4"] = <config>
+					<context npcId="607" iconId="3" str="TT空军沦陷，呼叫新兵支援！OVER！">
+						<choice str="还有新兵？！" action="2415_RabbitOpenMouseMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["607_2432_candystar4"] = <config>
+					<context npcId="1" iconId="10" str="主人！HELLO要帮忙！我们一起来帮TT兔吃掉糖衣吧！">
+						<choice str="好！" action="2432_EatCandyInteraction">
+						</choice>
+					</context>
+				</config>;
          talk["608_1214_giantcordillera1"] = <config name="608_1214_giantcordillera1">
 					<context npcId="608" str="最近巨人山脉突然被好多黑色的云团包围了，好可怕呀！"/>
 					<context npcId="1" str="主人，HELLO觉得这个山脉有些奇怪，我们还是先去通知一下麦哲伦司令官这里的情况吧！">
@@ -5439,9 +15851,2359 @@ package mmo.tasknpc
 								<choice str="这么麻烦，还是以后再说吧。"></choice>
 					</context>
 				</config>;
+         talk["60_1716_suolide4"] = <config>
+					<context npcId="60" iconId="1" str="我们是宇宙超级无敌霹雳的SR军团！"/>
+				</config>;
+         talk["60_253_woerte4"] = <config>
+					<context str="你的能力是无法击败我的，我的钢之铠甲是无敌的。想要跟我打吗？小家伙！" npcId="53"/>
+					<context str="主人，我们用粒子聚合器来打败他们吧！先寻找&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳&lt;/b&gt;&lt;/font&gt;，找到能量源！" npcId="1">
+						<choice str="让我们找找看。" taskId="253">
+						</choice>
+					</context>
+				</config>;
+         talk["60_255_woerte4"] = <config>
+					<context str="想要跟我打吗？小家伙！" npcId="53">				
+						<choice str="打得你落花流水！" action="54_255_fight"/>
+                        <choice str="我先准备一下。"/>
+					</context>
+				</config>;
+         talk["610_2416_candystar4"] = <config>
+					<context npcId="1" iconId="3" str="主人，趁现在！快用光能射线把小白吐打退！">
+						<choice str="嗯！看我的！" action="2416_ShootTips">
+						</choice>
+					</context>
+				</config>;
+         talk["610_2417_candystar4"] = <config>
+					<context npcId="610" iconId="5" str="糖…糖…你是我的…好朋友…"/>
+					<context npcId="593" iconId="14" str="笨蛋！你还没有忘记我啊！你快醒醒，我们带你一起逃出去啊！"/>
+					<context npcId="607" iconId="2" str="新兵小白吐听令！向他们发射糖浆！不服从就得死！OVER！"/>
+					<context npcId="593" iconId="2" str="哼！你们这些死肥兔，我不会让你们碰小白吐的！">
+						<choice str="糖糖好有气势啊！" action="2417_RabbitControlMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["612_2436_candystar1"] = <config>
+					<context npcId="612" str="啊哈哈哈哈！这才是我真正的机器！受死吧，你们这些无知的人！"/>
+					<context npcId="1" iconId="33" str="天啊！原来…糖果工厂和博物馆，都是这只机器兔的一部分……">
+						<choice str="好可怕……">
+							<context npcId="593" iconId="2" str="管他什么鬼机器！都比不上我糖糖的无敌弹弓！">
+								<choice str="小心！" action="2436_ShootInteraction">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["612_2437_candystar1"] = <config>
+					<context npcId="612" str="啊哈哈哈哈哈！你们是在给我挠痒痒吗？就这两下子，还想打败我？！"/>
+					<context npcId="593" iconId="11" str="可恶……你这个怪物！皮这么厚！">
+						<choice str="怎么办……" action="2437_RobotRabbitMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["614_2438_candystar1"] = <config>
+					<context npcId="592" iconId="19" str="哇！糖糖！你好漂亮！我快融化了……"/>
+					<context npcId="595" str="就是现在！！#username#！糖糖！小白吐！你们联手打败糖先生！快！"/>
+					<context npcId="612" str="哼！联手打败我？笑话！等着收尸吧！">
+						<choice type="3" str="糖糖，小白吐，我们上！" action="2438_FightToRobotRabbit"/>
+						<choice str="我准备一下再来！"/>
+					</context>
+				</config>;
+         talk["617_2445_secondtalk"] = <config>
+					<context npcId="617" iconId="3" str="晕晕晕，你怎么这么快就追过来了，我还以为我把你甩了呢！"/>
+					<context npcId="618" str="臭小子！快点把那些材料还给我，否则我可要把你榨成鲜橙汁啦！"/>
+					<context npcId="617" iconId="3" str="你可别乱来哦，我的同伙，噢不，我的同伴可是在这里呢，人数2比1，你输了啦！">
+						<choice str="同伴，难道说的是我？" action="2445_end" taskId="2445"/>
+					</context>
+				</config>;
+         talk["617_2445_windmillstar1"] = <config>
+					<context npcId="617" iconId="2" str="哎呀，撞得我眼睛都花了，头好晕啊。">
+						<choice str="对不起，把你东西撞落了一地，我帮你收拾一下吧。" action="2445_movie1"/>
+					</context>
+				</config>;
+         talk["617_2446_windmillstar1"] = <config>
+					<context npcId="617" str="我是要成为冒险王的男人，加入我，成为我的伙伴吧！"/>
+				</config>;
+         talk["617_2447_secondtalk"] = <config>
+					<context npcId="617" iconId="4" str="走吧，我带你们去我和贝琪的秘密基地，让你见识一下我们的秘密杰作！"/>
+					<context npcId="617" iconId="4" str="嘿嘿嘿，这样你就成为了我和贝琪的伙伴哦，欢迎你的加入！">
+						<choice str="贝琪是谁啊？">
+							<context npcId="617" iconId="4" str="走走走，我带你们去见它！"/>
+							<context npcId="1" iconId="7" str="主人，想到能乘着滑翔翼去找宝藏，HELLO就觉得好兴奋哦！"/>
+							<context npcId="1" iconId="7" str="而且那个传说中埋藏在谷底的宝藏，也许就是纯净能源呢！HELLO觉得一定要去看看！">
+								<choice str="说的有道理，哈，我也有点兴奋起来啦！" action="2447_movie2" taskId="2447"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["617_2447_windmillstar1"] = <config>
+					<context npcId="617" iconId="4" str="哈哈哈，#username#你真是仗义，才第一次见面就帮我这么大忙！">
+						<choice str="还不是被你拉下水的。">
+							<context npcId="617" iconId="4" str="嘿嘿嘿，不过我也不是坏蛋啦，这些东西，我只是想暂时借用一下。"/>
+							<context npcId="617" iconId="4" str="等我成为冒险王了，我会把东西都还回去的。">
+								<choice str="冒险王？">
+									<context npcId="617" iconId="4" str="说起这个话就长啦，不如先让我好好介绍一下自己吧。">
+										<choice str="呃……" action="2447_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["617_2448_windmillstar2"] = <config>
+					<context npcId="617" iconId="5" str="贝——琪——！快来——我们有新伙伴啦——！">
+						<choice str="噢，原来那个就是贝琪！" action="2448_movie1"/>
+					</context>
+				</config>;
+         talk["617_2449_windmillstar2"] = <config>
+					<context npcId="617" iconId="4" str="这样我们就又多了一个伙伴了，接下来就让我向新伙伴解释一下我们宏伟的蓝图吧。">
+						<choice str="听起来很牛的样子。">
+							<context npcId="617" iconId="4" str="其实啊，所有的事情都要从路上捡到的一本书说起！">
+								<choice str="喔，详细说说吧。" action="2449_multipagecomic"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["617_2450_windmillstar2"] = <config>
+					<context npcId="617" iconId="4" str="好啦，准备开工了，#username#，来帮忙做滑翔翼吧！">
+						<choice str="没问题。" action="2450_interaction"/>
+					</context>
+				</config>;
+         talk["618_2446_fightlose"] = <config>
+					<context npcId="618" str="就这点实力也敢出来做坏事，乖乖把东西交出来吧。"/>
+					<context npcId="617" iconId="3" str="不行，东西不能给你，#username#一定会打败你的！">
+						<choice str="好……好吧。"/>
+					</context>
+				</config>;
+         talk["618_2446_windmillstar1"] = <config>
+					<context npcId="618" str="人数2比1也别想从我眼皮底下把东西拿走！看招！">
+						<choice type="3" str="看来只能接下这场硬仗了！" action="2446_startfight"/>
+						<choice str="等我准备一下再来接招。"/>
+					</context>
+				</config>;
+         talk["619_2448_secondtalk"] = <config>
+					<context npcId="619" iconId="2" str="亚伦你疯啦，喊这么大声，被通灵巫师那些家伙发现了就惨了。"/>
+					<context npcId="617" iconId="4" str="对对对！要低调！先不管那些啦，今天我带来了一位新伙伴哦！">
+						<choice str="嗨！你好！">
+							<context npcId="619" iconId="3" str="你怎么随随便便就把不认识的人带过来，如果这家伙是个坏蛋，把我们的秘密告诉通灵巫师了怎么办？">
+								<choice str="晕，我不是坏蛋啊。">
+									<context npcId="617" iconId="4" str="对啊，#username#可是帮我们保护了这些滑翔翼的材料！"/>
+									<context npcId="617" iconId="4" str="你不知道刚才有多危险，这些材料差一点就被工厂守门人抢回去了，幸好有#username#在。">
+										<choice str="（拼命点头中）我是好人！">
+											<context npcId="617" iconId="4" str="#username#一定是一个值得信赖的伙伴，我的眼光不会有错的！"/>
+											<context npcId="619" iconId="4" str="好吧，我最后相信你一次。">
+												<choice str="Yeah！" action="2448_end" taskId="2448"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2449_secondtalk"] = <config>
+					<context npcId="619" iconId="4" str="这个大傻瓜说这一定是它和宝藏命中注定的相逢，还硬把我拉上和它一起制造这个滑翔翼。">
+						<choice str="真的很傻。" action="2449_end" taskId="2449"/>
+					</context>
+				</config>;
+         talk["619_2449_windmillstar2"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2450_windmillstar2"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2451_starttask"] = <config>
+					<context npcId="619" iconId="4" str="#username#，你知道吗，其实我们现在做的这件事情，是很危险的。"/>
+					<context npcId="1" iconId="7" str="HELLO知道啊，去工厂拿材料的时候被抓到就惨啦，像我们之前还和工厂守门人打了一架。">
+						<choice str="是啊。" action="2451_start_task"/>
+					</context>
+				</config>;
+         talk["619_2452_afterstart"] = <config>
+					<context npcId="619" iconId="4" str="我说的危险，并不是指拿材料被守门人发现这种事情，而是有可能丢掉性命的危险。"/>
+					<context npcId="619" iconId="4" str="其实这风车谷，已经被通灵巫师一族暗中统治了。">
+						<choice str="刚才也有听到你们提到通灵巫师，到底是什么东西？" action="2452_multipagecomic"/>
+					</context>
+				</config>;
+         talk["619_2452_secondtalk"] = <config>
+					<context npcId="619" iconId="4" str="所以，亚伦想要制造滑翔翼，飞入风车谷底，这是多么危险的举动，你们该知道了。">
+						<choice str="原来如此。" action="2452_end" taskId="2452"/>
+					</context>
+				</config>;
+         talk["619_2452_windmillstar2"] = <config>
+					<context npcId="619" iconId="4" str="#username#，你知道吗，其实我们现在做的这件事情，是很危险的。"/>
+					<context npcId="1" iconId="7" str="HELLO知道啊，去工厂拿材料的时候被抓到就惨啦，像我们之前还和工厂守门人打了一架。">
+						<choice str="是啊。" action="2451_start"/>
+					</context>
+				</config>;
+         talk["619_2453_windmillstar2"] = <config>
+					<context npcId="619" iconId="1" str="亚伦平时总是大大咧咧的样子，但是当它真的想要做一件事情的时候，却是无比执着。">
+						<choice str="确实。">
+							<context npcId="619" str="我和亚伦从小一起长大，从来没看过它这么认真地做过事情。"/>
+							<context npcId="619" str="看着亚伦专心致志地做滑翔翼的样子，我就是没办法让自己用理性去阻止它。"/>
+							<context npcId="619" str="即使知道这是很危险的事情，我也还是加入了亚伦的行动。">
+								<choice str="是被亚伦感染了吧。">
+									<context npcId="619" str="当它超级臭屁又超级认真地对我说出，成为冒险王是它这辈子最重要的梦想，绝不要放弃的时候，我就被打动了。">
+										<choice str="认真的家伙最有魅力了。" action="2453_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2457_windmillstar2"] = <config>
+					<context npcId="619" iconId="5" str="什么？通灵巫师把亚伦抓走了？还说要把它献给神明？"/>
+					<context npcId="619" iconId="5" str="亚伦这个大傻瓜，怎么傻到跟通灵巫师吵起来呀？！">
+						<choice str="对不起，是我们没能保护好亚伦。">
+							<context npcId="619" iconId="6" str="我要冷静，我要冷静，我一定要冷静。"/>
+							<context npcId="619" iconId="6" str="一定要赶紧想出办法，把亚伦救出来。">
+								<choice str="我们也会帮忙的。" action="2457_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2468_starttask"] = <config>
+					<context npcId="619" iconId="6" str="不行，不能再继续这样按兵不动了，亚伦随时有可能有性命危险。">
+						<choice str="你想到了什么好的办法救亚伦吗？" action="2468_start_task"/>
+					</context>
+				</config>;
+         talk["619_2469_afterstart"] = <config>
+					<context npcId="619" iconId="6" str="没有！我脑子一片空白！">
+						<choice str="@_@">
+							<context npcId="619" iconId="6" str="不管了，我要直接冲到风之城堡去救亚伦！">
+								<choice str="别这样，贝琪！喂！别去啊！" action="2469_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2469_windmillstar2"] = <config>
+					<context npcId="619" iconId="6" str="不行，不能再继续这样按兵不动了，亚伦随时有可能有性命危险。">
+						<choice str="你想到了什么好的办法救亚伦吗？" action="2468_start"/>
+					</context>
+				</config>;
+         talk["619_2470_windmillstar1"] = <config>
+					<context npcId="619" iconId="6" str="#username#，我要去的地方太危险了，你别继续跟来了！">
+						<choice str="我不能让你一个人去冒险！" action="2470_movie1"/>
+					</context>
+				</config>;
+         talk["619_2471_windmillstar3"] = <config>
+					<context npcId="619" iconId="7" str="你们这群坏蛋，快把亚伦放了！"/>
+					<context npcId="620" str="我还以为是谁，原来是通缉令上的那位小姐。"/>
+					<context npcId="620" str="亚伦那臭小子死活不肯交代你的藏身地，现在你自己送上门来了，哼，真是求之不得啊！">
+						<choice type="3" str="贝琪快跑，我帮你挡住它们！" action="2471_startfight"/>
+						<choice str="我准备一下，就来把你们打飞！"/>
+					</context>
+				</config>;
+         talk["619_2472_windmillstar1"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2473_thirdtalk"] = <config>
+					<context npcId="619" iconId="10" str="这样的话，我们就能成功救出亚伦了！"/>
+					<context npcId="1" iconId="30" str="可是风之城堡守卫森严，HELLO觉得这个炸弹不是那么容易安装到城堡里的。">
+						<choice str="对啊，这是个大问题。">
+							<context npcId="619" iconId="10" str="小老鼠都说了，要打倒坏人的话，就不能光明正大地扑上去火拼啊。"/>
+							<context npcId="619" iconId="10" str="只要我们能乔装成通灵巫师，混入风之城堡就轻而易举了。">
+								<choice str="这主意不错。">
+									<context npcId="619" iconId="10" str="通灵巫师刚刚没抓成我们，肯定马上又会出来到处找我们的。"/>
+									<context npcId="619" iconId="10" str="我们去&lt;font color='#FF6600'&gt;&lt;b&gt;风车城&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，想办法弄来两套它们的衣服吧。">
+										<choice str="好主意，走！" action="2473_end" taskId="2473"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2473_windmillstar2"] = <config>
+					<context npcId="619" action="2473_movie1"/>
+				</config>;
+         talk["619_2474_secondtalk"] = <config>
+					<context npcId="619" str="嘻嘻，陷阱布置好了，接下来就看哪个倒霉鬼要中招了！"/>
+					<context npcId="1" str="主人，好像有通灵巫师朝这边走过来了，我们先躲起来吧。">
+						<choice str="好，先躲起来。" action="2474_end" taskId="2474"/>
+					</context>
+				</config>;
+         talk["619_2474_windmillstar1"] = <config>
+					<context npcId="619" str="看来它们还没派人出来搜寻我们，我们可以抓紧时间布置一下陷阱了。">
+						<choice str="怎么个布置法啊？">
+							<context npcId="619" iconId="10" str="嘻嘻，利用绳子！">
+								<choice str="绳子？" action="2474_interaction"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2475_fightlose"] = <config>
+					<context npcId="619" str="千万别失手啊，错过了这个机会可就难办了。">
+						<choice str="刚刚一时手软，下一次我不会再手下留情了。"/>
+					</context>
+				</config>;
+         talk["619_2475_fightwin"] = <config>
+					<context npcId="619" str="我们成功了！赶紧把它们的衣服换到我们身上，然后潜入风之城堡吧！">
+						<choice str="遵命！" action="2475_movie1"/>
+					</context>
+				</config>;
+         talk["619_2475_windmillstar1"] = <config>
+					<context npcId="619" iconId="10" str="就是现在，#username#，我们赶紧趁机把它们彻底打晕吧！">
+						<choice type="3" str="没问题，看我用亚比打晕它们！" action="2475_startfight"/>
+						<choice str="好，我准备一下就来打晕它们！"/>
+					</context>
+				</config>;
+         talk["619_2482_windmillstar2"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2500_windmillstar2"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2501_windmillstar4"] = <config>
+					<context npcId="623" str="没想到已经有3个通灵巫师在这里了，快看，它们在那里干什么呢？"/>
+					<context npcId="619" str="感觉它们正在叽叽咕咕说些什么话，可是我们隔太远了，根本听不见，能走近点就好了。">
+						<choice str="看来得先想个办法接近它们才行。" action="2501_interaction"/>
+					</context>
+				</config>;
+         talk["619_2502_windmillstar4"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2503_secondtalk"] = <config>
+					<context npcId="619" iconId="8" str="亚伦！亚伦！你没事吧！"/>
+					<context npcId="620" str="哈哈哈哈！这小子中了这一击，就再也别想醒过来了！">
+						<choice str="可恶……" action="2503_end" taskId="2503"/>
+					</context>
+				</config>;
+         talk["619_2503_windmillstar4"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2504_windmillstar4"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2505_secondtalk"] = <config>
+					<context npcId="619" iconId="8" str="约定好的事情都没做呢，你怎么能一直睡下去，快起来呀！">
+						<choice str="亚伦，快醒过来吧！" action="2505_end" taskId="2505"/>
+					</context>
+				</config>;
+         talk["619_2505_windmillstar2"] = <config>
+					<context npcId="619" iconId="8" str="亚伦……亚伦为什么还不醒过来……"/>
+					<context npcId="625" str="可能亚伦它……再也醒不过来了。"/>
+					<context npcId="619" iconId="8" str="怎么会，它明明之前还活蹦乱跳的，怎么会再也醒不过来了呢？">
+						<choice str="小老鼠，你救救亚伦啊！">
+							<context npcId="625" str="我也……我也无能为力……">
+								<choice str="怎么会这样！">
+									<context npcId="619" iconId="8" str="亚伦，快点醒过来啊，我们还有好多好多的事情没有一起完成呢！">
+										<choice str="贝琪……" action="2505_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["619_2506_windmillstar2"] = <config>
+					<context npcId="619" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["619_2508_aftermc1"] = <config>
+					<context npcId='619' iconId="7" str="你们这群坏蛋！">
+						<choice type='0' str="贝琪！别冲动！" action="task2508movie2"/>
+					</context>
+				</config>;
+         talk["61_253_woerte4"] = <config>
+					<context str="你的能力是无法击败我的，我的钢之铠甲是无敌的。想要跟我打吗？小家伙！" npcId="53"/>
+					<context str="主人，我们用粒子聚合器来打败他们吧！先寻找&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳&lt;/b&gt;&lt;/font&gt;，找到能量源！" npcId="1">
+						<choice str="让我们找找看。" taskId="253">
+						</choice>
+					</context>
+				</config>;
+         talk["61_255_woerte4"] = <config>
+					<context str="想要跟我打吗？小家伙！" npcId="53">				
+						<choice str="打得你落花流水！" action="54_255_fight"/>
+                        <choice str="我先准备一下。"/>
+					</context>
+				</config>;
+         talk["620_2455_windmillstar1"] = <config>
+					<context npcId="620" str="你就是那个私自制造滑翔翼的小子？"/>
+					<context npcId="623" iconId="1" str="哼哼哼，不告诉你。">
+						<choice str="居然回答得这么嚣张，死定了啦！">
+							<context npcId="620" str="偷拿工厂材料，私自制造滑翔翼，密谋去风车谷底，你知道你所有的行为都是触犯了禁忌的吗？">
+								<choice str="惨了，什么都被知道了。">
+									<context npcId="620" str="风车谷底是神明居住的地方，绝不容许你这种平民进入！"/>
+									<context npcId="623" iconId="3" str="风车谷底是风车谷的一部分，它是属于我们风车谷全部人的！"/>
+									<context npcId="623" iconId="3" str="什么神明居住的地方，我才不信呢！">
+										<choice str="没错，我们不信。">
+											<context npcId="623" iconId="3" str="等我亚伦的滑翔翼做好了，我就要飞到谷底，把你们所有关于神明的谎话都拆穿！">
+												<choice str="亚伦霸气！" action="2455_end" taskId="2455"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["620_2456_windmillstar1"] = <config>
+					<context npcId="620" str="可惜你永远都不会有那一天了，我们现在就把你抓起来，然后献给神明！">
+						<choice type="3" str="我可不会让你们把亚伦抓走！" action="2456_startfight"/>
+					</context>
+				</config>;
+         talk["620_2502_windmillstar4"] = <config>
+					<context npcId="629" str="没想到居然让亚伦和贝琪这两个臭小鬼给溜了，哼！还赔上了两个同伴的性命！"/>
+					<context npcId="630" str="哼！没想到现在连毛头孩子也不把我们放在眼里！只要能让夜王大人复活，我们就能重振威风了！"/>
+					<context npcId="620" str="现在还不知道这位究竟是不是夜王大人，是不是应该调查清楚再行动？">
+						<choice str="看来它们是在酝酿一个大计划……">
+							<context npcId="629" str="除了夜王大人，还有谁能拥有如此强大的黑色力量，沉睡在这里的，无疑是夜王大人！"/>
+							<context npcId="630" str="行了！别废话了，赶紧开始吧！">
+								<choice str="要开始做什么了吗？" action="2502_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["620_2503_windmillstar4"] = <config>
+					<context npcId="620" str="又是你们几个，这次必须要把你们几个都消灭，以绝后患！">
+						<choice type="3" str="看来这场战斗是避免不了了，咬牙上吧！" action="2503_startfight"/>
+					</context>
+				</config>;
+         talk["620_2504_secondtalk"] = <config>
+					<context npcId="620" str="哈哈哈哈！我以为是谁，原来是你，来得正好，今天就把你们一网打尽！"/>
+					<context npcId="625" str="你以为我像这三个家伙一样笨吗？我可是有备而来的！"/>
+					<context npcId="620" str="哦？！就凭你？！">
+						<choice str="你是带了炸弹来吗？！快分我一个！" action="2504_movie2" taskId="2504"/>
+					</context>
+				</config>;
+         talk["620_2504_windmillstar4"] = <config>
+					<context npcId="620" str="今天就把你们全部献祭给夜王大人！一个都别想跑！"/>
+					<context npcId="1" iconId="16" str="HELLO和主人绝对不会让你们得逞的！"/>
+					<context npcId="1" iconId="16" str="而且HELLO还要告诉你们，刚才出现的那个黑色的家伙，才不是你们的夜王大人呢！">
+						<choice str="没错，它是凯撒，绝不会是什么夜王！">
+							<context npcId="620" str="抓紧时间继续说吧，哈哈哈，因为很快你们就再也说不了话了！">
+								<choice str="得想个办法摆脱通灵巫师才行！">
+									<context npcId="625" str="你们这群白痴，居然不带炸药就跟它们火拼，害我又得来救你们！">
+										<choice str="是小老鼠！！" action="2504_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["620_2507_windmillstar2start"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1"/>
+					</context>
+				</config>;
+         talk["620_2508_windmillstar2"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1"/>
+					</context>
+				</config>;
+         talk["620_2509_win"] = <config>
+					<context npcId='620' str="情况不妙，我们先撤去谷底！">
+						<choice type='0' str="别想跑！" action="task2509movie"/>
+					</context>
+				</config>;
+         talk["620_2512_aftermovie1"] = <config>
+					<context npcId='620' str="是夜王大人！是夜王大人来救我们了！"/>
+					<context npcId='640' str="好强的黑色力量！这家伙浑身上下弥漫着可怕的气息！大家小心了！">
+						<choice type='0' str="我明白。">
+							<context npcId='620' str="夜王大人！请赐予我们力量，帮助我们打败敌人吧！"/>
+							<context npcId='539' str="哦……？赐予力量？"/>
+							<context npcId='539' str="想要力量的话，是要付出很大的代价的，你们承受得起吗？">
+								<choice type='0' str="凯撒又想干什么？">
+									<context npcId='620' str="只要夜王大人愿意赐我们力量，付出什么都没关系！"/>
+									<context npcId='539' str="这可是你们说的！">
+										<choice type='0' str="糟糕！" taskId="2512" action="task2512movie2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["620_2512_windmillstar4"] = <config>
+					<context npcId='620' str="居然这么强，可恶！如果夜王大人在的话，我们一定不会落到如此下场！"/>
+					<context npcId='640' str="不管有谁在，结果都是一样的！"/>
+					<context npcId='639' str="嘿嘿嘿！我们现在可是很强的！">
+						<choice type='0' str="没错！" action="task2512movie1"/>
+					</context>
+				</config>;
+         talk["620_2532_clockstar2"] = <config>
+					<context npcId="620" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["620_2533_clockstar2"] = <config>
+					<context npcId="620" str="这里刚刚明明有声音，我得仔细搜查看看。"/>
+					<context npcId="1" str="糟了主人，我们要被发现了！">
+						<choice str="先别急，让我们想想办法。">
+							<context npcId="1" str="主人你看，这里有个弹弓，我们可以用它向对面的草丛射石子引开它的注意力。">
+								<choice str="好主意。" action="2533_interaction"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["620_2535_clockstar2"] = <config>
+					<context npcId="620" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["620_2536_clockstar2"] = <config>
+					<context npcId="620" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["620_2536_secondtalk"] = <config>
+					<context npcId="620" str="你们等着！你们很快就是我们的手下败将了！">
+						<choice str="别做梦了！" action="2536_end" taskId="2536"/>
+					</context>
+				</config>;
+         talk["620_2553_afterstart"] = <config>
+					<context npcId="620" str="哼，我们凭什么要告诉你？你以为你是谁？"/>
+					<context npcId="643" iconId="4" str="你们这些骗子！懒得和你们废话，看打！">
+						<choice type="3" str="冲动是魔鬼啊，还是我帮你吧。" action="2553_startfight"/>
+						<choice str="等等，我准备一下。"/>
+					</context>
+				</config>;
+         talk["620_2553_fightlose"] = <config>
+					<context npcId="620" str="你还是回家好好练练吧！">
+						<choice str="你们别高兴的太早了！"/>
+					</context>
+				</config>;
+         talk["620_2553_fightwin"] = <config>
+					<context npcId="620" str="你们不要高兴得太早了！你们的末日马上就要到了！">
+						<choice str="被打败了还敢这么嚣张？" action="2553_end" taskId="2553"/>
+					</context>
+				</config>;
+         talk["620_2554_secondtalk"] = <config>
+					<context npcId="620" str="夜王大人！我们伟大的夜王大人！"/>
+					<context npcId="1" iconId="3" str="主人！居然是凯撒！凯撒复活了，怎么会这样！">
+						<choice str="是啊！这究竟是怎么回事？" action="2554_end" taskId="2554"/>
+					</context>
+				</config>;
+         talk["620_2685_AfterFailFightToTongLin"] = <config>
+					<context npcId="620" str="就这点能耐还想和我们永夜族为敌，简直是痴心妄想。">
+						<choice str="哼，别得意，我一定会打败你的。">
+						</choice>			
+					</context>
+				</config>;
+         talk["620_2685_knightstar4"] = <config>
+					<context npcId="620" str="好狂妄的口气，看来得让你们尝尝我们永夜族的厉害才行。">
+						<choice type="3" str="尽管放马过来吧，我可不怕你。" action="2685_FightToTongLin"/>
+						<choice str="我先热个身，待会再来和你打！"/>			
+					</context>
+				</config>;
+         talk["620_2883_bailingstar2"] = <config>
+					<context npcId="620" iconId="3" str="啧啧啧，这样对叔叔说话，可是很不礼貌的哦！叔叔最讨厌没有礼貌的小孩了！">
+						<choice str="少在这里伪装自己了，大坏蛋！" action="2883_luoluoEvolution"/>
+					</context>
+				</config>;
+         talk["623_2453_secondtalk"] = <config>
+					<context npcId="623" iconId="1" str="糟糟糟！好像刚刚从工厂逃命出来后跑太快了，有几个小零件被甩出来了，看来我得沿路去找找啦！">
+						<choice str="我陪你一起去吧。">
+							<context npcId="623" str="我可是风车谷最厉害最帅的家伙，找零件这种小事有我就够啦，哈哈哈！">
+								<choice str="- -||">
+									<context npcId="1" iconId="1" str="还是让我家主人一起过去吧，万一你又遇上麻烦了，我们还能帮帮忙。">
+										<choice str="说的是，一起去吧。" action="2453_movie2"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["623_2454_secondtalk"] = <config>
+					<context npcId="623" iconId="2" str="我没干坏事，真的！"/>
+					<context npcId="621" str="没干坏事怎么能上悬赏榜，骗谁呢？"/>
+					<context npcId="623" iconId="2" str="你看我长得这么真诚，哪能像是做坏事的人呢，对吧？">
+						<choice str="这理由也太勉强了。">
+							<context npcId="622" str="长得真不真诚我们就不知道了，不过悬赏金我们可要收下了。">
+								<choice str="不许动亚伦。" action="2454_movie2"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["623_2454_windmillstar1"] = <config>
+					<context npcId="623" iconId="1" str="怎么那边的告示板旁边那么热闹，我们也过去看看吧。">
+						<choice str="好啊，我也挺有兴趣的。" action="2454_movie1"/>
+					</context>
+				</config>;
+         talk["623_2455_windmillstar1"] = <config>
+					<context npcId="623" str="我是要成为冒险王的男人，加入我，成为我的伙伴吧！"/>
+				</config>;
+         talk["623_2456_windmillstar1"] = <config>
+					<context npcId="623" str="我是要成为冒险王的男人，加入我，成为我的伙伴吧！"/>
+				</config>;
+         talk["623_2479_secondtalk"] = <config>
+					<context npcId="623" iconId="5" str="啊啊啊啊~~~~疼死我了~~~~"/>
+					<context npcId="628" str="你个猪头，别睡了，我们来救你了！">
+						<choice str="赶紧开锁救人吧！" action="2479_movie2"/>
+					</context>
+				</config>;
+         talk["623_2480_windmillstar3"] = <config>
+					<context npcId="623" str="我是要成为冒险王的男人，加入我，成为我的伙伴吧！"/>
+				</config>;
+         talk["623_2482_secondtalk"] = <config>
+					<context npcId="623" iconId="9" str="天啊天啊天啊！那到底是什么？！"/>
+					<context npcId="619" iconId="11" str="我也不知道，好可怕！">
+						<choice str="貌似有种似曾相识的感觉……" action="2482_movie2"/>
+					</context>
+				</config>;
+         talk["623_2482_windmillstar2"] = <config>
+					<context npcId="623" iconId="8" str="哈哈哈！爽爆了！好久没这么紧张刺激好玩过了！"/>
+					<context npcId="619" iconId="10" str="哈！刚才我的心都跳到嗓子眼了！能成功真是太好了！">
+						<choice str="贝琪，你真是天才军师！">
+							<context npcId="619" iconId="9" str="不过，它们一直说的“那位大人”究竟是谁呢……"/>
+							<context npcId="1" iconId="29" str="HELLO也有听到，而且“那位大人”似乎就在风车谷底呢！">
+								<choice str="这会不会是禁止大家进入风车谷底的原因呢？">
+									<context npcId="623" iconId="8" str="嘿嘿嘿！既然大家都很好奇，那还等什么，我们一起去看看不就知道了！"/>
+									<context npcId="619" iconId="10" str="是呀！一直在这瞎猜不如直接行动吧！">
+										<choice str="好啊，那我们一起出发吧！" action="2482_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["623_2499_starttask"] = <config>
+					<context npcId="623" str="虽然风车谷底似乎有着可怕的东西，不过我还是想再去那儿看看。"/>
+					<context npcId="619" str="嗯！我也是这么想的！也许解开了这个谜，我们就能把通灵巫师通通赶出去了！">
+						<choice str="行，那我们再一起去看看吧！" action="2499_start_task"/>
+					</context>
+				</config>;
+         talk["623_2500_afterstart"] = <config>
+					<context npcId="623" str="这回大家都不许被吓倒哦！"/>
+					<context npcId="619" str="嗯！拉钩！这是我们之间的约定！">	
+						<choice str="出发！" action="2500_movie1" taskId="2500"/>
+					</context>
+				</config>;
+         talk["623_2500_windmillstar2"] = <config>
+					<context npcId="623" str="虽然风车谷底似乎有着可怕的东西，不过我还是想再去那儿看看。"/>
+					<context npcId="619" str="嗯！我也是这么想的！也许解开了这个谜，我们就能把通灵巫师通通赶出去了！">
+						<choice str="行，那我们再一起去看看吧！" action="2499_start"/>
+					</context>
+				</config>;
+         talk["623_2501_windmillstar4"] = <config>
+					<context npcId="623" str="没想到已经有3个通灵巫师在这里了，快看，它们在那里干什么呢？"/>
+					<context npcId="619" str="感觉它们正在叽叽咕咕说些什么话，可是我们隔太远了，根本听不见，能走近点就好了。">
+						<choice str="看来得先想个办法接近它们才行。" action="2501_interaction"/>
+					</context>
+				</config>;
+         talk["623_2502_windmillstar4"] = <config>
+					<context npcId="623" str="我是要成为冒险王的男人，加入我，成为我的伙伴吧！"/>
+				</config>;
+         talk["623_2503_windmillstar4"] = <config>
+					<context npcId="623" str="我是要成为冒险王的男人，加入我，成为我的伙伴吧！"/>
+				</config>;
+         talk["623_2525_afterstart"] = <config>
+					<context npcId="623" iconId="1" str="啊啊？这是什么地方！我明明是在家里睡觉的啊！"/>
+					<context npcId="1" str="什么？你确定你本来是在家里睡觉的？"/>
+					<context npcId="623" iconId="2" str="对呀对呀！一觉醒来就在这里了，到底怎么回事啊？"/>
+					<context npcId="1" str="主人，主人，收到司令官的远程视频。">
+						<choice str="赶紧连线看看！" action="2525_movie1"/>
+					</context>
+				</config>;
+         talk["623_2525_clockstar1"] = <config>
+					<context npcId="623" iconId="4" str="呼……睡得真舒服呀！咦？#username#，你怎么来了？">
+						<choice str="亚伦？你怎么会在这里？" action="2524_start"/>
+					</context>
+				</config>;
+         talk["623_2526_clockstar1"] = <config>
+					<context npcId="623" iconId="8" str="这里的气流太弱了，滑翔翼很难起飞，#username#你能先帮我吹大这个气囊吗？">
+						<choice str="好的，我试试！" action="2526_interaction"/>
+					</context>
+				</config>;
+         talk["625_2472_windmillstar1"] = <config>
+					<context npcId="625" str="你是白痴吗？居然笨到想要去和那些通灵巫师同台火拼？！"/>
+					<context npcId="625" str="要不是我的暴风闪光弹丢得及时，你们恐怕都要没命了。">
+						<choice str="谢谢你救了我们。">
+							<context npcId="619" iconId="9" str="我以前从来没见过你啊，为什么要救我们呢？"/>
+							<context npcId="625" str="有些事情知道得太清楚就不好了，所以别问为什么。">
+								<choice str="看来是不打算告诉我们了。">
+									<context npcId="625" str="想要和通灵巫师对抗，光有力气可不行，还要有智慧。"/>
+									<context npcId="625" str="光明正大的去和坏人打架的话，一定会死很惨的。">
+										<choice str="说的有点道理。">
+											<context npcId="625" str="我卖给你们一个小情报吧，对付那群通灵巫师，最好的办法就是利用光！"/>
+											<context npcId="619" iconId="9" str="对哦，刚才你就是利用了通灵巫师怕光这一点救了我们，但是为什么它们怕光呢？"/>
+											<context npcId="625" str="有些事情知道得太清楚就不好了，所以别问为什么。">
+												<choice str="又来了。">
+													<context npcId="625" str="对了，我有个礼物想要送给你们，然后我就要走了。">
+														<choice str="还有礼物？" action="2472_movie1"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["625_2505_windmillstar2"] = <config>
+					<context npcId="625" str="我是一只自由自在的小老鼠，最喜欢在风车谷里挖隧道。"/>
+				</config>;
+         talk["625_2506_secondtalk"] = <config>
+					<context npcId="625" str="从那以后，我和主人的家——风之城堡，就被那群通灵巫师占领了，我只能到处流浪。"/>
+					<context npcId="625" str="那时开始我就下定决心，为了主人，也为了风车谷，我一定要赶走这群通灵巫师！"/>
+					<context npcId="1" str="HELLO知道了，你是打算联合主人、亚伦和贝琪来对抗通灵巫师吧！">
+						<choice str="原来如此。" action="2506_movie1"/>
+					</context>
+				</config>;
+         talk["625_2506_windmillstar2"] = <config>
+					<context npcId="625" str="哎，有些事情，看来已经到了需要让你们知道的时候了。"/>
+					<context npcId="625" str="其实，风之城堡曾经是我的家。"/>
+					<context npcId="1" iconId="3" str="刚才那群通灵巫师好像跟你认识呢，难道你曾经是它们的手下？"/>
+					<context npcId="625" str="其实，事情是这样的……">
+						<choice str="小老鼠要讲故事了。" action="2506_multipagecomic"/>
+					</context>
+				</config>;
+         talk["625_2515_windmillstar4"] = <config>
+					<context npcId='625' str="这块水晶石送给你，希望能对你们今后的旅途有所帮助。">
+						<choice type='0' str="谢谢！很高兴认识了你们这群朋友！" action="task2515Movie1">
+						</choice>
+					</context>
+				</config>;
+         talk["628_2475_secondtalk"] = <config>
+					<context npcId="628" str="一切准备就绪，亚伦营救计划正式启动！出发，前往&lt;font color='#FF6600'&gt;&lt;b&gt;风之城堡&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;！">
+						<choice str="出发！" action="2475_end" taskId="2475"/>
+					</context>
+				</config>;
+         talk["628_2476_windmillstar3"] = <config>
+					<context npcId="628" str="一定要小心，千万别让其他人看出破绽。">
+						<choice str="我明白。" action="2476_end"/>
+					</context>
+				</config>;
+         talk["628_2477_starttask"] = <config>
+					<context npcId="628" str="亚伦就在那里，就差一点点我们就能成功了。">
+						<choice str="嗯，我们都要沉住气。" action="2477_start_task"/>
+					</context>
+				</config>;
+         talk["628_2478_secondtalk"] = <config>
+					<context npcId="628" str="它们到底在讨论什么啊，都听不懂……">
+						<choice str="我也不懂啊。">
+							<context npcId="620" str="那边那个新来的，我们有事要出去一趟，你们好好守着这里，别让外人进来。"/>
+							<context npcId="628" str="（悄悄地问我们）它们在喊新来的，是指我们吗？">
+								<choice str="大……大概吧。">
+									<context npcId="620" str="喊你们呢，发什么呆，让你们好好守在这里，明白不明白？"/>
+									<context npcId="628" str="遵命！">
+										<choice str="遵命！" action="2478_end" taskId="2478"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["628_2478_windmillstar3"] = <config>
+					<context npcId="628" str="亚伦就在那里，就差一点点我们就能成功了。">
+						<choice str="嗯，我们都要沉住气。" action="2477_start"/>
+					</context>
+				</config>;
+         talk["628_2479_windmillstar3"] = <config>
+					<context npcId="628" str="刚才差一点就露馅了，真可怕。"/>
+					<context npcId="628" str="幸好之前穿这身衣服的家伙是两个新人，否则就接不下话了。">
+						<choice str="刚才我都出了一身冷汗了。">
+							<context npcId="628" str="呼~没事就好，我们赶紧去救亚伦吧。">
+								<choice str="好的。">
+									<context npcId="623" iconId="4" str="(～ o ～)~zZ(～ o ～)~zZ">
+										<choice str="我晕，居然在睡觉！" action="2479_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["628_2480_secondtalk"] = <config>
+					<context npcId="628" str="准备工作已经完成了！接下来，就等它们上钩咯！"/>
+					<context npcId="623" iconId="7" str="贝琪，你是最棒的！一定能成功！">
+						<choice str="一定！">
+							<context npcId="628" str="它们好像回来了，亚伦，你赶紧回牢笼里吧，要不然就露馅了！"/>
+							<context npcId="628" str="待会儿我说出“一切都要暴露在阳光下”的暗语时，就是炸弹爆炸的时候，大家要记得赶紧往外跑啊！"/>
+							<context npcId="623" iconId="7" str="我知道了！">
+								<choice str="我也知道了！" action="2480_end" taskId="2480"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["628_2480_windmillstar3"] = <config>
+					<context npcId="628" str="我刚才已经观察到了几个安装炸弹的好地方，大家要听我的指挥哦！">
+						<choice str="好的。" action="2480_interaction"/>
+					</context>
+				</config>;
+         talk["628_2481_windmillstar3"] = <config>
+					<context npcId="628" str="我是亚伦的伙伴——贝琪，我可是亚伦的军师哦！"/>
+				</config>;
+         talk["629_2481_firsttalk"] = <config>
+					<context npcId="629" str="看来只要把这个叫亚伦的小子献给那位大人，那位大人很快就能复活了。"/>
+					<context npcId="630" str="没错，风车谷也不是久留之地，等风车谷底的那位大人复活后，我们一族就可以称霸宇宙了！">
+						<choice str="（自言自语）这位大人究竟是谁呢？">
+							<context npcId="631" str="对！继续等下去也不是办法，只能赶紧了！"/>
+							<context npcId="632" str="那边那个新来的，把牢里这小子提出来，随我们一起去谷底了！"/>
+							<context npcId="628" str="哦哦，好，是时候，把一切都暴露在阳光下了！">
+								<choice str="贝琪要引爆炸弹了，亚伦快跑！">
+									<context npcId="623" str="我知道了！">
+										<choice str="跑呀！" action="2481_end" taskId="2481"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["629_2502_windmillstar4"] = <config>
+					<context npcId="629" str="没想到居然让亚伦和贝琪这两个臭小鬼给溜了，哼！还赔上了两个同伴的性命！"/>
+					<context npcId="630" str="哼！没想到现在连毛头孩子也不把我们放在眼里！只要能让夜王大人复活，我们就能重振威风了！"/>
+					<context npcId="620" str="现在还不知道这位究竟是不是夜王大人，是不是应该调查清楚再行动？">
+						<choice str="看来它们是在酝酿一个大计划……">
+							<context npcId="629" str="除了夜王大人，还有谁能拥有如此强大的黑色力量，沉睡在这里的，无疑是夜王大人！"/>
+							<context npcId="630" str="行了！别废话了，赶紧开始吧！">
+								<choice str="要开始做什么了吗？" action="2502_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["629_2503_windmillstar4"] = <config>
+					<context npcId="620" str="又是你们几个，这次必须要把你们几个都消灭，以绝后患！">
+						<choice type="3" str="看来这场战斗是避免不了了，咬牙上吧！" action="2503_startfight"/>
+					</context>
+				</config>;
+         talk["629_2504_windmillstar4"] = <config>
+					<context npcId="620" str="今天就把你们全部献祭给夜王大人！一个都别想跑！"/>
+					<context npcId="1" iconId="16" str="HELLO和主人绝对不会让你们得逞的！"/>
+					<context npcId="1" iconId="16" str="而且HELLO还要告诉你们，刚才那个出现的黑色的家伙，才不是你们的夜王大人呢！">
+						<choice str="没错，它是凯撒，绝不会是什么夜王！">
+							<context npcId="620" str="抓紧时间继续说吧，哈哈哈，因为很快你们就再也说不了话了！">
+								<choice str="得想个办法摆脱通灵巫师才行！">
+									<context npcId="625" str="你们这群白痴，居然不带炸药就跟它们火拼，害我又得来救你们！">
+										<choice str="是小老鼠！！" action="2504_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["629_2508_windmillstar2"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1"/>
+					</context>
+				</config>;
+         talk["629_2553_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["629_2554_clockstar2"] = <config>
+					<context npcId="620" str="实话告诉你们吧！我们伟大的夜王马上就要苏醒了！永夜族很快就会东山再起了，哈哈哈……">
+						<choice str="夜王？" action="2554_movie1"/>
+					</context>
+				</config>;
+         talk["629_2555_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["629_2556_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["629_2557_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["629_2558_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["629_2559_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["62_253_woerte4"] = <config>
+					<context str="你的能力是无法击败我的，我的钢之铠甲是无敌的。想要跟我打吗？小家伙！" npcId="53"/>
+					<context str="主人，我们用粒子聚合器来打败他们吧！先寻找&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳&lt;/b&gt;&lt;/font&gt;，找到能量源！" npcId="1">
+						<choice str="让我们找找看。" taskId="253">
+						</choice>
+					</context>
+				</config>;
+         talk["62_255_woerte4"] = <config>
+					<context str="想要跟我打吗？小家伙！" npcId="53">				
+						<choice str="打得你落花流水！" action="54_255_fight"/>
+                        <choice str="我先准备一下。"/>
+					</context>
+				</config>;
+         talk["630_2502_windmillstar4"] = <config>
+					<context npcId="629" str="没想到居然让亚伦和贝琪这两个臭小鬼给溜了，哼！还赔上了两个同伴的性命！"/>
+					<context npcId="630" str="哼！没想到现在连毛头孩子也不把我们放在眼里！只要能让夜王大人复活，我们就能重振威风了！"/>
+					<context npcId="620" str="现在还不知道这位究竟是不是夜王大人，是不是应该调查清楚再行动？">
+						<choice str="看来它们是在酝酿一个大计划……">
+							<context npcId="629" str="除了夜王大人，还有谁能拥有如此强大的黑色力量，沉睡在这里的，无疑是夜王大人！"/>
+							<context npcId="630" str="行了！别废话了，赶紧开始吧！">
+								<choice str="要开始做什么了吗？" action="2502_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["630_2503_windmillstar4"] = <config>
+					<context npcId="620" str="又是你们几个，这次必须要把你们几个都消灭，以绝后患！">
+						<choice type="3" str="看来这场战斗是避免不了了，咬牙上吧！" action="2503_startfight"/>
+					</context>
+				</config>;
+         talk["630_2504_windmillstar4"] = <config>
+					<context npcId="620" str="今天就把你们全部献祭给夜王大人！一个都别想跑！"/>
+					<context npcId="1" iconId="16" str="HELLO和主人绝对不会让你们得逞的！"/>
+					<context npcId="1" iconId="16" str="而且HELLO还要告诉你们，刚才那个出现的黑色的家伙，才不是你们的夜王大人呢！">
+						<choice str="没错，它是凯撒，绝不会是什么夜王！">
+							<context npcId="620" str="抓紧时间继续说吧，哈哈哈，因为很快你们就再也说不了话了！">
+								<choice str="得想个办法摆脱通灵巫师才行！">
+									<context npcId="625" str="你们这群白痴，居然不带炸药就跟它们火拼，害我又得来救你们！">
+										<choice str="是小老鼠！！" action="2504_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["630_2508_windmillstar2"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1"/>
+					</context>
+				</config>;
+         talk["630_2553_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["630_2554_clockstar2"] = <config>
+					<context npcId="620" str="实话告诉你们吧！我们伟大的夜王马上就要苏醒了！永夜族很快就会东山再起了，哈哈哈……">
+						<choice str="夜王？" action="2554_movie1"/>
+					</context>
+				</config>;
+         talk["630_2555_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["630_2556_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["630_2557_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["630_2558_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["630_2559_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         talk["639_2509_windmillstar2"] = <config>
+					<context npcId='639' str="好像刚才睡了一个很长的觉，还做了一个很长的梦。不过还好被喊醒了，要不然我们的朋友可就要遭殃了。"/>
+					<context npcId='640' str="不会让你们再伤害我的朋友了，今天你们都要被赶出风车谷！">
+						<choice type='3' str="我要和你们一起并肩战斗！" action="task2509gotofight"/>
+						<choice type='0' str="我准备一下就来，等我！"/>
+					</context>
+				</config>;
+         talk["639_2510_windmillstar4"] = <config>
+					<context npcId='639' str="嘿嘿嘿！通灵巫师，你们的日子也差不多到头了，今天我们就要替天行道，赶走你们！"/>
+					<context npcId='620' str="别得意，臭小子！来到这阴暗之处，可就不是你说的算了！">
+						<choice type='0' str="这可不一定！">
+							<context npcId='625' str="千万别大意，通灵巫师在暗处力量就会大增，现在的它们和刚才的它们可大不一样！">
+								<choice type='0' str="大家要小心！" taskId="2510">
+							 <context npcId='639' str="你的意思是——这里是它的地盘了，对吧？不过现在的我可是很有信心，能够只用一击就打败它们呢！">
+									 <choice type='0' str="我要和大家一起来打败通灵巫师！" action="task2511gotofight"/>
+								</context>
+							</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["639_2511_windmillstar4"] = <config>
+					<context npcId='639' str="你的意思是——这里是它的地盘了，对吧？不过现在的我可是很有信心，能够只用一击就打败它们呢！">
+						<choice type='0' str="我要和大家一起来打败通灵巫师！" action="task2511gotofight"/>
+					</context>
+				</config>;
+         talk["639_2514_aftermovie1"] = <config>
+					<context npcId='639' str="画上面好像有写字，不过灰尘太厚，看不清楚呢！">
+						<choice type='0' str="让我来把灰尘擦干净吧！" action="task2514interaction"/>
+					</context>
+				</config>;
+         talk["63_253_woerte4"] = <config>
+					<context str="你的能力是无法击败我的，我的钢之铠甲是无敌的。想要跟我打吗？小家伙！" npcId="53"/>
+					<context str="主人，我们用粒子聚合器来打败他们吧！先寻找&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳&lt;/b&gt;&lt;/font&gt;，找到能量源！" npcId="1">
+						<choice str="让我们找找看。" taskId="253">
+						</choice>
+					</context>
+				</config>;
+         talk["63_255_woerte4"] = <config>
+					<context str="想要跟我打吗？小家伙！" npcId="53">				
+						<choice str="打得你落花流水！" action="54_255_fight"/>
+                        <choice str="我先准备一下。"/>
+					</context>
+				</config>;
+         talk["640_2514_windmillstar4"] = <config>
+					<context npcId='640' str="凯撒和修罗，这到底是怎么一回事？"/>
+					<context npcId='1' str="让HELLO来告诉你们吧，其实这是六芒星系的故事了（将事情说了一遍）。">
+						<choice type='0' str="事情就是这个样子。">
+							<context npcId='639' str="看来事情越来越麻烦了呢，也许诺亚星系，也免不了一场大战。">
+								<choice type='0' str="也许吧……">
+									<context npcId='1' str="咦，主人，你看，祭台的下面好像有什么东西在闪闪发亮呢！">
+										<choice type='0' str="难道是亚伦之前提到的宝藏？" action="task2514movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["641_2559_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2559_secondtalk"] = <config>
+					<context npcId="641" iconId="2" str="紫渊，被我封印了这么多年，你还是如此残酷，连自己的手下都不放过！"/>
+					<context npcId="652" iconId="2" str="残酷？我有吗？得到我暗黑魔法的制裁，是它们的荣幸才对，你说呢？"/>
+					<context npcId="539" str="哈哈……的确，这种黑暗我喜欢！紫渊，你和我联起手来称霸宇宙吧！"/>
+					<context npcId="540" str="哼，邪恶永远敌不过正义，一切邪恶都会在正义的光辉下灰飞烟灭的！"/>
+					<context npcId="652" iconId="2" str="哈哈，正义是什么东西？我的词典里怎么从来没有这个词呢？哈哈……"/>
+					<context npcId="641" iconId="2" str="哼，你们族人的事情我不管，不过你还想启动明灭之轮，我可不答应！">
+						<choice str="我也不答应！">
+							<context npcId="652" iconId="2" str="嗯哼，我就喜欢热血的少年。"/>
+							<context npcId="652" iconId="3" str="沸腾的鲜血一定很美味！">
+								<choice str="那就看你有没有本事尝到了！" action="2559_end" taskId="2559"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["641_2560_clockstar2"] = <config>
+					<context npcId="641" iconId="2" str="看来你是想继续我们多年前的那场战斗了？我随时奉陪！">
+						<choice str="泽时，我也来帮你！" action="2560_movie1"/>
+					</context>
+				</config>;
+         talk["641_2560_secondtalk"] = <config>
+					<context npcId="641" iconId="2" str="这么多年过去了，你我还是不分上下！"/>
+					<context npcId="652" iconId="2" str="看来少年的鲜血要下次再品尝了，我听见了夜王的召唤，我要继续寻找我伟大的夜王！"/>
+					<context npcId="652" iconId="3" str="血……滴答滴答地流出，真动听。记住，这是我最爱听的声音，哈……再会了，我的热血少年们！">
+						<choice str="这就要走了？" action="2560_end" taskId="2560"/>
+					</context>
+				</config>;
+         talk["641_2561_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2583_starttask"] = <config>
+					<context npcId="641" iconId="2" str="我绝不能让明灭之轮被启动！守护诺亚星系的时间脉络是我的使命！">
+						<choice str="我们要想办法阻止凯撒才行！" action="2583_start_task"/>
+					</context>
+				</config>;
+         talk["641_2584_clockstar2"] = <config>
+					<context npcId="641" iconId="2" str="我绝不能让明灭之轮被启动！守护诺亚星系的时间脉络是我的使命！">
+						<choice str="我们要想办法阻止凯撒才行！" action="2583_start"/>
+					</context>
+				</config>;
+         talk["641_2585_clockstar3"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2585_secondtalk"] = <config>
+					<context npcId="641" iconId="4" str="泽秒真是长不大了……男子汉哭哭啼啼像什么样！"/>
+					<context npcId="643" iconId="2" str="嗯！我是男子汉，不哭！"/>
+					<context npcId="641" iconId="4" str="快让我看看泽分的伤势怎么样了！"/>
+					<context npcId="642" iconId="5" str="大哥……你……你回来了就好。我已经好多了……"/>
+					<context npcId="1" str="主人，泽分刚刚笑了呢！它们三兄弟能团聚，HELLO好开心呀！">
+						<choice str="我也是呢。">
+							<context npcId="641" iconId="2" str="泽分，修罗，我现在就帮你们疗伤！">
+								<choice str="嗯！快开始吧！" action="2585_end" taskId="2585"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["641_2586_clockstar3"] = <config>
+					<context npcId="641" iconId="2" str="这里的时光武士雕像能够召唤时光武士的祝福，帮助它们治愈伤势。">
+						<choice str="这么神奇！">
+							<context npcId="641" iconId="3" str="时光武士曾经在这里遗失了四颗晶石，只有找到这四颗晶石的人才能够得到祝福。">
+								<choice str="那我们现在就找找看吧！" action="2586_interaction"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["641_2587_clockstar3"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2588_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2588_secondtalk"] = <config>
+					<context npcId="641" iconId="2" str="我们抓紧时间！凯撒吸食了更多明灭之轮的黑暗力量，看起来更加强大了，我担心修罗撑不了多久！"/>
+					<context npcId="1" iconId="30" str="好担心修罗啊……">
+						<choice str="是呀，我们快抓紧时间解开结界吧！" action="2588_end" taskId="2588"/>
+					</context>
+				</config>;
+         talk["641_2589_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2590_clockstar4"] = <config>
+					<context npcId="641" iconId="2" str="大家万事小心，先不要乱动。">
+						<choice str="知道了。" action="2590_movie1"/>
+					</context>
+				</config>;
+         talk["641_2591_clockstar4"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2591_secondtalk"] = <config>
+					<context npcId="641" iconId="2" str="不好！凯撒已经完全被黑暗力量所控制，陷入了癫狂的状态！">
+						<choice str="修罗！糟了！修罗在哪里？">
+							<context npcId="539" str="哈哈，修罗？修罗已经葬身在时间海洋了！">
+								<choice str="什么？" action="2591_multipagecomic"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["641_2593_clockstar4"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2594_clockstar4"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2594_fourthtalk"] = <config>
+					<context npcId="641" iconId="2" str="我们快点跟过去帮助修罗！">
+						<choice str="知道了！" action="2594_end" taskId="2594"/>
+					</context>
+				</config>;
+         talk["641_2595_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2596_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2597_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2598_clockstar2"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2599_clockstar1"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2600_clockstar1"] = <config>
+					<context npcId="641" str="誓死守卫诺亚星系的时间脉络！"/>
+				</config>;
+         talk["641_2601_clockstar1"] = <config>
+					<context npcId="641" iconId="4" str="#username#，为了感谢你对我们三兄弟的帮助，我们一起汲取了一份时间海洋的纯净能量，送给你带回奥拉星。">
+						<choice str="哇，太棒啦！" action="2601_movie1"/>
+					</context>
+				</config>;
+         talk["642_2525_fourthtalk"] = <config>
+					<context npcId="642" iconId="3" str="那边好像有个类似交通工具的东西。"/>
+					<context npcId="623" iconId="8" str="呀！我的滑翔翼什么时候也跑到这里来了？"/>
+					<context npcId="1" str="HELLO觉得在这里好像什么事情都可能发生……"/>
+					<context npcId="623" iconId="8" str="太好啦，那我就可以回家啦！">
+						<choice str="是呀。" action="2525_end" taskId="2525"/>
+					</context>
+				</config>;
+         talk["642_2525_thirdtalk"] = <config>
+					<context npcId="642" iconId="2" str="最近怎么总是有陌生人来到我们时钟之域……难道……"/>
+					<context npcId="642" iconId="3" str="你们是谁？从哪来的？"/>
+					<context npcId="1" str="我们来自奥拉星，我们的朋友不知道为什么睡着睡着就跑到这里来了。">
+						<choice str="你是？">
+							<context npcId="642" iconId="3" str="泽分。">
+								<choice str="好简洁的自我介绍……">
+									<context npcId="623" iconId="2" str="快点想办法送我回去吧，今天我和贝琪约好一起出去玩呢！"/>
+									<context npcId="1" str="泽分有没有办法帮助亚伦回去呢？">
+										<choice str="我们问问它吧！" action="2525_add_plane"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2526_clockstar1"] = <config>
+					<context npcId="642" iconId="3" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2527_clockstar1"] = <config>
+					<context npcId="642" iconId="2" str="最近总是有其他星球的亚比出现在这里，我怀疑诺亚星系出现了时空错乱的现象。">
+						<choice str="时空错乱？" action="2527_multipagecomic"/>
+					</context>
+				</config>;
+         talk["642_2528_clockstar1"] = <config>
+					<context npcId="642" iconId="2" str="最近我感觉到有一股莫名的力量在影响着时钟之域，我想这应该就是根源所在。"/>
+					<context npcId="1" str="HELLO觉得这件事事关重大，不如我们帮助泽分调查一下吧！">
+						<choice str="嗯！我也是这么想的！">
+							<context npcId="642" iconId="3" str="既然这样，你们要万事小心。如果发现什么请尽快告诉我。">
+								<choice str="好的。">
+									<context npcId="642" iconId="3" str="不过有一个地方你们不可以去，那就是&lt;font color='#FF6600'&gt;&lt;b&gt;钟摆孤岛&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，那里是时钟之域的禁地。">
+										<choice str="钟摆孤岛？" action="2528_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2534_clockstar1"] = <config>
+					<context npcId="642" iconId="2" str="我刚回去仔细研究了一下，似乎一股邪恶力量正在苏醒。"/>
+					<context npcId="1" str="邪恶力量……不知道和泽秒有关系没……"/>
+					<context npcId="642" iconId="2" str="你们见到泽秒了？">
+						<choice str="是啊。（把刚刚的事情告诉泽分……）">
+							<context npcId="642" iconId="2" str="通灵巫师……难道&lt;font color='#FF6600'&gt;&lt;b&gt;永夜族&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;又来了？">
+								<choice str="永夜族？">
+									<context npcId="642" iconId="2" str="说来话长！泽秒一定是被永夜族骗了，你们快跟我去钟摆孤岛看看吧。">
+										<choice str="好的。" action="2534_end" taskId="2534"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2535_clockstar2"] = <config>
+					<context npcId="642" str="别出声，跟我来。">
+						<choice str="好。" action="2535_movie1"/>
+					</context>
+				</config>;
+         talk["642_2536_clockstar2"] = <config>
+					<context npcId="642" iconId="2" str="在我动手之前，你最好还是识趣点自己离开。我不想脏了我的手。"/>
+					<context npcId="643" str="额……冰块脸，你怎么来了……"/>
+					<context npcId="620" str="居然敢阻止我们的行动，我看是你不知死活吧。"/>
+					<context npcId="642" iconId="2" str="真是不知好歹，那我只能不客气了。">
+						<choice type="3" str="这点小事就交给我好啦！" action="2536_startfight"/>
+						<choice str="等我准备一下。"/>
+					</context>
+				</config>;
+         talk["642_2537_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2538_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2539_clockstar2"] = <config>
+					<context npcId="642" iconId="2" str="原来我隐藏了这么久的真相，给你造成了这样的误解……">
+						<choice str="你想说什么？">
+							<context npcId="642" iconId="2" str="泽秒，你知道的只是事实的一部分而已。其实大哥泽时，它并没有死。"/>
+							<context npcId="643" iconId="5" str="什么？大哥还活着？"/>
+							<context npcId="1" str="HELLO有点糊涂了。">
+								<choice str="是啊！">
+									<context npcId="642" iconId="1" str="泽秒你也长大了，该知道当年那件事情的真相了。"/>
+									<context npcId="643" iconId="5" str="真相到底是什么？快告诉我！"/>
+									<context npcId="642" iconId="2" str="时光灵球能够让我们看到过去发生的事情，不过我需要花一段时间用魔法将它唤醒。">
+										<choice str="那好吧，我们就耐心等待一段时间。" action="2539_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2544_starttask"] = <config>
+					<context npcId="642" iconId="3" str="经过一周的时间，时光灵球的魔力已经被唤醒。">
+						<choice str="太好了，快带我们去看看吧。" action="2544_start_task"/>
+					</context>
+				</config>;
+         talk["642_2545_clockstar2"] = <config>
+					<context npcId="642" iconId="3" str="经过一周的时间，时光灵球的魔力已经被唤醒。">
+						<choice str="太好了，快带我们去看看吧。" action="2544_start"/>
+					</context>
+				</config>;
+         talk["642_2546_clockstar1"] = <config>
+					<context npcId="642" iconId="3" str="跟我去时钟大殿吧。">
+						<choice str="知道了。" action="2546_end" taskId="2546"/>
+					</context>
+				</config>;
+         talk["642_2547_clockstar3"] = <config>
+					<context npcId="642" iconId="3" str="这里就是时钟大殿，是时钟之域的职能中心。"/>
+					<context npcId="1" str="哇！好宏伟的感觉呢！">
+						<choice str="是呀。">
+							<context npcId="642" iconId="3" str="这里的时光灵球拥有奇异的魔力，能让我们看到任何一段历史。">
+								<choice str="那我们快点将它开启吧！" action="2547_interaction"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2548_clockstar3"] = <config>
+					<context npcId="642" iconId="3" str="时光灵球能够读懂我们内心所想，所以大家心里默念那段历史。">
+						<choice str="知道了。" action="2548_multipagecomic"/>
+					</context>
+				</config>;
+         talk["642_2548_secondtalk"] = <config>
+					<context npcId="642" iconId="2" str="我不想让居住在这里的亚比知道，钟摆孤岛有如此黑暗的东西。"/>
+					<context npcId="642" iconId="2" str="于是就将钟摆孤岛设为了禁地，也绝口不提那场大战。"/>
+					<context npcId="643" iconId="4" str="可是你为什么连我都不告诉？我也有权利知道这一切！"/>
+					<context npcId="642" iconId="2" str="以你鲁莽的个性，一定会想办法解开封印。那样诺亚星系就将陷入永远的黑夜，大哥的心意也就白费了。">
+						<choice str="说的也是啊。" action="2548_end" taskId="2548"/>
+					</context>
+				</config>;
+         talk["642_2549_clockstar3"] = <config>
+					<context npcId="642" iconId="2" str="今日这些永夜族人再次来到钟摆孤岛，一定是有不可告人的阴谋。"/>
+					<context npcId="1" str="是啊，它们还欺骗泽秒向水晶中注入能量，这里面一定有问题！">
+						<choice str="我也这么觉得。">
+							<context npcId="643" iconId="4" str="这些坏蛋！我现在就要去把那个什么明灭之轮彻底毁掉！我要救出大哥！"/>
+							<context npcId="642" iconId="2" str="如果像你说的那么容易，大哥早就将它毁掉了，就不需要用身体封印它了。"/>
+							<context npcId="1" str="对啊，泽秒你先别冲动啊。">
+								<choice str="是啊，我们要从长计议。">
+									<context npcId="643" iconId="4" str="我不管，我现在就要去！">
+										<choice str="等等，泽秒！" action="2549_movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2549_secondtalk"] = <config>
+					<context npcId="642" iconId="2" str="我们跟上它吧，不知道这个傻小子会做出什么蠢事。">
+						<choice str="好，我们走。" action="2549_end" taskId="2549"/>
+					</context>
+				</config>;
+         talk["642_2550_clockstar1"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2551_clockstar1"] = <config>
+					<context npcId="642" iconId="3" str="我的这把指针之剑能够劈水斩风，我们可以驾驭着它飞渡时间海洋。"/>
+					<context npcId="1" str="好厉害的剑呀！那我们就快乘上它去钟摆孤岛吧！"/>
+					<context npcId="643" iconId="3" str="我也可以乘着我的时间之杖过去，不过我从小的平衡能力就很弱……">
+						<choice str="没关系，泽秒，我来帮你！" action="2551_game"/>
+					</context>
+				</config>;
+         talk["642_2552_starttask"] = <config>
+					<context npcId="642" iconId="2" str="你们这群永夜族人，居然还敢再来。说！你们究竟有什么阴谋？">
+						<choice str="快说！" action="2552_start_task"/>
+					</context>
+				</config>;
+         talk["642_2553_clockstar2"] = <config>
+					<context npcId="642" iconId="2" str="你们这群永夜族人，居然还敢再来。说！你们究竟有什么阴谋？">
+						<choice str="快说！" action="2552_start"/>
+					</context>
+				</config>;
+         talk["642_2554_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2555_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2556_clockstar2"] = <config>
+					<context npcId="642" iconId="4" str="泽……泽秒，你还是这么鲁莽……"/>
+					<context npcId="643" iconId="3" str="冰块脸！二哥，二哥……"/>
+					<context npcId="643" iconId="4" str="凯撒！你竟敢伤我二哥！我和你拼了！">
+						<choice str="泽秒，别冲动！" action="2556_movie1"/>
+					</context>
+				</config>;
+         talk["642_2585_clockstar3"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2586_clockstar3"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2587_clockstar3"] = <config>
+					<context npcId="642" iconId="2" str="刚刚到底发生了什么事情？明灭之轮的封印解除了？">
+						<choice str="是呀。（把刚刚的事情讲了一遍……）">
+							<context npcId="540" str="明灭之轮现在成为了凯撒的力量之源，又威胁着整个诺亚星系的时间系统。"/>
+							<context npcId="641" iconId="2" str="现在唯一的办法就是破解紫渊的结界，进入明灭之轮将它彻底摧毁。"/>
+							<context npcId="642" iconId="2" str="我曾经阅读过破解魔咒的书籍，我想我会有办法解开结界的！"/>
+							<context npcId="641" iconId="3" str="可是凯撒就藏身在明灭之轮中，一定会阻止我们的！">
+								<choice str="是呀，那怎么办呢？">
+									<context npcId="540" str="既然这样，我去负责将凯撒引出明灭之轮，你们大家尽快进入明灭之轮将它毁掉！"/>
+									<context npcId="641" iconId="2" str="好，我们毁掉明灭之轮之后就去和你一起对付凯撒！">
+										<choice str="好，就这么办！我们出发吧！" action="2587_end" taskId="2587"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["642_2588_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2589_clockstar2"] = <config>
+					<context npcId="642" iconId="2" str="这应该是一种古老的拼接魔法，看起来是要我们拼接成什么图形……"/>
+					<context npcId="641" iconId="3" str="看起来有一些眼熟……对了！是紫渊身上戴的那个徽章！我能够凭借着记忆将它画下来。">
+						<choice str="明白了！剩下的就交给我吧！" action="2589_interaction"/>
+					</context>
+				</config>;
+         talk["642_2590_clockstar4"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2590_secondtalk"] = <config>
+					<context npcId="642" iconId="2" str="我们一人解决一个！">
+						<choice type="3" str="好的！没问题！" action="2590_startfight"/>
+					</context>
+				</config>;
+         talk["642_2591_clockstar4"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2593_clockstar4"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2594_clockstar4"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2595_clockstar2"] = <config>
+					<context npcId="540" str="凯撒的力量已经被我刚刚的修罗流光斩削弱了一部分，快！我们就趁现在消灭它！"/>
+					<context npcId="642" iconId="2" str="这次我来帮你！"/>
+					<context npcId="539" str="哼！怎样你们都不是我的对手！哈哈哈……">
+						<choice type="3" str="那我们就试试！" action="2595_startfight"/>
+						<choice str="让我准备一下。"/>
+					</context>
+				</config>;
+         talk["642_2596_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2597_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2598_clockstar2"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2599_clockstar1"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["642_2600_clockstar1"] = <config>
+					<context npcId="642" str="我很忙，没有时间做无聊的事情。"/>
+				</config>;
+         talk["643_2529_clockstar1"] = <config>
+					<context npcId="643" iconId="2" str="哈哈，那个冰块脸不在！">
+						<choice str="冰块脸？">
+							<context npcId="643" iconId="2" str="就是我二哥泽分啦，整天摆出一副冻死人不偿命的冰块脸耍帅！"/>
+							<context npcId="1" str="哈哈！HELLO举四爪赞成！"/>
+							<context npcId="643" iconId="2" str="英雄所见略同啊，果然是朋友！">
+								<choice str="那你就是泽秒吧？">
+									<context npcId="643" iconId="2" str="是呀是呀，朋友你们从哪里来？">
+										<choice str="我们来自奥拉星。">
+											<context npcId="643" iconId="2" str="远方的朋友，欢迎你！不过我现在有重要的事情，先别打扰我哦。">
+												<choice str="哦哦！" action="2529_movie1"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["643_2530_clockstar1"] = <config>
+					<context npcId="643" iconId="2" str="还有什么事儿吗？"/>
+					<context npcId="1" str="HELLO只是很好奇，你在做什么呢？"/>
+					<context npcId="643" iconId="2" str="我在从时间海洋里汲取能量啊！"/>
+					<context npcId="1" str="可是泽分说时间海洋里的能量是不可以被取出来的啊！"/>
+					<context npcId="643" iconId="2" str="是呀。但是时钟之域魔法最强大的亚比就可以做到。">
+						<choice str="最强大的亚比？" action="2530_movie1"/>
+					</context>
+				</config>;
+         talk["643_2531_starttask"] = <config>
+					<context npcId="643" str="（自言自语）大哥，你等我回去！"/>
+					<context npcId="1" str="主人它在自言自语什么呢？">
+						<choice str="听不清啊，我们先找地方藏起来再说！" action="2531_start_task"/>
+					</context>
+				</config>;
+         talk["643_2532_clockstar2"] = <config>
+					<context npcId="643" str="（自言自语）大哥，你等我回去！"/>
+					<context npcId="1" str="主人它在自言自语什么呢？">
+						<choice str="听不清啊，我们先找地方藏起来再说！" action="2531_start"/>
+					</context>
+				</config>;
+         talk["643_2533_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2535_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2536_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2537_clockstar2"] = <config>
+					<context npcId="643" iconId="4" str="冰块脸，你干嘛要管我的事情！"/>
+					<context npcId="642" iconId="3" str="你以为我愿意管你不成？"/>
+					<context npcId="643" iconId="4" str="哼！那你还管！你总是那么自以为是！">
+						<choice str="两兄弟好好说话啦！">
+							<context npcId="642" iconId="3" str="告诉你，明灭之轮根本不是什么可以回到过去的魔法。"/>
+							<context npcId="643" iconId="4" str="什么？你骗人。那个通灵巫师明明告诉我明灭之轮可以带我回到过去！"/>
+							<context npcId="642" iconId="2" str="信不信由你，我可没时间逗你玩。"/>
+							<context npcId="643" iconId="3" str="我不信……就是不信！"/>
+							<context npcId="1" str="我们以前就见过一些通灵巫师，它们是一个很邪恶的种族。">
+								<choice str="没错。而且你哥哥它不可能骗你。">
+									<context npcId="643" iconId="3" str="可是……"/>
+									<context npcId="1" str="HELLO真的很好奇，你为什么一定要回到过去呢？">
+										<choice str="是啊，到底为什么呢？" action="2537_end" taskId="2537"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["643_2538_clockstar2"] = <config>
+					<context npcId="643" iconId="3" str="是因为大哥……">
+						<choice str="因为泽时？" action="2538_comic"/>
+					</context>
+				</config>;
+         talk["643_2538_secondtalk"] = <config>
+					<context npcId="643" iconId="3" str="如果当初不是我贪玩，大哥就不会死……">
+						<choice str="所以你就想要回到过去？">
+							<context npcId="643" iconId="3" str="没错，我要重新改写那段历史。">
+								<choice str="可是时间是不可能倒流的啊。" action="2538_end" taskId="2538"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["643_2539_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2545_afterstart"] = <config>
+					<context npcId="643" str="快一点，我已经迫不及待要知道真相了！"/>
+					<context npcId="642" iconId="3" str="你们随我来时钟大殿吧。">
+						<choice str="好的。" action="2545_end" taskId="2545"/>
+					</context>
+				</config>;
+         talk["643_2545_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2546_clockstar1"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2547_clockstar3"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2548_clockstar3"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2549_clockstar3"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2550_clockstar1"] = <config>
+					<context npcId="643" iconId="4" str="去钟摆孤岛的路怎么断了？冰块脸，是不是你搞的鬼？"/>
+					<context npcId="642" iconId="2" str="我没有你那么无聊。"/>
+					<context npcId="1" str="主人，看起来是有人故意把路弄断，阻止我们去钟摆孤岛。">
+						<choice str="是啊，会是谁呢？">
+							<context npcId="643" iconId="4" str="一定是那群永夜族人。它们不想让我们去钟摆孤岛，证明那里一定进行着不可告人的阴谋！"/>
+							<context npcId="642" iconId="2" str="看来我们一定要去钟摆孤岛调查一下了！">
+								<choice str="可是路断了我们怎么过去呢？">
+									<context npcId="642" iconId="2" str="没关系，我有办法。">
+										<choice str="什么办法？" action="2550_end" taskId="2550"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["643_2551_clockstar1"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2553_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2554_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2555_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2555_secondtalk"] = <config>
+					<context npcId="643" iconId="3" str="冰块脸……你怎么了冰块脸……">
+						<choice str="泽分，你怎么样了？" action="2555_end" taskId="2555"/>
+					</context>
+				</config>;
+         talk["643_2556_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2585_clockstar3"] = <config>
+					<context npcId="643" iconId="2" str="大哥……大哥，我没有在做梦吗？大哥真的回来了！">
+						<choice str="不是做梦哦。" action="2585_movie1"/>
+					</context>
+				</config>;
+         talk["643_2586_clockstar3"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2587_clockstar3"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2588_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2589_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2590_clockstar4"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2590_fightlose"] = <config>
+					<context npcId="643" str="天啊！#username#！你受伤了！小心啊！">
+						<choice str="嗯！我等一下再来！"/>
+					</context>
+				</config>;
+         talk["643_2591_clockstar4"] = <config>
+					<context npcId="643" iconId="2" str="哈哈，轻松解决！只要把中间那个紫色的东西毁掉就可以啦！"/>
+					<context npcId="641" iconId="2" str="没错，这个东西就是明灭之轮的核心，是它的黑色力量之源。">
+						<choice str="我们快点把它毁掉吧！" action="2591_movie1"/>
+					</context>
+				</config>;
+         talk["643_2593_clockstar4"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2594_clockstar4"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2595_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2596_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2597_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2598_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         talk["643_2599_clockstar1"] = <config>
+					<context npcId="643" iconId="5" str="快看！那边怎么闪闪发亮的？">
+						<choice str="哪里？" action="2599_movie1"/>
+					</context>
+				</config>;
+         talk["643_2600_clockstar1"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
          talk["64_1610_youanmingzhou4"] = <config>
 					<context npcId="64" str="月亮之殿中一切的一切，都在我的控制之中。">
 						<choice type="0" str="我们有我们的约定，一定要坚持到底。" action="1610_fight"/>
+					</context>
+				</config>;
+         talk["652_2559_clockstar2"] = <config>
+					<context npcId="652" iconId="2" str="多美妙的声音？封印在碎裂！"/>
+					<context npcId="620" str="啊……紫渊祭师！参见祭师大人。"/>
+					<context npcId="652" iconId="2" str="小的们，干得不错啊，时间海洋的纯净能源果真解开了封印。"/>
+					<context npcId="652" iconId="3" str="不过……那个凯撒怎么会是我们伟大的夜王呢？认错了我们伟大的夜王，你们将受到暗黑魔法的制裁！哈哈哈！">
+						<choice str="暗黑魔法的制裁？" action="2559_movie1"/>
+					</context>
+				</config>;
+         talk["652_2560_clockstar2"] = <config>
+					<context npcId="652" str="看到了吗？美丽的暗黑魔法。听见了吗？动听的血流成河！"/>
+				</config>;
+         talk["652_2688_knightstar4"] = <config>
+					<context npcId="652" str="刑风，哦，事到如今，难道你还准备向你这群可爱的学生们隐瞒身份吗？"/>
+					<context npcId="1" iconId="4" str="主人，它在说什么，HELLO怎么都听不懂。">
+						<choice str="我也听不懂。">
+							<context npcId="679" str="我从来没打算隐瞒什么，身为白灵族的勇士，是我一直以来的荣耀。"/>
+							<context npcId="667" iconId="2" str="白……白灵族勇……勇士？"/>
+							<context npcId="679" str="嗯，我的另一个身份就是白灵族的守卫。"/>
+							<context npcId="1" iconId="33" str="白灵族的守卫，天啊，这也太不可思议了，HELLO都快晕过去了。">
+								<choice str="这到底是怎么回事？" action="2688_KindAndEnmityCartoon">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["652_2689_knightstar4"] = <config>
+					<context npcId="652" str="故事讲完了，那我们就旧账新账一起算吧！">
+						<choice str="紫渊，你别乱来。" action="2689_YongYeHonorMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["652_2690_AfterFinishTask2681"] = <config>
+					<context npcId="652" str="萧辰、浩然，名字好听，味道定然也不错，我怎么能错过呢？">
+						<choice str="不许你动它们。" starterId="2690">
+						</choice>
+					</context>
+				</config>;
+         talk["652_2691_knightstar4"] = <config>
+					<context npcId="652" str="萧辰、浩然，名字好听，味道定然也不错，我怎么能错过呢？">
+						<choice str="不许你动它们。" action="2691_XingFengEvolveMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["652_2693_AfterGeneralFightMovie"] = <config>
+					<context npcId="652" str="哦，忘记告诉你们九十九份骑士之力不仅释放了夜王的部分灵魂。"/>
+					<context npcId="652" str="还唤醒了这徽章里的黑暗能量，所以你们还是束手就擒吧！"/>
+					<context npcId="679" iconId="8" str="不管怎样，我都不会让你伤害这些学生，即便是死。">
+						<choice str="没错，紫渊，你不要太猖狂。" taskId="2693">
+						</choice>			
+					</context>
+				</config>;
+         talk["652_2693_knightstar4"] = <config>
+					<context npcId="652" str="小鬼，你似乎很爱管闲事，那就先解决了你再说吧。">
+						<choice type="3" str="我可不怕你。" action="2693_FightToZiYuan">
+						</choice>			
+					</context>
+				</config>;
+         talk["652_2694_AfterFightTogetherMovie"] = <config>
+					<context npcId="652" str="你们不用再挣扎了，能为我们永夜族做出贡献是你的荣幸。"/>
+					<context npcId="679" iconId="7" str="紫渊，你不要做梦了，这是绝对不可能的事情。"/>
+					<context npcId="666" str="没错，宁愿死我也不会成为吸血鬼的。"/>
+					<context npcId="667" iconId="2" str="没……没错，一定不……不能……"/>
+					<context npcId="680" str="骑士，精神，宁死，不屈。">
+						<choice str="好样的。" taskId="2694">
+						</choice>				
+					</context>
+				</config>;
+         talk["652_2695_knightstar4"] = <config>
+					<context npcId="652" str="看，美丽的永夜之魂，听，动人的血色之音，让我来结束这一切吧！">
+						<choice str="你不会得逞的。" action="2695_ShineCupMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["652_2696_knightstar4"] = <config>
+					<context npcId="652" str="你们以为凭这个破杯就可以反败为胜，简直是痴人说梦！"/>
+					<context npcId="679" iconId="7" str="有骑士圣杯里的纯净能源加上我们的齐心协力，一定可以打败你！">
+						<choice str="没错！" action="2696_SealZiYuanMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["652_2942_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="OHO~恐怕你们的伙伴高估你们的实力了，就凭你们，还想打败我们三个人吗？">
+						<choice type="3" str="打不打得过，试试才知道！" action="2942_fight"/>
+					</context>
+				</config>;
+         talk["65_1716_lastTalk"] = <config>
+					<context npcId="65" iconId="1" str="以后就由我来保护你们。"/>
+					<context npcId="176" iconId="1" str="你太厉害了，我们之前误会你了，对不起。"/>
+					<context npcId="65" iconId="1" str="没关系，你们没有受伤就好了。">
+						<choice str="看来误会已经解除了。" action="1716finished" taskId="1716"/>
+					</context>
+				</config>;
+         talk["65_1717_suolide4"] = <config>
+					<context npcId="65" iconId="1" str="我要永远守护这片土地。"/>
+				</config>;
+         talk["65_1718_suolide5"] = <config>
+					<context npcId="65" iconId="1" str="前面就是进行守护者考验必须通过的龙卷风大厅，我们一起通过吧！">
+						<choice str="奥拉勇士无所畏惧~~！" action="startInteraction_1718"/>
+						<choice str="我再准备一下。"/>
+					</context>
+				</config>;
+         talk["660_2600_clockstar1"] = <config>
+					<context npcId="660" str="白色哥哥，我肚子饿饿……"/>
+				</config>;
+         talk["665_2622_AfterKnightCartoon"] = <config>
+					<context npcId="665" iconId="4" str="我看你一表人才，才高八斗，斗志昂扬……非常符合我们秘法骑士的标准。">
+						<choice str="我竟然有这么完美？" taskId="2622">
+						</choice>
+					</context>
+				</config>;
+         talk["665_2622_knightstar1"] = <config>
+					<context npcId="665" iconId="3" str="哪个不要命的敢在本小姐面前胡言乱语，语四信三……">
+						<choice str="我……我只是说了句实话而已。">
+							<context npcId="666" str="上下身比例0.618，标准的黄金分割，体重48.84千克，身高165.561厘米……"/>
+							<context npcId="666" str="根据数据结果显示，此人99.9999%来自外太空一个叫奥拉星的地方。">
+								<choice str="你说的不会是我吧？">
+									<context npcId="666" str="能问出这么弱智的问题，初步推测你是智障的概率为33.44%。"/>
+									<context npcId="1" iconId="24" str="我家主人是奥拉星聪明勇敢的小勇士，才不是智障呢！">
+										<choice str="⊙﹏⊙b汗……">
+											<context npcId="665" iconId="4" str="奥拉星的朋友，欢迎你，来，赶紧报个名加入我们秘法骑士吧！">
+												<choice str="这同学表情变化真快，不过什么是秘法骑士？" action="2622_KnightCartoon">
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["665_2624_FailFightToRuoShui"] = <config>
+					<context npcId="665" iconId="5" str="如果你现在离开圣剑加入我们秘法，我可以考虑放过你。">
+						<choice str="做人要有气节，我才不做叛徒呢，我会打败你的。">
+						</choice>
+					</context>
+				</config>;
+         talk["665_2624_SuccessFightToRuoShui"] = <config>
+					<context npcId="665" iconId="2" str="哼，下次我绝不会手下留情，我一定会让你们后悔莫及的。">
+						<choice str="唉，其实我不是故意的。" action="2624_RuoShuiLeaveMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["665_2624_knightstar1"] = <config>
+					<context npcId="665" iconId="2" str="哼，物以类聚，那我就先收拾了你再说。">
+						<choice type="3" str="看来只能勉为其难的动手了。" action="2624_FightToRuoShui"/>
+						<choice str="同学，等我先准备一下哈！"/>
+					</context>
+				</config>;
+         talk["665_2630_AfterEnounceMovie"] = <config>
+					<context npcId="665" iconId="6" str="罗格老师，你面如冠玉，玉树临风，风度翩翩……真是我的偶像啊！"/>
+					<context npcId="666" iconId="7" str="一个只会纸上谈兵，没有真才实学的老师根本算不上一个好老师。"/>
+					<context npcId="667" iconId="2" str="没……没错，比……比我们刑风老师差了十万八千米。">
+						<choice str="是十万八千里吧！" taskId="2630">
+						</choice>
+					</context>
+				</config>;
+         talk["665_2632_AfterPrizeMovie"] = <config>
+					<context npcId="665" iconId="6" str="罗格老师你真是年轻有为、为人师表、表里如一……我太崇拜你了！"/>
+					<context npcId="667" str="我记得有句话好像是说小时候很聪明，长大后可能就笨了、傻了、残了。">
+						<choice str="是不是小时了了，大未必佳？">
+							<context npcId="667" iconId="2" str="对……对……就……就是这句。"/>
+							<context npcId="665" iconId="3" str="你们这群愚不可及家伙，竟敢这样说我最爱的罗格老师，看我打扁你们。"/>
+							<context npcId="666" iconId="2" str="#username#，交给你了！">
+								<choice str="为什么受伤的总是我？" taskId="2632">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["665_2633_knightstar2"] = <config>
+					<context npcId="665" iconId="7" str="我说过的，这次我不会再手下留情。">
+						<choice str="同学，别这样啊。" action="2633_RuoShuiEvolveMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["665_2696_AfterSaveRuoShuiMovie"] = <config>
+					<context npcId="665" iconId="2" str="罗格呢，我要将它挫骨扬灰、灰飞烟灭、灭门绝户……">
+						<choice str="它已经被封印了。" taskId="2696">
+						</choice>				
+					</context>
+				</config>;
+         talk["665_2697_AfterExchangeCartoon"] = <config>
+					<context npcId="665" str="原本是想等刑风老师它们来解救我们的，可是没想到最后我自己也着了道。"/>
+					<context npcId="679" iconId="7" str="没能及时救出大家是我的失职，但好在现在大家都平安无事。"/>
+					<context npcId="665" iconId="8" str="你是谁？">
+						<choice str="它是刑风老师……（将整个事情的经过告诉若水）" taskId="2697">
+						</choice>				
+					</context>
+				</config>;
+         talk["665_2697_knightstar4"] = <config>
+					<context npcId="665" iconId="2" str="那个大骗子，就这么被封印了，简直太便宜它了。"/>
+					<context npcId="680" str="若水，平安，就好！"/>
+					<context npcId="665" iconId="2" str="哼，你还知道我的平安，你要是再不来救我，我就尸骨无存了……">
+						<choice str="这到底是怎么回事？" action="2697_ExchangeCartoon">
+						</choice>				
+					</context>
+				</config>;
+         talk["665_2698_AfterLeaveMovie"] = <config>
+					<context npcId="665" str="没有了刑风老师，你们圣剑以后就没那么走运了。"/>
+					<context npcId="666" iconId="2" str="说什么呢，没有老师还有我和浩然呢，若水，别忘记了520次的失败哦！">
+						<choice str="⊙﹏⊙b汗……看来龙凤斗又要开始了！">
+							<context npcId="679" iconId="7" str="这次能封印紫渊，多亏#username#的帮忙，所以我代表大家将骑士圣杯送给你。">
+								<choice str="这不太好吧？" taskId="2698">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["665_2698_knightstar4"] = <config>
+					<context npcId="665" iconId="9" str="天啊，这……这太让人匪夷所思了。"/>
+					<context npcId="679" iconId="7" str="这是真的，以后骑士学院里就再也不会有刑风老师。">
+						<choice str="这是什么情况？" action="2698_LeaveMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["666_2621_knightstar1"] = <config>
+					<context npcId="666" iconId="2" str="从时间上，我比你早到0.248秒；从距离上，我离宣传栏比你近369.963毫米……"/>
+					<context npcId="666" iconId="2" str="从实际上，你99.99%缺少女性特征；所以，从理论上，我100%的享有宣传栏的使用权。">
+						<choice str="Oh，My god，数字帝，太霸气了！">
+							<context npcId="665" iconId="3" str="你不要胡说八道，道听途说，说白道黑……竟敢怀疑我的性别，简直欺人太甚！">
+								<choice str="同学，先消消气吧，要不然真不太淑女。" taskId="2621">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["666_2623_AfterHatMovie"] = <config>
+					<context npcId="666" iconId="2" str="结果很显然，我的数据是正确的。">
+						<choice str="o(╯□╰)o……其实当时我话还没说完！">
+							<context npcId="666" iconId="3" str="若水，这是你第520次失败哦，你对我的表白还真含蓄，不过，我就好这口！"/>
+							<context npcId="665" iconId="3" str="可恶，你个厚颜无耻的家伙，今天我要替天行道，打扁你！"/>
+							<context npcId="666" iconId="2" str="新来的，给我上。">
+								<choice str="不是吧，为什么是我啊？" taskId="2623">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["666_2623_knightstar1"] = <config>
+					<context npcId="666" iconId="2" str="据我目测，你的基因50.001%偏向于圣剑骑士，所以更适合加入我们。">
+						<choice str="这也能目测出来？">
+							<context npcId="665" iconId="2" str="就你那九牛一毛的概率差我完全可以忽略，反正这个人我要定了。"/>
+							<context npcId="666" iconId="2" str="如果我没有记错，你已经在我手里519次抢人失败了！"/>
+							<context npcId="665" iconId="2" str="你……你……既然如此，那我们就一步一步来，看谁笑到最后。"/>
+							<context npcId="666" iconId="2" str="如果不出意外，我赢的概率应该是98.7654321%。">
+								<choice str="这是个神马情况？" action="2623_HatMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["666_2625_AfterKnightCupMovie"] = <config>
+					<context npcId="666" str="为了传承骑士精神，我们的祖先用灵魂将它封印，而且现在也没有人知道它在哪里。">
+						<choice str="原来如此。" taskId="2625">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2625_knightstar1"] = <config>
+					<context npcId="666" iconId="2" str="干得不错，看来我的眼光又提升了0.5个百分点。">
+						<choice str="真没见过你这么脸皮厚的。">
+							<context npcId="666" iconId="2" str="先自我介绍一下，我叫萧辰，身高92.4厘米，体重38.8千克，智商222，情商333。"/>
+							<context npcId="666" str="曾5次获得最佳圣剑骑士称号，9次被评为……以后你有什么事情都可以来找我。">
+								<choice str="那你知道纯净能源在哪里吗？">
+									<context npcId="666" iconId="4" str="纯净能源是什么东西？我的头脑数据库里似乎没有这个名词。"/>
+									<context npcId="1" str="纯净能源是一种蕴含着巨大能量，能使星球正常运转，增强星球防御的能源。"/>
+									<context npcId="666" str="听起来，有点像我们的骑士圣杯。">
+										<choice str="骑士圣杯，那是什么？" action="2625_KnightCupMovie">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["666_2626_AfterPlacardInteraction"] = <config>
+					<context npcId="666" iconId="2" str="速度3.03秒，还不错，只比我慢了2.56秒。">
+						<choice str="⊙﹏⊙b汗……">
+							<context npcId="666" iconId="2" str="不过没关系，我相信在刑风老师的教导和我的带领下你会有突破性的进步。">
+								<choice str="刑风老师是谁？" taskId="2626">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["666_2626_knightstar1"] = <config>
+					<context npcId="666" str="不说这个了，好不容易把若水气走，先帮我把招生海报贴在宣传栏里吧！">
+						<choice str="怎么又是我？" action="2626_PlacardInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2627_knightstar1"] = <config>
+					<context npcId="666" iconId="5" str="刑风老师是我们学院最优秀的老师，也是我们圣剑骑士的骄傲。"/>
+					<context npcId="666" iconId="5" str="它拥有高达320的智商，360度无死角的英俊面容，它博古通今，温文尔雅……"/>
+					<context npcId="1" iconId="44" str="哇，听起来就好帅，HELLO最喜欢帅哥了， HELLO好想见见它哦！">
+						<choice str="我也是。" action="2627_BadNewsMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2629_AfterVoiceMovie"] = <config>
+					<context npcId="666" iconId="7" str="事情似乎不太妙，看来我们得去教学楼会一会这位新老师了。">
+						<choice str="我也看看去。" taskId="2629">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2632_knightstar2"] = <config>
+					<context npcId="666" str="（悄悄对我们说）你不用担心，我会小声给你提示的。">
+						<choice str="这我就放心了。" action="2632_SolveCodeInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2635_AfterHaoRanLeaveMovie"] = <config>
+					<context npcId="666" str="#username#，刑风老师要过一段时间才能回来，所以我们要耐心等待一些时日！">
+						<choice str="嗯，我会和你一起等它回来的。" taskId="2635">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2635_knightstar2"] = <config>
+					<context npcId="666" iconId="8" str="罗格肯定别有用心，只是刑风老师外出讲座，我们不是它的对手，所以我也不知道要怎么办。"/>
+					<context npcId="667" str="这样吧，我去监视它们的行踪，你们在这里等刑风老师回来。"/>
+					<context npcId="666" str="嗯，也只有这样了。">
+						<choice str="浩然，你要小心。" action="2635_HaoRanLeaveMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2651_AfterFinishTask2628"] = <config>
+					<context npcId="666" iconId="2" str="#username#,刑风老师马上就要到了，你和我一起去骑士学院迎接它吧！">
+						<choice str="好的。" starterId="2651">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2652_knightstar2"] = <config>
+					<context npcId="666" iconId="2" str="#username#,刑风老师马上就要到了，你和我一起去骑士学院迎接它吧！">
+						<choice str="好的。" taskId="2652">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2653_knightstar1"] = <config>
+					<context npcId="666" iconId="9" str="刑风老师快到了，和我一起倒计时：10、9、8、7、6……">
+						<choice str="这也能推算得出来？" action="2653_XingFenBackMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2658_AfterFlyBombMovie"] = <config>
+					<context npcId="666" iconId="2" str="直径55.55厘米，速度131.4米/秒，重量38.88千克。"/>
+					<context npcId="666" iconId="2" str="误差0.02毫米，能做到这么精确，也只有它了。"/>
+					<context npcId="667" iconId="2" str="你……你……说的不……不会是瑞……瑞阳吧？">
+						<choice str="瑞阳是谁？" taskId="2658">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2659_AfterFinishTask2651"] = <config>
+					<context npcId="666" str="瑞阳是我们学院最出色的实验家，也是秘法骑士中和若水齐名的成员。"/>
+					<context npcId="666" str="它最出名的是它的冷傲和刚才那个简易炸弹，我想这个浩然记忆会比较深刻。">
+						<choice str="浩然和它有过节吗？" starterId="2659">
+						</choice>
+					</context>
+				</config>;
+         talk["666_2684_knightstar4"] = <config>
+					<context npcId="666" str="老师，快看，是若水和那些失踪的同学。"/>
+					<context npcId="667" iconId="2" str="还……还有……一些长……长的像吸……吸血鬼的家伙！">
+						<choice str="它们是永夜族的通灵巫师。">
+							<context npcId="679" str="看来罗格不在，我们来的正是时候，几个通灵巫师，不足为惧。"/>
+							<context npcId="667" str="1、2、3、4，一共4个，正好我们一人解决一个，然后就可以把若水它们救出去了。"/>
+							<context npcId="666" str="浩然，不错哦，终于可以数清楚1、2、3、4了。">
+								<choice str="⊙﹏⊙b汗……">
+									<context npcId="679" str="浩然的主意不错，就按它说的办，我们一起过去吧。">
+										<choice str="好的。" taskId="2684">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["666_2687_AfterThrowCupMovie"] = <config>
+					<context npcId="666" iconId="10" str="高25.52厘米，重28.82千克，看来这确实是传说中的骑士圣杯。"/>
+					<context npcId="667" iconId="2" str="如……如此对……对待我们的圣……圣物，我不……不会放过你的！"/>
+					<context npcId="668" str="听听……多么慷慨的陈词，多么激昂的斗志，不过可惜……很快就会消失了！">
+						<choice str="罗格，你要干什么？" action="2687_KnightStrengthMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["666_2692_AfterRuiYangComeMovie"] = <config>
+					<context npcId="666" str="直径55.55厘米，速度131.4米/秒，重量38.88千克，误差0.02毫米。">
+						<choice str="一定是瑞阳。">
+							<context npcId="680" str="是我。"/>
+							<context npcId="667" iconId="2" str="瑞……瑞阳，你……你真的来得太……太及时了……"/>
+							<context npcId="652" str="就凭这点小伎俩就想破坏我的计划，简直是痴心妄想。">
+								<choice str="你的阴谋休想得逞。" taskId="2692">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["666_2694_knightstar4"] = <config>
+					<context npcId="666" str="自古邪不胜正，我就不信我们5个还打不过你1个。"/>
+					<context npcId="667" iconId="2" str="没……没错，我……我们齐……心协力，一定可以打……打败你！"/>
+					<context npcId="680" str="齐心，协心，加上，瑞阳！">
+						<choice str="还有我。" action="2694_FightTogetherMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["666_2696_AfterSealZiYuanMovie"] = <config>
+					<context npcId="666" str="哇，太好了，紫渊被我们封印了！"/>
+					<context npcId="667" str="我……我们赶……赶紧用骑……骑士圣杯救……救若水它们吧……">
+						<choice str="好的。" action="2696_SaveRuoShuiMovie">
+						</choice>				
+					</context>
+				</config>;
+         talk["667_2627_AfterBadNewsMovie"] = <config>
+					<context npcId="667" iconId="2" str="那……那……那……这……这……这……"/>
+					<context npcId="666" iconId="2" str="每次一激动就结巴，我第1001次提醒你，遇事要冷静淡定……淡定……">
+						<choice str="到底发生什么事了？">
+							<context npcId="667" str="学院来了一位叫罗格的新老师，它扬言要把秘法骑士打造成骑士学院的第一骑士。"/>
+							<context npcId="667" str="而且它似乎对刑风老师有敌意，一个劲的说它坏话，我们的很多成员都准备转为秘法骑士了！"/>
+							<context npcId="666" iconId="6" str="背后说人坏话，真不道德，我敢125%肯定它一定比不上我们的刑风老师。">
+								<choice str="我也这么认为。" taskId="2627">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["667_2628_AfterFinishTask2620"] = <config>
+					<context npcId="667" iconId="2" str="没……没错，我……我们刑风老师可是巨世无爽，无人能比的。">
+						<choice str="是举世无双。" starterId="2628">
+						</choice>
+					</context>
+				</config>;
+         talk["667_2629_knightstar1"] = <config>
+					<context npcId="667" iconId="2" str="不……不管三七二十八，反……反正我觉得刑风老师是最好的老师。">
+						<choice str="⊙﹏⊙b汗……三七是二十一。" action="2629_VoiceMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["667_2634_RecruitStudentMovie"] = <config>
+					<context npcId="667" iconId="2" str="骑……骑士圣杯……萧……萧辰，我……我觉得这个罗格老师有问题。">
+						<choice str="我也有同感。" taskId="2634">
+						</choice>
+					</context>
+				</config>;
+         talk["667_2655_AfterMissStudentCartoon"] = <config>
+					<context npcId="667" iconId="2" str="那……那些进……进了黑森林的同学都……都没有再出现过……"/>
+					<context npcId="679" iconId="3" str="黑森林虽然一直很阴暗，却从来没有发生过这样的事情。"/>
+					<context npcId="679" str="如此看来，那位罗格老师确实有不为人知的阴谋，大家和我一起先去黑森林看看吧！">
+						<choice str="好的。" taskId="2655">
+						</choice>
+					</context>
+				</config>;
+         talk["667_2655_knightstar1"] = <config>
+					<context npcId="667" iconId="2" str="刑……刑风老师，你……你再……再不回来就……就完了……"/>
+					<context npcId="679" str="别激动，到底发生了什么事情，慢慢说。">
+						<choice str="是啊。" action="2655_MissStudentCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["667_2656_knightstar3"] = <config>
+					<context npcId="667" str="老师，这里似乎没有任何打斗的痕迹，不过我找到了一些碎片。"/>
+					<context npcId="679" iconId="3" str="这些碎片合起来应该是一个图案，而且看上去好像有点眼熟。">
+						<choice str="我来把它们拼起来吧！" action="2656_HonorInteraction">
+						</choice>				
+					</context>
+				</config>;
+         talk["667_2660_knightstar3"] = <config>
+					<context npcId="667" iconId="2" str="过……过节，那……那是大了去了， 上……上次我的脸都炸肿了，差点毁容……"/>
+					<context npcId="667" iconId="2" str="这次又被炸成这样，反……反正我……我早晚得收……收拾它！"/>
+					<context npcId="679" str="瑞阳虽然是秘法骑士，但也是一位非常优秀的学生，我想它不会无缘无故的扔炸弹。"/>
+					<context npcId="666" str="老师说的有道理，那我们现在要怎么办？"/>
+					<context npcId="679" str="一起去骑士学院看看到底发生了什么事吧！">
+						<choice str="嗯，看看去！" taskId="2660">
+						</choice>
+					</context>
+				</config>;
+         talk["667_2685_AfterFinishMissionMovie"] = <config>
+					<context npcId="667" iconId="2" str="老……老师，不……不好……">
+						<choice str="发生什么事了？" taskId="2685">
+						</choice>			
+					</context>
+				</config>;
+         talk["667_2686_knightstar4"] = <config>
+					<context npcId="667" iconId="2" str="这……这些同……同学看……看上去好……好像有点不正常……"/>
+					<context npcId="679" iconId="6" str="难道它们中了永夜族的诅咒？">
+						<choice str="永夜族的诅咒？">
+							<context npcId="679" str="就是一种能把亚比和人都变成吸血鬼的邪恶诅咒。"/>
+							<context npcId="666" iconId="9" str="老师的意思是若水它们要变成吸血鬼了？"/>
+							<context npcId="679" str="除非用强大的纯净能源将它们净化，要不然迟早它们会变得和刚才的通灵巫师一样。">
+								<choice str="那我们赶紧去找纯净能源吧！" action="2686_LuoGeComeMovie">
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["667_2695_AfterShineCupMovie"] = <config>
+					<context npcId="667" iconId="2" str="是骑……骑士圣……杯……它……它发……发光了……"/>
+					<context npcId="666" str="看来我们有救了！"/>
+					<context npcId="680" str="骑士，精神，召唤，圣杯！"/>
+					<context npcId="679" iconId="7" str="没错，看来是你们的骑士精神解开了圣杯的封印。">
+						<choice str="真的是太高兴了。" taskId="2695">
+						</choice>				
+					</context>
+				</config>;
+         talk["668_2630_knightstar2"] = <config>
+					<context npcId="668" str="亲爱的同学们，我是你们的新老师。"/>
+					<context npcId="667" str="看到没有，中间那个长着大饼脸、蒜头鼻、招风耳的就是新来的老师罗格。"/>
+					<context npcId="1" iconId="44" str="可是HELLO觉得它好帅呢，好像在哪里见过，只是HELLO一时想不起来了。">
+						<choice str="嗯，我也有这种感觉。">
+							<context npcId="666" iconId="2" str="此人身高比刑风老师矮2.44毫米，体重超5.85千克，总体水平相差3.1415926个档次……">
+								<choice str="严重怀疑数据的准确性。" action="2630_EnounceMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["668_2631_AfterBoxMovie"] = <config>
+					<context npcId="668" str="萧辰，听说你是个数学天才，我想这对你来说应该不会太难吧！"/>
+					<context npcId="666" iconId="2" str="我觉得这个还用不着我出手，#username#，你去处理吧！">
+						<choice str="为什么还是我？" taskId="2631">
+						</choice>
+					</context>
+				</config>;
+         talk["668_2631_knightstar2"] = <config>
+					<context npcId="668" str="如果我没有猜错，你们应该是刑风的得意门生萧辰和浩然吧！"/>
+					<context npcId="667" iconId="3" str="你怎么知道的？"/>
+					<context npcId="668" str="连这么愚蠢的问题都问得出来，我想只有刑风那种笨蛋才教得出来。"/>
+					<context npcId="666" str="一个老师说出如此没水平的话，一般来说90%是因为没本事，100%是因为忌妒。">
+						<choice str="嗯，我也这么觉得。">
+							<context npcId="668" str="听这话，看来我得让你们见识一下我的真才实学才行咯！"/>
+							<context npcId="667" iconId="2" str="那……那你就证……证明给我……我们看看！">
+								<choice str="对，证明给我们看看。" action="2631_BoxMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["668_2634_AfterLuoGeMovie"] = <config>
+					<context npcId="668" str="看见了吗，美丽的失败之血，听见了吗，动人的断骨之伤。"/>
+					<context npcId="667" iconId="2" str="太……太可恶了，你……你伤了萧辰，我……我要和你拼了。"/>
+					<context npcId="666" iconId="8" str="你现在250%不是它的对手，所以不要以卵击石。">
+						<choice str="是啊。" action="2634_RecruitStudentMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["668_2634_knightstar2"] = <config>
+					<context npcId="668" str="敢在我的面前欺负我的学生，简直是目无尊长，所以就让我替刑风来清理门户吧。">
+						<choice str="萧辰小心。" action="2634_LuoGeMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["668_2665_AfterSuccessAvoidInteraction"] = <config>
+					<context npcId="668" str="亲爱的同学们，大家围起来将它们抓住，让圣剑骑士永远的消失吧！">
+						<choice str="大家小心。" action="2665_StudentComeMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["668_2665_knightstar1"] = <config>
+					<context npcId="668" str="用我们秘法骑士的武器向这群坏蛋统统砸去，将它们赶出学院吧！">
+						<choice str="同学们，冷静一点啊。" action="2665_AvoidInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["668_2686_AfterLuoGeComeMovie"] = <config>
+					<context npcId="668" iconId="2" str="它们都是我准备献给我们夜王大人的祭品，你们别妄想带走它们。"/>
+					<context npcId="679" str="罗格，你的目的究竟是什么？">
+						<choice str="难道是为了骑士圣杯？" taskId="2686">
+						</choice>				
+					</context>
+				</config>;
+         talk["668_2687_knightstar4"] = <config>
+					<context npcId="668" iconId="3" str="哼，这东西对我来说毫无用处，不过是为了引诱这些无知学生的。">
+						<choice str="你太过分了。" action="2687_ThrowCupMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["669_2633_AfterRuoShuiEvolveMovie"] = <config>
+					<context npcId="669" str="现在就让你尝尝我真正的厉害。">
+						<choice type="3" str="看来我只能硬着头皮上了。" action="2633_FightToKnightRuoShui"/>
+						<choice str="同学，你的气场太强，我得先适应适应。"/>
+					</context>
+				</config>;
+         talk["669_2633_knightstar2"] = <config>
+					<context npcId="669" str="现在就让你尝尝我真正的厉害。">
+						<choice type="3" str="看来我只能硬着头皮上了。" action="2633_FightToKnightRuoShui"/>
+						<choice str="同学，你的气场太强，我得先适应适应。"/>
+					</context>
+				</config>;
+         talk["66_1770_catestar4"] = <config>
+					<context npcId="66" iconId="9" str="哼，原来是你们！每次都来坏我的大事！这次绝不能放你们走！">
+						<choice type="0" str="正好，我也没想要逃走！" action="1770_startFight"/>
+						<choice type="0" str="等我准备一下再来跟你打！"/>
+					</context>
+				</config>;
+         talk["66_1770_loseInFight"] = <config>
+					<context npcId="66" iconId="9" str="哼，就凭你这三脚猫的功夫，还想把露丝救出去？！">
+						<choice type="0" str="可恶，就差这么一点点！" taskId="1770" action="1770_nextTalk"/>
+					</context>
+				</config>;
+         talk["66_1770_winInFight"] = <config>
+					<context npcId="66" iconId="8" str="哼，别以为打赢了我，你就能把露丝救出来！"/>
+					<context npcId="66" iconId="9" str="不只是露可，我也给露丝下了药！而且，哼哈哈，这种药只有我才能解！">
+						<choice type="0" str="什么？！" taskId="1770" action="1770_nextTalk"/>
+					</context>
+				</config>;
+         talk["66_1771_catestar4"] = <config>
+					<context npcId="66" str="哼，你回去告诉露可，让它把美食节食谱交出来！只有这样，才能保住露丝！">
+						<choice type="0" str="你太过分了！菲莉！" action="1771_showMovie"/>
+					</context>
+				</config>;
+         talk["66_1771_nextTalk"] = <config>
+					<context npcId="1" iconId="20" str="主人，这可怎么办？！">
+						<choice type="0" str="我也拿不定主意了，心情好乱……">
+							<context npcId="1" iconId="20" str="╮(╯▽╰)╭现在露丝被菲莉抓住了，露可又失去了味觉，松软蛋糕店都要荒废了。"/>
+							<context npcId="1" str="既然想不出办法，不如先回&lt;font color='#FF6600'&gt;&lt;b&gt;松软蛋糕店&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，帮它们照顾一下店面吧。">
+								<choice type="0" str="好吧，现在也只能边照顾蛋糕店边想办法了！" action="1771_showLastMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["66_1808_nextTalk"] = <config>
+					<context npcId="66" iconId="9" str="啊哈哈，露可，你命还真大，吃了我的‘三步倒’竟然还可以活下来！">
+						<choice type="0" str="原来是你把我们的配方掉包了！太可恶了！">
+							<context npcId="66" iconId="9" str="谁让你们那么笨呢！露可，快点把食谱交给我，要不然你妹妹露丝可要受苦咯！">
+								<choice type="0" str="喂，做人要适可而止啦！" taskId="1808" action="1808_nextTalk"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["66_1809_catestar3"] = <config>
+					<context npcId="66" iconId="8" str="又是你这个碍事的小奥拉，看来我得先好好教训教训你！">
+						<choice type="0" str="来吧，谁教训谁还不一定呢！" action="1809_fight"/>
+						<choice type="0" str="等我准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["66_1809_loseInFight"] = <config>
+					<context npcId="66" str="嘿嘿，想打赢我，你还差远了呢！">
+						<choice type="0" str="刚才没有准备好，这次才是动真格的。"/>
+					</context>
+				</config>;
+         talk["66_1809_nextTalk"] = <config>
+					<context npcId="66" str="露可，要食谱还是要露丝？你要快点抉择，我可没有太多时间哦！"/>
+					<context npcId="423" iconId="7" str="我给你食谱，你真的会放了我妹妹吗？"/>
+					<context npcId="1" str="露可，菲莉一定在骗你，千万不能相信她！">
+						<choice type="0" str="是的，达斯特人从来都是不讲信用的！" taskId="1809" action="1809_showLastMovie"/>
+					</context>
+				</config>;
+         talk["66_1809_winInFight"] = <config>
+					<context npcId="66" iconId="9" str="别忘了，露丝还在我手里，没有我的解药，你们一样救不了它！啊哈哈！">
+						<choice type="0" str="菲莉，你不要太过分了。" action="1809_showMovie"/>
+					</context>
+				</config>;
+         talk["66_1817_thirdTalk"] = <config>
+					<context npcId="66" iconId="9" str="想不到我的人气竟然会这么高，看来我是这次大赛实至名归的冠军啦！">
+						<choice type="0" str="别高兴得太早，还没出结果呢！">
+							<context npcId="66" iconId="9" str="不信，那就等着瞧吧！">
+								<choice type="0" str="哼，谁怕谁！">
+									<context npcId="423" str="亲，我们开始做美食吧！">
+										<choice type="0" str="好的。" taskId="1817" action="1817_nextTalk"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["66_1819_nextTalk"] = <config>
+					<context npcId="66" iconId="9" str="果然不出我所料，看来我还真具备当美食家的天份，哎呀呀！">
+						<choice type="0" str="小人得志！" action="1819_showNextMovie"/>
+					</context>
+				</config>;
+         talk["66_1819_thirdTalk"] = <config>
+					<context npcId="66" iconId="5" str="这就是传说中的纯净能源，果然是巨大无比啊！"/>
+					<context npcId="423" str="菲莉，现在你已经是大赛的冠军了，可不可以放了我妹妹？"/>
+					<context npcId="66" iconId="9" str="你们这群笨蛋，其实我根本没给露丝下药，只不过是为了骗你们的食谱。"/>
+					<context npcId="66" iconId="9" str="现在我的目的已经达到了，留着露丝也没什么用，就当卖个人情还给你们吧！">
+						<choice type="0" str="太可恶了！" action="1819_showThirdMovie"/>
+					</context>
+				</config>;
+         talk["66_1820_nextTalk"] = <config>
+					<context npcId="66" iconId="8" str="等等，我不是拿到冠军了吗？而且奖品也已经是我的了。"/>
+					<context npcId="420" iconId="7" str="噢，忘了告诉你，热身赛的奖品是一颗模拟香料，你也不想想，世界上哪有那么大的珍珠！">
+						<choice type="0" str="嗯，没错。">
+							<context npcId="66" iconId="8" str="我不服，我做的美食明明是最好吃的，冠军理应是属于我的。"/>
+							<context npcId="420" str="那我就让你尝尝露可做的美食，你一定会输得心服口服！">
+								<choice type="0" str="是的，看你到时候还有什么话说。" action="1820_showNextMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["66_1821_catestar4"] = <config>
+					<context npcId="66" iconId="8" str="就让你先尝尝我的厉害。">
+						<choice type="0" str="那就来吧！" action="1821_startFight"/>
+						<choice type="0" str="等我准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["66_1821_loseInFight"] = <config>
+					<context npcId="66" str="哼，就凭你还想阻止我！">
+						<choice type="0" str="刚才不是我最好的水平，现在才是我真正的实力！"/>
+					</context>
+				</config>;
+         talk["66_1821_winInFight"] = <config>
+					<context npcId="66" iconId="8" str="这次是我一时失误，中了你们的圈套，不过我还会回来的！">
+						<choice type="0" str="到时候也一样打败你！" action="1821_showMovie"/>
+					</context>
+				</config>;
+         talk["66_2218_hexagrampalace3"] = <config>
+					<context npcId="66" iconId="9" str="啊哈哈！我劝你还是乖乖地把那千年奇灵果交给我吧！">
+						<choice str="奇怪，达斯特人为什么会出现在这里？！" starterId="2218" action="2218_Start"/>
+					</context>
+				</config>;
+         talk["66_2219_hexagrampalace3"] = <config>
+					<context npcId="66" iconId="9" str="啊哈哈！我劝你还是乖乖地把那千年奇灵果交给我吧！">
+						<choice str="奇怪，达斯特人为什么会出现在这里？！" taskId="2219" action="2218_Start"/>
+					</context>
+				</config>;
+         talk["66_2220_hexagrampalace3"] = <config>
+					<context npcId="66" iconId="9" str="我知道你们心中一定有千万万个疑问，不过我可没有时间为你们一一解答。"/>
+					<context npcId="66" iconId="9" str="只要你们把千年奇灵果交给我，就放你们一条生路。">
+						<choice str="可恶，少得意了！千年奇灵果，是不会交给你的！">
+							<context npcId="19" iconId="1" str="菲莉，不要继续在这说废话了，快点把千年奇灵果抢到手吧。"/>
+							<context npcId="66" iconId="8" str="轮得到你教训我吗，你这臭烘烘的家伙！"/>
+							<context npcId="1" iconId="1" str="主人，趁他们内部混乱，我们赶紧闪吧！">
+								<choice str="好办法！">
+									<context npcId="66" iconId="9" str="想溜？没那么容易！可帕斯，快点上去把千年奇灵果抢过来！"/>
+									<context npcId="19" iconId="1" str="除了黑王子和黑元首，别人的指挥，对我是无效的。"/>
+									<context npcId="66" iconId="8" str="可！！！帕！！！斯！！！！">
+										<choice str="- -||" action="2218_Movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["66_2221_hexagrampalace3"] = <config>
+					<context npcId="66" iconId="9" str="千年奇灵果还没交出来呢，别匆忙忙地就想要走啊！">
+						<choice str="这样的话，我只能把你们都揍飞了！" action="2218_Fight1"/>
+						<choice str="我准备一下再来和你们战斗。" action=""/>
+					</context>
+				</config>;
+         talk["66_2320_fightLose"] = <config>
+					<context npcId="66" iconId="9" str="就这点能耐，我看还是乖乖滴把斧头交给我吧！">
+						<choice type="0" str="刚才未尽全力，再来一次。" action="finish_2320"/>
+					</context>
+				</config>;
+         talk["66_2320_fightWin"] = <config>
+					<context npcId="66" iconId="9" str="既然这个小鬼要去救父亲，我也就暂时卖你们一个人情，啊哈哈……"/>
+					<context npcId="66" iconId="9" str="等到你们把凯撒大人放出来，斧头自然还会是我滴。">
+						<choice type="0" str="凯撒大人？你这话是什么意思？" action="finish_2320"/>
+					</context>
+				</config>;
+         talk["66_2320_yakestar2"] = <config>
+					<context npcId="66" iconId="8" str="不给我，嗯哼哼，那就别怪我不客气了。">
+						<choice type="3" str="来就来，谁怕谁。" action="2320_startFight"/>
+					</context>
+				</config>;
+         talk["66_2321_yakestar2"] = <config>
+					<context npcId="66" iconId="9" str="我的意思是那个小鬼要劈山救父完全是多此一举啦，哇咔咔……"/>
+					<context npcId="581" str="我要劈开玛雅山救父亲，是正义之事，怎么能说是多此一举呢？">
+						<choice type="0" str="就是。">
+							<context npcId="66" iconId="9" str="再过些时日，凯撒大人自己就可以冲破封印……根本不需要你们劈山。">
+								<choice type="0" str="凯撒？冲破封印？这到底是怎么回事？">
+									<context npcId="66" iconId="13" str="哎呀呀，不好，说漏嘴了，不行，我得先走了。">
+										<choice type="0" str="等等，不许跑，把话说清楚。" action="play_2321_showEnemyLeave"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["66_2346_loseInFight"] = <config>
+					<context npcId="66" iconId="9" str="啊哈哈，被我华丽丽的打败了吧。">
+						<choice type="0" str="刚才没尽全力，再来一次。"/>
+					</context>
+				</config>;
+         talk["66_2346_winInFight"] = <config>
+					<context npcId="66" iconId="12" str="可恶，竟然被华丽丽的打败了！下次我不会放过你的。">
+						<choice type="0" str="下次一样打败你。" action="2346_showEnemyLeave"/>
+					</context>
+				</config>;
+         talk["66_2346_yakestar1"] = <config>
+					<context npcId="66" iconId="8" str="既然你这个小奥拉那么爱多管闲事，那就让我先华丽丽的打败你。">
+						<choice type="3" str="来吧，我可不怕你哦。" action="2346_startFight"/>
+						<choice type="0" str="我还没准备，待会再来和你打。"/>
 					</context>
 				</config>;
          talk["66_285_feier1"] = <config>
@@ -5456,6 +18218,192 @@ package mmo.tasknpc
 				</config>;
          talk["66_349_feier4"] = <config>
 					<context npcId="66" str="就算把烈焰鸟送给你，你也解不开这个蓝闪闪的冰冻网！">
+					</context>
+				</config>;
+         talk["679_2654_knightstar1"] = <config>
+					<context npcId="679" str="不过听萧辰的口气，似乎对这位新来的老师印象不怎么好，这其中是不是有什么误会？"/>
+					<context npcId="666" iconId="6" str="我才没有误会它呢，老师，你再不回来，我们圣剑恐怕就剩下2.54个学生了！">
+						<choice str="学生还有0.54个的？">
+							<context npcId="666" str="你就是那0.54个啦，其实就是可以无视的意思了！">
+								<choice str="⊙﹏⊙b汗……">
+									<context npcId="679" iconId="3" str="这到底是怎么回事？">
+										<choice str="事情是这样的……（将事情的经过告诉刑风老师）">
+											<context npcId="679" iconId="3" str="我很少和人有过节，也并未见过这位新老师，它这么针对我似乎有点奇怪！"/>
+											<context npcId="666" str="嗯，所以我敢200%肯定它有阴谋，不过浩然已经跟踪它们去了，我想它应该会给我们带来一些线索。">
+												<choice str="我也是这么认为的。" action="2654_HaoRanBackMovie">
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["679_2656_AfterHonorInteraction"] = <config>
+					<context npcId="679" iconId="6" str="永……永夜徽章……难道是……">
+						<choice str="刑风老师，怎么了？" taskId="2656">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2657_AfterYongYeCartoon"] = <config>
+					<context npcId="679" iconId="4" str="自那以后，夜王灵魂不知所踪，而永夜族也逐渐被世人所遗忘，只是没想到……"/>
+					<context npcId="667" iconId="2" str="这……这……这听……听起来太……太可怕了……"/>
+					<context npcId="679" iconId="4" str="这些年，永夜族一直在找夜王灵魂的载体，一旦夜王复活，后果将不堪设想。"/>
+					<context npcId="1" iconId="4" str="HELLO觉得，如果那位白灵族的狼王也可以复活就不用怕了！">
+						<choice str="是啊。" taskId="2657">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2657_knightstar3"] = <config>
+					<context npcId="679" iconId="4" str="这是永夜族的徽章，如果我猜的不错，那位罗格老师应该是永夜族的成员。"/>
+					<context npcId="679" iconId="4" str="如果真是这样，那事情比我想像中的要严重很多。"/>
+					<context npcId="1" str="刑风老师，HELLO也有听说过永夜族和夜王，只是并不清楚是怎么回事，你能告诉我们吗？">
+						<choice str="是啊，我也很想知道。" action="2657_YongYeCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2658_knightstar3"] = <config>
+					<context npcId="679" iconId="5" str="有邪恶的地方就会有正义，我想白灵族的勇士们一定会维护正义的。"/>
+					<context npcId="679" iconId="5" str="不过我们的当务之急是找出那些失踪的同学。"/>
+					<context npcId="667" iconId="2" str="对……对……要是它们都……都变成吸血鬼那……那就惨……惨了……">
+						<choice str="嗯，说的对。" action="2658_FlyBombMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2661_AfterKnightEvolveMovie"] = <config>
+					<context npcId="679" iconId="3" str="瑞阳，告诉老师究竟发生了什么事？"/>
+					<context npcId="680" iconId="2" str="若水，失踪，你们，嫌疑！">
+						<choice str="该不会若水失踪了，你怀疑是我们干的吧？" taskId="2661">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2663_knightstar1"] = <config>
+					<context npcId="679" str="我想你就是新来的老师罗格吧，好像我们之前没有见过吧！"/>
+					<context npcId="668" str="刑风，你连我都认不出来了？是你伪装得太好，还是说你变得愚蠢了呢？"/>
+					<context npcId="666" str="80%愚蠢的人会说别人愚蠢，而原因100%是因为它自己不够聪明。">
+						<choice str="没错。">
+							<context npcId="679" str="我只知道罗格和刑风并不认识，至于其他的，不需要记得……"/>
+							<context npcId="668" str="哎呀，这样好没意思啊！不过没关系，我看你也装不了多久，因为……哈哈……"/>
+							<context npcId="679" str="你想干什么？以前的恩怨那是我们之间的事情，和这里的学生没有关系。"/>
+							<context npcId="1" iconId="4" str="主人，它们在说什么，HELLO怎么一句也听不懂。">
+								<choice str="我也不明白。">
+									<context npcId="668" str="这些学生的味道很新鲜，那种少年的气息我很喜欢，闻起来就让人血液沸腾，哈哈……"/>
+									<context npcId="668" str="不过在品尝之前，我得先来让你身败名裂，哈哈……！">
+										<choice str="罗格，你要干什么？" action="2663_LuoGeBackBitingMovie">
+										</choice>				
+									</context>
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["679_2664_knightstar1"] = <config>
+					<context npcId="679" str="同学们，冷静点，不要听信罗格的一面之词。"/>
+					<context npcId="667" iconId="2" str="对……对……罗格它……它不……不是好人，是……是个骗子……">
+						<choice str="没错。">
+							<context npcId="668" str="我亲爱的学生们，自从老师来到这里，老师就深深的爱上了这里，爱上了你们……"/>
+							<context npcId="668" str="老师答应过你们，要把秘法骑士打造为最强大的骑士，你们觉得老师会欺骗你们吗？"/>
+							<context npcId="666" str="真会颠倒是非黑白，太无耻了。">
+								<choice str="嗯，是的。">
+									<context npcId="680" iconId="2" str="罗格，圣杯，秘法，壮大！"/>
+									<context npcId="668" str="放心吧，老师会让秘法骑士壮大起来，也会让大家看到骑士圣杯的光芒！"/>
+									<context npcId="666" str="同学们，你们不要被罗格欺骗了，骑士圣杯早就被封印……">
+										<choice str="是啊，大家要冷静！" action="2664_LuoGeAbetMovie">
+										</choice>				
+									</context>
+								</choice>				
+							</context>
+						</choice>				
+					</context>
+				</config>;
+         talk["679_2666_knightstar3"] = <config>
+					<context npcId="679" str="这次多亏瑞阳，要不是它，也许我们已经进了罗格的圈套之中！">
+						<choice str="是瑞阳救了我们？">
+							<context npcId="679" str="嗯，刚才的白烟是固态的干冰在遇到热水的情况下产生的，是一种物理反应。"/>
+							<context npcId="666" str="这种事情，也只有瑞阳才做得到，它不愧为一位出色实验家。">
+								<choice str="只是它为什么要帮我们呢？">
+									<context npcId="679" str="刚才我们逃出来的时候，瑞阳塞了一张纸条给我！">
+										<choice str="快看看里面写了什么？" action="2666_ScripMovie">
+										</choice>				
+									</context>
+								</choice>				
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["679_2681_AfterFinishTask2659"] = <config>
+					<context npcId="679" iconId="4" str="目前没有一个计划是完美的，我们不能再这么想下去了。">
+						<choice str="那老师你的意思是？" starterId="2681">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2682_knightstar3"] = <config>
+					<context npcId="679" str="多等一分钟，若水它们的危险就增加一分。"/>
+					<context npcId="679" str="与其在这里谋划，我们还不如直接去地下密室，根据若水它们的情况，然后再做打算。"/>
+					<context npcId="666" str="老师说的有道理，可是我发现去地下密室的路已经被石头堵住，进不去了。"/>
+					<context npcId="667" str="嗯，而且这些石头非常奇怪，我用了吃奶的力气都移不动分毫。">
+						<choice str="这究竟是怎么回事？">
+							<context npcId="679" str="这些石头里注入了黑暗能量，你们让开一点，我来将这些能量清除。">
+								<choice str="老师你小心点。" taskId="2682">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["679_2683_AfterMoveStoneInteraction"] = <config>
+					<context npcId="679" str="我们赶紧到地下密室里面去看看吧！">
+						<choice str="嗯，好的！" taskId="2683">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2683_knightstar3"] = <config>
+					<context npcId="679" str="现在只要把这些石头搬开就可以进去了。">
+						<choice str="交给我吧！" action="2683_MoveStoneInteraction">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2688_AfterKindAndEnmityCartoon"] = <config>
+					<context npcId="679" str="为此紫渊对我恨之入骨，只是自夜王死后，紫渊及夜王座下其他两位大将也不知所踪。"/>
+					<context npcId="679" str="而我便以老师的身份待在了这里。">
+						<choice str="原来是这样。" taskId="2688">
+						</choice>				
+					</context>
+				</config>;
+         talk["679_2691_AfterXingFengEvolveMovie"] = <config>
+					<context npcId="679" iconId="7" str="紫渊，要动我的学生，那得先经过我的允许才行！"/>
+					<context npcId="652" str="看来少年的味道果然是不能独享的，那么就让大家一起尝尝吧！">
+						<choice str="你又要玩什么花样？">
+							<context npcId="652" str="哈哈，让这些永夜族的新成员一起尝尝，它们一定会感谢我的！">
+								<choice str="紫渊，你就是个疯子。" action="2691_ZiYuanCallMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["679_2692_AfterFightToKnight"] = <config>
+					<context npcId="679" iconId="9" str="不行，这么打下去不是办法。">
+						<choice str="那该怎么办？" action="2692_RuiYangComeMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2692_knightstar4"] = <config>
+					<context npcId="679" iconId="7" str="不好，这些学生都被紫渊用咒语控制了心神，得赶紧阻止它们才行。">
+						<choice type="3" str="看来只能将它们打晕了。" action="2692_FightToKnight">
+						</choice>
+					</context>
+				</config>;
+         talk["679_2693_AfterFightToZiYuan"] = <config>
+					<context npcId="679" iconId="10" str="想伤害我的学生，那也得我说了行才可以。"/>
+					<context npcId="652" str="我正好想知道狼人是什么味道，今天就给你这个机会吧！">
+						<choice str="刑风小心。" action="2693_GeneralFightMovie">
+						</choice>			
+					</context>
+				</config>;
+         talk["679_2699_knightstar4"] = <config>
+					<context npcId="679" iconId="7" str="真正的骑士不需要依靠外界的能量，这是它们的精神，也是它们的荣耀。">
+						<choice str="既然如此，那我就不客气了。" action="2699_EnergyMovie">
+						</choice>				
 					</context>
 				</config>;
          talk["67_268_feier1"] = <config>
@@ -5553,6 +18501,1186 @@ package mmo.tasknpc
 					<context npcId="68" str="爷爷，快合成出溶剂吧！说不定火山岩石碑上的文字和烈焰鸟有很大关联呢。">
 						<choice type="0" str="是啊！快溶化火山灰吧。" action="48_282_wash">
 						</choice>
+					</context>
+				</config>;
+         talk["680_2661_knightstar1"] = <config>
+					<context npcId="680" iconId="2" str="交出，若水，不然，动手！"/>
+					<context npcId="667" iconId="2" str="你……你什……什么意思？你要动手我……我来奉陪！"/>
+					<context npcId="680" iconId="2" str="那好，看打！">
+						<choice type="3" str="这么直接，我先来和你较量一下吧。" action="2661_FightToRuiYang"/>
+						<choice str="冲动是魔鬼，我先准备一下，待会再来和你打。"/>
+					</context>
+				</config>;
+         talk["680_2662_knightstar1"] = <config>
+					<context npcId="680" iconId="2" str="若水，萧辰，吵架，消失！"/>
+					<context npcId="666" iconId="9" str="我和若水都吵了2012回了，这也能作为证据？">
+						<choice str="是啊，而且萧辰一直和我们在一起呢。">
+							<context npcId="680" iconId="2" str="浩然，跟踪，若水，消失！"/>
+							<context npcId="667" iconId="2" str="我……我跟踪的是……是罗格，而……而且若水是和罗格在……在一起才消失的……">
+								<choice str="是啊，一起去的那些同学也都不见了呢！">
+									<context npcId="680" iconId="2" str="秘法，圣剑，若水，消失！"/>
+									<context npcId="679" str="我想瑞阳你误解了，虽然秘法和圣剑是有矛盾，但是我们没有抓若水的必要。">
+										<choice str="是啊。" action="2662_LuoGeAppearMovie">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2707_screampark1"] = <config>
+					<context npcId="684" iconId="5" str="死叮叮！你居然打脸！说好是玩COSPLAY嘛，哥可是靠脸吃饭的！">
+						<choice str="……COSPLAY？">
+							<context npcId="682" iconId="6" str="哈哈哈，小布你这个家伙，敢扮成怪兽？我要代表宇宙消灭你!">
+								<choice str="⊙＿⊙到底谁是谁呀？" action="Movie2707"/>
+						   </context>
+					   </choice>
+					</context>
+				</config>;
+         talk["682_2708_afterPanel"] = <config>
+					<context npcId="1" iconId="51" str="☆＿☆哇噻！原来COSPLAY就是角色扮演，HELLO长见识咯！">
+						<choice str="谢谢布叮老师！">
+							<context npcId="682" iconId="2" str="哈哈，我们这个COSPLAY派对，是专门为一年一度的“尖叫大赛”举办的哦！">
+								<choice str="哦？尖叫大赛？" taskId="2708"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2708_screampark1"] = <config>
+					<context npcId="689" iconId="1" str="大家好，我们是宇宙超人气组合——小布，叮叮——简称“布叮”！要我们的签名吗？"/>
+					<context npcId="684" iconId="11" str="我是超级明星小布！我真羡慕你们，可以拥有小布的签名～"/>
+					<context npcId="682" iconId="2" str="O(∩_∩)O我是叮叮，很高兴认识你们，一起来玩COSPLAY吧！">
+						<choice str="你们好！COSPLAY是什么呀？" action="Panel2708"/>
+					</context>
+				</config>;
+         talk["682_2709_screampark1"] = <config>
+					<context npcId="689" iconId="1" str="没错！我们就是本届“尖叫大赛”的代言人！快来参加吧！">
+						<choice str="哇哦～" action="Manhua2709"/>
+					</context>
+				</config>;
+         talk["682_2710_screampark1"] = <config>
+					<context npcId="684" iconId="8" str="你说当当吗？它有我帅吗？我要叫它一起过来，让你比一比！">
+						<choice str="好吧，不过你……长得真心创新……" action="Movie2710"/>
+					</context>
+				</config>;
+         talk["682_2711_screampark1"] = <config>
+					<context npcId="682" iconId="4" str="你——好——厉——害！！我最崇拜厉害的勇士了！敢问英雄来自何方？"/>
+					<context npcId="1" iconId="10" str="哦哦，我们忘记自我介绍啦，HELLO和主人来自奥拉星！">
+						<choice str="嗯嗯，我们是来寻找纯净能源的！">
+							<context npcId="682" iconId="4" str="奥——拉——星！就是传说中奥拉之辉所在的地方吗？还有好多宇宙侠！"/>
+							<context npcId="684" iconId="8" str="奥拉之辉？宇宙侠？它们有我帅吗？">
+								<choice str="……" action="Movie2711"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2718_afterMovie"] = <config>
+					<context npcId="682" iconId="4" str="怎么样，我的偶像是不是很厉害～它是我参加尖叫大赛的动力！啊～～～（激动尖叫中……）">
+						<choice str="果然是谜一样的传说……" taskId="2718">
+						</choice>
+					</context>
+				</config>;
+         talk["682_2718_screampark2"] = <config>
+					<context npcId="682" iconId="4" str="哇！不知道红魔先生长什么样子？下周就可以看到啦！好期待！"/>
+					<context npcId="685" iconId="4" str="太好啦！报名成功！大奖我来啦！"/>
+					<context npcId="684" iconid="8" str="哼哼，大奖肯定是我的！我就让你们拿个参与奖吧，哥不会介意的！">
+						<choice str="你哪来的自信呀……">
+							<context npcId="682" iconid="2" str="从现在起，我们要开始尖叫训练咯！来，#username#！！我来教你！">
+								<choice str="尖叫还能训练？">
+									<context npcId="682" iconid="2" str="当然可以啦！我就是上届“尖叫大赛”的冠军！告诉你一个秘密——尖叫需要——偶像！！！">
+										<choice str="偶像？你的偶像不是宇宙侠吗？">
+											<context npcId="682" iconid="4" str="不，我最大的偶像……是一个谜一样的男人！狼——王！它是宇宙超级无敌厉害又帅气的狼人！耶！">
+												<choice str="狼王？" action="Manhua2718"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2719_afterMovie"] = <config>
+					<context npcId="682" iconId="5" str="哇噻，你太酷了！那你找到狼王了吗？"/>
+					<context npcId="685" iconId="1" str="还没有呢～好啦，再说吧～你们看，我有一个尖叫法宝！">
+						<choice str="又是什么奇怪的东西？" taskId="2719">
+						</choice>
+					</context>
+				</config>;
+         talk["682_2725_afterMovie2725"] = <config>
+					<context npcId="682" iconId="4" str="哇哇哇！受不了了！红魔太酷了！啊～～～～～～ "/>
+					<context npcId="684" iconId="8" str="我承认，是比我整容前帅！"/>
+					<context npcId="685" iconId="4" str="大奖！大奖！我来了！">
+						<choice str="哈哈！">
+							<context npcId="686" iconId="2" str="OK，比赛开始前，我要重申一下游戏规则！如果有人忘记就不好咯！">
+								<choice str="哦。" action="Manhua2725"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2735_afterMovie2735Part1"] = <config>
+					<context npcId="682" iconId="7" str="啊啊啊啊啊啊啊，鬼来啦！救命啊！！！"/>
+					<context npcId="683" iconId="7" str="你们吵什么吵，不让我睡觉呀！">
+						<choice type="3" str="当当，快放开叮叮呀！" action="Fight2735"/>
+						<choice str="你睡吧，我们走了。"/>
+					</context>
+				</config>;
+         talk["682_2736_screampark3"] = <config>
+					<context npcId="682" iconId="7" str="当当，你怎么了？快醒醒呀！"/>
+					<context npcId="683" iconId="6" str="……"/>
+					<context npcId="685" iconId="4" str="哇！光能手电筒好厉害！刚才当当好像快发疯了，我用手电筒一照就好了！">
+						<choice str="是吗？" action="Movie2736"/>
+					</context>
+				</config>;
+         talk["682_2737_screampark3"] = <config>
+					<context npcId="682" iconId="1" str="通灵巫师！通灵巫师一定有问题！我们被陷害了！">
+						<choice str="怎么说？" action="Panel2737"/>
+					</context>
+				</config>;
+         talk["682_2738_afterPanel2738"] = <config>
+					<context npcId="1" iconId="10" str="哇！太棒了，伙伴们都变回正常啦！"/>
+					<context npcId="683" iconId="1" str="这还不是全部的伙伴呢，没看到小布……估计它们已经出去了……">
+						<choice str="能救多少先救多少吧！">
+							<context npcId="682" iconId="1" str="我为什么不能用手电筒呢？？难道……只有奇奇可以解开永夜族的诅咒？"> 
+								<choice str="哇！真的吗？" action="Movie2738"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2738_screampark3"] = <config>
+					<context npcId="682" iconId="4" str="救人这种事要交给大英雄！奇奇，把你的光能手电筒借我，我来救大家！">
+						<choice str="好吧大英雄。" action="Panel2738"/>
+					</context>
+				</config>;
+         talk["682_2739_afterManhua2739"] = <config>
+					<context npcId="682" iconId="4" str="哇噻！你这主意太厉害了！我开始崇拜你了奇奇！！"/>
+					<context npcId="683" iconId="4" str="好！说干就干！我再把COS服穿好，奇奇，等一下我就带你去更衣室！">
+						<choice str="嗯嗯，我们出去吧！" action="Movie2739"/>
+					</context>
+				</config>;
+         talk["682_2765_afterStartMovie"] = <config>
+									<context npcId="682" iconId="7" str="决赛来了……决赛来了……我好紧张啊！不知道小布、当当和奇奇都怎么样了？我们会不会像它们一样，变成通灵巫师呀？！"/>
+									<context npcId="1" iconId="1" str="叮叮，你不要害怕！记住奇奇和我们的“大计划”！我们要像大英雄一样，比完这场赛！">
+										<choice str="是啊！我们一定要勇敢！" starterId="2764">
+											<context npcId="682" iconId="9" str="大英雄！大英雄！你说得对！现在不是害怕的时候，我要像偶像狼王一样！打倒邪恶！打倒红魔！"/>
+											<context npcId="1" iconId="1" str="嗯！叮叮、主人，你们最棒了！希望小布、当当和奇奇快点来和我们会合！">
+												<choice str="嘘——红魔来了——" action="Movie2765"/>
+											</context>
+										</choice>
+									</context>
+								</config>;
+         talk["682_2765_screampark1"] = <config>
+					<context npcId="682" iconId="2" str="决赛来了……决赛来了……我好紧张啊！不知道小布、当当和奇奇都怎么样了？我们会不会像它们一样，变成通灵巫师呀？！"/>
+					<context npcId="1" iconId="1" str="叮叮，你不要害怕！记住奇奇和我们的“大计划”！我们要像大英雄一样，比完这场赛！">
+						<choice str="是啊！我们一定要勇敢！">
+							<context npcId="682" iconId="9" str="大英雄！大英雄！你说得对！现在不是害怕的时候，我要像偶像狼王一样！打倒邪恶！打倒红魔！"/>
+							<context npcId="1" iconId="1" str="嗯！叮叮、主人，你们最棒了！希望小布、当当和奇奇快点来和我们会合！">
+								<choice str="嘘——红魔来了——" action="Movie2765"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2772_afterMovie2772p1"] = <config>
+					<context npcId="682" iconId="7" str="我腿都快软了……救命……">
+						<choice type="3" str="叮叮别怕，我来救你！" action="star2772fight"/>
+						<choice str="还是逃命吧！">
+						</choice>
+					</context>
+				</config>;
+         talk["682_2777_afterMovie2777"] = <config>
+					<context npcId="682" iconId="10" str="奇奇……我们一定要把你救下来……我的偶像，我的英雄，快来救救我们……"/>
+					<context npcId="683" iconId="9" str="奇奇——你快装死，不要动，骗过红魔——"/>
+					<context npcId="684" iconId="17" str="红魔，放开奇奇！我们要跟你同归于尽！">
+						<choice str="休想动奇奇一根汗毛！" taskId="2777"/>
+					</context>
+				</config>;
+         talk["682_2778_afterFight2778"] = <config>
+					<context npcId="699" iconId="1" str="大英雄附身！偶像，赐我力量吧！"/>
+					<context npcId="700" iconId="1" str="哥变身真是太帅了！我都要爱上我自己了！"/>
+					<context npcId="701" iconId="1" str="快闪一边去！不要妨碍我睡觉！">
+						<choice str="哇！" taskId="2778"/>
+					</context>
+				</config>;
+         talk["682_2781_screampark4"] = <config>
+					<context npcId="682" iconId="4" str="啊啊啊啊啊——我们太棒了！我们真是大英雄！！"/>
+					<context npcId="684" iconId="7" str="啊啊啊啊啊——我刚才变身了？帅不帅？！有没有帮我拍下来？"/>
+					<context npcId="683" iconId="1" str="啊啊啊啊啊——坏人赶跑了，终于可以好好睡一觉啦～"/>
+					<context npcId="685" iconId="10" str="哈哈，虽然大赛没有奖金了，但是我有你们这样的好伙伴，真是太开心啦！">
+						<choice str="嗯嗯，说得我想哭啦！">
+							<context npcId="685" iconId="10" str="我好想我的好朋友，如果它知道我们的故事，一定会羡慕，哈哈！">
+								<choice str="那你要重新踏上旅途了吗？" action="Movie2781"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["682_2782_screampark4"] = <config>
+					<context npcId="689" iconId="1" str="哈哈！这个大团结结局我们太喜欢啦！#username#，没事回来看我们的演唱会哦！"/>
+					<context npcId="1" iconId="10" str="哈哈！主人，奥拉之辉也终于快要恢复了，我们也快回去向司令官报告吧！">
+						<choice str="还真有点舍不得呢！伙伴们，88！" taskId="2782"/>
+					</context>
+				</config>;
+         talk["683_2713_screampark1"] = <config>
+					<context npcId="683" iconId="1" str="你们怎么这么吵？我才睡了一觉，尖叫大赛就开始了吗？"/>
+					<context npcId="682" iconId="3" str="睡睡睡，睡你个头啊，睡觉都能闯祸，你为什么会穿着坏蛋的服装？"/>
+					<context npcId="685" iconId="2" str="哦哦哦～～～原来你们认识的呀！快赔我热气球！">
+						<choice str="当当，到底是怎么回事？" action="Manhua2713">
+						</choice>
+					</context>
+				</config>;
+         talk["683_2720_afterMovie3"] = <config>
+					<context npcId="683" iconId="3" str="你们又在干嘛？大好时光，为什么不睡觉呢？">
+						<choice str="我们在练习尖叫。" taskId="2720">
+						</choice>
+					</context>
+				</config>;
+         talk["683_2721_screampark2"] = <config>
+					<context npcId="683" iconId="1" str="练习尖叫？别幼稚了，我告诉你，尖叫的秘密只有一个——睡觉！"/>
+					<context npcId="683" iconId="1" str="只要睡得饱了，肺活量就大了，叫得也就更大声了！">
+						<choice str="……这又是你梦到的吧……">
+							<context npcId="683" iconid="1" str="你就好好回家睡上一个星期吧！下周来肯定拿冠军！"/>
+							<context npcId="682" iconid="4" str="不行不行，你要好好看偶像杂志，尖叫才有爆发力！"/>
+							<context npcId="685" iconid="4" str="不行不行，你要吃吃我的尖叫润喉糖，才能发挥嗓子的潜力！">
+								<choice str="……救命啊，我还是自己回家练吧，下周见！" action="End2721"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["683_2730_afterGame"] = <config>
+					<context npcId="683" iconId="4" str="哇，#username#，你的技术真不错，我梦见你飞起来了呢！">
+						<choice str="不是梦，是真的！" taskId="2730">
+						</choice>
+					</context>
+				</config>;
+         talk["683_2730_screampark1"] = <config>
+					<context npcId="683" iconId="1" str="啊？这是哪儿呀？怎么这么黑呀？#username#，你会玩吗？">
+						<choice str="不会啊，看着办吧！" action="Game2730">
+						</choice>
+					</context>
+				</config>;
+         talk["683_2736_afterMovie2736"] = <config>
+					<context npcId="683" iconId="1" str="……这是在哪里？我不是在更衣室里睡觉吗？"/>
+					<context npcId="682" iconId="3" str="你还想着睡觉？！快说，刚才发生了什么事？">
+						<choice str="好好想想。" action="Manhua2736"/>
+					</context>
+				</config>;
+         talk["683_2740_screampark1"] = <config>
+					<context npcId="683" iconId="7" str="报告红魔大人，这个家伙被我抓住了！淘汰它吧！"/>
+					<context npcId="686" iconId="2" str="OH，I am so sorry！看来这个可爱的小朋友也可去COSPLAY成通灵巫师咯！"/>
+					<context npcId="685" iconId="2" str="哼！大坏蛋！我要跟我的伙伴们说句话！"/>
+					<context npcId="686" iconId="2" str="OK，跟你的伙伴们Say Goodbye吧！"/>
+					<context npcId="682" iconId="1" str="奇奇，你不会有事吧？记得我们的“计划”！我们等你哦！"/>
+					<context npcId="685" iconId="1" str="放心吧！#username#，叮叮，你们要好好比赛，我一定不会让你们失望的！">
+						<choice str="嗯！奇奇，你一定要小心！">
+							<context npcId="685" iconId="1" str="好！我们大家都要加油！下周见！">
+								<choice str="奇奇再见！" action="Movie2740"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["684_2705_starfromitem"] = <config>
+									<context npcId="684" iconId="3" str="吼吼～～～送上门的美味～～我要吃了你！">
+										<choice str="⊙o⊙？？？！！！啥？！" starterId="2705">
+											<context npcId="1" iconId="21" str="＞﹏＜啊啊啊啊啊，大怪兽！！主人救命啊～～">
+												<choice str="＞﹏＜？？这是神马情况？" action="Movie2706"/>
+											</context>
+										</choice>
+									</context>
+								</config>;
+         talk["684_2706_screampark1"] = <config>
+									<context npcId="684" iconId="3" str="吼吼～～～送上门的美味～～我要吃了你！">
+										<choice str="⊙o⊙？？？！！！啥？！">
+											<context npcId="1" iconId="21" str="＞﹏＜啊啊啊啊啊，大怪兽！！主人救命啊～～">
+												<choice str="＞﹏＜？？这是神马情况？" action="Movie2706"/>
+											</context>
+										</choice>
+									</context>
+								</config>;
+         talk["684_2707_screampark1"] = <config>
+					<context npcId="684" iconId="5" str="死叮叮！你居然打脸！说好是玩COSPLAY嘛，哥可是靠脸吃饭的！">
+						<choice str="……COSPLAY？">
+							<context npcId="682" iconId="6" str="哈哈哈，小布你这个家伙，敢扮成怪兽？我要代表宇宙消灭你!">
+								<choice str="⊙＿⊙到底谁是谁呀？" action="Movie2707"/>
+						   </context>
+					   </choice>
+					</context>
+				</config>;
+         talk["684_2708_screampark1"] = <config>
+					<context npcId="689" iconId="1" str="大家好，我们是宇宙超人气组合——小布，叮叮——简称“布叮”！要我们的签名吗？"/>
+					<context npcId="684" iconId="11" str="我是超级明星小布！我真羡慕你们，可以拥有小布的签名～"/>
+					<context npcId="682" iconId="2" str="O(∩_∩)O我是叮叮，很高兴认识你们，一起来玩COSPLAY吧！">
+						<choice str="你们好！COSPLAY是什么呀？" action="Panel2708"/>
+					</context>
+				</config>;
+         talk["684_2709_afterManhua"] = <config>
+					<context npcId="682" iconId="2" str="你来的真是时候，我们刚换了新园长，这一届的比赛更好玩，奖金更多呢！">
+						<choice str="哇！">
+							<context npcId="684" iconId="11" str="看到了吗？我在尖叫大赛的海报上！真是太帅气了，我都要爱上我自己了！">
+								<choice str="……对了，你们还有一个伙伴？" taskId="2709"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["684_2709_screampark1"] = <config>
+					<context npcId="689" iconId="1" str="没错！我们就是本届“尖叫大赛”的代言人！快来参加吧！">
+						<choice str="哇哦～" action="Manhua2709"/>
+					</context>
+				</config>;
+         talk["684_2710_afterFight"] = <config>
+					<context npcId="689" iconId="1" str="☆＿☆哇噻！你太猛了！"/>
+					<context npcId="1" iconId="10" str="那当然！我家主人#username#可是厉害的小勇士哦！像通灵巫师这种家伙，见一个打一个！">
+						<choice str="谦虚一点啦～" taskId="2710"/>
+					</context>
+				</config>;
+         talk["684_2710_afterMovie"] = <config>
+					<context npcId="684" iconId="9" str="你你你是谁？要要要干嘛？有话好好说，不不不要咬我脸……"/>
+					<context npcId="1" iconId="21" str="天啊！主人！是通灵巫师！小布你们快跑！它是坏蛋！"/>
+					<context npcId="620" iconId="2" str="呼……呼……">
+						<choice type="3" str="还敢装睡？看我教训你！" action="StarFight2710"/>
+						<choice str="你要睡就睡吧，放你一马！"/>
+					</context>
+				</config>;
+         talk["684_2710_screampark1"] = <config>
+					<context npcId="684" iconId="8" str="你说当当吗？它有我帅吗？我要叫它一起过来，让你比一比！">
+						<choice str="好吧，不过你……长得真心创新……" action="Movie2710"/>
+					</context>
+				</config>;
+         talk["684_2711_screampark1"] = <config>
+					<context npcId="682" iconId="4" str="你——好——厉——害！！我最崇拜厉害的勇士了！敢问英雄来自何方？"/>
+					<context npcId="1" iconId="10" str="哦哦，我们忘记自我介绍啦，HELLO和主人来自奥拉星！">
+						<choice str="嗯嗯，我们是来寻找纯净能源的！">
+							<context npcId="682" iconId="4" str="奥——拉——星！就是传说中奥拉之辉所在的地方吗？还有好多宇宙侠！"/>
+							<context npcId="684" iconId="8" str="奥拉之辉？宇宙侠？它们有我帅吗？">
+								<choice str="……" action="Movie2711"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["684_2716_afterMovie"] = <config>
+					<context npcId="684" iconId="9" str="通灵巫师……就是当当刚才穿的那衣服吗……看起来好恐怖……"/>
+					<context npcId="682" iconId="4" str="哇噻！这个惩罚机制真是酷毙了！">
+						<choice str="为什么要这么做？">
+							<context npcId="686" iconid="1" str="为什么？我听到有人问为什么，why？原因很简单。Because——这就是游戏规则！">
+								<choice str="……" taskId="2716"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["684_2720_afterMovie2"] = <config>
+					<context npcId="684" iconId="10" str="搞什么鬼？请发明家给我解释一下！"/>
+					<context npcId="685" iconId="6" str="让我想想……哎呀！我做的时候，薄荷粉不够了，我就拿了一罐辣椒粉……">
+						<choice str="哈哈哈哈哈哈哈！" action="Movie2720P3">
+						</choice>
+					</context>
+				</config>;
+         talk["684_2727_afterPanel2727"] = <config>
+					<context npcId="684" iconId="12" str="是谁把哥打下来的？！也不看看哥是谁！哥是大明星！"/>
+					<context npcId="1" iconId="43" str="你也太菜了，一捅就掉下马了，哈哈哈哈！">
+						<choice str="╮（￣▽￣）╭" taskId="2727">
+						</choice>
+					</context>
+				</config>;
+         talk["684_2731_screampark1"] = <config>
+					<context npcId="684" iconId="14" str="报告红魔大人，当当在刚才的比赛中没有尖叫！！淘汰出局！！"/>
+					<context npcId="683" iconId="5" str="哎呀……我睡着了……"/>
+					<context npcId="682" iconId="1" str="小布，嘘——不要说话！你不要举报当当啊！你是不是朋友啊？"/>
+					<context npcId="684" iconId="14" str="不行！当当违反了比赛规则！我要奉红魔先生的命令，把它抓起来！"/>
+					<context npcId="686" iconId="2" str="WHAT？谁没有尖叫？那可是违反比赛规则的！大家说要不要淘汰这种人啊？">
+						<choice str="……" action="Movie2731">
+						</choice>
+					</context>
+				</config>;
+         talk["684_2732_afterManhua2732"] = <config>
+					<context npcId="682" iconId="7" str="啊？怎么是这样比的呀？你说小布和当当会不会帮我们作弊呀？！"/>
+					<context npcId="685" iconId="1" str="别做梦了！你看刚才小布那个样子，多吓人呀！">
+						<choice str="不管怎么说，它们都是我们的伙伴呢！走！" action="Movie2732part2">
+						</choice>
+					</context>
+				</config>;
+         talk["684_2773_starImit"] = <config>
+					<context npcId="684" iconId="15" str="哎呀呀，吓死哥了，终于逃出来了！"/>
+					<context npcId="683" iconId="8" str="这么累，我得好好睡一觉……好久没睡觉了……">
+						<choice str="看来你们都变正常了！" starterId="2773"/>
+					</context>
+				</config>;
+         talk["684_2774_afterMovie2774p1"] = <config>
+					<context npcId="683" iconId="8" str="奇奇救了我们，现在轮到我们了！一定要把叮叮和奇奇救出来！然后睡个大觉！"/>
+					<context npcId="684" iconId="15" str="嗯！奇奇还等着我的签名呢！时间不能浪费，#username#，当当，跟哥来！">
+						<choice str="……好！" action="Movie2774p2"/>
+					</context>
+				</config>;
+         talk["684_2774_screampark2"] = <config>
+					<context npcId="684" iconId="15" str="哎呀呀，吓死哥了，终于逃出来了！"/>
+					<context npcId="683" iconId="8" str="这么累，我得好好睡一觉……好久没睡觉了……">
+						<choice str="看来你们都变正常了！" action="Movie2774p1"/>
+					</context>
+				</config>;
+         talk["684_2775_screampark2"] = <config>
+					<context npcId="684" iconId="7" str="看！这是哥找了好多天才找齐的材料！我们需要把它组装起来！"/>
+					<context npcId="684" iconId="7" str="它是我们打倒红魔的秘密武器——超级木马！快来帮忙吧！">
+						<choice str="好厉害！来吧！" action="Panel2775"/>
+					</context>
+				</config>;
+         talk["684_2776_afterMovie2776"] = <config>
+					<context npcId="684" iconId="16" str="哈哈！红魔被哥打伤了！我们真厉害！"/>
+					<context npcId="682" iconId="10" str="小布，当当，#username#，你们还好吧，现在完了，大家都受伤了……555555……">
+						<choice str="没事！我们现在是有难同当的伙伴了！" taskId="2776"/>
+					</context>
+				</config>;
+         talk["684_2776_screampark4"] = <config>
+					<context npcId="684" iconId="9" str="不好！叮叮受伤了！红魔这个大混蛋！"/>
+					<context npcId="703" iconId="4" str="WOW！我没看错吧！一个大玩具？！你们这些小鬼，想用这个东西打败我吗？SO FUNNY！哈哈哈……"/>
+					<context npcId="684" iconId="12" str="你这个坏蛋，居然看不起哥的坐骑！当当，#username#，拿好家伙，开火了！">
+						<choice str="遵命！" action="Scene2776"/>
+					</context>
+				</config>;
+         talk["685_2712_screampark1"] = <config>
+					<context npcId="685" iconId="2" str="你们谁谁谁，把垃圾丢到天上，害我的热气球漏气啦！"/>
+					<context npcId="1" iconId="33" str="（悄悄对我们说）哎呀主人，你刚刚脚力太猛了，把这位童鞋的热气球踢破啦！"/>
+					<context npcId="685" iconId="2" str="谁丢的？快出来赔我热气球！我还要旅行呢！">
+						<choice str="……" action="Movie2712">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2713_screampark1"] = <config>
+					<context npcId="683" iconId="1" str="你们怎么这么吵？我才睡了一觉，尖叫大赛就开始了吗？"/>
+					<context npcId="682" iconId="3" str="睡睡睡，睡你个头啊，睡觉都能闯祸，你为什么会穿着坏蛋的服装？"/>
+					<context npcId="685" iconId="2" str="哦哦哦～～～原来你们认识的呀！快赔我热气球！">
+						<choice str="当当，到底是怎么回事？" action="Manhua2713">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2717_screampark2"] = <config>
+					<context npcId="685" iconId="4" str="我什么都不怕！我要报名！我要拿大奖！"/>
+					<context npcId="689" iconId="1" str="我们也要报名！我们是布叮组合！还有当当和#username#！耶！">
+						<choice str="又被拖下水了……" action="Panel2717">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2719_screampark2"] = <config>
+					<context npcId="685" iconId="5" str="      咦？这不是狼王爷爷吗？可是它已经死了耶……"/>
+					<context npcId="682" iconId="5" str="什么？！！！你跟狼王很熟吗？！！"/>
+					<context npcId="685" iconId="1" str="我听我爸爸的爸爸的爸爸讲，当年我们白灵族和永夜族打架的时候，出现了一个超厉害的狼王爷爷，它用生命拯救了整个宇宙！"/>
+					<context npcId="685" iconId="1" str="我最好的伙伴，跟叮叮一样，也超级崇拜狼王！我还是因为它才旅行的呢！">
+						<choice str="哦，怎么说？" action="Manhua2719"/>
+					</context>
+				</config>;
+         talk["685_2720_afterMovie1"] = <config>
+					<context npcId="685" iconId="1" str="看！尖叫润喉糖！我最新的研究成果！吃下它，尖叫指数就会破表哦！"/>
+					<context npcId="684" iconId="7" str="嘿嘿，原来你还会DIY呀！来，给哥试试～">
+						<choice str="那我们看着你试吧。" action="Movie2720P2">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2733_startImit"] = <config>
+					<context npcId="685" iconId="7" str="鬼——来——了——"/>
+					<context npcId="682" iconId="7" str="啊～～～～～～～～奇奇你不要吓人啊！这鬼屋怎么这么黑呀……#username#，保护我……">
+						<choice str="你的手电筒这么暗，照什么呀？" starterId="2733"/>
+					</context>
+				</config>;
+         talk["685_2734_afterMovie2734"] = <config>
+					<context npcId="685" iconId="7" str="哎呀，我忘记了，这是光能手电筒，光线越强，它才会越亮，哈哈……"/>
+					<context npcId="682" iconId="8" str="光线越强，手电筒越亮？？？？？你这是神马破发明呀！">
+						<choice str="我们还是找找开关，把灯打开吧！" action="Scene2734"/>
+					</context>
+				</config>;
+         talk["685_2734_screampark3"] = <config>
+					<context npcId="685" iconId="7" str="鬼——来——了——"/>
+					<context npcId="682" iconId="7" str="啊～～～～～～～～奇奇你不要吓人啊！这鬼屋怎么这么黑呀……#username#，保护我……">
+						<choice str="你的手电筒这么暗，照什么呀？" action="Movie2734"/>
+					</context>
+				</config>;
+         talk["685_2735_screampark3"] = <config>
+					<context npcId="685" iconId="8" str="太好了，鬼屋亮了！啊～～～～～～有鬼！！小心！！">
+						<choice str="什么？！" action="Movie2735Part1"/>
+					</context>
+				</config>;
+         talk["685_2736_afterManhua2736"] = <config>
+					<context npcId="685" iconId="5" str="       呃……我觉得这件事很有问题！你们不是进去COS通灵巫师的吗？">
+						<choice str="这一定有什么阴谋！" taskId="2736"/>
+					</context>
+				</config>;
+         talk["685_2738_afterMovie2738"] = <config>
+					<context npcId="685" iconId="1" str="是吗？原来我可以解开永夜族的诅咒！我也第一次知道耶！"/>
+					<context npcId="685" iconId="3" str="虽然我有超能力，但是，我的发明又一次失败了……5555555……">
+						<choice str="没事，我们习惯了。" taskId="2738"/>
+					</context>
+				</config>;
+         talk["685_2739_screampark3"] = <config>
+					<context npcId="685" iconId="1" str="咦？我突然有个好主意！可以帮我们救下全部的伙伴！">
+						<choice str="是吗？快说说。" action="Manhua2739"/>
+					</context>
+				</config>;
+         talk["685_2769_screampark4"] = <config>
+					<context npcId="698" iconId="1" str="天啊！我们的伙伴怎么了？！好恐怖啊啊啊啊啊！"/>
+					<context npcId="685" iconId="1" str="大家看到了吧！红魔把我们的伙伴都变成通灵巫师了！"/>
+					<context npcId="682" iconId="4" str="奇奇——你终于来了！太好啦！伙伴同心，其利断金！红魔你死定了！"/>
+					<context npcId="703" iconId="2" str="SO WHAT？！既然你们知道了，那就让你们知道更厉害、更刺激的吧！">
+						<choice str="红魔……" action="Movie2769">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2770_screampark4"] = <config>
+					<context npcId="682" iconId="7" str="红……红魔……太……太……太恐怖了……">
+						<choice str="不好了！永夜徽章的能量满了！" action="Movie2770">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2771_screampark4"] = <config>
+					<context npcId="685" iconId="1" str="不好了！天空上那是什么东西？！">
+						<choice str="啊？" action="Movie2771">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2778_screampark4"] = <config>
+					<context npcId="685" iconId="12" str="大家……伙伴们……你们别管我了，快跑吧……">
+						<choice str="绝对不行，我们一定要救你！">
+							<context npcId="703" iconId="2" str="哈哈哈，你们真勇敢！让我太感动了！BUT，想打败我，只是做梦！"> 
+								<choice type="3" str="哼！我才不信！" action="starfight2778"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2779_afterMovie2779p1"] = <config>
+					<context npcId="685" iconId="9" str="#username#！我感到一股很强的力量，它就要爆发了！但是我需要光……"/>
+					<context npcId="685" iconId="9" str="永夜族的坏蛋最怕光了，你帮帮我，让摩天轮转起来，我要用强光，让体内的力量爆发！">
+						<choice str="好！来吧！" action="Movie2779p2"/>
+					</context>
+				</config>;
+         talk["685_2780_afterMovie2780"] = <config>
+					<context npcId="685" iconId="4" str="耶！我们打败了红魔！天啊，真不敢相信！">
+						<choice str="你太厉害了！" taskId="2780"/>
+					</context>
+				</config>;
+         talk["685_2799_musicstar1"] = <config>
+					<context npcId="685" str="这件事说来就话长了。">
+						<choice str="你慢慢说。" action="2799_comic"/>
+					</context>
+				</config>;
+         talk["685_2799_secondtalk"] = <config>
+					<context npcId="685" str="他乡遇故知，我真是太兴奋了，所以就冲了上来，接着就有了刚才的乌龙。"/>
+					<context npcId="705" str="原来是我误会你了，对不起了。"/>
+					<context npcId="685" str="没关系，不打不相识嘛，哎呀，糟糕，买票队伍都不见了，我们赶紧买票去吧！">
+						<choice str="是啊，得赶快才行。" action="2799_end"/>
+					</context>
+				</config>;
+         talk["685_2800_musicstar2"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2801_musicstar2"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2802_musicstar2"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2803_musicstar2"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2805_musicstar2"] = <config>
+					<context npcId="685" action="2804_start"/>
+				</config>;
+         talk["685_2806_musicstar3"] = <config>
+					<context npcId="685" iconId="14" str="哇，第一次见到这么大的舞台，这么多的观众，好激动啊！"/>
+					<context npcId="705" iconId="13" str="那当然，能在这里开演唱会，非蒙可是第一人呢。">
+						<choice str="真是太厉害了！" action="2806_movie1"/>
+					</context>
+				</config>;
+         talk["685_2807_musicstar3"] = <config>
+					<context npcId="705" str="你们认识宇宙十佳主持人之一的奥力奥？"/>
+					<context npcId="1" iconId="51" str="是啊，在美食之星认识的，那时它经常把HELLO叫成大包子呢！"/>
+					<context npcId="705" iconId="14" str="哇，你们真是太厉害了。">
+						<choice str="一般一般了。" action="2807_movie1"/>
+					</context>
+				</config>;
+         talk["685_2808_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="哇，绿焰先生果然与众不同，出场都这么帅气，这么神秘！"/>
+					<context npcId="1" iconId="20" str="真遗憾，HELLO还是不知道它长得怎么样。"/>
+					<context npcId="685" iconId="13" str="它的气场很大，给人很强的压迫感，让我突然有种很不好的预感。">
+						<choice str="我也有一点。" action="2808_movie1"/>
+					</context>
+				</config>;
+         talk["685_2809_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="主持人，我和他们是一起的，你来测试一下我吧！"/>
+					<context npcId="420" str="既然如此，看在#username#和大包子的面子上，这个机会就给你吧。">
+						<choice str="奥力奥，你太给力了。" action="2809_gamestart"/>
+					</context>
+				</config>;
+         talk["685_2810_musicstar3"] = <config>
+					<context npcId="705" str="你们不用打击我，反正我觉得我是匹千里马，怪只怪你们不是我的伯乐。">
+						<choice str="⊙﹏⊙b汗……" action="2810_movie1"/>
+					</context>
+				</config>;
+         talk["685_2810_secondtalk"] = <config>
+					<context npcId="685" iconId="14" str="等了这么久，终于可以见到天王巨星了，真是太令人激动了！">
+						<choice str="我也一样。" action="2810_end" taskId="2810"/>
+					</context>
+				</config>;
+         talk["685_2811_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="终于可以现场亲耳听非蒙唱歌了，嗷嗷……药药，切克闹……">
+						<choice str="淡定淡定……" action="2811_movie1"/>
+					</context>
+				</config>;
+         talk["685_2812_starttask"] = <config>
+					<context npcId="685" iconId="15" str="我一时半会也想不起来，反正从绿焰出现后，我的感觉就越来越不好。"/>
+					<context npcId="705" iconId="6" str="那明明就是纹身，你们别再唧唧歪歪的，打扰我看演唱会的兴致了。">
+						<choice str="o(╯□╰)o……" action="2812_start_task"/>
+					</context>
+				</config>;
+         talk["685_2813_musicstar3"] = <config>
+					<context npcId="685" iconId="15" str="我一时半会也想不起来，反正从绿焰出现后，我的感觉就越来越不好。"/>
+					<context npcId="705" iconId="6" str="那明明就是纹身，你们别再唧唧歪歪的，打扰我看演唱会的兴致了。">
+						<choice str="o(╯□╰)o……" action="2812_start"/>
+					</context>
+				</config>;
+         talk["685_2814_musicstar3"] = <config>
+					<context npcId="685" iconId="16" str="我闻到了永夜族的气息，大家要小心。"/>
+					<context npcId="705" str="别乱说，我看过永夜族和白灵族的故事，那都是写故事的人用来骗小孩子的。">
+						<choice str="我们要相信奇奇的直觉。" action="2814_movie1"/>
+					</context>
+				</config>;
+         talk["685_2814_secondtalk"] = <config>
+					<context npcId="685" iconId="16" str="终于结束了，我有重大的发现要告诉你们，所以我们先离开这里吧！"/>
+					<context npcId="705" iconId="6" str="着什么急啊，我还没拿非蒙的亲笔签名呢！"/>
+					<context npcId="1" iconId="1" str="奇奇要说的事情肯定很重要，所以HELLO觉得还是先离开的好。">
+						<choice str="嗯，我也同意。" action="2814_end"/>
+					</context>
+				</config>;
+         talk["685_2815_musicstar1"] = <config>
+					<context npcId="685" str="我一直在想非蒙脖子上的印记，终于想起来了，那是永夜族咬过留下的痕迹。"/>
+					<context npcId="1" iconId="3" str="如果HELLO没有猜错，奇奇的意思应该是非蒙受了永夜族的诅咒吧！"/>
+					<context npcId="705" iconId="7" str="你们也太过分了，竟然这样污辱非蒙，神马永夜族，把我当三岁小孩呢！"/>
+					<context npcId="705" iconId="7" str="亏我还把你们当朋友，看我不打扁你们。">
+						<choice type="3" str="路比，你冷静点，听奇奇把话说完。" action="2815_startfight"/>
+					</context>
+				</config>;
+         talk["685_2815_secondtalk"] = <config>
+					<context npcId="685" str="路比，你也别激动，听我把事情说清楚。">
+						<choice str="是啊，先冷静一点。" action="2815_end" taskId="2815"/>
+					</context>
+				</config>;
+         talk["685_2816_musicstar1"] = <config>
+					<context npcId="705" iconId="6" str="我就给你个机会，你说，到底是怎么回事？若说得没道理，我就和你们绝交！">
+						<choice str="奇奇，好好和它说吧！" action="2816_movie1"/>
+					</context>
+				</config>;
+         talk["685_2817_musicstar1"] = <config>
+					<context npcId="685" str="也许你不相信，但是你一定记得刚才除了我们几个，其他在场的粉丝都哭了吧！"/>
+					<context npcId="705" str="这个当然，我还看见那些眼泪都飞进了世纪大舞台上面的小提琴里呢。">
+						<choice str="这到底是怎么回事呢？" action="2817_movie1"/>
+					</context>
+				</config>;
+         talk["685_2818_musicstar3"] = <config>
+					<context npcId="685" str="我四周都看了一下，好像并没有什么特别的。">
+						<choice str="难道要白跑一趟了？" action="2818_movie1"/>
+					</context>
+				</config>;
+         talk["685_2818_secondtalk"] = <config>
+					<context npcId="685" str="你发现什么了？"/>
+					<context npcId="705" str="我敲这面挂着小提琴的墙，发现它和其他几面墙发出的声音不一样，它是有回音的。"/>
+					<context npcId="685" str="看来这面墙的背后应该是有一个类似于房间的空间了。">
+						<choice str="可惜看不到后面的空间。" action="2818_movie2" taskId="2818"/>
+					</context>
+				</config>;
+         talk["685_2819_musicstar3"] = <config>
+					<context npcId="685" str="不过因为时间紧迫，我这个仪器还没有组装好。">
+						<choice str="没关系，我来帮你吧！" action="2819_interaction"/>
+					</context>
+				</config>;
+         talk["685_2820_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="刚……刚才真是太吓人了！为……为什么绿焰能听见我们说话？"/>
+					<context npcId="685" str="这个嘛，可能是我在设计仪器的时候忘了做把声音屏蔽的功能。"/>
+					<context npcId="705" iconId="6" str="哼，想不到第一影视的绿焰竟然是个坏蛋！">
+						<choice str="是啊。">
+							<context npcId="685" str="而且刚才我看到了永夜徽章，所以我敢肯定绿焰的目的一定不单纯。"/>
+							<context npcId="1" iconId="30" str="如果HELLO猜的没错，一定是为了帮助夜王复活。"/>
+							<context npcId="705" iconId="9" str="不管它的目的是什么，反正我一定要救出非蒙。"/>
+							<context npcId="685" str="那我们得好好商量一个计划才行。">
+								<choice str="嗯，我们一起努力！" action="2820_end"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2836_afterstart"] = <config>
+					<context npcId="685" str="不入虎穴，焉得虎子，我们要知道绿焰的阴谋，必须去到那个隐藏的空间才行。">
+						<choice str="可是要怎么进去呢？">
+							<context npcId="685" str="这个我还没想到，不过我总觉得世纪大舞台的那面墙很奇怪，不如我们再去那看看。"/>
+							<context npcId="705" iconId="17" str="虽然绿焰很强大，很可怕，但是为了救非蒙，我决定和你们一起去！">
+								<choice str="那就一起走吧！" action="2836_end"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2836_musicstar1"] = <config>
+					<context npcId="685" action="2835_start"/>
+				</config>;
+         talk["685_2837_musicstar3"] = <config>
+					<context npcId="685" iconId="16" str="我想这里面肯定有机关通往那个空间，我们得好好找找。"/>
+					<context npcId="705" str="机关该不会是那把小提琴吧，可惜没有琴弓，要不然可以拉一拉试试！">
+						<choice str="嗯，我也这么认为。" action="2837_movie1"/>
+					</context>
+				</config>;
+         talk["685_2837_secondtalk"] = <config>
+					<context npcId="685" str="反正只要是乐器，就有它的用武之地。"/>
+					<context npcId="1" iconId="13" str="HELLO有点怀疑，你的发明好像没有真正的成功过。">
+						<choice str="习惯就好了。" action="2837_end" taskId="2837"/>
+					</context>
+				</config>;
+         talk["685_2838_musicstar3"] = <config>
+					<context npcId="685" str="哎呀，你们要相信我，这次一定不会失败，不信的话，你们就试试看嘛！">
+						<choice str="那好，我来吧。" action="2838_movie1"/>
+					</context>
+				</config>;
+         talk["685_2839_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2840_musicstar4"] = <config>
+					<context npcId="685" iconId="14" str="这一定是绿焰设下的圈套，它的目的就是为了夜王的复活。"/>
+					<context npcId="685" iconId="14" str="你们看那个永夜徽章就是最好的证明。"/>
+					<context npcId="705" str="我以前一直以为永夜族和白灵族都是编出来的故事，可是没想到竟然是真的。"/>
+					<context npcId="705" str="奇奇，既然你是白灵族的人，那你就说说白灵族和永夜族曾经的故事吧，我想听正版的。">
+						<choice str="我也很想知道。" action="2840_movie1"/>
+					</context>
+				</config>;
+         talk["685_2840_secondtalk"] = <config>
+					<context npcId="685" iconId="14" str="因为对那种痛苦的煎熬记忆犹新，所以我们白灵族人对永夜族深恶痛绝。">
+						<choice str="原来是这样。" action="2840_end" taskId="2840"/>
+					</context>
+				</config>;
+         talk["685_2841_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2841_secondtalk"] = <config>
+					<context npcId="685" str="经过长时间的沉寂，永夜族称霸宇宙的心蠢蠢欲动。"/>
+					<context npcId="685" str="它们扬言，夜王的灵魂重生之日，就是永夜族重振之时。"/>
+					<context npcId="705" iconId="18" str="听着真让人害怕，夜王真的会复活吗？">
+						<choice str="我也不知道。" action="2841_end" taskId="2841"/>
+					</context>
+				</config>;
+         talk["685_2842_musicstar4"] = <config>
+					<context npcId="685" str="夜王能不能复活和这枚永夜徽章有很大关系。"/>
+					<context npcId="1" iconId="12" str="奇奇说的没错，HELLO以前可是亲眼看到夜王的灵魂从徽章里出来。"/>
+					<context npcId="710" iconId="2" str="难道绿焰要2012滴感动之泪是为了释放这枚徽章里夜王的灵魂？">
+						<choice str="很可能是这样。">
+							<context npcId="710" iconId="2" str="如果真是这样，那我就是天大的罪人了，是我欺骗了粉丝，铸成了大错。"/>
+							<context npcId="685" str="哎呀，不用担心啦，不是还差一滴吗？只要泪水不够，绿焰的阴谋就无法得逞。"/>
+							<context npcId="685" str="而且，别忘了，我可是白灵族的人，有解开永夜族诅咒的超能力的。">
+								<choice str="那就赶紧救非蒙吧。" action="2842_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2844_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2844_secondtalk"] = <config>
+					<context npcId="685" iconId="18" str="不好，是……是夜王的灵魂，它……它已经成……成形了……"/>
+					<context npcId="705" iconId="19" str="好强的气场，太……太可怕了……">
+						<choice str="现在要怎么办？" action="2844_end" taskId="2844"/>
+					</context>
+				</config>;
+         talk["685_2845_musicstar4"] = <config>
+					<context npcId="685" iconId="19" str="身为白灵族的人，我要像狼王一样，即便牺牲性命也要阻止夜王复活。">
+						<choice str="奇奇不要啊。" action="2845_movie1"/>
+					</context>
+				</config>;
+         talk["685_2846_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2847_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2847_secondtalk"] = <config>
+					<context npcId="685" iconId="9" str="我们不会这么轻易被打倒的，我们联手一定可以打败它的。">
+						<choice str="嗯，大家团结起来。" action="2847_movie2" taskId="2847"/>
+					</context>
+				</config>;
+         talk["685_2848_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2849_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2850_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         talk["685_2850_secondtalk"] = <config>
+					<context npcId="685" iconId="14" str="我一定可以打败绿焰的。">
+						<choice str="奇奇小心。" action="2850_movie2"/>
+					</context>
+				</config>;
+         talk["685_2851_musicstar4"] = <config>
+					<context npcId="685" str="其实我也不知道是怎么回事，可能是我们白灵族的潜力吧！">
+						<choice str="嗯，应该是这样。">
+							<context npcId="685" iconId="20" str="今天有两件高兴的事情，第一件就是封印了绿焰，第二件就是我的发明终于成功了一次。"/>
+							<context npcId="710" iconId="7" str="哎呀，不好，我的耳塞拔不出来了！"/>
+							<context npcId="1" iconId="22" str="HELLO的也拔不出来了。">
+								<choice str="哈哈，奇奇，看来你还要努力哦！" action="2851_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2851_secondtalk"] = <config>
+					<context npcId="685" str="虽然曾经的狼王已经不在了，但是我相信还会有新的狼王站起来。"/>
+					<context npcId="705" str="嗯，坚持就是胜利，就像我一样，虽然唱歌很难听，但现在非蒙已经答应当我的老师了。"/>
+					<context npcId="710" str="路比高声部很好，只是缺少专业的训练，只要好好努力，一定会成为一位好的歌唱家。"/>
+					<context npcId="1" str="主人，看来大家都找到自己的目标了，我们也该去指挥中心向司令官报告了。">
+						<choice str="嗯，走吧，大家再见。" action="2851_end" taskId="2851"/>
+					</context>
+				</config>;
+         talk["685_2875_afterappear"] = <config>
+					<context npcId="685" str="伙伴们伙伴们！在我们见面的这一重大时刻里，我要宣布一件重大的事情！">
+						<choice str="是什么呀？">
+							<context npcId="685" str="在我出发前，我们几个曾经打赌，狼王是不是真的存在。"/>
+							<context npcId="685" str="我说，如果环游一圈后，都找不到狼王，我就相信，狼王是绝对不存在的。">
+								<choice str="然后呢？">
+									<context npcId="685" str="但是我——奇奇——现在打心底里相信狼王的存在了，狼王什么的，最伟大了！"/>
+									<context npcId="726" str="啊？奇奇，你今天吃错药了？">
+										<choice str="奇奇，你还是解释一下你的改变吧。" taskId="2875"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2876_afterrelive"] = <config>
+					<context npcId="685" str="这样一来，夜王的灵魂就等于完全复活了。"/>
+					<context npcId="726" iconId="4" str="不、不会吧？！夜王怎么会复活？！"/>
+					<context npcId="726" iconId="4" str="大法师可是告诉我们，夜王在和狼王之前的战斗中，已经魂飞魄散了啊！"/>
+					<context npcId="726" iconId="4" str="而且现在白灵族里，可是没有狼王的，如果夜王这时来袭击我们，那我们就死定啦！">
+						<choice str="这……不会吧……">
+							<context npcId="725" iconId="2" str="你们在怕什么啊！不就一个夜王吗？等我吃饱饭，单手都能干翻它！"/>
+							<context npcId="1" iconId="43" str="HELLO才不信呢，你根本就没见识过夜王强大到可怕的力量……">
+								<choice str="就是！" taskId="2876"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2876_bailingstar1"] = <config>
+					<context npcId="685" str="说来话长了，在我的旅途中，实在是发生了太多太多的事情……">
+						<choice str="说仔细一点吧。" action="2876_wolfRelive"/>
+					</context>
+				</config>;
+         talk["685_2877_bailingstar1"] = <config>
+					<context npcId="685" str="不跟你们讲啦！我要赶紧去和大法师汇报这件事情，大家都要做好战斗的准备才行！">
+						<choice str="嗯，没错。">
+							<context npcId="725" str="大法师可是很罗嗦的，进去了就没得出来了，我和小米还等着你一起去老地方呢！"/>
+							<context npcId="725" str="既然是重大事情，还是用写的比较好吧！你说对不对啊，小米？"/>
+							<context npcId="726" str="（已经把夜王什么的抛到脑后了）没错，去老地方要紧！">
+								<choice str="老地方？！">
+									<context npcId="726" str="嘘，那可是我们的秘密聚会地点，不能随便说哦，看在我们是朋友的份上，待会儿我们带你一起去！"/>
+									<context npcId="725" str="咳咳！奇奇！你到底去不去呀，不去我们就走了！咳咳！">
+										<choice str="一起去呀，奇奇。" action="2877_writeLetter"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2878_afterfight"] = <config>
+					<context npcId="685" iconId="22" str="哈哈哈！笑死我了！哈哈！#username#，原来你这么胆小的！"/>
+					<context npcId="725" iconId="4" str="哈哈哈！刚才真是太搞笑了！和小米第一次进来时的反应一模一样！"/>
+					<context npcId="726" iconId="5" str="哈哈哈！好好笑！不要在这个时候说我的丑事啊洛洛！哈哈！">
+						<choice str="(ㄒoㄒ)" taskId="2878"/>
+					</context>
+				</config>;
+         talk["685_2878_bailingstar2"] = <config>
+					<context npcId="685" iconId="21" str="呵呵，#username#，我是恶鬼，快拿命来！">
+						<choice type="3" str="啊啊啊啊——鬼啊！看我打死你这个鬼啊啊！" action="2878_fight"/>
+					</context>
+				</config>;
+         talk["685_2880_afterstory"] = <config>
+					<context npcId="685" str="正是这种痛苦的记忆，让白灵族害怕这片林子。"/>
+					<context npcId="685" str="它们认为这里充满可怕的诅咒和未知的危险，绝对不允许后人踏入。">
+						<choice str="但是你们还不是大大方方地走进来了。">
+							<context npcId="725" str="爷爷奶奶总是有很多可怕的故事可以吓我们啦！听听就好，不要太认真哦！">
+								<choice str="好吧。" taskId="2880"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2880_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="2880_theStory"/>
+					</context>
+				</config>;
+         talk["685_2881_bailingstar2"] = <config>
+					<context npcId="726" str="好啦！温功课就到此为止了！接下来该做正经事了！大家准备好了没有？"/>
+					<context npcId="725" str="嗯！准备好啦！">
+						<choice str="你们是要干嘛？" action="2881_showGrow"/>
+					</context>
+				</config>;
+         talk["685_2882_bailingstar2"] = <config>
+					<context npcId="725" iconId="5" str="奇奇，你简直酷毙了！"/>
+					<context npcId="685" iconId="23" str="哈哈！怎么样，输了吧！">
+						<choice str="这招真是太绝了。">
+							<context npcId="726" iconId="7" str="哎，比起你的帅气进化，我们的白灵铜人阵通关证书真是弱爆了！">
+								<choice str="噗……也不至于弱爆了啦！">
+									<context npcId="685" str="哇塞！你们居然拿到了白灵铜人阵的通关证书！！快给我看看！！">
+										<choice str="对呀，给奇奇看看嘛。" action="2882_darkShadow"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2882_shadow"] = <config>
+					<context npcId="1" iconId="11" str="大家小心！有人要袭击我们！"/>
+					<context npcId="620" iconId="3" str="哈哈哈哈！刚出魂塔就遇见了这么几个极品食物，真是太让人兴奋了！"/>
+					<context npcId="620" iconId="3" str="只要你们几个乖乖的听话，叔叔们一定会让你们幸福的死去！">
+						<choice str="我们才不会乖乖地被你吃掉呢。" taskId="2882"/>
+					</context>
+				</config>;
+         talk["685_2884_bailingstar2"] = <config>
+					<context npcId="725" str="………………"/>
+					<context npcId="733" iconId="3" str="………………">
+						<choice str="喂，你们都怎么了？">
+							<context npcId="733" iconId="3" str="啊啊啊啊！！！！刚才那是怎么回事，真是太帅啦！！">
+								<choice str="原来你们是被帅呆了。">
+									<context npcId="726" str="洛洛，你刚才，是怎么回事啊？超帅的！"/>
+									<context npcId="726" str="你最近是不是学了什么新东西啊，你可不能一个人耍帅啊，快教教我，我也要变帅！！"/>
+									<context npcId="685" str="洛洛你太不够朋友了，有这么厉害的招数居然不教我！">
+										<choice str="是啊，洛洛，刚才那是什么招数啊？">
+											<context npcId="725" str="我也不知道那是什么啊，不过我觉得那时的我真是超帅的啊，哎呀，真是帅到无法形容！"/>
+											<context npcId="725" str="哇哈哈哈哈哈哈！">
+												<choice str="别一个人在那自恋啊！">
+													<context npcId="725" str="其实我真不明白那是什么啦，也许、大概，是神的旨意？！"/>
+													<context npcId="725" str="对了，刚才你们也听到了吧，那几个家伙说它们是从永夜魂塔里跑出来的呢！"/>
+													<context npcId="685" str="没错，我也听到了。我有点担心，白灵圣殿是不是出什么事了…… ">
+														<choice str="难道和夜王有关……" action="2884_goBack"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2909_bailingstar3"] = <config>
+					<context npcId="685" str="大家其实也不用那么惊慌啦！夜王虽然力量很强大，但是集合大家的力量，说不定能打败它呢！"/>
+					<context npcId="685" str="而且，我们还有小米和洛洛呀，它们前些日子已经通过了白灵铜人阵的考验，还被评为千年奇才呢！">
+						<choice str="没错，大家不要泄气呀！">
+							<context npcId="732" str="通过了白灵铜人阵吗……可是只是白灵族精英的水平的话，抵抗夜王，还是大有不足啊……">
+								<choice str="…………">
+									<context npcId="685" str="可是洛洛不一样，那天我们几个在禁林里遭到通灵巫师袭击的时候，洛洛突然变得好帅！"/>
+									<context npcId="685" str="它全身散发着超级漂亮的银白色光芒，那团光芒一下子就把所有通灵巫师都消灭了呢！">
+										<choice str="没错，我可以作证！" action="2909_surprise"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2910_afterevolution"] = <config>
+					<context npcId="685" iconId="17" str="怎么会这样，洛洛你没事吧？我不是故意的。">
+						<choice str="╮(╯▽╰)╭果然还是失败了。" taskId="2910"/>
+					</context>
+				</config>;
+         talk["685_2910_bailingstar3"] = <config>
+					<context npcId="685" str="对了，我这里有一些神奇道具，也许能帮上洛洛的忙，我们试一试吧！">
+						<choice str="……希望不要帮倒忙。" action="2910_toEvolution"/>
+					</context>
+				</config>;
+         talk["685_2933_afterback"] = <config>
+					<context npcId="685" iconId="25" str="洛洛，#username#，你们快来啊，出事了！">
+						<choice str="怎么了奇奇，出什么事了？">			
+							<context npcId="685" iconId="25" str="之前红魔说小米是夜王的事情好像被传出去了，现在大家都说小米是夜王，要把它赶走！"/>
+							<context npcId="725" iconId="10" str="大家这都怎么了，怎么会相信红魔所说的话？不行，我要去阻止它们！"/>
+							<context npcId="725" iconId="10" str="大法师，您最有威望了！您和我们一起去，一定能说服大家！"/>
+							<context npcId="732" str="…………">
+								<choice str="算了，我们先过去吧。" action="2933_goFirst"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2937_aftersee"] = <config>
+					<context npcId="685" iconId="26" str="大法师，怎么样怎么样！小米它一定没事吧，一定有得救，对不对！"/>
+					<context npcId="732" iconId="4" str="哎……小米伤势太重……已经……"/>
+					<context npcId="732" iconId="4" str="不过，如果小米真是夜王的话……也许……也许这反而是好事……">
+						<choice str="大法师，你怎么能这么说啊！">
+							<context npcId="732" iconId="4" str="洛洛，奇奇，也许你们觉得我很过分，觉得白灵族人很过分。"/>
+							<context npcId="732" iconId="4" str="但是大家并不是想要做恶人，大家所做的一切，都是为了维护和平，避免战争啊！"/>
+							<context npcId="725" iconId="11" str="什么维护和平，什么避免战争，你们已经被夜王这个词冲昏了头脑，连基本的理智都没有了吗？！">
+								<choice str="洛洛……" action="2937_luoluoResolution"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_2937_bailingstar3"] = <config>
+					<context npcId="725" iconId="11" str="大法师！大法师！小米被大家打伤了，大法师，快救救小米吧！">
+						<choice str="大法师，救救小米吧！" action="2937_toSee"/>
+					</context>
+				</config>;
+         talk["685_2997_skycity1"] = <config>
+					<context npcId="685" str="#username#！你来啦！快走，我们去救小米吧！"> 
+						<choice str="发现小米的下落了吗？" starterId="2997">
+						</choice>
+					</context>
+				</config>;
+         talk["685_2998_skycity1"] = <config>
+					<context npcId="685" str="#username#！你来啦！快走，我们去救小米吧！"> 
+						<choice str="发现小米的下落了吗？">
+							<context npcId="725" str="还没有！不过为了小米，我们拼了！#username#！快出发吧！">
+								<choice str="嗯！" action="2998_FlyToOcean">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["685_3000_AfterPaperCartoon"] = <config>
+					<context npcId="685" iconId="18" str="天啊！上周被火焰泡泡圈住的亚比……都走火入魔了！难怪小米不认识我们！"/>
+					<context npcId="725" iconId="10" str="可恶！又是黑色龙卷风搞的鬼！看我把这什么魔都打出来！奇奇，和我一起上！">
+						<choice str="小心！" action="3000_MiBaThrowPanMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["686_2714_starImit"] = <config>
+					<context npcId="686" iconId="1" str="Ladies and 乡亲们！我是尖叫游乐园的新园长，大家可以叫我Mr.红魔！COSPLAY派对好玩吗？"/>
+					<context npcId="682" iconId="1" str="好玩好玩！新园长先生也COS成了通灵巫师，好酷啊！"/>
+					<context npcId="686" iconId="1" str="HELLO！兴奋的小家伙们，尖叫声在哪里？让我听到你们的欢呼！COME ON！"/>
+					<context npcId="689" iconId="1" str="耶～～～～～～～～～～我们要参加尖叫大赛～～～～～我们最棒！！"/>
+					<context npcId="686" iconId="1" str="GOOD！尖叫大赛开幕式开始了！快来报名吧！"/>
+					<context npcId="686" iconId="1" str="新一届的“尖叫大赛”！这次大赛，会比以往任何一届都刺激好玩！奖励空前丰富！">
+						<choice str="哇，好像很爽哦！" starterId="2714" action="Manhua2715"/>
+					</context>
+				</config>;
+         talk["686_2715_afterMovie"] = <config>
+					<context npcId="685" iconId="4" str="哇哇哇！1000万的奖金！太棒啦！我可以完成我的旅行了！">
+						<choice str="我对这比赛越来越感兴趣了！" taskId="2715"/>
+					</context>
+				</config>;
+         talk["686_2715_screampark2"] = <config>
+					<context npcId="686" iconId="1" str="Ladies and 乡亲们！我是尖叫游乐园的新园长，大家可以叫我Mr.红魔！COSPLAY派对好玩吗？"/>
+					<context npcId="682" iconId="4" str="好玩好玩！新园长先生也COS成了通灵巫师，好酷啊！"/>
+					<context npcId="686" iconId="1" str="HELLO！兴奋的小家伙们，尖叫声在哪里？让我听到你们的欢呼！COME ON！"/>
+					<context npcId="689" iconId="1" str="耶～～～～～～～～～～我们要参加尖叫大赛～～～～～我们最棒！！"/>
+					<context npcId="686" iconId="1" str="GOOD！尖叫大赛开幕式开始了！快来报名吧！"/>
+					<context npcId="686" iconId="1" str="新一届的“尖叫大赛”！这次大赛，会比以往任何一届都刺激好玩！奖励空前丰富！">
+						<choice str="哇，好像很爽哦！" action="Manhua2715"/>
+					</context>
+				</config>;
+         talk["686_2716_screampark2"] = <config>
+					<context npcId="686" iconId="1" str="想得到奖励，可没那么EASY！这次尖叫大赛，有一个新的惩罚机制！"/>
+					<context npcId="684" iconId="1" str="惩罚机制？输了的人要被打脸吗？！">
+						<choice str="没这么恐怖吧？！">
+							<context npcId="686" iconid="1" str="看到我的COS服装了吗？没错！我COS的就是坏蛋通灵巫师，是不是很COOL呢？这就是我们的新惩罚机制！">
+								<choice str="惩罚是COS成通灵巫师？" action="Movie2716"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["686_2725_afterStartMovie"] = <config>
+					<context npcId="686" iconId="1" str="HELLO！EVERYONE！我们一年一度的“尖叫大赛”马上就要开始啦！ ">
+						<choice str="尖叫大赛终于来了！好期待呀！" starterId="2724"/>
+					</context>
+				</config>;
+         talk["686_2725_screampark2"] = <config>
+					<context npcId="686" iconId="1" str="HELLO！EVERYONE！我们一年一度的“尖叫大赛”马上就要开始啦！ ">
+						<choice str="尖叫大赛终于来了！好期待呀！" action="Movie2725"/>
+					</context>
+				</config>;
+         talk["686_2726_afterManhua2726"] = <config>
+					<context npcId="686" iconId="2" str="是不是很刺激呢？哈哈哈哈，大家尽情地尖叫吧！COME ON!"/>
+					<context npcId="684" iconId="9" str="哇噻，这规则这么难，要把别人从马上捅下去！摔到脸怎么办呀？"/>
+					<context npcId="686" iconId="2" str="好了，我们第一关比赛就要开始咯！各就各位——">
+						<choice str="我们上马啦！" action="Movie2726">
+						</choice>
+					</context>
+				</config>;
+         talk["686_2726_screampark2"] = <config>
+					<context npcId="686" iconId="2" str="OK！我们马上就要开始第一关了！旋转木马大乱斗！"/>
+					<context npcId="685" iconId="1" str="旋转木马有什么难的？我的最爱！驾驾驾～"/>
+					<context npcId="686" iconId="2" str="OH NO！这可不是一般的旋转木马！它的刺激在于——斗！FIGHT！">
+						<choice str="怎么个斗法？" action="Manhua2726">
+						</choice>
+					</context>
+				</config>;
+         talk["686_2727_screampark2"] = <config>
+					<context npcId="686" iconId="2" str="尖叫大赛第一场比赛——旋转木马大乱斗——现在开始！Are——you——ready？"/>
+					<context npcId="686" iconId="2" str="斗起来，尖叫起来，这就是游戏！3——2——1——GO！">
+						<choice str="大家加油！" action="Panel2727">
+						</choice>
+					</context>
+				</config>;
+         talk["686_2728_screampark2"] = <config>
+					<context npcId="686" iconId="2" str="GREAT！第一关的淘汰者产生了！要遵守游戏规则哦，快去更衣室，COS成通灵巫师吧！">
+						<choice str="小布悲剧了。" action="Movie2728">
+						</choice>
+					</context>
+				</config>;
+         talk["686_2729_screampark1"] = <config>
+					<context npcId="686" iconId="2" str="WOW！大家的尖叫真好听！还没刺激够吧？没关系，第二场淘汰赛——“隧道飞车”——现在开始！"/>
+					<context npcId="684" iconId="14" str="那谁，你们！快站好！第二轮比赛要开始了！"/>
+					<context npcId="682" iconId="7" str="小布，你怎么了？别以为穿了通灵巫师的衣服，我们就不认识你啦！"/>
+					<context npcId="684" iconId="14" str="闭嘴！我奉红魔先生的命令，维护尖叫大赛秩序！">
+						<choice str="你真的怪怪的……" action="Movie2729">
+						</choice>
+					</context>
+				</config>;
+         talk["686_2732_screampark1"] = <config>
+					<context npcId="686" iconId="2" str="WELL DONE！小家伙们，你们表现得很出色！I LOVE YOU！"/>
+					<context npcId="686" iconId="2" str="下面就是本周最精彩、最刺激的一场比赛了！也是淘汰赛的最后一场！鬼屋大冒险！">
+						<choice str="最后一场啦，大家加油！">
+							<context npcId="682" iconId="4" str="哇，鬼屋～～～好耶！要是小布和当当在就更好玩了！"/>
+							<context npcId="686" iconId="2" str="想念伙伴了吗？这场比赛就是一场伙伴的游戏！你们将和被淘汰的FRIENDS，一起比赛！">
+								<choice str="什么意思？" action="Movie2732part1"/> 
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["686_2740_afterMovie2740"] = <config>
+					<context npcId="686" iconId="2" str="YES！淘汰赛终于结束了！勇敢的小家伙们，恭喜你们获得下周决赛的参赛权！欢呼吧！"/>
+					<context npcId="686" iconId="2" str="记住！下周！尖叫大赛总决赛，前所未有的刺激等着你们！不见不散哦！BYE！">
+						<choice str="嗯！" action="Movie2740End"/>
+					</context>
+				</config>;
+         talk["686_2912_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="大家不要都紧绷着个脸嘛，这么久不见，至少也给我一个smile吧！"/>
+					<context npcId="685" str="这个红魔是夜王手下的大将，是个大坏蛋！大家要小心，千万别被它骗了！"/>
+					<context npcId="1" iconId="16" str="主人，快点替天行道，打败这个永夜族的大坏蛋吧！">
+						<choice str="看我的吧！" type="3" action="2912_fight"/>
+					</context>
+				</config>;
+         talk["686_2913_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="哈哈！托夜王大人的福，我的power可是更上一层，所以才能从你们的封印中脱身啊！">
+						<choice str="可恶！">
+							<context npcId="685" str="你这个大坏蛋！之前在尖叫游乐场害我的朋友，差点让它们都变成了通灵巫师！"/>
+							<context npcId="685" str="今天你跑来我的家乡，一定没什么好事！说！你到底想干什么！">
+								<choice str="你一定有阴谋！" action="2913_theIntent"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["686_2914_bailingstar3"] = <config>
+					<context npcId="686" action="2914_start"/>
+				</config>;
+         talk["686_2915_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="OK！既然你们没反对，那么game start！"/>
+					<context npcId="686" iconId="2" str="我会给你们几个小小的提示，究竟能猜到什么程度，就要看你们到底有多聪明了！">
+						<choice str="哼……" action="2915_theTips"/>
+					</context>
+				</config>;
+         talk["686_2917_afterfight"] = <config>
+					<context npcId="686" iconId="7" str="哼，今天就陪你们玩到这里，紫渊和绿焰也应该准备好了。"/>
+					<context npcId="686" iconId="7" str="这座永夜魂塔，今天就要准备塌了！"/>
+					<context npcId="1" iconId="24" str="这个红魔，原来是在吸引我们的注意力，好让紫渊和绿焰做好破坏永夜魂塔的准备！">
+						<choice str="红魔你真是太坏了！" taskId="2917"/>
+					</context>
+				</config>;
+         talk["686_2917_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="HOHO~~狼王吗？偏偏在这个关键时刻力量苏醒了吗，还真是非常及时呢！"/>
+					<context npcId="744" str="红魔，你要为你说出的话付出代价！今天我要让你粉身碎骨！">
+						<choice str="这种人犯不上让狼王动手，我来就好！" type="3" action="2917_fight"/>
+					</context>
+				</config>;
+         talk["686_2942_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="OHO~恐怕你们的伙伴高估你们的实力了，就凭你们，还想打败我们三个人吗？">
+						<choice type="3" str="打不打得过，试试才知道！" action="2942_fight"/>
+					</context>
+				</config>;
+         talk["688_2779_screampark4"] = <config>
+					<context npcId="702" iconId="1" str="   冲啊！红魔你受死吧！">
+						<choice str="你们太棒了！" action="Movie2779p1"/>
 					</context>
 				</config>;
          talk["68_268_feier2"] = <config>
@@ -5734,6 +19862,1212 @@ package mmo.tasknpc
                       </choice>
                   </context>
 				</config>;
+         talk["703_2766_screampark4"] = <config>
+					<context npcId="703" iconId="2" str="HAHAHA！欢呼吧！小家伙们！最紧张、最刺激、最HIGH的大决赛终于来了！YEAH！"/>
+					<context npcId="703" iconId="2" str="大决赛将在这个摩天轮上进行！LOOK！看到摩天轮中间那个东西了吗？">
+						<choice str="那个东西是什么？" action="Manhua2766">
+						</choice>
+					</context>
+				</config>;
+         talk["703_2767_screampark4"] = <config>
+					<context npcId="682" iconId="9" str="管它是什么东西呢！快放马过来！我要把这比赛拿下，大家还等着我们呢！">
+						<choice str="好！叮叮，我们一起上！" action="Panel2767">
+						</choice>
+					</context>
+				</config>;
+         talk["703_2768_screampark4"] = <config>
+					<context npcId="703" iconId="2" str="你！说什么呢？你的伙伴们都在这儿呢！它们COS成通灵巫师，HIGH着呢！"/>
+					<context npcId="703" iconId="2" str="HAHA，这可是我们说好的游戏规则，你们还在报名书上签了名的哦！"/>
+					<context npcId="682" iconId="7" str="不！你……让他们扮成通灵巫师，是……骗我们！实际上……"/>
+					<context npcId="682" iconId="7" str="实际上……我们的伙伴已经中了永夜的诅咒，变成……真正的通灵巫师了！！"/>
+					<context npcId="703" iconId="2" str="啧啧啧……这么不相信自己的伙伴？COME ON，小家伙们，给他们瞧瞧！">
+						<choice str="不好！通灵巫师飞上来了！" action="Movie2768">
+						</choice>
+					</context>
+				</config>;
+         talk["703_2769_afterMovie2769"] = <config>
+					<context npcId="703" iconId="2" str="HELLO，Little Friends！尖叫大赛真是太好玩了！"/>
+					<context npcId="698" iconId="1" str="啊啊啊啊啊——！！！！！不要吃我们！">
+						<choice str="大家不要叫了！" taskId="2769">
+						</choice>
+					</context>
+				</config>;
+         talk["703_2770_afterMovie2770"] = <config>
+					<context npcId="703" iconId="3" str="THANK YOU！我真是太感动了，谢谢大家让我的永夜徽章吸取了这么多能量！"/>
+					<context npcId="703" iconId="3" str="伟大的夜王大人就要复活了！COME ON！邪恶的黑暗能量！主宰宇宙吧！">
+						<choice str="太恐怖了！" taskId="2770">
+						</choice>
+					</context>
+				</config>;
+         talk["703_2772_screampark4"] = <config>
+					<context npcId="703" iconId="2" str="GAME OVER！看来你们这些小鬼还没玩够，那我们就来场午夜PARTY吧！">
+						<choice str="你要干什么？" action="Movie2772Part1">
+						</choice>
+					</context>
+				</config>;
+         talk["703_2776_afterScene2776"] = <config>
+					<context npcId="703" iconId="4" str="HAHAHA，你们真可爱……既然你们这么爱玩，UNCLE就跟你们玩到底！"/>
+					<context npcId="684" iconId="12" str="可恶！居然没把你打死！逼哥出绝招了！我们拼了！">
+						<choice str="拼了！" action="Movie2776"/>
+					</context>
+				</config>;
+         talk["703_2777_screampark4"] = <config>
+					<context npcId="703" iconId="5" str="S**T！！该死的小鬼！！这么拼命……不过，游戏才刚刚开始！哼哼！">
+						<choice str="什么意思？" action="Movie2777"/>
+					</context>
+				</config>;
+         talk["703_2780_screampark4"] = <config>
+					<context npcId="703" iconId="6" str="WHAT？这……是白灵的力量……怎么可能……"/>
+					<context npcId="685" iconId="11" str="我就是白灵族的人！可恶的永夜族，可恶的红魔，受死吧！">
+						<choice str="奇奇加油！" action="Movie2780">
+						</choice>
+					</context>
+				</config>;
+         talk["705_2787_afterstart"] = <config>
+					<context npcId="705" iconId="2" str="没错，说的就是你呢，想练歌，得起早，抢别人的地盘是不对滴！"/>
+					<context npcId="1" iconId="52" str="HELLO和主人来自奥拉星，是来这里寻找纯净能源的，没有抢你地盘。"/>
+					<context npcId="705" iconId="3" str="奥拉星？这么说你们是来自远方的客人，不是来这里练习唱歌的咯？">
+						<choice str="是的，你误会我们了。">
+							<context npcId="705" iconId="4" str="原来如此，那你们真来对地方了！">
+								<choice str="难道你知道纯净能源在哪里？" action="2787_end" taskId="2787"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2787_musicstar1"] = <config>
+					<context npcId="705" iconId="2" str="喂，那个谁，没看到一个大活人站在这吗？">
+						<choice str="你说的‘那个谁’不会是我吧？" action="2786_start"/>
+					</context>
+				</config>;
+         talk["705_2788_musicstar1"] = <config>
+					<context npcId="705" iconId="1" str="这个我……当然……不知道！">
+						<choice str="⊙﹏⊙b汗……">
+							<context npcId="705" iconId="5" str="我之所以说你们来对了，是因为我知道这里有一位非常杰出的人物。">
+								<choice str="杰出人物？很有名吗？它是谁？" action="2788_multipagemovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2789_musicstar1"] = <config>
+					<context npcId="705" iconId="5" str="先说好了，唱得好听要鼓掌的哦！">
+						<choice str="没问题。" action="2789_movie1"/>
+					</context>
+				</config>;
+         talk["705_2790_fightlose"] = <config>
+					<context npcId="705" iconId="7" str="以后不许再污辱我的偶像，要不然我不会饶了你的。">
+						<choice str="等我打败了你再说吧。"/>
+					</context>
+				</config>;
+         talk["705_2790_musicstar1"] = <config>
+					<context npcId="705" iconId="7" str="呀呀呀……我刚才唱的可是我偶像非蒙的歌，你们说我的歌雷人就是污辱我的偶像。"/>
+					<context npcId="705" iconId="7" str="所以你们必须给我道歉，要不然别怪我不客气！">
+						<choice type="3" str="说句实话都不行，你也太不讲理了。" action="2790_startfight"/>
+						<choice str="我这会没空，待会再来和你打！"/>
+					</context>
+				</config>;
+         talk["705_2791_musicstar1"] = <config>
+					<context npcId="705" iconId="8" str="好吧，其实我知道我和非蒙还有着相当远的距离，不过我不会放弃。"/>
+					<context npcId="705" iconId="5" str="因为我相信总有一天，我会像它一样站在音乐的顶峰，成为大明星。"/>
+					<context npcId="1" iconId="4" str="你一直在说非蒙，可是非蒙到底是谁啊？">
+						<choice str="是啊。" action="2791_multipagecomic"/>
+					</context>
+				</config>;
+         talk["705_2791_secondtalk"] = <config>
+					<context npcId="705" iconId="1" str="我现在最大的梦想就是能听一场非蒙的演唱会，亲耳听一次它的歌声。"/>
+					<context npcId="705" iconId="5" str="我相信以我的天赋，一定能把它的歌唱得惟妙惟肖，成为明日的歌坛巨星。"/>
+					<context npcId="1" iconId="1" str="HELLO觉得你还是放弃吧，人家唱歌是要钱，你唱歌差点要了HELLO的命。">
+						<choice str="是啊，你还是考虑一下别的出路吧！">
+							<context npcId="705" iconId="5" str="有梦想就要坚持，而且我为此可是付出了巨大努力的。">
+								<choice str="怎么说？" action="2791_end" taskId="2791"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2792_musicstar1"] = <config>
+					<context npcId="705" iconId="1" str="为了我的梦想，我想尽办法收集了很多关于非蒙的信息，比如说这张全宇宙只有100张的限量海报。">
+						<choice str="限量海报？让我看看。" action="2792_interaction"/>
+					</context>
+				</config>;
+         talk["705_2792_secondtalk"] = <config>
+					<context npcId="705" iconId="5" str="成为像非蒙一样的明星是我毕生的梦想，我会一直朝着这个方向不断努力。"/>
+					<context npcId="1" iconId="1" str="虽然你对梦想的执着还蛮让HELLO感动的，但是HELLO仍然觉得你不适合唱歌。">
+						<choice str="嗯，我也这么认为。" action="2792_end" taskId="2792"/>
+					</context>
+				</config>;
+         talk["705_2793_musicstar1"] = <config>
+					<context npcId="705" iconId="5" str="不管你们怎么想，但是我相信，我的梦想一定会成真。">
+						<choice str="这个……" action="2793_movie1"/>
+					</context>
+				</config>;
+         talk["705_2793_secondtalk"] = <config>
+					<context npcId="705" iconId="1" str="我听你们刚才说非蒙和演唱会，到底是怎么回事啊？"/>
+					<context npcId="707" str="天王巨星非蒙下周要在世纪大舞台举办一场大型演唱会，你们还不知道吗？">
+						<choice str="表示真不知道。" action="2793_multipagemovie"/>
+					</context>
+				</config>;
+         talk["705_2794_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="能让第一影视为它开演唱会，还能请出绿焰先生，我想只有非蒙可以做到了。">
+						<choice str="第一影视？绿焰？它们很有名吗？" action="2794_multipagecomic"/>
+					</context>
+				</config>;
+         talk["705_2795_starttask"] = <config>
+					<context npcId="705" iconId="9" str="#username#,机会难得，我们也赶紧去买票看演唱会吧！">
+						<choice str="可是……" action="2795_start_task"/>
+					</context>
+				</config>;
+         talk["705_2796_afterstart"] = <config>
+					<context npcId="705" iconId="9" str="看你的样子，应该是没钱吧，没关系，看在我们相识一场的份上，我请你。">
+						<choice str="那就谢谢你了。" action="2796_end" taskId="2796"/>
+					</context>
+				</config>;
+         talk["705_2796_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="#username#,机会难得，我们也赶紧去买票看演唱会吧！">
+						<choice str="可是……" action="2795_start"/>
+					</context>
+				</config>;
+         talk["705_2797_musicstar1"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2798_musicstar1"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2799_musicstar1"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2800_musicstar2"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2800_secondtalk"] = <config>
+					<context npcId="705" iconId="11" str="我没犯事儿啊，你干嘛打我，难道喜欢非蒙也有错吗？">
+						<choice str="这其中是不是有什么误会？" action="2800_end" taskId="2800"/>
+					</context>
+				</config>;
+         talk["705_2801_musicstar2"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2801_secondtalk"] = <config>
+					<context npcId="705" iconId="12" str="对不起，我保证以后不会再到广场上唱了，但我真的很喜欢非蒙，请你帮帮我好吗？"/>
+					<context npcId="709" iconId="1" str="看你态度还算诚恳，这次我就饶了你，不过演唱会的门票确实已经卖完了。"/>
+					<context npcId="709" str="还有三张，是一位粉丝提前预订的，我刚打电话过去，但它不在服务区。">
+						<choice str="那怎么办？" action="2801_end" taskId="2801"/>
+					</context>
+				</config>;
+         talk["705_2802_musicstar2"] = <config>
+					<context npcId="705" iconId="9" str="那还等什么，赶紧打电话啊！">
+						<choice str="让我来吧！" action="2802_interaction"/>
+					</context>
+				</config>;
+         talk["705_2802_secondtalk"] = <config>
+					<context npcId="705" iconId="3" str="怎么突然断线了？"/>
+					<context npcId="685" str="好的发明总会有点缺陷的嘛，反正我们已经知道它们来不了，就不用纠结了。">
+						<choice str="这倒也是。" action="2802_end" taskId="2802"/>
+					</context>
+				</config>;
+         talk["705_2803_musicstar2"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2805_afterstart"] = <config>
+					<context npcId="705" iconId="9" str="药药……切克闹……终于可以去看演唱会了……嗷嗷……">
+						<choice str="拜托，千万别唱啊！">
+							<context npcId="705" iconId="9" str="一个星期啊，#username#，这一个星期我简直度日如年啊，有木有？">
+								<choice str="别激动。">
+									<context npcId="685" iconId="14" str="演唱会快要开始了，我们进场吧，要不然就来不及了！"/>
+									<context npcId="705" iconId="9" str="哎呀，快快快，赶紧的……">
+										<choice str="那就走吧！" action="2805_end"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2805_musicstar2"] = <config>
+					<context npcId="705" action="2804_start"/>
+				</config>;
+         talk["705_2806_musicstar3"] = <config>
+					<context npcId="685" iconId="14" str="哇，第一次见到这么大的舞台，这么多的观众，好激动啊！"/>
+					<context npcId="705" iconId="13" str="那当然，能在这里开演唱会，非蒙可是第一人呢。">
+						<choice str="真是太厉害了！" action="2806_movie1"/>
+					</context>
+				</config>;
+         talk["705_2807_musicstar3"] = <config>
+					<context npcId="705" str="你们认识宇宙十佳主持人之一的奥力奥？"/>
+					<context npcId="1" iconId="51" str="是啊，在美食之星认识的，那时它经常把HELLO叫成大包子呢！"/>
+					<context npcId="705" iconId="14" str="哇，你们真是太厉害了。">
+						<choice str="一般一般了。" action="2807_movie1"/>
+					</context>
+				</config>;
+         talk["705_2808_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="哇，绿焰先生果然与众不同，出场都这么帅气，这么神秘！"/>
+					<context npcId="1" iconId="20" str="真遗憾，HELLO还是不知道它长得怎么样。"/>
+					<context npcId="685" iconId="13" str="它的气场很大，给人很强的压迫感，让我突然有种很不好的预感。">
+						<choice str="我也有一点。" action="2808_movie1"/>
+					</context>
+				</config>;
+         talk["705_2808_secondtalk"] = <config>
+					<context npcId="705" str="我是非蒙的超级粉丝，让我来接受测试吧！"/>
+					<context npcId="420" iconId="3" str="你？哎呀， #username#，还有大包子，你们竟然会在这里，真是太有缘了。"/>
+					<context npcId="1" iconId="52" str="都说过好多遍了，人家叫HELLO，不叫大包子！">
+						<choice str="是啊。" action="2808_end" taskId="2808"/>
+					</context>
+				</config>;
+         talk["705_2809_gamelose"] = <config>
+					<context npcId="705" str="哎呀，失误失误，让我再试一次吧！">
+						<choice str="路比，加油啊！"/>
+					</context>
+				</config>;
+         talk["705_2809_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="主持人，我和他们是一起的，你来测试一下我吧！"/>
+					<context npcId="420" str="既然如此，看在#username#和大包子的面子上，这个机会就给你吧。">
+						<choice str="奥力奥，你太给力了。" action="2809_gamestart"/>
+					</context>
+				</config>;
+         talk["705_2810_musicstar3"] = <config>
+					<context npcId="705" str="你们不用打击我，反正我觉得我是匹千里马，怪只怪你们不是我的伯乐。">
+						<choice str="⊙﹏⊙b汗……" action="2810_movie1"/>
+					</context>
+				</config>;
+         talk["705_2811_musicstar3"] = <config>
+					<context npcId="705" iconId="9" str="终于可以现场亲耳听非蒙唱歌了，嗷嗷……药药，切克闹……">
+						<choice str="淡定淡定……" action="2811_movie1"/>
+					</context>
+				</config>;
+         talk["705_2813_musicstar3"] = <config>
+					<context npcId="685" iconId="15" str="我一时半会也想不起来，反正从绿焰出现后，我的感觉就越来越不好。"/>
+					<context npcId="705" iconId="6" str="那明明就是纹身，你们别再唧唧歪歪的，打扰我看演唱会的兴致了。">
+						<choice str="o(╯□╰)o……" action="2812_start"/>
+					</context>
+				</config>;
+         talk["705_2813_secondtalk"] = <config>
+					<context npcId="705" iconId="15" str="非蒙虽然唱得很好，但也不至于流泪吧，它们这是怎么了？">
+						<choice str="我也不知道。" action="2813_end" taskId="2813"/>
+					</context>
+				</config>;
+         talk["705_2814_musicstar3"] = <config>
+					<context npcId="685" iconId="16" str="我闻到了永夜族的气息，大家要小心。"/>
+					<context npcId="705" str="别乱说，我看过永夜族和白灵族的故事，那都是写故事的人用来骗小孩子的。">
+						<choice str="我们要相信奇奇的直觉。" action="2814_movie1"/>
+					</context>
+				</config>;
+         talk["705_2815_musicstar1"] = <config>
+					<context npcId="685" str="我一直在想非蒙脖子上的印记，终于想起来了，那是永夜族咬过留下的痕迹。"/>
+					<context npcId="1" iconId="3" str="如果HELLO没有猜错，奇奇的意思应该是非蒙受了永夜族的诅咒吧！"/>
+					<context npcId="705" iconId="7" str="你们也太过分了，竟然这样污辱非蒙，神马永夜族，把我当三岁小孩呢！"/>
+					<context npcId="705" iconId="7" str="亏我还把你们当朋友，看我不打扁你们。">
+						<choice type="3" str="路比，你冷静点，听奇奇把话说完。" action="2815_startfight"/>
+					</context>
+				</config>;
+         talk["705_2816_musicstar1"] = <config>
+					<context npcId="705" iconId="6" str="我就给你个机会，你说，到底是怎么回事？若说得没道理，我就和你们绝交！">
+						<choice str="奇奇，好好和它说吧！" action="2816_movie1"/>
+					</context>
+				</config>;
+         talk["705_2816_secondtalk"] = <config>
+					<context npcId="705" iconId="15" str="你说的这些听起来似乎很有道理，但是我凭什么相信你？"/>
+					<context npcId="1" str="奇奇可是白灵族的人，HELLO保证它的直觉一定不会有错的。"/>
+					<context npcId="705" iconId="15" str="奇奇是白灵族的人？这也太不可思议了吧！">
+						<choice str="是真的。" action="2816_end" taskId="2816"/>
+					</context>
+				</config>;
+         talk["705_2817_musicstar1"] = <config>
+					<context npcId="685" str="也许你不相信，但是你一定记得刚才除了我们几个，其他在场的粉丝都哭了吧！"/>
+					<context npcId="705" str="这个当然，我还看见那些眼泪都飞进了世纪大舞台上面的小提琴里呢。">
+						<choice str="这到底是怎么回事呢？" action="2817_movie1"/>
+					</context>
+				</config>;
+         talk["705_2817_secondtalk"] = <config>
+					<context npcId="705" iconId="16" str="你的意思是有人利用非蒙欺骗粉丝们的感情！"/>
+					<context npcId="685" str="嗯，我猜测是这样，不过我觉得非蒙肯定是被人胁迫的，它一定有自己的苦衷。">
+						<choice str="这个人会是谁呢？">
+							<context npcId="705" str="管它是谁，现在演唱会都散场了，我们进去偷偷的查一查不就知道了。"/>
+							<context npcId="685" str="这倒是个好主意。">
+								<choice str="那进去吧。" action="2817_end"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2818_musicstar3"] = <config>
+					<context npcId="685" str="我四周都看了一下，好像并没有什么特别的。">
+						<choice str="难道要白跑一趟了？" action="2818_movie1"/>
+					</context>
+				</config>;
+         talk["705_2819_musicstar3"] = <config>
+					<context npcId="685" str="不过因为时间紧迫，我这个仪器还没有组装好。">
+						<choice str="没关系，我来帮你吧！" action="2819_interaction"/>
+					</context>
+				</config>;
+         talk["705_2820_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="刚……刚才真是太吓人了！为……为什么绿焰能听见我们说话？"/>
+					<context npcId="685" str="这个嘛，可能是我在设计仪器的时候忘了做把声音屏蔽的功能。"/>
+					<context npcId="705" iconId="6" str="哼，想不到第一影视的绿焰竟然是个坏蛋！">
+						<choice str="是啊。">
+							<context npcId="685" str="而且刚才我看到了永夜徽章，所以我敢肯定绿焰的目的一定不单纯。"/>
+							<context npcId="1" iconId="30" str="如果HELLO猜的没错，一定是为了帮助夜王复活。"/>
+							<context npcId="705" iconId="9" str="不管它的目的是什么，反正我一定要救出非蒙。"/>
+							<context npcId="685" str="那我们得好好商量一个计划才行。">
+								<choice str="嗯，我们一起努力！" action="2820_end"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2836_musicstar1"] = <config>
+					<context npcId="705" action="2835_start"/>
+				</config>;
+         talk["705_2837_musicstar3"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2838_musicstar3"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2838_secondtalk"] = <config>
+					<context npcId="705" iconId="9" str="哇，这个小提琴果然是个入口，我真是太有才了。"/>
+					<context npcId="685" iconId="17" str="可惜我的发明好像又一次失败了。">
+						<choice str="没关系了，我们已经习惯了。">
+							<context npcId="705" iconId="1" str="是啊，虽然前两下没拉出声音，但好歹也把这小提琴拉响了，我们先进去吧！">
+								<choice str="嗯，赶紧进去。" action="2838_end"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["705_2839_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2840_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2841_musicstar4"] = <config>
+					<context npcId="705" str="奇奇你真让我大开眼界了，不过我在故事里还有听到狼王和夜王，它们真的存在吗？"/>
+					<context npcId="685" str="当然存在了，狼王可是我们白灵族的大英雄。">
+						<choice str="把它们的故事也讲给我们听听吧！" action="2841_movie1"/>
+					</context>
+				</config>;
+         talk["705_2842_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2844_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2845_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2845_secondtalk"] = <config>
+					<context npcId="705" iconId="19" str="夜……夜王……太恐怖了……我……我们不会就……这么挂掉了吧！"/>
+					<context npcId="710" iconId="6" str="这一切都是我造成的，都是我的错。"/>
+					<context npcId="685" iconId="9" str="你们放心，我会拼尽全力阻止它的，有我在，不用怕！">
+						<choice str="奇奇，别逞强啊。" action="2845_movie2" taskId="2845"/>
+					</context>
+				</config>;
+         talk["705_2846_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2847_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2848_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["705_2849_musicstar4"] = <config>
+					<context npcId="705" str="虽然我唱歌很难听，但这是我最后的心愿，你们就成全我吧！">
+						<choice str="那……那好吧！" action="2849_movie1"/>
+					</context>
+				</config>;
+         talk["705_2850_musicstar4"] = <config>
+					<context npcId="705" iconId="9" str="我现在可以唱歌了吧？">
+						<choice str="嗯，大声唱吧！" action="2850_movie1"/>
+					</context>
+				</config>;
+         talk["705_2850_thirdtalk"] = <config>
+					<context npcId="705" iconId="9" str="奇奇，你刚才真的太帅了，好有明星范儿啊！"/>
+					<context npcId="685" str="真的吗？">
+						<choice str="是啊，我都惊呆了。" action="2850_end" taskId="2850"/>
+					</context>
+				</config>;
+         talk["705_2851_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         talk["706_2797_musicstar1"] = <config>
+					<context npcId="706" str="哇，竟然能在这里碰到你们，真的太高兴啦。"/>
+					<context npcId="705" iconId="6" str="喂，那个谁，我们认识吗？别套近乎，你以为我不知道你心里的那点小九九。"/>
+					<context npcId="705" iconId="6" str="你不就是想插队买票吗？我告诉你，四个字：门都没有。">
+						<choice str="这是神马情况？">
+							<context npcId="706" str="我是来找我朋友的，又不是来找你的，你那么大嗓门干什么？"/>
+							<context npcId="705" iconId="6" str="我们都不认识你，赶紧给我离开，要不然别怪我不客气。">
+								<choice str="大家有话好好说啊。" action="2797_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["706_2797_secondtalk"] = <config>
+					<context npcId="706" str="老虎不发威，你当我是HELLO KITTY？">
+						<choice str="喂，不许欺负路比。" action="2797_end" taskId="2797"/>
+					</context>
+				</config>;
+         talk["706_2798_musicstar1"] = <config>
+					<context npcId="706" str="喂，那个，是我啊，我是奇奇啊！">
+						<choice str="奇奇？！" action="2798_movie1"/>
+					</context>
+				</config>;
+         talk["707_2794_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="能让第一影视为它开演唱会，还能请出绿焰先生，我想只有非蒙可以做到了。">
+						<choice str="第一影视？绿焰？它们很有名吗？" action="2794_multipagecomic"/>
+					</context>
+				</config>;
+         talk["708_2794_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="能让第一影视为它开演唱会，还能请出绿焰先生，我想只有非蒙可以做到了。">
+						<choice str="第一影视？绿焰？它们很有名吗？" action="2794_multipagecomic"/>
+					</context>
+				</config>;
+         talk["709_2800_musicstar2"] = <config>
+					<context npcId="709" str="不好意思，三位，你们来晚了，非蒙演唱会的门票已经卖完了。"/>
+					<context npcId="705" iconId="9" str="神马？卖完了，不会吧！"/>
+					<context npcId="705" iconId="10" str="漂亮姐姐，我是非蒙的忠实+铁杆粉丝，你一定要帮帮我啊！">
+						<choice str="⊙﹏⊙b汗……">
+							<context npcId="705" iconId="10" str="为了模仿非蒙，我起早贪黑的练习，嗓子都哑了。"/>
+							<context npcId="705" iconId="1" str="不信我唱首给你听听。">
+								<choice str="求你别唱啊。" action="2800_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["709_2801_musicstar2"] = <config>
+					<context npcId="709" iconId="2" str="才不会呢，如此难听的声音我可是记得很清楚。">
+						<choice str="怎么说？" action="2801_comic"/>
+					</context>
+				</config>;
+         talk["709_2802_musicstar2"] = <config>
+					<context npcId="709" str="卖票苦，卖明星演唱会门票更苦，卖非蒙演唱会门票简直就是苦不言堪，人忒多了。"/>
+				</config>;
+         talk["709_2803_musicstar2"] = <config>
+					<context npcId="709" str="既然如此，那这三张票就卖给你们了。">
+						<choice str="让我看看。" action="2803_movie1"/>
+					</context>
+				</config>;
+         talk["709_2803_secondtalk"] = <config>
+					<context npcId="709" str="不过我再警告你一次：以后别再到广场上唱歌了。"/>
+					<context npcId="705" str="放心吧，我一定不会了。"/>
+					<context npcId="685" str="这么说我们下周可以一起看演唱会了？哇，好期待啊！">
+						<choice str="是啊，我也好期待呢！" action="2803_movie2"/>
+					</context>
+				</config>;
+         talk["709_2805_musicstar2"] = <config>
+					<context npcId="709" action="2804_start"/>
+				</config>;
+         talk["710_2839_firsttalk"] = <config>
+					<context npcId="710" iconId="2" str="你们是谁？想干什么？">
+						<choice str="我们是来救你的。">
+							<context npcId="710" iconId="3" str="真……真的吗？"/>
+							<context npcId="705" str="当然是真的，我还是你的忠实粉丝呢，而且我们还知道你被绿焰下了诅咒。"/>
+							<context npcId="710" iconId="2" str="可是……">
+								<choice str="你不用怕，先告诉我们这到底是怎么回事吧？" action="2839_movie1"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["710_2839_secondtalk"] = <config>
+					<context npcId="710" iconId="2" str="绿焰说要收集2012滴感动之泪，我的诅咒才会解开，现在只差一滴了。"/>
+					<context npcId="705" iconId="6" str="哇咔咔……太过分了，竟然敢这样对待你。">
+						<choice str="嗯，确实很过分。" action="2839_end" taskId="2839"/>
+					</context>
+				</config>;
+         talk["710_2842_secondtalk"] = <config>
+					<context npcId="710" iconId="4" str="我……我脖子上的牙印不见了，真……真是太好了。">
+						<choice str="都是奇奇的功劳。" action="2842_end"/>
+					</context>
+				</config>;
+         talk["710_2843_starttask"] = <config>
+					<context npcId="710" iconId="5" str="如果不是你们，我就成千古罪人了。">
+						<choice str="其实没什么了。" action="2843_start_task"/>
+					</context>
+				</config>;
+         talk["710_2844_musicstar4"] = <config>
+					<context npcId="710" iconId="5" str="如果不是你们，我就成千古罪人了。">
+						<choice str="其实没什么了。" action="2844_movie1"/>
+					</context>
+				</config>;
+         talk["710_2845_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["710_2846_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["710_2847_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["710_2848_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["710_2849_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["710_2850_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["710_2851_musicstar4"] = <config>
+					<context npcId="710" str="唱歌不仅仅是我的职业，也是我生命的一部分！"/>
+				</config>;
+         talk["716_2846_musicstar4"] = <config>
+					<context npcId="716" iconId="2" str="别浪费我的时间，来，让我把你们团灭吧！">
+						<choice type="3" str="你也太自以为是了，先过了我这关再说。" action="2846_startfight"/>
+					</context>
+				</config>;
+         talk["716_2846_secondtalk"] = <config>
+					<context npcId="716" str="你们不用挣扎了，乖乖就擒吧。"/>
+					<context npcId="705" iconId="6" str="我……们才不屑和……和你打，我们人多，赢了你也不光彩。"/>
+					<context npcId="685" str="没错，我觉得你还是带上几个通灵巫师吧，我们可不想以多欺少！">
+						<choice str="说的有道理。" action="2846_end" taskId="2846"/>
+					</context>
+				</config>;
+         talk["716_2847_musicstar4"] = <config>
+					<context npcId="716" iconId="2" str="哼，通灵巫师？我才不会和红魔、紫渊一样，要一群碍事的废物。"/>
+					<context npcId="685" str="既然你执意如此，那我们就成全你。">
+						<choice str="嗯，大家一起上。" action="2847_movie1"/>
+					</context>
+				</config>;
+         talk["716_2848_musicstar4"] = <config>
+					<context npcId="716" iconId="2" str="红魔和紫渊都要忌我几分，就凭你们，还差远了呢！">
+						<choice str="你不要太嚣张。" action="2848_movie1"/>
+					</context>
+				</config>;
+         talk["716_2849_musicstar4"] = <config>
+					<context npcId="716" str="人生最快乐的事情莫过于看着一群人同时倒在我的脚下！"/>
+				</config>;
+         talk["716_2850_musicstar4"] = <config>
+					<context npcId="716" str="人生最快乐的事情莫过于看着一群人同时倒在我的脚下！"/>
+				</config>;
+         talk["716_2942_bailingstar3"] = <config>
+					<context npcId="686" iconId="2" str="OHO~恐怕你们的伙伴高估你们的实力了，就凭你们，还想打败我们三个人吗？">
+						<choice type="3" str="打不打得过，试试才知道！" action="2942_fight"/>
+					</context>
+				</config>;
+         talk["717_2845_musicstar4"] = <config>
+					<context npcId="717" str="我复活之日，就是我们永夜族称霸宇宙之时。"/>
+				</config>;
+         talk["725_2872_bailingstar1"] = <config>
+					<context npcId="725" iconId="2" str="我，&lt;font color='#FF6600'&gt;&lt;b&gt;洛洛&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，今天就要成为白灵族史上通过白灵铜人阵的最年轻的家伙了！">
+						<choice str="洛洛？" action="2872_introduceLuoluo"/>
+					</context>
+				</config>;
+         talk["725_2873_afterSeeCard"] = <config>
+					<context npcId="725" str="今天就是奇奇回来的日子了，我可是要准备一个大大的惊喜给它！"/>
+					<context npcId="726" str="喂，别把我给漏了！这个惊喜可是我想出来的！">
+						<choice str="能告诉我这个惊喜是什么吗？" action="2873_surprise"/>
+					</context>
+				</config>;
+         talk["725_2873_bailingstar1"] = <config>
+					<context npcId="725" str="你是奇奇的朋友？咦，我好像对你有点印象哦，难道你是明信片上的这位……">
+						<choice str="什么明信片，给我看看！" action="2873_theCard"/>
+					</context>
+				</config>;
+         talk["725_2874_bailingstar1"] = <config>
+					<context npcId="725" str="你也要挑战白灵铜人阵吗？那可要小心了哦！">
+						<choice str="我会努力的。" action="2874_challenge"/>
+					</context>
+				</config>;
+         talk["725_2875_bailingstar1"] = <config>
+					<context npcId="726" str="（看了通关证书很久）这时间计算一定有问题，我怎么可能跟你一样慢！"/>
+					<context npcId="725" iconId="4" str="哈哈哈！和本洛洛打个平手有啥不好，这叫有福同享！"/>
+					<context npcId="726" str="…………我才不信呢！我们再比！/(ㄒoㄒ)/~~">
+						<choice str="你们别吵啦，奇奇好像已经来了呢，看天上！" action="2875_qiqiAppear"/>
+					</context>
+				</config>;
+         talk["725_2877_afterletter"] = <config>
+					<context npcId="725" str="嘿！就知道你还是会听我们的！走吧，去老地方咯！">
+						<choice str="出发！" action="2877_startGo"/>
+					</context>
+				</config>;
+         talk["725_2879_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="task2879_start"/>
+					</context>
+				</config>;
+         talk["725_2880_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="2880_theStory"/>
+					</context>
+				</config>;
+         talk["725_2881_bailingstar2"] = <config>
+					<context npcId="726" str="好啦！温功课就到此为止了！接下来该做正经事了！大家准备好了没有？"/>
+					<context npcId="725" str="嗯！准备好啦！">
+						<choice str="你们是要干嘛？" action="2881_showGrow"/>
+					</context>
+				</config>;
+         talk["725_2882_bailingstar2"] = <config>
+					<context npcId="725" iconId="5" str="奇奇，你简直酷毙了！"/>
+					<context npcId="685" iconId="23" str="哈哈！怎么样，输了吧！">
+						<choice str="这招真是太绝了。">
+							<context npcId="726" iconId="7" str="哎，比起你的帅气进化，我们的白灵铜人阵通关证书真是弱爆了！">
+								<choice str="噗……也不至于弱爆了啦！">
+									<context npcId="685" str="哇塞！你们居然拿到了白灵铜人阵的通关证书！！快给我看看！！">
+										<choice str="对呀，给奇奇看看嘛。" action="2882_darkShadow"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2884_bailingstar2"] = <config>
+					<context npcId="725" str="………………"/>
+					<context npcId="733" iconId="3" str="………………">
+						<choice str="喂，你们都怎么了？">
+							<context npcId="733" iconId="3" str="啊啊啊啊！！！！刚才那是怎么回事，真是太帅啦！！">
+								<choice str="原来你们是被帅呆了。">
+									<context npcId="726" str="洛洛，你刚才，是怎么回事啊？超帅的！"/>
+									<context npcId="726" str="你最近是不是学了什么新东西啊，你可不能一个人耍帅啊，快教教我，我也要变帅！！"/>
+									<context npcId="685" str="洛洛你太不够朋友了，有这么厉害的招数居然不教我！">
+										<choice str="是啊，洛洛，刚才那是什么招数啊？">
+											<context npcId="725" str="我也不知道那是什么啊，不过我觉得那时的我真是超帅的啊，哎呀，真是帅到无法形容！"/>
+											<context npcId="725" str="哇哈哈哈哈哈哈！">
+												<choice str="别一个人在那自恋啊！">
+													<context npcId="725" str="其实我真不明白那是什么啦，也许、大概，是神的旨意？！"/>
+													<context npcId="725" str="对了，刚才你们也听到了吧，那几个家伙说它们是从永夜魂塔里跑出来的呢！"/>
+													<context npcId="685" str="没错，我也听到了。我有点担心，白灵圣殿是不是出什么事了…… ">
+														<choice str="难道和夜王有关……" action="2884_goBack"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2911_bailingstar3"] = <config>
+					<context npcId="725" iconId="7" str="对不起，大法师……但是我没有骗你们，那天我是真的有过华丽的变身……">
+						<choice str="我们说的都是真的！">
+							<context npcId="732" str="哎……算了……">
+								<choice str="大法师……" action="2911_beReady"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2916_bailingstar3"] = <config>
+					<context npcId="725" str="……这、这是怎么回事，刚才小米怎么变成了奇怪的样子！！"/>
+					<context npcId="686" iconId="2" str="哈哈哈！怎么？你们不敢相信自己的眼睛吗？那可是小夜王的模样哦！"/>
+					<context npcId="725" str="你这个坏蛋，一定是你趁我们不注意时做了什么手脚！小米从小和我们一起长大，不可能是夜王！">
+						<choice str="没错！">
+							<context npcId="686" iconId="2" str="哎呀哎呀，这就生气了？！你们这么friend，真是太让我感动了啊！"/>
+							<context npcId="725" str="绝对不能允许你！污蔑我的朋友！">
+								<choice str="洛洛……" action="2916_theEvolution"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2919_bailingstar3"] = <config>
+					<context npcId="725" iconId="8" str="呼……呼呼……呼……">
+						<choice str="洛洛，你没事吧！" action="2919_wantSaySomething"/>
+					</context>
+				</config>;
+         talk["725_2933_afterweekmovie"] = <config>
+					<context npcId="725" str="我感觉身体好多了！#username#，和我一起去找小米和奇奇玩儿吧！">
+						<choice str="好啊！" action="2933_qiqiBack"/>
+					</context>
+				</config>;
+         talk["725_2933_bailingstar3"] = <config>
+					<context npcId="725" action="2933_oneWeekPassedMovie"/>
+				</config>;
+         talk["725_2936_afterhurt"] = <config>
+					<context npcId="725" iconId="11" str="你们这些混蛋！为什么要这样做！！"/>
+					<context npcId="685" iconId="26" str="洛洛，别管这些人了，我们赶紧带着小米去找大法师吧！">
+						<choice str="大法师一定能救小米的。">
+							<context npcId="747" str="哼！大法师会明辨是非，绝对不会帮你们的！夜王一死，宇宙都太平了！">
+								<choice str="大法师绝不会不管小米的！" taskId="2936"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2936_bailingstar1"] = <config>
+					<context npcId="725" iconId="10" str="我不知道你们做得有多对，但是我相信我做的一定是对的！">
+						<choice str="没错！我也是这么想的！" action="2936_getHurt"/>
+					</context>
+				</config>;
+         talk["725_2937_bailingstar3"] = <config>
+					<context npcId="725" iconId="11" str="大法师！大法师！小米被大家打伤了，大法师，快救救小米吧！">
+						<choice str="大法师，救救小米吧！" action="2937_toSee"/>
+					</context>
+				</config>;
+         talk["725_2938_afteralarm"] = <config>
+					<context npcId="725" str="糟了！永夜大军来了，奇奇，#username#，我们一起去白灵古道挡下它们吧！"/>
+					<context npcId="685" str="嗯！绝对要把永夜族打得抬不起头来！">
+						<choice str="没错！我今天一定要战个痛快！">
+							<context npcId="652" str="哈哈哈！比起那一大堆用来做炮灰的通灵巫师，你们更应该关注的，应该是小米哦！">
+								<choice str="大家小心，紫渊它们又来了！" action="2938_ziyuanCome"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2938_bailingstar3"] = <config>
+					<context npcId="725" iconId="12" str="小米，你终于醒过来了呢，真的是太好了。"/>
+					<context npcId="685" iconId="27" str="呜呜呜……差点以为你要醒不过来了。"/>
+					<context npcId="726" iconId="10" str="…………">
+						<choice str="小米，你怎么不说话呀！">
+							<context npcId="732" iconId="4" str="哎，难道这就是命吗？">
+								<choice str="大法师，你别想太多啦！" action="2938_fireAlarm"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2939_bailingstar3"] = <config>
+					<context npcId="725" iconId="10" str="又是你们，你们想对小米做什么！"/>
+					<context npcId="685" iconId="2" str="你们走开，别来伤害我的朋友！"/>
+					<context npcId="652" str="嗯~~~这种芬芳，这种只有白灵族才有的芬芳，真是太棒了~~~"/>
+					<context npcId="652" str="夜王大人，属下们这就来接您回家哦！">
+						<choice str="什么？！" action="2939_vivification"/>
+					</context>
+				</config>;
+         talk["725_2941_afterdestroy"] = <config>
+					<context npcId="725" iconId="13" str="小米，你怎么能这么做，这里是你的家呀！"/>
+					<context npcId="725" iconId="10" str="不要被夜王迷惑了神经，拿出你的勇气来，战胜夜王，不要让夜王控制住你啊！">
+						<choice str="小米，要打败夜王啊！">
+							<context npcId="750" iconId="2" str="（从夜王身体里传来小米的声音）对不起！对不起！我、我控制不住自己了！我……"/>
+							<context npcId="750" iconId="3" str="（小米的意识瞬间被夜王吞噬）哈哈哈哈！今天本王需要祭品！许许多多的祭品！！"/>
+							<context npcId="751" str="是！属下这就去办！白灵族，今天必亡！"/>
+							<context npcId="725" iconId="14" str="白灵族可不是这么弱的种族，奇奇，三大将和那些通灵巫师就交给你和#username#了。"/>
+							<context npcId="725" iconId="14" str="夜王既然是我亲手救过来的，那就让我亲手结束这一切吧。">
+								<choice str="我明白了！你去吧，洛洛！" action="2941_flyToTop"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2941_bailingstar3"] = <config>
+					<context npcId="725" iconId="13" str="小米，你快醒醒！一定是这三个家伙搞的鬼，你不可能是夜王，对不对！"/>
+					<context npcId="750" str="………………">
+						<choice str="小米，你说话啊！">
+							<context npcId="750" str="把这里，摧毁。"/>
+							<context npcId="751" str="是！夜王大人！">
+								<choice str="小米！你不能这么做！" action="2941_destroy"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["725_2943_bailingstar4"] = <config>
+					<context npcId="725" iconId="15" str="小米，你这家伙真是，对我居然下这么重的手……"/>
+					<context npcId="750" str="哈哈哈！小米的理智早就被我吞了，现在它可是什么都听不到了！"/>
+					<context npcId="725" iconId="15" str="我相信我的直觉，小米一定能听到我讲的话的！">
+						<choice str="洛洛……" action="2943_friendship"/>
+					</context>
+				</config>;
+         talk["725_2998_AfterTaskStart"] = <config>
+					<context npcId="725" str="还没有！不过为了小米，我们拼了！#username#！快出发吧！">
+						<choice str="嗯！" action="2998_FlyToOcean">
+						</choice>
+					</context>
+				</config>;
+         talk["726_2872_afterintroduce1"] = <config>
+					<context npcId="726" iconId="2" str="哼，我&lt;font color='#FF6600'&gt;&lt;b&gt;小米&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;才是速度的王者，一定会比你更快地通过白灵铜人阵的！">
+						<choice str="小米？" action="2872_introduceXiaomi"/>
+					</context>
+				</config>;
+         talk["726_2872_bailingstar1"] = <config>
+					<context npcId="725" iconId="2" str="我，&lt;font color='#FF6600'&gt;&lt;b&gt;洛洛&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，今天就要成为白灵族史上通过白灵铜人阵的最年轻的家伙了！">
+						<choice str="洛洛？" action="2872_introduceLuoluo"/>
+					</context>
+				</config>;
+         talk["726_2873_afterSee"] = <config>
+					<context npcId="726" iconId="3" str="我一定会比你更早、更快、更高分地拿下白灵铜人阵！"/>
+					<context npcId="725" iconId="3" str="哈哈！大话别说太早，我们比了再说。"/>
+					<context npcId="1" str="主人，看起来很有意思呢，我们也加入小米和洛洛，一起挑战白灵铜人阵吧！">
+						<choice str="嘿嘿，也好，来试试我的实力如何。" taskId="2873"/>
+					</context>
+				</config>;
+         talk["726_2873_bailingstar1"] = <config>
+					<context npcId="725" str="你是奇奇的朋友？咦，我好像对你有点印象哦，难道你是明信片上的这位……">
+						<choice str="什么明信片，给我看看！" action="2873_theCard"/>
+					</context>
+				</config>;
+         talk["726_2874_bailingstar1"] = <config>
+					<context npcId="725" str="你也要挑战白灵铜人阵吗？那可要小心了哦！">
+						<choice str="我会努力的。" action="2874_challenge"/>
+					</context>
+				</config>;
+         talk["726_2875_bailingstar1"] = <config>
+					<context npcId="726" str="（看了通关证书很久）这时间计算一定有问题，我怎么可能跟你一样慢！"/>
+					<context npcId="725" iconId="4" str="哈哈哈！和本洛洛打个平手有啥不好，这叫有福同享！"/>
+					<context npcId="726" str="…………我才不信呢！我们再比！/(ㄒoㄒ)/~~">
+						<choice str="你们别吵啦，奇奇好像已经来了呢，看天上！" action="2875_qiqiAppear"/>
+					</context>
+				</config>;
+         talk["726_2880_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="2880_theStory"/>
+					</context>
+				</config>;
+         talk["726_2881_bailingstar2"] = <config>
+					<context npcId="726" str="好啦！温功课就到此为止了！接下来该做正经事了！大家准备好了没有？"/>
+					<context npcId="734" str="嗯！准备好啦！">
+						<choice str="你们是要干嘛？" action="2881_showGrow"/>
+					</context>
+				</config>;
+         talk["726_2882_bailingstar2"] = <config>
+					<context npcId="725" iconId="5" str="奇奇，你简直酷毙了！"/>
+					<context npcId="685" iconId="23" str="哈哈！怎么样，输了吧！">
+						<choice str="这招真是太绝了。">
+							<context npcId="726" iconId="7" str="哎，比起你的帅气进化，我们的白灵铜人阵通关证书真是弱爆了！">
+								<choice str="噗……也不至于弱爆了啦！">
+									<context npcId="685" str="哇塞！你们居然拿到了白灵铜人阵的通关证书！！快给我看看！！">
+										<choice str="对呀，给奇奇看看嘛。" action="2882_darkShadow"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["726_2884_bailingstar2"] = <config>
+					<context npcId="725" str="………………"/>
+					<context npcId="733" iconId="3" str="………………">
+						<choice str="喂，你们都怎么了？">
+							<context npcId="733" iconId="3" str="啊啊啊啊！！！！刚才那是怎么回事，真是太帅啦！！">
+								<choice str="原来你们是被帅呆了。">
+									<context npcId="726" str="洛洛，你刚才，是怎么回事啊？超帅的！"/>
+									<context npcId="726" str="你最近是不是学了什么新东西啊，你可不能一个人耍帅啊，快教教我，我也要变帅！！"/>
+									<context npcId="685" str="洛洛你太不够朋友了，有这么厉害的招数居然不教我！">
+										<choice str="是啊，洛洛，刚才那是什么招数啊？">
+											<context npcId="725" str="我也不知道那是什么啊，不过我觉得那时的我真是超帅的啊，哎呀，真是帅到无法形容！"/>
+											<context npcId="725" str="哇哈哈哈哈哈哈！">
+												<choice str="别一个人在那自恋啊！">
+													<context npcId="725" str="其实我真不明白那是什么啦，也许、大概，是神的旨意？！"/>
+													<context npcId="725" str="对了，刚才你们也听到了吧，那几个家伙说它们是从永夜魂塔里跑出来的呢！"/>
+													<context npcId="685" str="没错，我也听到了。我有点担心，白灵圣殿是不是出什么事了…… ">
+														<choice str="难道和夜王有关……" action="2884_goBack"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["726_2909_aftersurprise"] = <config>
+					<context npcId="726" str="怎么办啊，洛洛好像没法顺利变身呀！"/>
+					<context npcId="685" str="也许我们重现一下现场，洛洛就能找到当时的感觉呢！">
+						<choice str="这是个好主意！" taskId="2909"/>
+					</context>
+				</config>;
+         talk["732_2885_afterintroduce"] = <config>
+					<context npcId="732" str="你们这几个家伙，就知道不守规矩地乱跑。这禁林是你们能进去的地方吗？简直太胡来了！"/>
+					<context npcId="732" str="奇奇也是，回来了连声招呼也不打，夜王灵魂复活了这么大的事情是一封信能承载的吗？"/>
+					<context npcId="732" str="白灵圣殿出事了，也找不到你们几个小鬼帮忙，真是的，太不像样了！">
+						<choice str="……">
+							<context npcId="685" str="对不起啦！大法师，别生气呀……"/>
+							<context npcId="1" str="主人你看，那座塔里飞出了好多刚才袭击我们的通灵巫师！"/>
+							<context npcId="685" str="看来事情越来越不妙了……"/>
+							<context npcId="732" str="哎！永夜魂塔，封印裂开，此乃凶兆啊！大大的凶兆！">
+								<choice str="这难道就是夜王重生的力量吗？" action="2885_foretell"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["732_2885_bailingstar1"] = <config>
+					<context npcId="732" str="你们几个，怎么会从禁林里面出来！这是违反族规的！">
+						<choice str="这位莫非就是之前洛洛它们说的大法师？" action="2885_introduceDafashi"/>
+					</context>
+				</config>;
+         talk["732_2906_bailingstar1"] = <config>
+					<context npcId="732" action="2906_start"/>
+				</config>;
+         talk["732_2907_afterweekmovie"] = <config>
+					<context npcId="732" str="经过大家的努力，异象已经渐渐平息下去了。"/>
+					<context npcId="732" str="洛洛、小米、奇奇，别再乱跑了，跟我一起回圣殿去吧。">
+						<choice str="我也一起去。" action="2907_goBailingstar3"/>
+					</context>
+				</config>;
+         talk["732_2907_bailingstar1"] = <config>
+					<context npcId="732" action="2907_oneWeekPassedMovie"/>
+				</config>;
+         talk["732_2908_bailingstar3"] = <config>
+					<context npcId="732" str="洛洛、小米，你们把大家召集到这里来，白灵族是时候开一个族群会议了。"/>
+					<context npcId="685" str="大法师，您是要向大家宣布夜王灵魂复活的消息吗？">
+						<choice str="我猜应该是。">
+							<context npcId="1" iconId="4" str="但是现在白灵族还没有狼王，如果大家得知了夜王灵魂复活的事情，一定会很慌张吧！"/>
+							<context npcId="732" str="嗯……这几天谣言四起，族心不稳，也许把真相告诉大家，才是正确的选择吧。">
+								<choice str="希望如此。" action="2908_callFriend"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["732_2916_afterevolution"] = <config>
+					<context npcId="732" iconId="2" str="狼、狼王……这是属于狼王的光芒！！！"/>
+					<context npcId="733" iconId="2" str="狼王？？！！！">
+						<choice str="洛洛居然是狼王！" taskId="2916"/>
+					</context>
+				</config>;
+         talk["732_2918_bailingstar3"] = <config>
+					<context npcId="732" iconId="3" str="我们白灵族的东西，岂容永夜族说倒就倒！"/>
+					<context npcId="732" iconId="3" str="大家听好了！永夜魂塔，是我们白灵族代代守卫的东西，里面关押着一大批作恶多端的永夜族人。"/>
+					<context npcId="732" iconId="3" str="绝不能在今天，让它被永夜族摧毁！">
+						<choice str="大法师威武！" action="2918_protect"/>
+					</context>
+				</config>;
+         talk["732_2919_afterwant"] = <config>
+					<context npcId="732" str="你们不用太担心，洛洛还没有熟练掌握变化为狼王的技巧，所以体力消耗太大。">
+						<choice str="原来如此。">
+							<context npcId="732" str="今天的事情就到此为止，先不要声张，以免引起慌乱。"/>
+							<context npcId="745" str="是！大法师！"/>
+							<context npcId="732" str="奇奇，你先陪小米离开吧，有些事情，我要单独和洛洛谈一谈。">
+								<choice str="那我也一起走吧。">
+									<context npcId="732" str="#username#，你也留下来听一听吧。">
+										<choice str="好吧。" action="2919_leave"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["732_2920_bailingstar3"] = <config>
+					<context npcId="732" str="洛洛啊，白灵族有了你这样一位厉害的狼王，我还是很高兴的。"/>
+					<context npcId="732" str="毕竟你是一个正义、阳光的孩子，没有什么比这更让人放心的了。"/>
+					<context npcId="732" str="洛洛，你有信心承担这份重任吗？">
+						<choice str="我相信洛洛可以的。">
+							<context npcId="725" iconId="9" str="大法师，你相信我吧，不管之后遇到什么困难，我都会把这份重任扛下去的。"/>
+							<context npcId="732" str="你这样说，我就放心了。但是还有件事情，你也必须接受。">
+								<choice str="是什么？" action="2920_tell"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["732_2921_bailingstar3"] = <config>
+					<context npcId="732" str="#username#，你是洛洛、奇奇和小米的好朋友，关键时刻，我也希望你能做出正确的选择。">
+						<choice str="究竟什么才是正确的选择呢……" action="2921_foretell"/>
+					</context>
+				</config>;
+         talk["734_2939_aftervivification"] = <config>
+					<context npcId="734" iconId="3" str="小米！！这、这是怎么回事？！">
+						<choice str="……">
+							<context npcId="652" str="喔，红魔铺垫的不错嘛，对同族仇恨的种子在心里种下，然后渐渐发芽，然后长成参天大树！"/>
+							<context npcId="652" str="这真是让人兴奋到不行啊，只有经过同族相残的这一场前戏，苏醒过来的夜王才会变得更加强大呢，哈哈哈哈哈哈！">
+								<choice str="混蛋！！" taskId="2939"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["734_2999_AfterXiaoMiComeMovie"] = <config>
+					<context npcId="734" iconId="5" str="小米！我们终于找到你了！你怎么样？"/>
+					<context npcId="757" iconId="8" str="你们是谁？欠扁啊！">
+						<choice str="小米！你不认识我们了？" taskId="2999">
+						</choice>
+					</context>
+				</config>;
+         talk["734_3001_AfterMiFightMovie"] = <config>
+					<context npcId="734" iconId="5" str="小米！！">
+						<choice str="太好了，小米的黑暗能量被米霸打走啦！" taskId="3001">
+						</choice>
+					</context>
+				</config>;
+         talk["734_3002_AfterFatherAndSonMovie"] = <config>
+					<context npcId="757" iconId="6" str="爸爸……我从来不敢想像，我还有爸爸……我不再是孤儿了……55555555……"/>
+					<context npcId="767" iconId="2" str="小米，能看到你，实在是太好了！我想你妈妈也会很高兴的……"/>
+					<context npcId="766" iconId="5" str="师父，我还从来没见你哭过呢！太感人了，我也好想哭，555！">
+						<choice str="5555……我也想哭……" taskId="3002">
+						</choice>
+					</context>
+				</config>;
+         talk["734_3002_AfterXiaoMiWakeUpMovie"] = <config>
+					<context npcId="734" iconId="5" str="什么？！你说什么？！小米是你的孩子？！"/>
+					<context npcId="757" iconId="4" str="你，你说什么？我，我不是孤儿吗？"/>
+					<context npcId="767" iconId="2" str="不！小米，你不是孤儿，我就是你的爸爸！没想到，我还能看到你，太好了……">
+						<choice str="米霸大厨，你真的是小米的爸爸吗？" action="3002_FatherAndSonMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["734_3003_AfterMiBaMemoryCartoon"] = <config>
+					<context npcId="734" iconId="7" str="米霸叔叔，你的故事太酷了！我们好感动啊……55555……"/>
+					<context npcId="757" iconId="7" str="爸爸……我……5555555……"/>
+					<context npcId="767" str="哈哈，大家别哭了，今天是七夕，让天下无敌的米霸大厨为你们做一顿美味的寿司吧！"/>
+					<context npcId="734" iconId="9" str="哇哇哇哇哇！好耶！有天下无敌的米霸寿司吃咯！">
+						<choice str="太好了！" taskId="3003">
+						</choice>
+					</context>
+				</config>;
+         talk["734_3003_skycity4"] = <config>
+					<context npcId="734" iconId="6" str="5555555……太好了！米霸大厨，快带我们去见见小米的妈妈吧！"/>
+					<context npcId="766" iconId="2" str="嘘——你们不要说——"/>
+					<context npcId="767" str="我相信小米的妈妈一直在这里，而且，她一定会替我们高兴的……">
+						<choice str="难道……" action="3003_MiBaMemoryCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["734_3004_AfterHitPetInteraction"] = <config>
+					<context npcId="734" iconId="9" str="哇！小米，你好帅哦！真有米霸大厨的霸气！！厉害！"/>
+					<context npcId="757" str="哈哈，爸爸的铲子好神奇啊！"/>
+					<context npcId="767" str="呵呵，真不愧是我的小孩，手法很有范哦！快看看这些亚比怎么样了！">
+						<choice str="嗯！" taskId="3004">
+						</choice>
+					</context>
+				</config>;
+         talk["744_2946_bailingstar4"] = <config>
+					<context npcId="744" iconId="2" str="这次我绝对不会再手软了！"/>
+					<context npcId="750" str="哼！以为这样就能战胜我吗，笑话！">
+						<choice str="狼王，你可以的！" action="2946_finalFight1"/>
+					</context>
+				</config>;
+         talk["747_2934_bailingstar1"] = <config>
+					<context npcId="1" iconId="14" str="它们真是太过分了，主人，教训它们一下吧！">
+						<choice type="3" str="我也是这么想的！" action="2934_fight"/>
+					</context>
+				</config>;
+         talk["747_2935_bailingstar1"] = <config>
+					<context npcId="747" str="为什么你要帮这家伙？！它可是夜王！！"/>
+					<context npcId="726" iconId="9" str="我不是夜王！你们胡说！">
+						<choice str="你们凭什么说小米是夜王！">
+							<context npcId="747" str="哼！那天我们躲在暗处分明听得清楚，别狡辩了！"/>
+							<context npcId="748" str="我们也不想做得太绝，你走吧，走得远远的！我们白灵族不需要你这个败类！"/>
+							<context npcId="749" str="况且你只是当年大法师好心从外面捡来的小孩，根本不是我们白灵族的人！">
+								<choice str="你们不要欺人太甚啊！">
+									<context npcId="725" iconId="10" str="小米是我的好朋友，你们赶小米走，就是赶我走！"/>
+									<context npcId="685" iconId="2" str="没错！我们有福同享，有难同当！">
+										<choice str="对！">
+											<context npcId="747" str="洛洛，你可是狼王，怎么能与坏人为伍？"/>
+											<context npcId="725" iconId="10" str="小米从小和我们一起长大，红魔只是突然冒出来的永夜大将！"/>
+											<context npcId="725" iconId="10" str="你们居然选择相信红魔随口说的一句话，而不是朝夕相处的伙伴吗？！">
+												<choice str="你们这样是不对的！">
+													<context npcId="748" str="我们也不是完全相信红魔，但是红魔的话就像一根钉子，钉在我们心里！"/>
+													<context npcId="748" str="我们也不要求别的，只要让小米离开白灵圣殿就行了。"/>
+													<context npcId="725" iconId="10" str="小米的家就是白灵圣殿，你们不能赶小米走！"/>
+													<context npcId="749" str="没想到你身为狼王，却这么的不明事理，真是让人太失望了。">
+														<choice str="是你们做的不对！" taskId="2935"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["750_2943_aftership"] = <config>
+					<context npcId="750" str="这是……眼泪？！哈哈，没想到小米这家伙现在还能有自己的意识！"/>
+					<context npcId="750" str="不愧是我选中的肉体！果然有点实力！哈哈哈！"/>
+					<context npcId="1" iconId="16" str="主人，狼王，小米现在还有点自己的意识，也许能压制住夜王的实力！"/>
+					<context npcId="1" iconId="16" str="趁现在，赶紧打败夜王吧！">
+						<choice str="恩！" taskId="2943"/>
+					</context>
+				</config>;
+         talk["750_2944_bailingstar4"] = <config>
+					<context npcId="750" str="就凭你们两只小蚂蚁，估计只有在做梦的时候才能打败我夜王吧！">
+						<choice type="3" str="我们这边可是有狼王在的，别自大了！" action="2944_fight"/>
+					</context>
+				</config>;
+         talk["750_2946_after1"] = <config>
+					<context npcId="750" str="哈哈哈！我夜王，是无敌于天下的！">
+						<choice str="狼王，不要被它打败啊！" action="2946_finalFight2"/>
+					</context>
+				</config>;
+         talk["754_2942_afterfight"] = <config>
+					<context npcId="754" str="#username#，奥奇，我和七星神龙特地前来帮忙！击退永夜族！">
+						<choice str="凤凰，神龙，真是太感谢了！">
+							<context npcId="752" str="小意思！就永夜族的这三大将，对我们来说只是小菜一碟！">
+								<choice str="大家一起并肩战斗吧！">
+									<context npcId="753" str="#username#，能请你去塔顶，看着那两个笨蛋么？">
+										<choice str="啊？">
+											<context npcId="753" str="如果可以的话，我希望，它们俩都能好好的从塔顶下来。"/>
+											<context npcId="753" str="洛洛在对抗夜王，我也不能示弱，我会在这里，和凤凰、神龙一起，打败这些混蛋，拯救白灵族的。"/>
+											<context npcId="1" iconId="16" str="主人，HELLO觉得奥奇说的对，我们赶紧去塔顶吧！">
+												<choice str="嗯！我这就出发！" taskId="2942"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["760_3005_AfterPredictCartoon"] = <config>
+					<context npcId="760" iconId="4" str="黑龙？！就是我们在火山上放出的那条大黑龙吗？！"/>
+					<context npcId="769" iconId="1" str="天啊！！真的有大黑龙啊？！你们都看见了？！"/>
+					<context npcId="284" iconId="14" str="可是那些开方舟的英雄，怎么还没来呢？">
+						<choice str="开方舟的英雄？">
+							<context npcId="725" str="放心吧！有我们呢！我们米洛奇和小奥拉，一定会拯救风暴星系的！"/>
+							<context npcId="757" str="爸爸，教教我们你的天下无敌功夫吧！我们要把大黑龙打得趴下！"/>
+							<context npcId="767" str="哈哈，小子们，好样的！你们有这样的志气，我一定帮助你们，拯救风暴星系！"/>
+							<context npcId="766" str="师父，小师父，你们要带上波波哦，波波给你们做饭吃！"/>
+							<context npcId="760" iconId="5" str="好！大家都上米洛奇号，去打败大黑龙咯！风暴星系，我们来了！">
+								<choice str="GO！！" action="3005_BoardShipMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["765_2999_skycity4"] = <config>
+					<context npcId="765" iconId="1" str="哼哼！我们是小恶魔！我们要破坏！破坏！啊哈哈哈！"/>
+					<context npcId="766" iconId="2" str="你们……你们不要乱来！救命啊！"/>
+					<context npcId="725" iconId="10" str="你们这些小恶魔！欺人太甚了！看我怎么收拾你们！">
+						<choice type="3" str="洛洛，我来帮你！" action="2999_FightToThree">
+						</choice>
+					</context>
+				</config>;
+         talk["766_3000_AfterMiBaThrowPanMovie"] = <config>
+					<context npcId="766" iconId="3" str="师父！你终于出手了！好厉害！我们有救了！耶！！"/>
+					<context npcId="734" iconId="8" str="你在说什么？谁是你师父？">
+						<choice str="不会是刚才扔锅铲的那个吧？" action="3000_MiBaCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["766_3000_skycity4"] = <config>
+					<context npcId="766" iconId="2" str="小米？它是你们的朋友吗？别叫了，它们都走火入魔了，不会认得你们的！">
+						<choice str="什么？为什么会走火入魔？" action="3000_PaperCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["766_3001_skycity4"] = <config>
+					<context npcId="766" iconId="4" str="看，我师父就是天下第一超级无敌大厨师！米——霸——！！！">
+						<choice str="这名字果然很霸气！" action="3001_MiBaAppearMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["766_3004_skycity4"] = <config>
+					<context npcId="766" iconId="6" str="不好啦！不好啦！那些小恶魔又来了！你们看！">
+						<choice str="啊！" action="3004_StormPetMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["767_3001_AfterMiBaAppearMovie"] = <config>
+					<context npcId="767" str="哈哈，身手不错哦，小伙子！"/>
+					<context npcId="734" iconId="5" str="天啊，我们没看错吧？你，你跟小米长得超像！！">
+						<choice str="哇！米霸看起来就像是小米的爸爸……">
+							<context npcId="757" iconId="9" str="哼！我跟你拼了！"/>
+							<context npcId="767" str="小子，口气真大呢！">
+								<choice str="你们不会要打起来吧？" action="3001_MiFightMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["767_3002_skycity4"] = <config>
+					<context npcId="767" iconId="3" str="什么？你们叫它什么？小米？小米……">
+						<choice str="怎么了？你认识小米吗？" action="3002_XiaoMiWakeUpMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["768_3005_skycity4"] = <config>
+					<context npcId="263" iconId="7" str="太恐怖了！黑色龙卷风太恐怖了！"/>
+					<context npcId="264" iconId="7" str="那风一刮起来，好像要把风暴星系吃掉了呢！"/>
+					<context npcId="284" iconId="13" str="难道，难道那个末日预言要实现了吗？">
+						<choice str="末日预言？" action="3005_PredictCartoon">
+						</choice>
+					</context>
+				</config>;
+         talk["80_218503_hexagrampalace1"] = <config>
+					<context npcId="80" iconId="1" str="总算勉强赶上了！再晚一步，就真的不可挽回了！"/>
+					<context npcId="303" iconId="1" str="修罗，怎么这么久不见，你的实力就掉渣成这样，真是太让我们失望了！"/>
+					<context npcId="379" iconId="1" str="阿风，够啦！别再刺激修罗了，它毕竟才刚从封印里出来不久啊！"/>
+					<context npcId="1" iconId="32" str="烈焰鸟！战无炎！神武月！你们真是来得太及时了，呜呜呜呜呜！">
+						<choice str="刚才真是命悬一线啊！" taskId="2185" action="2185_End"/>
+					</context>
+				</config>;
+         talk["80_2186_hexagrampalace1"] = <config>
+					<context npcId="80" iconId="1" str="凯撒，千年不见，你还是和以前一样！难道只要修罗活着，你就永远不能停手吗？"/>
+					<context npcId="80" iconId="1" str="莫非千年前未能成为六芒星系守护神一事，真让你如此耿耿于怀吗？"/>
+					<context npcId="539" iconId="1" str="哼！星系守护神？如今我早已不把这个位置放在眼里了，我要主宰宇宙！"/>
+					<context npcId="303" iconId="1" str="说来说去你就是个权力狂嘛！还跟这家伙废话什么，阿月，我们上去把它灭了！">
+						<choice str="神武月，战无炎，算我一个！我也要战斗！" action="2183_Fight1"/>
+						<choice str="等等！让我先准备一下！" action=""/>
+					</context>
+				</config>;
          talk["80_335_feier2"] = <config>
 					<context npcId="68" str="小心啊！烈焰鸟把你当成坏人了。">
 						<choice type="3" str="不怕！我可以应付！" action="fightWithBird"/>
@@ -5805,9 +21139,258 @@ package mmo.tasknpc
 						<choice type="0" str="究竟是什么东西呢？" action="1563_littleGhost"/>
 					</context>
 				</config>;
+         talk["86_2063_haikustar1"] = <config>
+					<context npcId="86" iconId="1" str="#username#，准备好了吗？让我们一起给这个贪婪的古力德一点教训。">
+						<choice str="太好啦！能和拉贝尔一起战斗。">
+							<context npcId="54" iconId="2" str="别以为……以为有英雄的帮助，你们……你们就了不起了。"/>
+							<context npcId="54" iconId="2" str="达黑黑、SR战士，给我上！"/>
+							<context npcId="495" iconId="1" str="切~这种时候就知道拿我当炮灰！">
+								<choice str="看我把你们统统打飞！" action="2055_Fight2"/>
+								<choice str="我准备一下就来跟你们打。" action=""/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["86_2064_haikustar1"] = <config>
+					<context npcId="86" iconId="1" str="我来六芒星系，本来是要调查黑元首的阴谋。"/>
+					<context npcId="86" iconId="1" str="但是，在调查过程中，我发现六芒星系，也许隐藏着更为惊人的秘密。">
+						<choice str="什么秘密？">
+							<context npcId="86" iconId="1" str="奇异的六芒星的能量，模糊不清的六芒星系历史，曾经被破坏的海枯之星……">
+								<choice str="究竟你想告诉我们什么呢？" action="2055_Movie10"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["87_1610_youanmingzhou4"] = <config>
 					<context npcId="87" str="没有人可以在我的领地与月魔战斗。">
 						<choice type="0" str="我们有我们的约定，一定要坚持到底。" action="1610_fight"/>
+					</context>
+				</config>;
+         talk["8_12_aixiscene4"] = <config name="8_12_aixiscene4">
+					<context npcId="8" iconId="8" str="事到如今，你们除了向我屈服以外，也没有别的办法了吧，哈哈！">
+						<choice type="3" str="哈鲁达，你太可恶了！" action="8_12_aixiscene4_end"></choice>
+					</context>
+				</config>;
+         talk["8_12_aixiscene4_1"] = <config name="8_12_aixiscene4_1">
+					<context npcId="8" iconId="8" str="你们还是好好考虑一下我的提议吧！只要交出辉之碎片，什么都好办哦！">
+						<choice str="我才不会相信达斯特人的话！" action="8_12_aixiscene4_1end"></choice>
+					</context>
+				</config>;
+         talk["8_1716_loseFight"] = <config>
+					<context npcId="8" iconId="1" str="知道我哈鲁达大人的厉害了吧！">
+						<choice str="这次不算，你敢再打一次吗？" action="startFight_1716"/>
+						<choice str="哼，侥幸赢了吧。"/>
+					</context>
+				</config>;
+         talk["8_1716_suolide4"] = <config>
+					<context npcId="8" iconId="1" str="那你们就一起上吧，让你尝尝优化SR战士的厉害。">
+						<choice str="谁怕谁。" action="startFight_1716"/>
+					</context>
+				</config>;
+         talk["8_1716_winFight"] = <config>
+					<context npcId="8" iconId="1" str="你们不可能胜利。"/>
+					<context npcId="8" iconId="1" str="还有一个SR战士，哈哈~~">
+						<choice str="输了就认输吧。">
+							<context npcId="419" iconId="1" str="虽然胜利了，但是我们的体力也支撑不了多久了……。">
+								<choice str="一定要想想办法才行。" action="movie1_1716"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["8_185_siwude2"] = <config>
+					<context npcId="8" str="啊，是奥拉勇士。被发现了！">
+						<choice type="0" str="别跑。">
+							<context npcId="8" str="哈哈！等下就会上演我哈鲁达大人震撼世界的表演啦！哈哈！">
+								<choice type="0" str="我不会让你得逞的！" action="8_185_showEscapingMovie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["8_1905_FightFail"] = <config>
+					<context npcId="8" str="我早说过你不可能战胜我哈鲁达大人的。哈哈～">
+						<choice str="我不会放过你的。">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1905_FightWin"] = <config>
+					<context npcId="8" str="我哈鲁达大人今天没吃饱，算你侥幸。">
+						<choice str="逃得还挺快。" taskId="1905" action="1905_HaLuDaRunAway">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1905_fairytalestar3"] = <config>
+					<context npcId="8" str="想和我哈鲁达大人作对可没那么容易。">
+						<choice str="看来这场战斗在所难免。" action="1905_FightWithHaLuDa">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1922_AfterDuckBecomeSwanMovie"] = <config>
+					<context npcId="8" str="不可能！我的故事中，丑小鸭应该被冻死，不可能变成白天鹅的啊！"/>
+					<context npcId="462" iconId="3" str="这才是真正的童话的力量，这是真善美的力量！你这种坏蛋永远体会不到！"/>
+					<context npcId="8" iconId="4" str="以为这样就可以拯救童话世界了吗？妄想！"/>
+					<context npcId="8" iconId="4" str="SR战士，消灭他们！">
+						<choice str="看来这场战斗避无可避了！" taskId="1922" action="1922_Next">
+						</choice>
+					</context>	
+				</config>;
+         talk["8_1923_fairytalestar3"] = <config>
+					<context npcId="8" str="就让SR战士，将丑小鸭的世界破坏吧！"/>
+					<context npcId="470" str="你这种人，不配待在童话世界。">
+						<choice str="把童话之书还回来吧！" action="1923_Fight">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1932_fairytalestar4"] = <config>
+					<context npcId="8" str="哼，你们几个居然敢随便改动我哈鲁达精心编制的完美故事！"/>
+					<context npcId="462" str="不是真正热爱童话的人，是无法真正改变童话之星，得到童话之书的力量的！"/>
+					<context npcId="462" str="即使你得到了童话之书，可是你永远无法使用它真正的力量！">
+						<choice str="童心说得好！">
+							<context npcId="8" str="哼，既然这东西无法让我哈鲁达大人好好使用，那你们也别想得到它！"/>
+							<context npcId="8" str="看我今天就把童话之星和童话之书一并毁灭吧！"/>
+							<context npcId="462" str="你、你要做什么！住手！">
+								<choice str="……事情不妙！" action="1932_AngryHaLuDaMovie">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["8_1936_FightFail"] = <config>
+					<context npcId="8" iconId="3" str="这只是给你小小的教训，看看接下来壮观的景象。">
+						<choice str="哈鲁达，你要干什么？" action="1936_DrawBlackDoorMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1936_FightSuccess"] = <config>
+					<context npcId="8" iconId="3" str="就让你们最后再胜利一次吧！让你们看看什么才是真正的伟大。">
+						<choice str="哈鲁达，你快住手！" action="1936_DrawBlackDoorMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1946_AfterTask1934"] = <config>
+					<context npcId="8" iconId="4" str="哇哇！可恶的小奥拉，可恶的童心，气死我了，我一定要毁掉童话之星！">
+						<choice str="哈鲁达！快交出童话之书！你不会成功的！" starterId="1946" action="1946_Next"/>
+						<choice str="我懒得理你！"/>;
+			</context>
+		</config>;
+         talk["8_1947_fairytalestar1"] = <config>
+					<context npcId="8" str="我哈鲁达大人可不会那么容易输。">
+						<choice str="你已经没有帮手了。" taskId="1947" action="1947_Next"/>
+					</context>
+				</config>;
+         talk["8_1948_AfterCopyDoorMovie"] = <config>
+					<context npcId="1" iconId="26" str="主人！到我们大显神威的时刻啦！">
+						<choice str="嗯，看我们的吧！" taskId="1948" action="1948_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1948_fairytalestar1"] = <config>
+					<context npcId="8" iconId="4" str="#username#，你以为，只要把达鲁军团弄晕就可以胜利了吗？"/>
+					<context npcId="8" iconId="3" str="哈~哈~哈！我伟大的宇宙第二的哈鲁达大人，怎么会轻易完蛋！"/>
+					<context npcId="1" iconId="16" str="哈鲁达！你难道还有什么绝招？"/>
+					<context npcId="8" iconId="3" str="绝招！？当然有啦！"/>
+					<context npcId="8" iconId="3" str="不过我才不会告诉你，我的专属达鲁还没有被迷倒！"/>
+					<context npcId="8" iconId="3" str="而且，达鲁军团还可以被复制出来啊！">
+						<choice str="原来是这样！" action="1948_CopyDoorMovie">
+						</choice>		
+					</context>				
+				</config>;
+         talk["8_1949_FightFail"] = <config>
+					<context npcId="8" iconId="3" str="妄想打败我宇宙第二的哈鲁达大人，没门!">
+						<choice str="我一定会打败你的！">
+						</choice>		
+					</context>				
+				</config>;
+         talk["8_1949_FightWin"] = <config>
+					<context npcId="8" iconId="4" str="看来只有出必杀啦！看我的钢铁达鲁！钢铁达鲁，出来吧！">
+						<choice str="这下糟了。" taskId="1949" action="1949_SteelDaLuMovie">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1949_fairytalestar1"] = <config>
+					<context npcId="8" iconId="4" str="想打败我，没那么容易。">
+						<choice str="接招吧！" action="1949_FightWithDaLu">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1950_FightFail"] = <config>
+					<context npcId="8" iconId="3" str="钢铁达鲁，聚集能量，毁灭童话之星吧！">
+						<choice str="不要啊！" action="1950_FellowComeMovie">
+						</choice>		
+					</context>				
+				</config>;
+         talk["8_1950_fairytalestar1"] = <config>
+					<context npcId="8" iconId="3" str="哈哈！我的钢铁达鲁一出，童话之星注定要被毁灭啦！">
+						<choice str="我会保护好童话之星的。" action="1950_FightWithSteelDaLu">
+						</choice>		
+					</context>				
+				</config>;
+         talk["8_1951_SuccessToSeal"] = <config>
+					<context npcId="8" str="哇！你们这些臭鸭子、笨猪，竟然敢阻拦我哈鲁达大人！"/>
+					<context npcId="462" iconId="11" str="像你这样的坏蛋，永远都不会理解这些善良美好的童话！">
+						<choice str="哈鲁达！你快投降吧！" taskId="1951" action="1951_Next">
+						</choice>
+					</context>
+				</config>;
+         talk["8_1952_fairytalestar1"] = <config>
+					<context npcId="8" iconId="4" str="钢铁达鲁！给我好好教训这个可恶的、坏我好事的童心。"/>
+					<context npcId="462" iconId="3" str="（悄悄对我们说）#username#，机会来啦！我拖住钢铁达鲁，你们快把书拿回来！"/>
+					<context npcId="1" iconId="8" str="童心！你要受苦了！">
+						<choice str="我们一定不会浪费你制造出的机会的。" action="1952_ReseizeBookMovie">
+							<context npcId="462" str="谢谢……谢谢大家这么帮我的忙！谢谢！！"/>
+							<context npcId="1" iconId="12" str="主人，你看！童心开始变化啦！">
+								<choice str="童心……童心要进化啦！" taskId="1952" action="1952_TongXinEvolveMovie">
+								</choice>
+							</context>
+						</choice>		
+					</context>				
+				</config>;
+         talk["8_22_aixiscene4_1"] = <config name="8_22_aixiscene4_1">
+					<context npcId="8" iconId="1" str="怎么样？不如把钥匙交给我，我就放了伊莎。"></context>
+					<context npcId="2" iconId="1" str="守护辉之碎片，这是伊莎和朋友间的约定，钥匙，不会交给你的。">
+						<choice str="对！">
+							<context npcId="8" iconId="1" str="那你们就等着伊莎女王死掉吧！">
+								<choice str="我们会想出办法救伊莎的。" action="8_22_aixiscene4_1end"></choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["8_26_aixiscene4_2"] = <config name="8_26_aixiscene4_2">
+					<context npcId="8" iconId="8" str="哈哈！一切都在我哈鲁达大人的意料之中！意料之中啊！"></context>
+					<context npcId="8" iconId="8" str="让你们救出伊莎女王，取出辉之碎片，这都是我伟大的哈鲁达大人的精心策划啊！"></context>
+					<context npcId="490" iconId="1" str="主人！我们不是顺便过来看看的吗？"></context>
+					<context npcId="8" iconId="8" str="哈……咔……不管怎么说，这辉之碎片，算是属于我啦！">
+						<choice str="属不属于你，得过了我这关！" taskId="26"></choice>
+					</context>
+				</config>;
+         talk["8_27_aixiscene4"] = <config name="8_27_aixiscene4">
+					<context npcId="1" str="主人，哈鲁达很强大，还是先给亚比分配经验再和哈鲁达战斗吧。">
+						<choice str="好的。" action="8_27_aixiscene4_end"></choice>
+					</context>
+				</config>;
+         talk["8_27_aixiscene4_2"] = <config name="8_27_aixiscene4_2">
+					<context npcId="8" iconId="8" str="哈哈哈，这就是我哈鲁达大人的实力，你还是快点放弃吧。">
+						<choice str="我们不会放弃的。"></choice>
+					</context>
+				</config>;
+         talk["8_27_aixiscene4_3"] = <config name="8_27_aixiscene4_3">
+					<context npcId="8" str="哼，哈鲁达大人我今天没吃早饭，等我回去吃了饭再来收拾你们。">
+						<choice str="胜利喽！" action="8_27_aixiscene4_3end"></choice>
+					</context>
+				</config>;
+         talk["8_3_aixiscene1_1"] = <config name="8_3_aixiscene1_1">
+					<context npcId="8" iconId="8" str="原来你在这里，嘿嘿，吉蒂，我劝你还是乖乖地把那东西交出来吧！">
+						<choice str="这人到底是谁？！好嚣张！" action="8_3_aixiscene1_1end"></choice>
+					</context>
+				</config>;
+         talk["8_4_aixiscene1"] = <config name="8_4_aixiscene1">
+					<context npcId="8" iconId="8" str="哼，放了吉蒂？我劝你还是别多管闲事了！">
+						<choice type="3" str="路见不平当然要拔刀相助，这可是奥拉人的传统。" action="8_4_aixiscene1_end"></choice>
+						<choice type="1" str="我准备一下再来跟你打。"></choice>
+					</context>
+				</config>;
+         talk["8_4_aixiscene1_1"] = <config name="8_4_aixiscene1_1">
+					<context npcId="8" iconId="8" str="怎么样，我的达鲁强大得令人害怕吧！">
+						<choice str="别傻了，我还没使出百分百战斗力呢。"></choice>
 					</context>
 				</config>;
          talk["94_1556_diamondisland3"] = <config>
@@ -5821,6 +21404,42 @@ package mmo.tasknpc
 							<context npcId='194' iconId="2" str="如果不能及时把黑暗力量从拉贝尔身体里驱散的话……"/>
 							<context npcId='194' iconId="2" str="拉贝尔将会彻底沦为念的猎物，甚至会自己回到念的身边被念吞食，成为念的一部分。">
 								<choice type='0' str="什么？！怎么会这样？！" action="task1556movie"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["94_2244_hexagrampalace3"] = <config>
+					<context npcId="94" iconId="1" str="还担心你们会不会有问题呢，没想到你们居然打败了凯撒！好样的！">
+						<choice str="嘿嘿嘿！都是修罗的功劳啦！">
+							<context npcId="86" iconId="1" str="这样的话，相信达斯特那边也暂时不会有什么动静了。">
+								<choice str="这么说，你们打败黑王子啦？">
+									<context npcId="94" iconId="1" str="哈哈，我们三个联手，还会有打不过的东西吗？！">
+										<choice str="崇拜啊！ ">
+											<context npcId="194" iconId="1" str="对了，刚才我们赶来这里的时候，看到有大量的黑暗能量分散出去。"/>
+											<context npcId="194" iconId="1" str="似乎是飞往了我们三个之前去探测那个星系——诺亚星系。">
+												<choice str="诺亚星系？">
+													<context npcId="194" iconId="1" str="我这里有一些关于诺亚星系的资料，希望你能把它带回奥拉星，也许会有所帮助。">
+														<choice str="好，我知道了。">
+															<context npcId="94" iconId="1" str="我得和拉贝尔、弗洛拉去诺亚星系探查情况了，先走一步，说不定我们在那儿会再见的。">
+																<choice str="期待再会！" action="2236_Movie11"/>
+															</context>
+														</choice>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["9_1033_maintown2"] = <config>
+					<context str="（听我们讲述了一遍在上古神殿所遇到的事情）"/>
+					<context str="拉贝尔、战无炎，看来我们的道路还很漫长。">
+						<choice str="司令官！我已经做好了准备！">
+							<context str="好！不愧是奥拉星的勇士。让我们再迈入新世界，开始崭新的冒险之旅吧！">
+								<choice str="向新世界出发！" taskId="1033"/>
 							</context>
 						</choice>
 					</context>
@@ -5946,6 +21565,170 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["9_1824_maintown2"] = <config>
+					<context npcId="9" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" str="为了表彰你在美食之星的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;美食徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice type="0" str="谢谢司令官！" taskId="1824"/>
+					</context>
+				</config>;
+         talk["9_1890_maintown2"] = <dialog>
+					<context str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context str="为了表彰你在独角之星的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;独角徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice str="谢谢司令官！" taskId="1890"/>
+					</context>
+				</dialog>;
+         talk["9_1954_maintown2"] = <config>
+					<context npcId="9" str="#username#，你们在童话之星上的英勇行为我已经有所耳闻了！你们做的很棒！">
+						<choice str="对不起，我们没有获得纯净能源（将所有事情向司令官汇报了一遍……）">
+							<context npcId="9" str="小勇士！你们并没有做错，童话之星上的纯净能源，用在了它该用的地方。"/>
+							<context npcId="9" str="友情、正义、智慧，奥拉之辉也是这些美好力量的集合体。"/>
+							<context npcId="9" str="相信在你们这些奥拉小勇士的努力之下，奥拉之辉，一定会重现光芒。">
+								<choice str="是！司令官！我明白啦！">
+									<context npcId="9" str="你在童话之星的表现非常出色，我正式授予你童话徽章！">
+										<choice str="谢谢司令官！" taskId="1954">
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["9_2006_maintown2"] = <config>
+					<context npcId="9" iconId="1" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" iconId="1" str="为了表彰你在魔术之星的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;魔术徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice str="谢谢司令官，我会继续努力的！" taskId="2006"/>
+					</context>
+				</config>;
+         talk["9_200_maintown2"] = <dialog>
+					<context str="亲爱的小奥拉，感谢你为奥拉城做出的贡献，为了表彰你的功勋，我现在特别授予你“&lt;font color='#FF6600'&gt;&lt;b&gt;生命徽章&lt;/b&gt;&lt;/font&gt;”。">
+						<choice type="0" str="我一定会融合出完整的奥拉之辉的！" taskId="200"/>					
+					</context>
+				</dialog>;
+         talk["9_2146_maintown2"] = <config>
+					<context npcId="9" str="#username#，你们在冰雪之星上的英勇行为我已经知道了！你们做的非常好！">
+						<choice str="可是我们没有获得纯净能源（将所有事情向司令官汇报了一遍……）">
+							<context npcId="9" str="你并没有做错，冰雪之星的纯净能源，用在了它该用的地方。"/>
+							<context npcId="9" str="相信在你们这些奥拉小勇士的齐心协力之下，奥拉之辉一定会重现光芒的。">
+								<choice str="是！司令官！我明白了。">
+									<context npcId="9" str="为了表彰你在冰雪之星的出色表现，我正式授予你&lt;font color='#FF6600'&gt;&lt;b&gt;冰雪徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;。">
+										<choice str="谢谢司令官！">
+											<context npcId="9" str="现在还有一件十分重要的事情要托付给你。">
+												<choice str="司令官请讲。">
+													<context npcId="9" str="我探查到终极能源可能和六芒神殿有着密切的关联。"/>
+													<context npcId="9" str="所以你要时刻注意搜集有关终级能源和六芒神殿的信息，并随时向我报告。">
+														<choice str="好的。" taskId="2146"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["9_2245_maintown2"] = <config>
+					<context npcId="9" iconId="1" str="（听完了我们的报告）#username#，你真是个勇敢的小奥拉！我为你感到自豪！"/>
+					<context npcId="9" iconId="1" str="根据三英雄收集的资料看来，诺亚星系是一个蕴含着强大纯净能源的神秘星系！">
+						<choice str="看来恢复奥拉之辉还是有希望的！">
+							<context npcId="9" iconId="1" str="但现在，诺亚星系有可能已经被黑暗力量污染了……"/>
+							<context npcId="9" iconId="1" str="诺亚星系的征程，也许会更困难！但是我相信你们一定能克服的！"/>
+							<context npcId="9" iconId="1" str="为了表彰你在六芒神殿的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;神殿徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+								<choice str="谢谢司令官！" taskId="2245" action="2245_End"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["9_234_brother"] = <dialog>
+					<context str="连个小孩都打不过，扣1000个月工资！" npcId="54"/>
+					<context str="小鬼，让你免费尝试下SR超级机器人军团的威力吧！免费哦！">
+						<choice str="SR军团？什么东西？" action="13_234_comingtwo"/>
+					</context>
+				</dialog>;
+         talk["9_234_two"] = <dialog>
+					<context str="你终于醒了，幸好我及时出手，否则后果不堪设想。" npcId="52">
+						<choice str="究竟发生了什么事？">
+							<context str="在SR军团向你开火的一刹那，我救了你，他们以为你被炸得灰飞烟灭。"/>
+							<context str="现在古尔德他们应该是前往&lt;font color='#FF6600'&gt;&lt;b&gt;贝壳城堡&lt;/b&gt;&lt;/font&gt;了。">
+								<choice str="我现在就要去救人鱼可可。" taskId="234"/>
+							</context>
+						</choice>
+					</context>
+				</dialog>;
+         talk["9_234_win"] = <dialog>
+					<context str="表哥！！！快来救我啊！有人来砸场啦！" npcId="50">
+						<choice type="2" str="啊！！！！" action="13_234_coming">
+						</choice>
+					</context>
+				</dialog>;
+         talk["9_2358_maintown2"] = <config>
+					<context npcId="9" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" str="为了表彰你在雅克星的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;雅克徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice type="0" str="谢谢司令官，我会继续努力的！" taskId="2358"/>
+					</context>
+				</config>;
+         talk["9_2442_maintown2"] = <config>
+					<context npcId="9" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" str="为了表彰你在糖果星的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;糖果徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice str="谢谢司令官，我会继续努力的。" taskId="2442">
+						</choice>
+					</context>
+				</config>;
+         talk["9_2516_maintown2"] = <config>
+					<context npcId='9' str="（听了我们的报告后）奥拉星对于凯撒绝对不能坐视不理，如果凯撒复活，宇宙要再起波澜了！">
+						<choice type='0' str="我会协助修罗，尽力阻止凯撒的复活！">
+							<context npcId='9' str="为了表彰你在风车谷的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;风车徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+								<choice type='0' str="谢谢司令官！" taskId="2516"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["9_259_maintown2"] = <config>
+					<context str="亲爱的小奥拉，感谢你为奥拉星做出的贡献，为了表彰你的功勋，我现在特别授予你“&lt;font color='#FF6600'&gt;&lt;b&gt;海洋徽章&lt;/b&gt;&lt;/font&gt;”。" npcId="9" taskId="259">
+                        <choice str="我会继续努力的。"/>
+					</context>	
+				</config>;
+         talk["9_2602_maintown2"] = <config>
+					<context npcId="9" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" str="为了表彰你在时钟之域的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;时钟徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice str="谢谢司令官，我会继续努力的！" taskId="2602"/>
+					</context>
+				</config>;
+         talk["9_2700_maintown2"] = <config>
+					<context npcId="9" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" str="为了表彰你在骑士王国的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;骑士徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。"/>
+					<context npcId="9" str="我发现一个叫&lt;font color='#FF6600'&gt;&lt;b&gt;尖叫游乐园&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;的地方出现了能量反应，希望你能密切观察，努力寻找新的纯净能源。">
+						<choice str="放心吧，司令官，我会继续努力的！" taskId="2700">
+						</choice>
+					</context>
+				</config>;
+         talk["9_2783_maintown2"] = <config>
+					<context npcId="9" iconId="7" str="亲爱的小奥拉，感谢你为奥拉星找到了纯净能源。"/>
+					<context npcId="9" iconId="2" str="为了表彰你在尖叫游乐园的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;尖叫徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。"/>
+					<context npcId="9" iconId="2" str="我发现一个叫&lt;font color='#FF6600'&gt;&lt;b&gt;音乐之都&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;的地方出现了能量反应，希望你能密切观察，努力寻找新的纯净能源。">
+						<choice str="放心吧，司令官，我会继续努力的！" taskId="2783"/>
+					</context>
+				</config>;
+         talk["9_2852_maintown2"] = <config>
+					<context npcId="9" str="亲爱的小奥拉，你在音乐之都的事情我已经听说了。"/>
+					<context npcId="9" str="为了表彰你在音乐之都的出色的表现，我现在特别授予你 “&lt;font color='#FF6600'&gt;&lt;b&gt;音乐徽章&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;”。">
+						<choice str="谢谢司令官，只是很遗憾没有为奥拉星找到纯净能源。">
+							<context npcId="9" str="没关系，我已经发现诺亚星系的核心，一个叫&lt;font color='#FF6600'&gt;&lt;b&gt;白灵圣殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;的地方出现了剧烈的能量反应。"/>
+							<context npcId="9" str="所以希望你能密切观察，找到纯净能源，恢复奥拉之辉。">
+								<choice str="放心吧，司令官，我会继续努力的！" taskId="2852"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         talk["9_29_maintown2"] = <config name="9_29_maintown2">
+					<context npcId="9" str="#username#，感谢你为奥拉星做出的贡献，为了表彰你的功勋，我现在特别授予你“冰之勋章”。">
+						<choice str="谢谢司令官。">
+							<context npcId="9" str="希望你继续努力，恢复完整的奥拉之辉。">
+								<choice str="我会努力的。" taskId="29"></choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["9_352_maintown2"] = <config>
 					<context str="哦？你们在费尔区见到了烈焰鸟？真是令人赞叹啊！" npcId="9"/>
 			        <context str="是啊！是啊！烈焰鸟的美丽真是无法形容呢，比利的坚持也令人感动。" npcId="1"/>
@@ -5966,6 +21749,37 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["9_750_maintown2"] = <config>
+					<context str="向上古神殿出发吧！">
+						<choice str="出发！" taskId="750" action="749_loadto_temple1"/>
+					</context>
+				</config>;
+         talk["9_788_maintown2"] = <config>
+					<context str="向上古神殿出发吧！">
+						<choice str="我们出发啦！" taskId="788" action="788_loadto_temple1"/>
+					</context>
+				</config>;
+         talk["9_806_maintown2"] = <config>
+					<context npcId="9" str="为了确保奥拉星和异空间的安全，#username#，你能否再次前往，查探上古神殿？">
+						<choice str="司令官放心！我一定圆满完成任务！" taskId="806" action="806_gotoTemple">
+						</choice>
+					</context>
+				</config>;
+         talk["9_80_final"] = <dialog>
+					<context str="另外，一个真正的奥拉勇士的荣耀，是能成功挑战异空间的守护者。看看这个守护者考验，去勇敢地挑战各个地方的守护者吧！">
+						<choice type="0" str="我一定能够战胜它们！" action="9_80_showpanel_final"/>
+					</context>
+				</dialog>;
+         talk["9_80_finalornotfinal"] = <dialog>
+					<context str="最后，为了表彰你的功勋，我现在特别授予你“&lt;font color='#FF6600'&gt;&lt;b&gt;大地徽章&lt;/b&gt;&lt;/font&gt;”。">
+						<choice type="0" str="嗯！我会更加努力寻找辉之碎片。" taskId="80"/>
+					</context>
+				</dialog>;
+         talk["9_80_maintown2"] = <dialog>
+					<context str="亲爱的小奥拉，鉴于你在索里德区的出色表现，我特地送你一个神奇的星空指南钟。它能预测星际能量的异常波动，让你可以更好地在星际中探险。">
+						<choice type="0" str="谢谢司令官！！" action="9_80_showpanel"/>
+					</context> 
+				</dialog>;
          starts["11_1515_yabistudy"] = <config>
 					<context npcId='11' str="#username#，你现在到来，我猜一定遇到了什么困难！">
 						<choice type='0' str="被你猜中了，我是来请求你的帮助的！" starterId="1515">
@@ -6023,10 +21837,29 @@ package mmo.tasknpc
 						<choice str="我去准备准备，一会儿再来。"/>
 					</context>
 				</config>;
+         starts["16_56_suolide1"] = <config name="16_56_aixiscene1">
+					<context npcId="16" str="呀！难道你就是盖布？——来指引我完成王之考验的人。">
+						<choice str="盖布？考验？嗯，说不定与辉之碎片的下落有关。" starterId="56"></choice>
+						<choice str="完全不明白，对不起，你认错人了。"></choice>
+					</context>
+				</config>;
+         starts["176_1711_suolide4"] = <config>
+					<context npcId="176" iconId="9" str="哼，肯定是圆角羊把水喝光了，还说帮忙打水。"/>
+					<context npcId="417" iconId="2" str="一定是这样的。">
+						<choice str="发生什么事情了吗？" starterId="1711" action="1711_afterStart"/>
+						<choice str="不清楚怎么回事。"/>
+					</context>
+				</config>;
          starts["182_1596_youanmingzhou3"] = <config>
 					<context npcId="182" iconId="7" str="这里十分危险，你快离开这里吧！">
 						<choice type="0" str="我不会抛弃伙伴的，让我们一起通过考验。" starterId="1596" action="1596_talkContinue"/>
 						<choice type="0" str="你说得有道理，我还是先离开吧。"/>
+					</context>
+				</config>;
+         starts["213_3330_aixiscene1"] = <config>
+					<context str="(*^__^*) 我想要一个主人，你愿意当我的主人吗？">
+						<choice str="当然愿意，看我用亚比球收了你！" starterId="3330" action="3330_fight"/>
+						<choice str="等等，让我学习一下怎么抓住你！" starterId="3330" action="3330_movie"/>
 					</context>
 				</config>;
          starts["249_1034_emptyspace1"] = <config>
@@ -6078,6 +21911,24 @@ package mmo.tasknpc
 								<choice type="0" str="嗯，这个主意不错，试试就试试。" action="1097_distinguishPig" starterId="1096"/>
 							</context>
 						</choice>
+					</context>
+				</config>;
+         starts["2_21_aixiscene4"] = <config name="2_21_aixiscene4">
+					<context npcId="2" str="#username#，你有想到什么办法了吗？">
+						<choice str="我正在想呢。咦，哈鲁达又来干嘛？" starterId="21"></choice>
+						<choice type="1" str="真是一个难题，待会儿再来考虑吧。"></choice>
+					</context>
+				</config>;
+         starts["2_2_aixiscene1"] = <config name="2_2_aixiscene1">
+					<context npcId="2" iconId="2" str="谁能帮帮我，我现在到底该怎么办？">
+						<choice str="你遇到什么困难了，我能帮你吗？" starterId="2"></choice>
+						<choice type="1" str="待会儿再来吧。"></choice>
+					</context>
+				</config>;
+         starts["2_8_aixiscene2"] = <config name="2_8_aixiscene2">
+					<context npcId="2" str="接下来就看我的吧！先雕出一只耳朵……再雕出身体……">
+						<choice str="吉蒂加油，我们看好你！" starterId="8"></choice>
+						<choice type="1" str="我们待会儿再来帮你。"></choice>
 					</context>
 				</config>;
          starts["303_1606_youanmingzhou5"] = <config>
@@ -6155,10 +22006,308 @@ package mmo.tasknpc
 						<choice str="以后再说吧。"></choice>
 					</context>
 				</config>;
+         starts["35_3338_starland"] = <config>
+					<context str="哎呀，小朋友，这么快就把钱花光光了吗？我芭芭拉教你几招，保证你晶币花不完哦~！">
+						<choice str="快告诉我吧！" starterId="3338" action="3338_showMovie"/>
+					</context>
+				</config>;
+         starts["36_160_siwude1"] = <config name="36_160_siwude1">
+					<context npcId="36" str="思伍德一年一度的守护者大赛开始喽！ 真兴奋呀！">
+						<choice str="真的？守护者大赛是什么？我想了解一下。" starterId="160" action="160_Start"/>
+						<choice str="嗯，好像没什么意思，等有空再来了解一下。"></choice>
+					</context>
+				</config>;
+         starts["37_698_siwude1"] = <config>
+					<context npcId="37" str="#username#，可把你盼来了！我在思伍德区发现了一件奇怪的事情。">
+						<choice str="什么事情？你好像非常着急啊！">
+							<context npcId="37" str="没错！我偶然发现思伍德区部落林地里竟然别有洞天，还是个特别美丽的地方。">
+								<choice str="哇！我真想去看看呢！">
+									<context npcId="37" str="那里可是小翼鸟林地，但是这些小翼鸟好像都受到某一种力量的驱使。">
+										<choice str="力量？">
+											<context npcId="37" str="是的，我总是有些很不详的预感，总之你如果到了那里，要一切小心。">
+												<choice str="好的，我会调查清楚再回来和你说的。" action="t698Footprint" starterId="698"/>//场景动画：脚步形状的箭头：脚步形状的箭头指向场景入口。
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         starts["38_178_siwude1"] = <config>
+					<context npcId="38" str="你知道吗？我们这儿有个臭名昭著的扭扭军团，他们整天用各种各样的恶作剧作弄人。"/>
+					<context npcId="38" str="小勇士，请你去讨伐他们吧！">
+						<choice type="0" str="好，我这就去讨伐他们！">
+							<context npcId="36" str="我也去，比比谁打倒的扭扭比较多吧。">
+								<choice type="0" str="我肯定不会输的。" action="178_changeScene" starterId="178"/>
+							</context>
+						</choice>
+						<choice type="1" str="嗯，让我再想想吧。"/>
+					</context>
+				</config>;
+         starts["3_3332_toolshop"] = <config>
+					<context str="亚比球是捕捉亚比的重要道具，去捉亚比前，一定要准备好足够的亚比球哦！">
+						<choice str="我想要亚比球，哪里才有呢？" starterId="3332" action="3332_Buy"/>
+					</context>
+				</config>;
+         starts["3_3336_toolshop"] = <config>
+					<context str="走过路过不要错过，米娜亚比饮食小站，让你的亚比更好更快更健康的成长！">
+						<choice str="亚比饮食小站，是什么东西？" starterId="3336">
+							<context str="啊哈！这个问题问得好！亚比在战斗的过程中，总是会消耗许许多多的能量！"/>
+							<context str="这个时候，就需要吃点东西，补充一下营养啦！让我考考你，你知道亚比这时吃什么吗？">
+								<choice str="让我想想。" action="3336_showPanel"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         starts["417_1711_suolide4"] = <config>
+					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
+				</config>;
+         starts["418_1711_suolide4"] = <config>
+					<context npcId="418" iconId="2" str="555555……"/>
+				</config>;
+         starts["423_1806_catestar3"] = <config>
+					<context npcId="1" str="主人，露可好像还没有反应耶，是不是那块鳞片没有作用啊？">
+						<choice type="0" str="我们再等等吧，也许露可马上就醒了！" starterId="1806" action="1806_starter"/>
+						<choice type="0" str="我们现在还有事，待会再来吧。"/>
+					</context>
+				</config>;
+         starts["424_1750_catestar2"] = <config>
+					<context npcId="424" iconId="5" str="什么？！露可失去了味觉？！">
+						<choice str="是啊，露可受到了很大的打击……" action="1750_afterstart" starterId="1750"/>
+						<choice str="我还有事，待会再来听你说。"/>
+					</context>
+				</config>;
+         starts["424_1764_catestar2"] = <config>
+					<context npcId="424" iconId="6" str="原来是你们，来蛋糕店有什么事情吗？">
+						<choice type="0" str="露丝，你回来了！我们等你好久了！" starterId="1764" action="1764_starter"/>
+						<choice type="0" str="待会儿再来找露丝吧。"/>
+					</context>
+				</config>;
+         starts["440_1843_siwude1"] = <config>
+					<context npcId="1" str="主人，这些家伙是在干嘛，看起来好热闹的样子。">
+						<choice str="我们也过去凑凑热闹。" action="1843_NextNpcPanel" starterId="1843"/>	
+						<choice str="下次再凑这个热闹吧。"/>	
+					</context>
+				</config>;
+         starts["445_1827_unicornstar1"] = <config>
+					<context npcId="1" str="主人，那里有一只晕倒的亚比，快点过去看看吧。">
+						<choice str="好，一起过去看看。" action="1827_afterstart" starterId="1827"/>
+						<choice str="以后再说吧。"/>
+					</context>
+				</config>;
+         starts["446_1835_unicornstar2"] = <config>
+					<context npcId="446" iconId="4" str="现在我终于长大，当年的事情，我一刻也没有忘记！现在回来，就是要解决这一切！">
+						<choice str="所以你才想要入宫行刺现在的国王，结果却把自己弄得一身伤？" action="1835_afterstart" starterId="1835"/>
+					</context>
+				</config>;
+         starts["446_1859_unicornstar4"] = <config>
+					<context npcId="446" str="#username#，谢谢你来救我！">
+						<choice str="其实，是仙林公主恳求我们来救你的！" action="1859_afterstart" starterId="1859"/>
+					</context>
+				</config>;
+         starts["446_1867_unicornstar1"] = <dialog>
+					<context str="#username#，我想，我已经有了定论！">
+						<choice str="是吗，说来听听。" action="1868_showFirstTalk" starterId="1867"/>
+						<choice str="我待会儿再来听你说吧。"/>
+					</context>
+				</dialog>;
+         starts["448_1851_unicornstar1"] = <config>
+					<context npcId="448" str="#username#，我已经打听到了多多王子被关在什么地方了！">
+						<choice str="太好了，快点告诉我吧。" action="1851_afterstart" starterId="1851"/>
+						<choice str="待会儿再来听你讲吧。"/>
+					</context>
+				</config>;
+         starts["462_1891_fairytalestar1"] = <config>
+					<context npcId="462" str="哎呀！哎呀！真纠结……你们说，第三次龟兔赛跑谁赢了？">
+						<choice str="+_+……第三次龟兔赛跑？！" starterId="1891" action="1891_Next"/>
+						<choice str="-_-让我再考虑下……"/>
+					</context>
+				</config>;
+         starts["462_1915_fairytalestar3"] = <config>
+					<context npcId="462" str="#username#，经过我认真的思考，我已经做出了决定。">
+						<choice str="相信童心的决定一定会让大家满意的！" starterId="1915" action="1915_Next"/>
+						<choice str="我还有其他事情要做。"/>;
+			</context>
+		</config>;
+         starts["462_1924_fairytalestar4"] = <config>
+					<context npcId="462" str="乱了，小猪之家也乱了……！">
+						<choice str="发生什么事情啦？" starterId="1924" action="1924_Next"/>
+						<choice str="我还有事情，一会再来。"/>;
+			</context>
+		</config>;
+         starts["462_1934_fairytalestar4"] = <config>
+					<context npcId="462" iconId="11" str="接下来和达斯特人的战斗会非常艰辛，你们，准备好了吗？">
+						<choice str="当然！我可是从来都没怕过啊！" starterId="1934" action="1934_Next"/>
+						<choice str="还是让我准备一下好了。"/>;
+					</context>
+				</config>;
+         starts["463_1899_fairytalestar2"] = <config>
+					<context npcId="1" str="白雪公主快醒醒！">
+						<choice str="快醒醒！" starterId="1899" action="1900_AppleMovie"/>	
+					</context>
+				</config>;
          starts["484_1959_magicstar1"] = <config>
 					<context npcId="484" iconId="1" str="欢迎来到魔术之星，你们也是来看魔术表演的吗？">
 						<choice str="魔术表演？听起来好像很有趣哦！" starterId="1959" action="1960_End"/>
 						<choice str="我们是打酱油，路过的。"/>
+					</context>
+				</config>;
+         starts["486_1986_magicstar1"] = <config>
+					<context npcId="486" iconId="2" str="#username#,你来得真巧，我正要找你呢！">
+						<choice str="安迪奶奶找我应该是和摩么卡有关系吧！" starterId="1986" action="1987_01_End"/>
+						<choice str="我现在还有事，待会再来听您说！"/>
+					</context>
+				</config>;
+         starts["486_1995_magicstar1"] = <config>
+					<context npcId="486" iconId="1" str="多克特要摩么卡帮他提取能量，暂时应该不会伤害它，所以孩子们，不用担心。">
+						<choice str="嗯，安迪奶奶分析的有道理，那我们现在应该怎么办？">
+							<context npcId="486" iconId="1" str="其实刚才摩么卡说的那些话是在暗示奶奶，让奶奶帮它准备一些东西。">
+								<choice str="什么东西？" starterId="1995" action="1995_Movie1"/>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事，待会再来听你说。" action=""/>
+					</context>
+				</config>;
+         starts["487_1969_magicstar2"] = <config>
+					<context npcId="487" iconId="3" str="我的魔术棒不见了……怎么办……我现在应该怎么办？">
+						<choice str="发生什么事了？">
+							<context npcId="1" iconId="1" str="摩么卡，你先不要慌，告诉我们发生什么事了，说不定HELLO和主人可以帮助你呢！">
+								<choice str="是的，也许我们能帮得上忙。">
+									<context npcId="487" iconId="4" str="我把妈妈留给我的魔术棒弄丢了，我实现不了它的愿望了！"/>	
+									<context npcId="487" iconId="2" str="魔术棒是妈妈留给我的遗物，我必须要去把它找回来。">	
+										<choice str="我帮你一起找吧。" starterId="1969" action="1969_Movie1"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还有更重要的事情，过一会再来听你说。" action=""/>
+					</context>
+				</config>;
+         starts["48_219_woerte2"] = <config name="48_219_woerte2">
+					<context npcId="48" str="你知道吗？传说沃尔特区曾经惊现人鱼呀！人鱼的美丽，那真是，不亲眼看见不知道啊！">
+						<choice str="人鱼！真的吗？！" starterId="219"></choice>
+						<choice str="我才不相信呢！"></choice>
+					</context>
+				</config>;
+         starts["492_2010_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="哇！#username#，是你啊！你在奥拉星非常有名呢！你也是来探索海枯之星的吗？">
+						<choice str="嗯，是的，我来寻找纯净能源。" starterId="2010" action="2011_start"/>
+						<choice str="哦！不！我只是路过看看。"/>
+					</context>
+				</config>;
+         starts["492_2443_windmillstar1"] = <config>
+					<context npcId="492" iconId="2" str="#username#，没想到会在这里遇见你。"/>
+					<context npcId="1" iconId="33" str="咦，馋嘴巴，你怎么会在这里？">
+						<choice str="是啊。" action="2443_start" starterId="2443"/>
+					</context>
+				</config>;
+         starts["493_2010_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="哇！#username#，是你啊！你在奥拉星非常有名呢！你也是来探索海枯之星的吗？">
+						<choice str="嗯，是的，我来寻找纯净能源。" starterId="2010" action="2011_start"/>
+						<choice str="哦！不！我只是路过看看。"/>
+					</context>
+				</config>;
+         starts["494_2010_haikustar1"] = <config>
+					<context npcId="492" iconId="1" str="哇！#username#，是你啊！你在奥拉星非常有名呢！你也是来探索海枯之星的吗？">
+						<choice str="嗯，是的，我来寻找纯净能源。" starterId="2010" action="2011_start"/>
+						<choice str="哦！不！我只是路过看看。"/>
+					</context>
+				</config>;
+         starts["495_2032_haikustar2"] = <config>
+					<context npcId="495" iconId="2" str="哼！该死的肥鱼古力德！专门让我黑爷来做些吃力的活！"/>
+					<context npcId="495" iconId="2" str="哼！等我还完了债，看我怎么收拾你！">
+						<choice str="又是那个坏人达黑黑！你想干嘛？">
+							<context npcId="495" iconId="2" str="嗯？又是你们，快点把白京京和海枯之石的下落告诉黑爷我！ ">
+								<choice str="不知道！知道也不告诉你。">
+									<context npcId="495" iconId="2" str="你现在是不说也得说！">
+										<choice str="这水里也不是你能说了算的。" starterId="2032" action="2032_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="先不跟你计较。" action=""/>
+					</context>
+				</config>;
+         starts["497_2018_haikustar2"] = <config>
+					<context npcId="497" iconId="1" str="我教给你一句话，我会为这句话注入魔力。"/>
+					<context npcId="497" iconId="1" str="当你对着那个人说出这句话，就可以看到他以前的样子。">
+						<choice str="这么神奇？快教我吧！">
+							<context npcId="497" iconId="1" str="你可要记好了哦！这句话就是“矮老虎哟”！">
+								<choice str="不是什么损人的话吧！">
+									<context npcId="497" iconId="1" str="不是！不是！不过，说多了也不太好……">
+										<choice str="嗯，让我试试！矮老虎哟！" starterId="2018" action="2018_Start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还不想学哦！" action=""/>
+					</context>
+				</config>;
+         starts["497_2046_haikustar1"] = <config>
+					<context npcId="497" iconId="7" str="怎么办呢？怎么救书恩？……唉……我真的不知道海枯之石在哪里。">
+						<choice str="我们可以做一颗假的海枯之石。">
+							<context npcId="497" iconId="4" str="假的海枯之石？"/>
+							<context npcId="1" iconId="7" str="对啊！你忘记了无所不能的HELLO了吗？"/>
+							<context npcId="1" iconId="7" str="就让HELLO来变成海枯之石吧！">
+								<choice str="可是这样，一定会被那只达黑黑认出来。">
+									<context npcId="497" iconId="4" str="是啊！它好像能嗅出海枯之石的气味。对！气味！">
+										<choice str="你想到什么了吗？" starterId="2046" action="2046_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="恩，我也不知道该怎么办。" action=""/>
+					</context>
+				</config>;
+         starts["501_2026_haikustar3"] = <config>
+					<context npcId="501" iconId="1" str="房子都被烧毁了，但是镇上的小孩们都没有受伤，并且都在屋子外面。"/>
+					<context npcId="501" iconId="1" str="我觉得，孩子们一定知道些什么。">
+						<choice str="我们问问孩子吧！">
+							<context npcId="506" iconId="1" str="呜呜……呜呜……"/>
+							<context npcId="507" iconId="1" str="哇……啊……哇啊啊……"/>
+							<context npcId="501" iconId="1" str="小孩子家园被毁，又受到惊吓，一时很难恢复过来。">
+								<choice str="我们先帮助他们把家园建好吧！">
+									<context npcId="1" iconId="1" str="嗯，建好家园，他们一定会高兴的，我们&lt;font color='#FF6600'&gt;&lt;b&gt;在这里找找&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，看有没有可以利用的&lt;font color='#FF6600'&gt;&lt;b&gt;材料&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+										<choice str="好的。" starterId="2026" action="2026_start"/>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="待会儿再来问这些孩子。" action=""/>
+					</context>
+				</config>;
+         starts["508_2055_haikustar2"] = <config>
+					<context npcId="508" iconId="1" str="你们……还想知道些什么事情吗？">
+						<choice str="嗯，能告诉我们关于海枯之石的事吗？">
+							<context npcId="508" iconId="1" str="唉……海枯之石啊！">
+								<choice str="是啊！我们急需海枯之石来救人呢！">
+									<context npcId="508" iconId="1" str="想不到，这么多年的事情，我还记得呢！">
+										<choice str="快告诉我们海枯之石的下落吧！">
+											<context npcId="508" iconId="1" str="唉……那就让你们见一下这海枯之石吧！">
+												<choice str="真的？" starterId="2055" action="2055_start"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我一会儿再来找你聊天。" action=""/>
+					</context>
+				</config>;
+         starts["517_2175_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="原来是你，#username#！来的真不是时候，我劝你，还是赶快离开吧！">
+						<choice str="那可不行，我不能留你独自在这里！" starterId="2175" action="2175_Start"/>
+					</context>
+				</config>;
+         starts["517_2183_hexagrampalace1"] = <config>
+					<context npcId="517" iconId="1" str="怎么、怎么又是你们，不是让你们走吗！">
+						<choice str="不行，我们坚决不走！" starterId="2183" action="2183_start"/>
+					</context>
+				</config>;
+         starts["517_2210_hexagrampalace2"] = <config>
+					<context npcId="517" iconId="1" str="准备好了吗，地狱般的修炼就要开始了！">
+						<choice str="我已经准备好了！请锻炼我吧！" starterId="2210" action="2210_Start"/>
 					</context>
 				</config>;
          starts["519_2072_bingxuestar1"] = <config>
@@ -6167,9 +22316,164 @@ package mmo.tasknpc
 						<choice str="我现在还有别的事，待会再来听你说。"/>
 					</context>
 				</config>;
+         starts["520_2080_bingxuestar2"] = <config>
+					<context npcId="520" str="现在只有暴雪冰山的冰崖上才有冰凌花，要采到它非常不容易。">
+						<choice str="为了帮豆豆，我愿意一试。" starterId="2080" action="2080_talkContinue"/>
+						<choice str="这样啊，那我还是不要去了。"/>
+					</context>
+				</config>;
+         starts["520_2088_bingxuestar1"] = <config>
+					<context npcId="520" iconId="1" str="#username#，你不用管我，这里太冷，你先回去吧！">
+						<choice str="我怎么能让你一个人在这里。" starterId="2088" action="">
+							<context npcId="520" str="我不知道豆豆是不是还能回来，所以不想连累你们。">
+								<choice str="你这说的是什么话，我们不是朋友吗？" action="2088_diEnFallIll"/>
+							</context>
+						</choice>
+						<choice str="正好我现在有事，待会再过来看你。"/>
+					</context>
+				</config>;
+         starts["520_2129_bingxuestar2"] = <config>
+					<context npcId="520" str="#username#，我等不下去了，我要自己想办法救豆豆。">
+						<choice str="迪恩，耐心点，再等等吧，我想兰丁快回来了！" starterId="2129" action="">
+							<context npcId="520" iconId="2" str="对不起，不是我不相信兰丁，只是我真的等不及了。"/>
+							<context npcId="520" iconId="2" str="我做不到就这么眼睁睁的看着豆豆的病情恶化下去。">
+								<choice str="我能理解你的心情，那你有什么好的打算没有？">
+									<context npcId="520" iconId="2" str="冰凌花对豆豆的病有作用，所以我决定将暴雪冰山上所有的冰凌花都采下来。">
+										<choice str="不行，那太危险了，我不能让你这个时候去冒险。">
+											<context npcId="1" iconId="30" str="是啊，如果你出了事，不是白费了豆豆的良苦用心吗？"/>
+											<context npcId="520" iconId="8" str="豆豆的良苦用心？什么意思？">
+												<choice str="（将豆豆和黑色影子的事情告诉迪恩）">
+													<context npcId="520" iconId="8" str="豆豆是想用自己的性命换来冰雪之星的繁荣，实现我的心愿吗?它怎么能这么傻。">
+														<choice str="是啊，所以为了豆豆你要保持冷静。" taskId="2130" action="2130_continue"/>
+													</context>
+												</choice>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事情，待会再来听你说。"/>
+					</context>
+				</config>;
+         starts["521_2097_bingxuestar4"] = <config>
+					<context npcId="521" str="凭你们的能力还奈何不了我，所以告诉你们也无妨。">
+						<choice str="那快点说说吧！" starterId="2097" action="">
+							<context npcId="521" iconId="3" str="事情还要从很久以前的那一场大战开始说起。">
+								<choice str="大战？什么大战？" action="2097_theWar"/>
+							</context>
+						</choice>
+						<choice str="我现在还有别的事情要做，过一会再来听你说。"/>
+					</context>
+				</config>;
+         starts["539_2138_bingxuestar3"] = <config>
+					<context npcId="539" str="没错，豆豆的病是我造成的，而现在我就是来取它的性命的。">
+						<choice str="我是不会让你再伤害豆豆的。" starterId="2138" action="">
+							<context npcId="539" iconId="5" str="我的厉害你是见识过的，你觉得凭你能阻止得了我吗？"/>
+							<context npcId="520" iconId="10" str="还有我呢，你那样对豆豆，我是不会放过你的。">
+								<choice str="没错，我们合力，一定可以打败你的。" action="2139_xiuLuoAppear"/>
+							</context>
+						</choice>
+						<choice str="你身上的邪气太重，我还是不惹为妙。"/>
+					</context>
+				</config>;
+         starts["539_2592_clockstar4"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start" starterId="2592"/>
+					</context>
+				</config>;
          starts["540_2289_yakestar1"] = <config>
 					<context npcId="540" iconId="6" str="果然不出我的所料，它真的还没死">
 						<choice type="0" str="修罗，你在说什么啊？" starterId="2289" action="2289_starter"/>
+					</context>
+				</config>;
+         starts["540_2583_clockstar2"] = <config>
+					<context npcId="641" iconId="2" str="我绝不能让明灭之轮被启动！守护诺亚星系的时间脉络是我的使命！">
+						<choice str="我们要想办法阻止凯撒才行！" action="2583_start" starterId="2583"/>
+					</context>
+				</config>;
+         starts["540_2592_clockstar4"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start" starterId="2592"/>
+					</context>
+				</config>;
+         starts["556_2227_hexagrampalace3"] = <config>
+					<context npcId="556" iconId="1" str="哎，看伊修的样子，一时半刻是无法好起来了。">
+						<choice str="它现在怎么样了？" starterId="2227" action="2227_Start"/>
+					</context>
+				</config>;
+         starts["562_2236_hexagrampalace3"] = <config>
+					<context npcId="562" iconId="1" str="看来我们来得正是时候，再晚一步，凯撒就性命不保了。"/>
+					<context npcId="46" iconId="1" str="只要是黑王子您的决策，都是绝对不会错的！">
+						<choice str="黑王子居然来了，这下可怎么办？！" starterId="2236" action="2236_Start"/>
+					</context>
+				</config>;
+         starts["581_2298_yakestar1"] = <config>
+					<context npcId="581" iconId="3" str="你帮了我这么多次，我们就是朋友，我干脆就把事情告诉你吧。">
+						<choice type="0" str="嗯，快说说吧，也许我能帮得上忙。" starterId="2298"/>
+					</context>
+				</config>;
+         starts["581_2314_yakestar1"] = <config>
+					<context npcId="581" iconId="9" str="#username#，你来得正好，我有一个好消息要告诉你。">
+						<choice type="0" str="我想一定和神罗鬼斧有关吧！" starterId="2314"/>
+					</context>
+				</config>;
+         starts["581_2322_yakestar2"] = <config>
+				  <context npcId="581" iconId="11" str="#username#，现在坏人被打跑了，我得去玛雅山救父亲了。">
+					<choice type="0" str="我和你一起去。" starterId="2322" action="2322_showSceneMovie"></choice>
+				  </context>
+				</config>;
+         starts["581_2339_yakestar3"] = <config>
+					<context npcId="581" iconId="3" str="#username#，我想这禾田玉石应该不是假的。">
+						<choice type="0" str="那怎么会变成这样呢？" starterId="2339" action="2339_starterTalk"/>
+					</context>
+				</config>;
+         starts["581_2347_yakestar1"] = <config>
+					<context npcId="581" iconId="7" str="#username#，族长，修罗，现在让我们一起前往玛雅山吧！">
+						<choice type="0" str="麦提终于能如愿以偿了。" starterId="2347" action="2347_starter"/>
+					</context>
+				</config>;
+         starts["592_2364_candystar1"] = <config>
+					<context npcId="592" iconId="2" str="＞﹏＜好高…好怕怕…糖糖…你快来呀…"/>
+					<context npcId="1" iconId="29" str="主人你看，有人被气球吊在空中啊！我们帮他一把吧？">
+						<choice str="助人为乐我最喜欢了！" starterId="2364">
+							<context npcId="1" str="主人，快用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;射破气球，救下那个可怜的娃吧！">
+								<choice str="好，看我的！" action="2365_InitShootTips">
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         starts["592_2402_candystar1"] = <config>
+					<context npcId="592" action="2402_Start">
+					</context>
+				</config>;
+         starts["593_2402_candystar1"] = <config>
+					<context npcId="593" action="2402_Start">
+					</context>
+				</config>;
+         starts["593_2411_candystar4"] = <config>
+					<context npcId="593" iconId="13" str="动了…动了…那些兔子在动……">
+						<choice str="什么？！" starterId="2411">
+						</choice>
+					</context>
+				</config>;
+         starts["595_2375_candystar1"] = <config>
+					<context npcId="595" iconId="2" str="我的小糖糖，原来你在这，别到处乱跑，有危险怎么办呀？">
+						<choice str="晕…危险的是别人吧！" starterId="2375">
+						</choice>
+					</context>
+				</config>;
+         starts["595_2424_candystar2"] = <config>
+					<context npcId="595" action="2424_Start">
+					</context>
+				</config>;
+         starts["606_2434_candystar3"] = <config>
+					<context npcId="606" iconId="6" str="你们毁了我的艺术品，就想逃跑吗？做梦！我要你们付出代价！"/>
+					<context npcId="592" iconId="18" str="救命……"/>
+					<context npcId="593" iconId="2" str="可恶！大坏蛋！放开小白吐！有种我们来单挑啊！本小姐可不怕你！">
+						<choice str="我们不会让你伤害小白吐的！" starterId="2434">
+						</choice>
 					</context>
 				</config>;
          starts["608_1214_giantcordillera1"] = <config name="608_1214_giantcordillera1">
@@ -6179,7 +22483,282 @@ package mmo.tasknpc
 								<choice str="这么麻烦，还是以后再说吧。"></choice>
 					</context>
 				</config>;
+         starts["619_2451_windmillstar2"] = <config>
+					<context npcId="619" iconId="4" str="#username#，你知道吗，其实我们现在做的这件事情，是很危险的。"/>
+					<context npcId="1" iconId="7" str="HELLO知道啊，去工厂拿材料的时候被抓到就惨啦，像我们之前还和工厂守门人打了一架。">
+						<choice str="是啊。" action="2451_start" starterId="2451"/>
+					</context>
+				</config>;
+         starts["619_2468_windmillstar2"] = <config>
+					<context npcId="619" iconId="6" str="不行，不能再继续这样按兵不动了，亚伦随时有可能有性命危险。">
+						<choice str="你想到了什么好的办法救亚伦吗？" action="2468_start" starterId="2468"/>
+					</context>
+				</config>;
+         starts["620_2507_windmillstar2"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！" starterId="2507"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1" starterId="2507"/>
+					</context>
+				</config>;
+         starts["620_2531_clockstar2"] = <config>
+					<context npcId="643" str="（自言自语）大哥，你等我回去！"/>
+					<context npcId="1" str="主人它在自言自语什么呢？">
+						<choice str="听不清啊，我们先找地方藏起来再说！" action="2531_start" starterId="2531"/>
+					</context>
+				</config>;
+         starts["623_2499_windmillstar2"] = <config>
+					<context npcId="623" str="虽然风车谷底似乎有着可怕的东西，不过我还是想再去那儿看看。"/>
+					<context npcId="619" str="嗯！我也是这么想的！也许解开了这个谜，我们就能把通灵巫师通通赶出去了！">
+						<choice str="行，那我们再一起去看看吧！" action="2499_start" starterId="2499"/>
+					</context>
+				</config>;
+         starts["623_2524_clockstar1"] = <config>
+					<context npcId="623" iconId="4" str="呼……睡得真舒服呀！咦？#username#，你怎么来了？">
+						<choice str="亚伦？你怎么会在这里？" action="2524_start" starterId="2524"/>
+					</context>
+				</config>;
+         starts["628_2477_windmillstar3"] = <config>
+					<context npcId="628" str="亚伦就在那里，就差一点点我们就能成功了。">
+						<choice str="嗯，我们都要沉住气。" action="2477_start" starterId="2477"/>
+					</context>
+				</config>;
+         starts["629_2507_windmillstar2"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！" starterId="2507"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1" starterId="2507"/>
+					</context>
+				</config>;
+         starts["629_2552_clockstar2"] = <config>
+					<context npcId="629" str="誓死效忠永夜族！"/>
+				</config>;
+         starts["630_2507_windmillstar2"] = <config>
+					<context npcId='620' str="今天既然被你们知道了夜王大人的事情，就绝不能让你们活着离开！" starterId="2507"/>
+					<context npcId='620' str="你们都要成为复活夜王大人的祭品！首先要解决的就是你，小老鼠！">
+						<choice type='0' str="小老鼠，小心！" action="task2508movie1" starterId="2507"/>
+					</context>
+				</config>;
+         starts["630_2552_clockstar2"] = <config>
+					<context npcId="630" str="誓死效忠永夜族！"/>
+				</config>;
+         starts["641_2583_clockstar2"] = <config>
+					<context npcId="641" iconId="2" str="我绝不能让明灭之轮被启动！守护诺亚星系的时间脉络是我的使命！">
+						<choice str="我们要想办法阻止凯撒才行！" action="2583_start" starterId="2583"/>
+					</context>
+				</config>;
+         starts["641_2592_clockstar4"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start" starterId="2592"/>
+					</context>
+				</config>;
+         starts["642_2544_clockstar2"] = <config>
+					<context npcId="642" iconId="3" str="经过一周的时间，时光灵球的魔力已经被唤醒。">
+						<choice str="太好了，快带我们去看看吧。" action="2544_start" starterId="2544"/>
+					</context>
+				</config>;
+         starts["642_2552_clockstar2"] = <config>
+					<context npcId="642" iconId="2" str="你们这群永夜族人，居然还敢再来。说！你们究竟有什么阴谋？">
+						<choice str="快说！" action="2552_start" starterId="2552"/>
+					</context>
+				</config>;
+         starts["642_2592_clockstar4"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start" starterId="2592"/>
+					</context>
+				</config>;
+         starts["643_2531_clockstar2"] = <config>
+					<context npcId="643" str="（自言自语）大哥，你等我回去！"/>
+					<context npcId="1" str="主人它在自言自语什么呢？">
+						<choice str="听不清啊，我们先找地方藏起来再说！" action="2531_start" starterId="2531"/>
+					</context>
+				</config>;
+         starts["643_2544_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         starts["643_2552_clockstar2"] = <config>
+					<context npcId="643" str="我一定要成为像我大哥一样勇敢的武士！"/>
+				</config>;
+         starts["643_2592_clockstar4"] = <config>
+					<context npcId="539" str="修罗？被我的魔影狂袭击中居然还能活着回来，看来是我小看你了！">
+						<choice str="凯撒你太嚣张了！" action="2592_start" starterId="2592"/>
+					</context>
+				</config>;
+         starts["652_2690_knightstar4"] = <config>
+					<context npcId="652" str="萧辰、浩然，名字好听，味道定然也不错，我怎么能错过呢？">
+						<choice str="不许你动它们。" starterId="2690">
+						</choice>
+					</context>
+				</config>;
+         starts["665_2620_knightstar1"] = <config>
+					<context npcId="665" iconId="2" str="女士优先，先来后到，到此为止……所以这个宣传栏理所应当归我所用！">
+						<choice str="哇，好强悍的成语接龙啊！" starterId="2620">
+						</choice>
+					</context>
+				</config>;
+         starts["666_2620_knightstar1"] = <config>
+					<context npcId="665" iconId="2" str="女士优先，先来后到，到此为止……所以这个宣传栏理所应当归我所用！">
+						<choice str="哇，好强悍的成语接龙啊！" starterId="2620">
+						</choice>
+					</context>
+				</config>;
+         starts["666_2651_knightstar2"] = <config>
+					<context npcId="666" iconId="2" str="#username#,刑风老师马上就要到了，你和我一起去骑士学院迎接它吧！">
+						<choice str="好的。" starterId="2651">
+						</choice>
+					</context>
+				</config>;
+         starts["666_2659_knightstar3"] = <config>
+					<context npcId="666" str="瑞阳是我们学院最出色的实验家，也是秘法骑士中和若水齐名的成员。"/>
+					<context npcId="666" str="它最出名的是它的冷傲和刚才那个简易炸弹，我想这个浩然记忆会比较深刻。">
+						<choice str="浩然和它有过节吗？" starterId="2659">
+						</choice>
+					</context>
+				</config>;
+         starts["667_2628_knightstar1"] = <config>
+					<context npcId="667" iconId="2" str="没……没错，我……我们刑风老师可是巨世无爽，无人能比的。">
+						<choice str="是举世无双。" starterId="2628">
+						</choice>
+					</context>
+				</config>;
+         starts["66_2218_hexagrampalace3"] = <config>
+					<context npcId="66" iconId="9" str="啊哈哈！我劝你还是乖乖地把那千年奇灵果交给我吧！">
+						<choice str="奇怪，达斯特人为什么会出现在这里？！" starterId="2218" action="2218_Start"/>
+					</context>
+				</config>;
+         starts["679_2681_knightstar3"] = <config>
+					<context npcId="679" iconId="4" str="目前没有一个计划是完美的，我们不能再这么想下去了。">
+						<choice str="那老师你的意思是？" starterId="2681">
+						</choice>
+					</context>
+				</config>;
          starts["67_267_feier1"] = <config name="67_267_feier1"><context npcId="67" str="唉，比利什么时候才回来啊。"><choice str="老爷爷，你在为什么事情担心吗？" starterId="267"></choice><choice str="唉……不明白老爷爷在说些什么。"></choice></context></config>;
+         starts["684_2705_screampark1"] = <config>
+					<context npcId="684" iconId="3" str="吼吼～～～送上门的美味～～我要吃了你！">
+						<choice str="⊙o⊙？？？！！！啥？！" starterId="2705">
+							<context npcId="1" iconId="21" str="＞﹏＜啊啊啊啊啊，大怪兽！！主人救命啊～～">
+								<choice str="＞﹏＜？？这是神马情况？" action="Movie2706"/>
+							</context>
+						</choice>
+					</context>
+				</config>;
+         starts["684_2773_screampark2"] = <config>
+					<context npcId="684" iconId="7" str="哎呀呀，吓死哥了，终于逃出来了！"/>
+					<context npcId="683" iconId="7" str="这么累，我得好好睡一觉……好久没睡觉了……">
+						<choice str="看来你们都变正常了！" starterId="2773"/>
+					</context>
+				</config>;
+         starts["685_2733_screampark3"] = <config>
+					<context npcId="685" iconId="7" str="鬼——来——了——"/>
+					<context npcId="682" iconId="7" str="啊～～～～～～～～奇奇你不要吓人啊！这鬼屋怎么这么黑呀……#username#，保护我……">
+						<choice str="你的手电筒这么暗，照什么呀？" starterId="2733" action="Movie2734"/>
+					</context>
+				</config>;
+         starts["685_2804_musicstar2"] = <config>
+					<context npcId="685" action="2804_start_task"/>
+				</config>;
+         starts["685_2812_musicstar3"] = <config>
+					<context npcId="685" iconId="15" str="我一时半会也想不起来，反正从绿焰出现后，我的感觉就越来越不好。"/>
+					<context npcId="705" iconId="6" str="那明明就是纹身，你们别再唧唧歪歪的，打扰我看演唱会的兴致了。">
+						<choice str="o(╯□╰)o……" action="2812_start_task"/>
+					</context>
+				</config>;
+         starts["685_2835_musicstar1"] = <config>
+					<context npcId="685" action="2835_start_task"/>
+				</config>;
+         starts["685_2843_musicstar4"] = <config>
+					<context npcId="685" str="我要环游宇宙，回家跟我最好的伙伴见面！"/>
+				</config>;
+         starts["685_2879_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="task2879_start"/>
+					</context>
+				</config>;
+         starts["685_2997_skycity1"] = <config>
+					<context npcId="685" str="#username#！你来啦！快走，我们去救小米吧！"> 
+						<choice str="发现小米的下落了吗？" starterId="2997">
+						</choice>
+					</context>
+				</config>;
+         starts["686_2714_screampark2"] = <config>
+					<context npcId="686" iconId="1" str="Ladies and 乡亲们！我是尖叫游乐园的新园长，大家可以叫我Mr.红魔！COSPLAY派对好玩吗？"/>
+					<context npcId="682" iconId="1" str="好玩好玩！新园长先生也COS成了通灵巫师，好酷啊！"/>
+					<context npcId="686" iconId="1" str="HELLO！兴奋的小家伙们，尖叫声在哪里？让我听到你们的欢呼！COME ON！"/>
+					<context npcId="689" iconId="1" str="耶～～～～～～～～～～我们要参加尖叫大赛～～～～～我们最棒！！"/>
+					<context npcId="686" iconId="1" str="GOOD！尖叫大赛开幕式开始了！快来报名吧！"/>
+					<context npcId="686" iconId="1" str="新一届的“尖叫大赛”！这次大赛，会比以往任何一届都刺激好玩！奖励空前丰富！">
+						<choice str="哇，好像很爽哦！" starterId="2714" action="Manhua2715"/>
+					</context>
+				</config>;
+         starts["686_2724_screampark2"] = <config>
+					<context npcId="686" iconId="1" action="Movie2724Start"/>
+				</config>;
+         starts["686_2914_bailingstar3"] = <config>
+					<context npcId="686" action="2914_start"/>
+				</config>;
+         starts["705_2786_musicstar1"] = <config>
+					<context npcId="705" iconId="2" str="喂，那个谁，没看到一个大活人站在这吗？">
+						<choice str="你说的‘那个谁’不会是我吧？" action="2786_start" starterId="2786"/>
+					</context>
+				</config>;
+         starts["705_2795_musicstar1"] = <config>
+					<context npcId="705" iconId="9" str="#username#,机会难得，我们也赶紧去买票看演唱会吧！">
+						<choice str="可是……" action="2795_start" starterId="2795"/>
+					</context>
+				</config>;
+         starts["705_2804_musicstar2"] = <config>
+					<context npcId="705" action="2804_start_task"/>
+				</config>;
+         starts["705_2812_musicstar3"] = <config>
+					<context npcId="685" iconId="15" str="我一时半会也想不起来，反正从绿焰出现后，我的感觉就越来越不好。"/>
+					<context npcId="705" iconId="6" str="那明明就是纹身，你们别再唧唧歪歪的，打扰我看演唱会的兴致了。">
+						<choice str="o(╯□╰)o……" action="2812_start_task"/>
+					</context>
+				</config>;
+         starts["705_2835_musicstar1"] = <config>
+					<context npcId="705" action="2835_start_task"/>
+				</config>;
+         starts["705_2843_musicstar4"] = <config>
+					<context npcId="705" str="我人生的最大梦想就是成为像非蒙一样的大明星，站在音乐的顶端。"/>
+				</config>;
+         starts["709_2804_musicstar2"] = <config>
+					<context npcId="709" action="2804_start_task"/>
+				</config>;
+         starts["710_2843_musicstar4"] = <config>
+					<context npcId="710" iconId="5" str="如果不是你们，我就成千古罪人了。">
+						<choice str="其实没什么了。" action="2843_start_task"/>
+					</context>
+				</config>;
+         starts["725_2871_bailingstar1"] = <config>
+					<context npcId="725" iconId="2" str="我，&lt;font color='#FF6600'&gt;&lt;b&gt;洛洛&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，今天就要成为白灵族史上通过白灵铜人阵的最年轻的家伙了！">
+						<choice str="洛洛？" action="task2871_start"/>
+					</context>
+				</config>;
+         starts["725_2879_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="task2879_start"/>
+					</context>
+				</config>;
+         starts["725_2932_bailingstar3"] = <config>
+					<context npcId="725" action="2932_start"/>
+				</config>;
+         starts["725_2940_bailingstar3"] = <config>
+					<context npcId="725" action="2940_start"/>
+				</config>;
+         starts["726_2871_bailingstar1"] = <config>
+					<context npcId="725" iconId="2" str="我，&lt;font color='#FF6600'&gt;&lt;b&gt;洛洛&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;，今天就要成为白灵族史上通过白灵铜人阵的最年轻的家伙了！">
+						<choice str="洛洛？" action="task2871_start"/>
+					</context>
+				</config>;
+         starts["726_2879_bailingstar2"] = <config>
+					<context npcId="725" str="被吓到也不能怪你啦！我们第一次来这里的时候也觉得很可怕呢！"/>
+					<context npcId="725" str="其实啊，这片林子被称为禁林，是我们白灵族严厉禁止进入的地方。">
+						<choice str="为什么被称为禁林呢？" action="task2879_start"/>
+					</context>
+				</config>;
+         starts["732_2906_bailingstar1"] = <config>
+					<context npcId="732" action="2906_start"/>
+				</config>;
          starts["86_1549_diamondisland3"] = <config>
 					<context npcId='86' str="威尔斯，你到此为止吧！今天，我就要将你终结在钻石宝殿！" starterId="1549"/>
 					<context npcId='367' iconId="2" str="就凭你？！这还真是个冷笑话。"/>
@@ -6195,6 +22774,23 @@ package mmo.tasknpc
 					<context npcId="86" iconId="1" str="通往幽冥大殿的大门被神秘的力量所封印，该如何进入呢？">
 						<choice type="0" str="让我们来一起想办法吧！" starterId="1561" action="1561_1562"/>
 						<choice type="0" str="我也不太清楚。"/>
+					</context>
+				</config>;
+         starts["8_1946_fairytalestar1"] = <config>
+					<context npcId="8" iconId="4" str="哇哇！可恶的小奥拉，可恶的童心，气死我了，我一定要毁掉童话之星！">
+						<choice str="哈鲁达！快交出童话之书！你不会成功的！" starterId="1946" action="1946_Next"/>
+						<choice str="我懒得理你！"/>;
+			</context>
+		</config>;
+         starts["9_1028_maintown2"] = <config name="9_1028_maintown2">
+					<context npcId="9" str="#username#，异空间出现了紧急情况，传送核心扫描到，异空间中出现了极其强大且不稳定的能量。"></context>
+					<context npcId="9" str="这股能量被命名为宇宙风暴，现在，我们需要敢于冒险的奥拉小勇士进入宇宙风暴，查探其中的情况。"></context>
+					<context npcId="9" str="#username#,你愿意前往吗？">
+						<choice str="我愿意！">
+							<context npcId="9" str="不愧是奥拉星的小勇士，希望你加倍小心，凯旋归来。">
+								<choice str="我会圆满完成任务的！" starterId="1028"></choice>
+							</context>
+						</choice>
 					</context>
 				</config>;
          starts["9_1581_maintown2"] = <config>
@@ -6218,6 +22814,27 @@ package mmo.tasknpc
 								<choice str="我会圆满完成任务的！" taskId="725">
 								</choice>
 							</context>
+						</choice>
+					</context>
+				</config>;
+         starts["9_749_maintown2"] = <config>
+					<context str="#username#，聪明的你一定已经观察到了，上古神殿会出现时间的混乱。"/>			
+					<context str="赤月与炎风很可能在这次风暴中再次出现，你能否再次前往，进一步了解上古神殿？">
+						<choice str="我已经迫不及待了。" starterId="749" action="749_afterStrat">
+						</choice>
+					</context>
+				</config>;
+         starts["9_787_maintown2"] = <config>
+					<context str="上古神殿中的不稳定能量频繁出现，很有可能是达斯特势力从中作怪。"/>			
+					<context str="为了确保安全，#username#，你能否再次前往，查探上古神殿？">
+						<choice str="我也刚好想见见赤月和炎风呢。" starterId="787" action="787_afterStrat">
+						</choice>
+					</context>
+				</config>;
+         starts["9_805_maintown2"] = <config>
+					<context npcId="9" str="根据观察情况来看，这次上古神殿中的波动极不寻常，看来又会有事情发生。" starterId="805"/>
+					<context npcId="9" str="为了确保安全，#username#，你能否再次前往，查探上古神殿？">
+						<choice str="司令官放心！我一定圆满完成任务！" taskId="806" action="806_gotoTemple">
 						</choice>
 					</context>
 				</config>;

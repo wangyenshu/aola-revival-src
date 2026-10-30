@@ -14,7 +14,14 @@ Clothes carry price 0 and only a buy-back value; config.xml's
 Halloween 2012 page shows 吞食南瓜帽 at 660 晶币, buy-back 330).
 
   tools/gen_materials.py --src <decompiled library/materialdata>/scripts \\
+      --shoot rebuild/src/shoot/mmo/shoot/data/CardData.as \\
       --out rebuilt/www.9aola.com/revival/materials.json
+
+Shoot cards (射击卡, material type 4) are not in materialdata: the shoot
+module lists them (CardData, ShootCard(id, name, effect, duration, price,
+sale, rmb, maxQuantity)); with --shoot they come from the rebuilt module's
+copy (the later module's list; the 2013 one is lost), each row with two more
+fields: the effect a hit player gets and for how many seconds.
 """
 from __future__ import annotations
 
@@ -70,6 +77,7 @@ def main(argv=None) -> None:
     ap.add_argument("--src", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--buyback", type=float, default=0.5)
+    ap.add_argument("--shoot", help="the shoot module's CardData.as (shoot cards, type 4)")
     a = ap.parse_args(argv)
     table: dict[str, dict[str, list]] = {}
     for cls, fn in FILES.items():
@@ -90,6 +98,13 @@ def main(argv=None) -> None:
             if cls == "Clothes" and price == 0 and sale > 0:
                 price = int(round(sale / a.buyback))
             table.setdefault(str(tp), {})[m.group(1)] = [price, sale, rmb, maxq, vip, name]
+    if a.shoot:
+        text = open(a.shoot, encoding="utf-8").read()
+        for m in re.finditer(r'"(\d+)":new ShootCard\((.*?)\)(?=,?\s*\n)', text):
+            args = split_args(m.group(2))
+            name, price, sale, rmb, maxq = args[1].strip('"').strip(), num(args[4]), num(args[5]), num(args[6]), num(args[7])
+            # Two more fields for the server's ShootExtension: the effect on a player hit and its seconds.
+            table.setdefault("4", {})[m.group(1)] = [price, sale, rmb, maxq, 0, name, num(args[2]), num(args[3])]
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     json.dump(table, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print({k: len(v) for k, v in table.items()}, "->", a.out)
