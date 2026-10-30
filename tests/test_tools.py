@@ -317,10 +317,6 @@ class FillManifestTest(unittest.TestCase):
         cls.base = "http://127.0.0.1:9"  # unused by fill-manifest
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class MakeGameRootTest(unittest.TestCase):
     """game/ from the working roots, then the same game/ again from its list."""
 
@@ -355,3 +351,45 @@ class MakeGameRootTest(unittest.TestCase):
                                      "--search", f"{t / 'mirror'},{t / 'supplement'}", "--out", str(t / "game2")])
             for rel in got:
                 self.assertEqual((t / "game2" / rel).read_bytes(), (t / "game" / rel).read_bytes())
+
+
+class GenNpcDataTest(unittest.TestCase):
+    """Which NPCs stand where: era NPCs in the 2013 rooms, every NPC in the rooms added for the story quests."""
+
+    def test_rooms_and_art(self):
+        import gen_npc_data
+
+        cfg = '<config><roomMap>%s</roomMap></config>'
+        row = lambda n: f'<r nm="{n}" rm="{n}" swf="scene/{n}"/>'
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            later = t / "later" / "mmo/tasknpc/config"
+            later.mkdir(parents=True)
+            npc = lambda i, x: '{"npcId":%d,"viewId":1,"x":%d,"y":300,"type":NpcType.SCENE}' % (i, x)
+            (later / "SceneNpcConfig.as").write_text(
+                'config["library"] = [%s,%s,%s];\n' % (npc(10, 100), npc(43, 640), npc(99, 700))
+                + 'config["giantcordillera1"] = [%s,%s];\n' % (npc(608, 300), npc(77, 500))
+                + 'config["gone"] = [%s];\n' % npc(10, 1), encoding="utf-8")
+            www = t / "game/www.9aola.com"
+            www.mkdir(parents=True)
+            (www / "config.xml%3F201301241").write_text(cfg % row("library"), encoding="utf-8")
+            overlay = t / "overlay.xml"
+            overlay.write_text(cfg % (row("library") + row("giantcordillera1")), encoding="utf-8")
+            files = [("10", "era"), ("43", "later"), ("99", "later"), ("608", "era"), ("77", "later")]
+            (t / "game/FILES.jsonl").write_text("".join(
+                json.dumps({"path": f"www.9aola.com/tasknpc/npc{i}.swf%3F1210", "origin": o}) + "\n" for i, o in files), encoding="utf-8")
+            talks = t / "TaskTalkData.as"
+            talks.write_text('talk["43_1216_library"] = <config/>;', encoding="utf-8")
+            with redirect_stdout(io.StringIO()):
+                gen_npc_data.main(["--later", str(t / "later"), "--game", str(t / "game"), "--overlay", str(overlay),
+                                   "--talks", str(talks), "--out", str(t / "out")])
+            out = (t / "out/mmo/tasknpc/SceneNpcData.as").read_text(encoding="utf-8")
+            # 2013 room: the era NPC as it is, the story NPC (later picture) only as a task NPC, the other later one not at all.
+            self.assertIn('"library":[[10,1,100,300,0],[43,1,640,300,2]]', out)
+            # Added room: every NPC whose picture game/ has.
+            self.assertIn('"giantcordillera1":[[608,1,300,300,0],[77,1,500,300,0]]', out)
+            self.assertNotIn('"gone"', out)
+
+
+if __name__ == "__main__":
+    unittest.main()

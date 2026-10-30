@@ -103,3 +103,21 @@ test("test runs can skip to a step", async () => {
   assert.equal(rec.tasks![146], undefined);
   assert.equal(rec.tasks![150], undefined);
 });
+
+test("the story quests come from revival/tasks.json; a type 12 starter follows its pre-task", async () => {
+  const { registerTaskTables, TASK_DEFS, skipTo } = await import("../src/game/sfs2013/tasks.ts");
+  registerTaskTables({
+    defines: { "1214": [0, "1215,1216"], "1215": [11, ""], "1216": [11, ""], "1219": [0, "1220"], "1220": [11, ""] },
+    starters: { "1214": { type: 11, pre: [150], name: "传说中的美丽山脉" }, "1219": { type: 12, pre: [1214], name: "奇怪的山脉" } },
+  });
+  assert.deepEqual(TASK_DEFS[1214].steps, [1215, 1216]);
+  const rec: TaskOwner = {};
+  assert.deepEqual(startTask(rec, 1214, 1).changes, [], "not before the newbie quest");
+  skipTo(rec, 1214, 2);
+  assert.equal(rec.tasks![150].st, 1);
+  assert.equal(rec.tasks![1214], undefined, "can start, not started");
+  assert.deepEqual(startTask(rec, 1214, 3).changes.map((c) => c.t.ti), [1214, 1215]);
+  finishStep(rec, 1215, 4);
+  const end = finishStep(rec, 1216, 5);
+  assert.deepEqual(end.changes.slice(-3).map((c) => [c.t.ti, c.ty]), [[1214, TaskUpdate.FINISH], [1219, TaskUpdate.ADD], [1220, TaskUpdate.ADD]]);
+});

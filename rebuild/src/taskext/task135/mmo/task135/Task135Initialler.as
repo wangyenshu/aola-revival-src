@@ -70,7 +70,7 @@ package mmo.task135
             case 138:
                if (s == "junglecopy")
                {
-                  sayOnce("138fight", 1, <config>
+                  sayHere("138fight", 1, <config>
                      <context npcId="1" str="达斯特的士兵就在这里！战斗中点击技能就可以出招，威力越大，伤害越大。对方的体力消失，你就胜利了！">
                         <choice str="上吧！" action="t138_fight"/>
                      </context>

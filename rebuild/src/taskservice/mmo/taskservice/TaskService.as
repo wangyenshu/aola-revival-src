@@ -51,6 +51,7 @@ package mmo.taskservice
       private var defines:Object = {};
       private var starters:Object = {};
       private var scenes:Object = {};
+      private var panelRes:Object = {};
       private var _ready:Boolean;
       private var inited:Boolean;
 
@@ -81,6 +82,7 @@ package mmo.taskservice
             defines = c.defines;
             starters = c.starters;
             scenes = c.scenes || {};
+            panelRes = c.panelRes || {};
          }
          catch (e:Error)
          {
@@ -138,7 +140,7 @@ package mmo.taskservice
                userTasks[t.taskId] = t;
                fire(TaskEvent.ON_USER_TASK_FINISH, t);
                var d:TaskDefine = defines[t.taskId] as TaskDefine;
-               if (d != null && d.type == 0) showFinished();
+               if (d != null && d.type == 0) showFinished(t.taskId);
                break;
             case TYPE_RESET:
                delete userTasks[t.taskId];
@@ -176,11 +178,24 @@ package mmo.taskservice
          if (isTaskCanStart(id)) TaskClient.instance.clientStart(id, TaskStepType.CLIENT);
       }
 
-      /** 任务完成: the big words of the December 2011 screenshots, drawn. */
-      private function showFinished():void
+      /**
+       * 任务完成: the big words of the December 2011 screenshots, drawn. When
+       * they fade, TaskEvent.ON_BONUS_PANEL_CLOSE {taskId} tells the task
+       * scripts that wait for the reward panel to be closed (the 2013 reward
+       * panel is lost; the rewards come from the server).
+       */
+      private function showFinished(taskId:int):void
       {
          var top:Sprite = LayerManager.getBaseTop();
-         if (top == null) return;
+         var closed:Function = function():void
+         {
+            TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_BONUS_PANEL_CLOSE, {taskId: taskId}));
+         };
+         if (top == null)
+         {
+            closed();
+            return;
+         }
          var s:Sprite = new Sprite();
          s.mouseEnabled = s.mouseChildren = false;
          var t:TextField = new TextField();
@@ -207,6 +222,7 @@ package mmo.taskservice
             {
                s.removeEventListener(Event.ENTER_FRAME, arguments.callee);
                if (s.parent) s.parent.removeChild(s);
+               closed();
             }
          });
       }
@@ -215,7 +231,8 @@ package mmo.taskservice
 
       public function getTaskSceneByTaskId(id:int):String
       {
-         return scenes[id] != null ? String(scenes[id]) : "";
+         if (scenes[id] != null) return String(scenes[id]);
+         return panelRes[id] != null && panelRes[id].sc ? String(panelRes[id].sc) : "";
       }
 
       public function isTaskCanStart(id:int):Boolean

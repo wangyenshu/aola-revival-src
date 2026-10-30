@@ -20,11 +20,16 @@ package mmo.taskextmanager
     * script is a module taskext/task<id> whose service class (mmo.task<id>.
     * Task<id>Service, an ITaskExtService built on TaskExtServiceBase) is made
     * afresh for every scene, once the scene's NPCs stand
-    * (TaskEvent.ON_INITED_NPC), and cleared when the scene goes. The 2013
-    * scene-to-script table (config tconfig) is lost; here every script of a
-    * task being done runs in every scene and looks at the scene itself
-    * (TaskDefines.exts). A task that starts in the middle of a scene gets
-    * its script at once.
+    * (TaskEvent.ON_INITED_NPC), and cleared when the scene goes.
+    *
+    * Which scripts a scene needs: for the 2012 story quests, the scene table
+    * the later client keeps in config tconfig (TaskDefines.sceneExts, the
+    * 2013 one is lost): an entry loads while one of its taskIds is being
+    * done or one of its starterIds can start, as the later TaskExtInfo
+    * decides. The rebuilt newbie quest's scripts (TaskDefines.exts) run in
+    * every scene while their task is being done and look at the scene
+    * themselves. A task that starts in the middle of a scene gets its script
+    * at once.
     */
    public class TaskExtManager extends EventDispatcher implements ITaskExtManager
    {
@@ -42,6 +47,10 @@ package mmo.taskextmanager
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_GET_TASKS, onTasks);
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_USER_TASK_ADD, onTasks);
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_USER_TASK_FINISH, onTaskFinish);
+         TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_TASK_ACTION, function(e:TaskEvent):void
+         {
+            RLog.log("taskext: action " + (e.params ? e.params.action : ""));
+         });
          SceneManager.getInstance().addEventListener(SceneManagerEvent.UNLOAD_SCENE, onUnload);
          sceneReady = SceneManager.getInstance().loadedSceneInfo != null && !SceneManager.getInstance().isLoading;
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
@@ -61,16 +70,21 @@ package mmo.taskextmanager
 
       private function onTaskFinish(e:TaskEvent):void
       {
-         // A task that is over takes its script with it.
+         // A rebuilt newbie script goes with its task. A script of the scene
+         // table stays until the scene goes, as in the later manager: it may
+         // still wait for the reward panel of the task it has just finished
+         // (TaskEvent.ON_BONUS_PANEL_CLOSE).
          var id:int = int(e.params.t.taskId);
          for (var k:String in running)
          {
-            if (int(running[k].task) == id)
+            if (!running[k].scene && int(running[k].task) == id)
             {
                try { ITaskExtService(running[k].svc).clear(); } catch (err:Error) {}
                delete running[k];
             }
          }
+         // Tasks that can start now may want their scripts here.
+         if (sceneReady) initTask();
       }
 
       private function onUnload(e:SceneManagerEvent):void
@@ -86,6 +100,21 @@ package mmo.taskextmanager
          return [];
       }
 
+      private static function sceneExts(scene:String):Array
+      {
+         try { return getDefinitionByName("mmo.taskdefines.TaskDefines").sceneExts[scene] as Array || []; }
+         catch (e:Error) {}
+         return [];
+      }
+
+      /** The later TaskExtInfo.needInit: one of its tasks is being done, or one it starts can start. */
+      private static function needInit(ts:ITaskService, e:Object):Boolean
+      {
+         for each (var t:int in e.taskIds) if (ts.isUserTaskDoing(t)) return true;
+         for each (var s:int in e.starterIds) if (ts.isTaskCanStart(s)) return true;
+         return false;
+      }
+
       public function initTask():void
       {
          var ts:Object = ServiceContainer.getService(ITaskService);
@@ -96,11 +125,19 @@ package mmo.taskextmanager
             if (!ITaskService(ts).isUserTaskDoing(int(x.task))) continue;
             load(x);
          }
+         var info:Object = SceneManager.getInstance().loadedSceneInfo;
+         if (info == null) return;
+         for each (var e:Object in sceneExts(info.sceneName))
+         {
+            if (running[e.file] != null || !needInit(ITaskService(ts), e)) continue;
+            var leader:int = int(String(e.file).replace(/\D/g, ""));
+            load({file: e.file, cls: e.cls, task: leader, scene: true});
+         }
       }
 
       private function load(x:Object):void
       {
-         running[x.file] = {task: x.task, svc: null};
+         running[x.file] = {task: x.task, scene: x.scene == true, svc: null};
          var sceneAtStart:Object = SceneManager.getInstance().loadedSceneInfo;
          ResScheduler.getResource(x.file, function(o:*):void
          {

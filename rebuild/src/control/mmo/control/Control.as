@@ -6,6 +6,8 @@ package mmo.control
    import flash.utils.getDefinitionByName;
    import flash.utils.getQualifiedClassName;
    import flash.display.Sprite;
+   import flash.geom.Point;
+   import flash.geom.Rectangle;
    import flash.events.EventDispatcher;
    import flash.events.MouseEvent;
    import flash.external.ExternalInterface;
@@ -25,6 +27,8 @@ package mmo.control
    import mmo.loader.SimpleCustomLoader;
    import mmo.loader.layer.LayerManager;
    import mmo.play.scene.SceneManager;
+   import mmo.interfaces.task.TaskEvent;
+   import mmo.interfaces.task.TaskEventDispatcher;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
 
@@ -207,6 +211,53 @@ package mmo.control
          });
       }
 
+      /** A point of the stage where `d` draws (and so takes a click), near the middle of what shows. */
+      private static function clickPoint(d:DisplayObject):String
+      {
+         var r:Rectangle = d.getBounds(d.stage).intersection(new Rectangle(0, 0, 960, 560));
+         if (r.isEmpty()) return null;
+         var hits:Array = [];
+         var sx:Number = 0, sy:Number = 0;
+         // Coarse first, then finer for something small in large bounds.
+         for each (var step:Number in [Math.max(4, Math.sqrt(r.width * r.height / 4000)), 3])
+         {
+            for (var y:Number = r.y + step / 2; y < r.bottom; y += step)
+            {
+               for (var x:Number = r.x + step / 2; x < r.right; x += step)
+               {
+                  if (d.hitTestPoint(x, y, true))
+                  {
+                     hits.push(new Point(x, y));
+                     sx += x;
+                     sy += y;
+                  }
+               }
+            }
+            if (hits.length > 0) break;
+         }
+         if (hits.length == 0) return null;
+         var mid:Point = new Point(sx / hits.length, sy / hits.length);
+         var best:Point = hits[0];
+         for each (var h:Point in hits) if (Point.distance(h, mid) < Point.distance(best, mid)) best = h;
+         return int(best.x) + "," + int(best.y);
+      }
+
+      private static function findNamed(c:DisplayObjectContainer, name:String, hidden:Boolean = false):DisplayObject
+      {
+         var queue:Array = [c];
+         while (queue.length > 0)
+         {
+            var d:DisplayObjectContainer = queue.shift();
+            for (var i:int = 0; i < d.numChildren; i++)
+            {
+               var o:DisplayObject = d.getChildAt(i);
+               if (o.name == name && (hidden || o.visible)) return o;
+               if (o is DisplayObjectContainer && (hidden || o.visible)) queue.push(o);
+            }
+         }
+         return null;
+      }
+
       /** Test hook for the automated scene walk-through (tests/e2e): not in the 2013 game. */
       private function installDebugHook():void
       {
@@ -280,9 +331,41 @@ package mmo.control
                      // Only answered by a server started with dev commands (web/?dev=1).
                      SocketClient.instance.sendXtMessage("TaskExtension", "revival_task", {ti: int(arg)});
                      return "ok";
+                  case "action":
+                     // A task action, as a conversation choice or a mini game sends it (tests/e2e).
+                     TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_TASK_ACTION, {action: arg}));
+                     return "ok";
+                  case "where":
+                  case "origin":
+                     // Where a shown display object of that name is, in the scene or else
+                     // anywhere on the stage (tests/e2e): "where" the middle of what it
+                     // draws, "origin" its registration point (hidden ones too).
+                     var root:DisplayObjectContainer = sm.loadedSceneInfo ? sm.loadedSceneInfo.scene : null;
+                     var hidden:Boolean = cmd == "origin";
+                     var found:DisplayObject = root ? findNamed(root, arg, hidden) : null;
+                     if (found == null && LayerManager.stage) found = findNamed(LayerManager.stage, arg, hidden);
+                     if (found == null || found.stage == null) return "none";
+                     if (hidden)
+                     {
+                        var o:Point = found.localToGlobal(new Point(0, 0));
+                        return int(o.x) + "," + int(o.y);
+                     }
+                     return String(clickPoint(found) || "none");
+                  case "bounds":
+                     // name: visible, bounds on the stage, parent chain (tests/e2e).
+                     var bo:DisplayObject = LayerManager.stage ? findNamed(LayerManager.stage, arg, true) : null;
+                     if (bo == null) return "none";
+                     var br:Rectangle = bo.stage ? bo.getBounds(bo.stage) : null;
+                     var chain:Array = [];
+                     for (var bp:DisplayObject = bo; bp != null && bp != bo.stage; bp = bp.parent) chain.push(bp.name + (bp.visible ? "" : "(hidden)"));
+                     return (br ? int(br.x) + "," + int(br.y) + " " + int(br.width) + "x" + int(br.height) : "off stage") + " " + chain.join("<");
+                  case "addpet":
+                     // A 亚比 of that race, Lv 15, through addPM (1201), the command tasks give 亚比 with (tests/e2e).
+                     SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1201", {raceId: int(arg), level: 15, type: 0});
+                     return "ok";
                   case "tasks":
                      var ts:Object = ServiceContainer.getService("TaskService");
-                     return ts ? String(ts.getDoingTaskIds()) + " steps " + [135, 140, 150].map(function(t:int, ...r):String { return t + ":" + ts.getTaskDoingStep(t); }).join(",") : "none";
+                     return ts ? String(ts.getDoingTaskIds()) + " steps " + [135, 140, 150].concat(ts.getDoingTaskIds()).map(function(t:int, ...r):String { return t + ":" + ts.getTaskDoingStep(t); }).join(",") : "none";
                   case "bar":
                      // Press a control bar button by name (phrase face action history card …).
                      onButton(arg);

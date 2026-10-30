@@ -8,7 +8,9 @@ package mmo.tasknpc
    import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
    import mmo.interfaces.InitServiceEvent;
+   import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.task.ITaskNpcService;
+   import mmo.interfaces.task.ITaskService;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
    import mmo.loader.LoadingSpriteType;
@@ -30,8 +32,13 @@ package mmo.tasknpc
     *
     * Data: SceneNpcData and FreeTalkData (tools/gen_npc_data.py, from the later
     * module); names and greetings from task/tasknpcdefine (the later data
-    * module, mmo.tasknpcdefine.NpcNames / NpcDefaultTalk). Task NPCs (type 2)
-    * appear with the task engine; until then only scene NPCs (type 0) stand.
+    * module, mmo.tasknpcdefine.NpcNames / NpcDefaultTalk); the conversations
+    * of the 2012 story quests in TaskTalkData (tools/gen_tasks.py, from the
+    * later module's NpcPanelConfig): "npc_step_scene" while that step is
+    * being done, and start talks "npc_task_scene" while that task can start.
+    * As in the later TaskNpcManager, a click on an NPC opens its task talk
+    * when it has one, and task NPCs (type 2) stand in their scene only while
+    * they have something to say for a task.
     */
    public class TaskNpcService extends Sprite implements ITaskNpcService
    {
@@ -54,6 +61,9 @@ package mmo.tasknpc
 
       public function init():void
       {
+         try { TaskTalkData.fill(taskTalkConfig, starterTalkConfig); } catch (e:Error) { RLog.error("tasknpc: task talk", e); }
+         for each (var ev:String in [TaskEvent.ON_GET_TASKS, TaskEvent.ON_USER_TASK_ADD, TaskEvent.ON_USER_TASK_FINISH, TaskEvent.ON_USER_TASK_DROP])
+            TaskEventDispatcher.instance.addEventListener(ev, onTasksChanged);
          SimpleCustomLoader.loadSingleResource("task/tasknpcdefine", "mmo.tasknpcdefine.TaskNpcDefine", LoadingSpriteType.NONE, "",
             function(o:Object):void
             {
@@ -113,14 +123,30 @@ package mmo.tasknpc
          clearNpcs();
          var info:Object = SceneManager.getInstance().loadedSceneInfo;
          if (info == null) return;
-         var list:Array = SceneNpcData.SCENES[info.sceneName] as Array;
-         if (list == null) return;
+         // Scenes without NPCs of their own still announce ON_INITED_NPC: task scripts wait for it.
+         var list:Array = (SceneNpcData.SCENES[info.sceneName] as Array) || [];
          for each (var row:Array in list)
          {
-            if (row[4] != 0) continue; // task NPCs come with their tasks
+            // Task NPCs come with their tasks.
+            if (row[4] != 0 && taskTalksOf(row[0], info.sceneName).length == 0) continue;
             addNpcToScene(row[0], row[1], -1, row[2], row[3]);
          }
          TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_INITED_NPC, {sceneName: info.sceneName}));
+      }
+
+      /** Tasks changed: task NPCs come and go, marks follow. */
+      private function onTasksChanged(e:TaskEvent):void
+      {
+         var info:Object = SceneManager.getInstance().loadedSceneInfo;
+         if (info == null || SceneManager.getInstance().isLoading) return;
+         for each (var row:Array in (SceneNpcData.SCENES[info.sceneName] as Array) || [])
+         {
+            if (row[4] == 0) continue;
+            var has:Boolean = taskTalksOf(row[0], info.sceneName).length > 0;
+            if (has && npcs[row[0]] == null) addNpcToScene(row[0], row[1], -1, row[2], row[3]);
+            else if (!has && npcs[row[0]] != null && taskTalks[row[0]] == null) removeNpcFromScene(row[0]);
+         }
+         for (var k:String in npcs) Npc(npcs[k]).setTaskMark(hasTaskTalk(int(k)));
       }
 
       public function addNpcToScene(npcId:int, viewId:int, taskId:int, x:int, y:int):void
@@ -129,7 +155,7 @@ package mmo.tasknpc
          var npc:Npc = new Npc(npcId, viewId, x, y, onNpcClick);
          npcs[npcId] = npc;
          npc.load();
-         if (taskTalks[npcId] != null) npc.setTaskMark(true);
+         if (hasTaskTalk(npcId)) npc.setTaskMark(true);
       }
 
       public function addSeveralNpcToScene(list:Array):void
@@ -234,6 +260,30 @@ package mmo.tasknpc
             NpcTalkPanel.show(talk, npc.id);
             return;
          }
+         var info:Object = SceneManager.getInstance().loadedSceneInfo;
+         var list:Array = info ? taskTalksOf(npc.id, info.sceneName) : [];
+         if (list.length == 1)
+         {
+            NpcTalkPanel.show(list[0].xml, npc.id);
+            return;
+         }
+         if (list.length > 1)
+         {
+            // Several tasks with this NPC: name them, as the later panel does.
+            var lines:Array = defaultTalk(npc.id);
+            var menu:XML = <config><context/></config>;
+            menu.context.@npcId = npc.id;
+            menu.context.@str = lines ? lines[0] : "你好，小奥拉！";
+            for each (var o:Object in list)
+            {
+               var c:XML = <choice/>;
+               c.@str = "【任务】" + o.name;
+               for each (var ctx:XML in XML(o.xml).context) c.appendChild(ctx.copy());
+               menu.context.appendChild(c);
+            }
+            NpcTalkPanel.show(menu, npc.id);
+            return;
+         }
          showNpcPanel(npc.id, -1, null);
       }
 
@@ -241,6 +291,50 @@ package mmo.tasknpc
 
       private var taskTalks:Object = {};
       private var taskTalkConfig:Object = {};
+      private var starterTalkConfig:Object = {};
+
+      private static function taskService():ITaskService
+      {
+         return ServiceContainer.getService(ITaskService) as ITaskService;
+      }
+
+      /**
+       * The task talks of an NPC in a scene (the later NpcPanelConfig.
+       * getDoingTaskTalkXmlByNpc): for every task being done, the talk of its
+       * current step; for every task that can start, its start talk.
+       */
+      private function taskTalksOf(npcId:int, scene:String):Array
+      {
+         var out:Array = [];
+         var ts:ITaskService = taskService();
+         if (ts == null || (Object(ts).hasOwnProperty("ready") && !Object(ts).ready)) return out;
+         for each (var id:int in ts.getDoingTaskIds())
+         {
+            var step:int = ts.getTaskDoingStep(id);
+            var x:XML = taskTalkConfig[npcId + "_" + step + "_" + scene] as XML;
+            if (x != null) out.push({task: id, xml: x, name: nameOf(ts, id)});
+         }
+         for (var k:String in starterTalkConfig)
+         {
+            var p:Array = k.split("_");
+            if (p.length != 3 || int(p[0]) != npcId || p[2] != scene || !ts.isTaskCanStart(int(p[1]))) continue;
+            out.push({task: int(p[1]), xml: starterTalkConfig[k], name: nameOf(ts, int(p[1]))});
+         }
+         return out;
+      }
+
+      private static function nameOf(ts:ITaskService, id:int):String
+      {
+         var s:Object = ts.getTaskStarter(id);
+         return s ? String(s.taskName) : "";
+      }
+
+      private function hasTaskTalk(npcId:int):Boolean
+      {
+         if (taskTalks[npcId] != null) return true;
+         var info:Object = SceneManager.getInstance().loadedSceneInfo;
+         return info != null && taskTalksOf(npcId, info.sceneName).length > 0;
+      }
 
       /**
        * REBUILT helper for the task scripts (not in the 2013 interface): while
@@ -264,7 +358,27 @@ package mmo.tasknpc
       /** The NPC's own panel: a greeting, plus the choices scenes added with addNpcInteraction. */
       public function showNpcPanel(npcId:int, taskId:int, from:String):void
       {
-         var named:XML = taskTalkConfig[npcId + "_" + taskId + "_" + from] as XML;
+         var key:String = npcId + "_" + taskId + "_" + from;
+         var named:XML = (taskTalkConfig[key] || starterTalkConfig[key]) as XML;
+         if (named == null && taskId > 0)
+         {
+            // REBUILT fallback: a 2012 script may name a talk the later tables
+            // keep under another NPC of the same task and place.
+            for each (var conf:Object in [taskTalkConfig, starterTalkConfig])
+            {
+               for (var k:String in conf)
+               {
+                  var p:Array = k.split("_");
+                  if (p.length == 3 && int(p[1]) == taskId && p[2] == from)
+                  {
+                     named = conf[k] as XML;
+                     npcId = int(p[0]);
+                     break;
+                  }
+               }
+               if (named != null) break;
+            }
+         }
          if (named != null)
          {
             NpcTalkPanel.show(named, npcId);

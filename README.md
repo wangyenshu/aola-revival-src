@@ -25,7 +25,7 @@ Windows.
 ```bash
 npm ci
 npm run build:swf   # rebuilt SWF modules -> build/rebuilt/ (about 3 minutes)
-npm run build       # static site -> dist/ (about 905 MB)
+npm run build       # static site -> dist/ (about 920 MB)
 npm run serve       # http://127.0.0.1:8080/
 ```
 
@@ -53,7 +53,7 @@ arrive in 奥拉广场. Progress is kept in the browser (IndexedDB), per site.
 
 ## Publish on GitHub Pages
 
-1. Push this repository to GitHub. It is about 900 MB; no file is over 20 MB.
+1. Push this repository to GitHub. It is about 920 MB; no file is over 20 MB.
 2. Settings → Pages → Build and deployment → Source: **GitHub Actions**.
 3. Push to `main` (or run the workflow by hand). `.github/workflows/pages.yml`
    runs the tests, `build:swf` and `build`, and deploys `dist/`; the site is at
@@ -73,7 +73,7 @@ tell from a name like `aola.js~3F20121227`.
 
 ## game/
 
-16,581 files (902 MB) at the paths the January 2013 client asks for:
+16,668 files (917 MB) at the paths the January 2013 client asks for:
 `www.9aola.com/<path>%3F<version>`, the version being the one in the
 2013-01-25 manifest or the loader's default `1210`.
 
@@ -82,13 +82,16 @@ tell from a name like `aola.js~3F20121227`.
 | Origin | Files | What |
 | --- | --: | --- |
 | `era` | 13,057 | from the live-CDN archive of 28 October 2026, uploaded on or before the release date: the files the 2013 client loaded, or older unchanged ones |
-| `later` | 3,386 | uploaded after the release: used only where nothing older survives, and only what the 2013 client asks for (listed in the manifest or the config, the 亚比, NPCs, tasks and furniture of the 2013 ranges by number) |
+| `later` | 3,473 | uploaded after the release: used only where nothing older survives, and only what the 2013 client asks for (listed in the manifest or the config, the 亚比, NPCs, tasks and furniture of the 2013 ranges by number); 87 of them (`"added": "story quests"`) for the 2012 story quests, whose scenes the 2013 client no longer had (`tools/story_files.py`) |
 | `capture` | 138 | not on the CDN any more: Wayback Machine captures of the boot chain and pages, the November 2012 map from 百田's guide page |
 
 It was made from the archive (`docs/ARCHIVE.md`) and earlier captures with
-`tools/make_game_root.py select` (rules and lists in `tools/data/`). The same
-folder can be made again from `FILES.jsonl` and a local copy of the archive,
-every SHA-1 checked, nothing downloaded:
+`tools/make_game_root.py select` (rules and lists in `tools/data/`), and the
+story-quest files added with `tools/story_files.py --fetch` (the only tool
+that downloads into `game/`; building never does). The same folder can be
+made again from `FILES.jsonl` and a local copy of the archive, every SHA-1
+checked, nothing downloaded (the story-quest files are not in the archive:
+give a copy of `game/` as a search folder):
 
 ```bash
 python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
@@ -102,8 +105,8 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
   build one, `. .toolchain/env.sh` and call `rebuild/build/as3c.sh` as
   `all.sh` does. `rebuild/gen` holds sources generated once from the
   decompiled 2013 libraries (`tools/gen_stubs.py` for the stand-ins,
-  `tools/gen_npc_data.py`, `gen_pets.py`, `gen_bconfig.py`, `gen_wildpets.py`
-  for data); `rebuild/static` holds the `config.xml` overlay
+  `tools/gen_npc_data.py`, `gen_tasks.py`, `gen_pets.py`, `gen_bconfig.py`,
+  `gen_wildpets.py` for data); `rebuild/static` holds the `config.xml` overlay
   (`tools/config_overlay.py`) and the 亚比, skill and item tables the emulator
   reads (`tools/gen_pmdata.py`, `gen_pets.py`, `gen_materials.py`,
   `gen_wildpets.py`). They are committed so that building needs no decompiler.
@@ -111,7 +114,8 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
   the Python ones in `tests/`), `npm run check` the type check.
 - **In the browser**: `npx playwright install chromium` once, then
   `npm run e2e:newbie` plays the whole newbie quest in Chromium against
-  `dist/` and leaves screenshots in `work/e2e-newbie/`.
+  `dist/` and leaves screenshots in `work/e2e-newbie/`; `npm run e2e:story`
+  plays the story quests 1214 and 1219 (`work/e2e-story/`).
   `server/test/e2e/boot2013.mjs --mirror build/rebuilt,game` serves the game
   files straight from the roots (no `npm run build` after changing a module);
   `--url` tests a site served elsewhere, such as `npm run serve -- --base
@@ -139,13 +143,16 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
 
 Working now: the newbie quest of 2012 from the HELLO's first call to
 麦哲伦's ceremony (choosing the first 亚比, the first fight, buying 亚比球,
-catching a 朵朵兔, getting the HELLO, with the era task panels and films), the
+catching a 朵朵兔, getting the HELLO, with the era task panels and films);
+after it, 45 story quests of 2011–12 under 可接 in the task panel (巨人山脉,
+幽暗冥州, 钻石岛, 蔓藤峡谷 …) running their own scripts, the first two of
+巨人山脉 checked from start to end; the
 world map (the November 2012 map), NPCs with their talk, the control bar of
 December 2011 (phrases, faces, actions, chat log, 奥拉周刊), shops and the
 wardrobe, the pet bag and the following 亚比, the home with furniture and
-storage, gathering in scenes, and wild 亚比 with battles. Known gaps: quests
-after the newbie quest, the HELLO in scenes, bosses and arenas, friends, mini
-games and most activities are still stand-ins (clicking one says
+storage, gathering in scenes, and wild 亚比 with battles. Known gaps: the HELLO
+in scenes, bosses and arenas, friends, daily tasks, most mini games and
+activities are still stand-ins (clicking one says
 这个功能还在修复中). `docs/PLAN.md` lists every missing system, what survives
 of it, the server commands it needs, and the milestone order.
 

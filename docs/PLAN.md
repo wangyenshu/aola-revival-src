@@ -220,15 +220,16 @@ Plan:
 
 ## Tasks, NPC talk and the newbie quest
 
-Quests are split between a lost engine and surviving content: the 2013 task engine, NPC placement and task panel survive only as later copies, while each quest's own panel and art are separate files the archive collected (`taskpanel/tp{n}`, `tasknpc/npc{n}`, `taskres/…`). The quest scripts under `taskext/task{n}` were replaced on the server by later stories, so the 2012 ones are lost.
+Quests are split between a lost engine and surviving content: the 2013 task engine, NPC placement and task panel survive only as later copies, while each quest's own panel and art are separate files the archive collected (`taskpanel/tp{n}`, `tasknpc/npc{n}`, `taskres/…`). The newbie quest's scripts (`taskext/task135`, `task140`, `task150`) were replaced on the server by later versions; most story-quest scripts of 2011–12 were never replaced and survive as era files (the 巨人山脉 ones of 8 March 2012, for instance).
 
 What runs now (M4):
 
 | Part | Module | State |
 | --- | --- | --- |
 | Task engine | `task/taskservice` | REBUILT against `mmo.interfaces.task` and the 2013 TaskExtension protocol (10-0 tasks at login, 10-1 updates, 10-2 step done, 10-3 start, 10-4 drop, 10-5 task data) |
-| Task definitions | `task/taskdefines` | REBUILT: tasks 135, 140, 150 and their steps, as the era task panels name them |
-| Task scripts host | `task/taskextmanager` | REBUILT: loads `taskext/task{n}` while a task is being done, drops it when the task ends or the scene unloads |
+| Task definitions | `task/taskdefines` | REBUILT: tasks 135, 140, 150 and their steps, as the era task panels name them; the 2012 story quests from the later definitions (below) |
+| Task scripts host | `task/taskextmanager` | REBUILT: per scene, the scripts the later scene table (config `tconfig`) names for a task being done or one that can start, kept until the scene goes; the rebuilt newbie scripts while their task is being done |
+| Task transport | `task/tasktransportpanel` | REBUILT (lost): the 任务传送 panel scripts open to send the player on (立即前往 / 稍后再去) |
 | Task icon and panel | `task/taskpanelnew` | REBUILT around the era `mmo.taskicon.TaskIcon` (任务, with a "!" when a task arrives) and the era panels `taskpanel/tp{n}` |
 | NPCs and talk | `task/tasknpc` | REBUILT: task talk with choices, actions and scene changes, a bobbing "?" over an NPC with something to say |
 | Newbie quest | `taskext/task135`, `task140`, `task150` | REBUILT (below) |
@@ -253,10 +254,22 @@ Words not seen in a screenshot are RECONSTRUCTED. The server keeps each player's
 
 Later copies the quest uses, because no 2013 one survives: `tasknpc/npc1` (HELLO), `npc9` (麦哲伦), `npc11` (贝鲁特, live copy of 30 Nov 2017), `peticon/peticon1` (兔小子, live copy of 5 Mar 2020), `scene/maintown2` and `scene/yabistudy` (standing in for `maintown2copy` and `yabistudycopy`), `taskres/task147res_reword0–2`. The 朵朵兔's scene skin (`skin/a000059`) is in no archive: wild 亚比 without one stand in as their era large icon.
 
+### The 2012 story quests
+
+After the newbie quest the task panel lists the story quests of 2011–12 under 可接, and 前往 takes the player where each begins. They run their own scripts (`taskext/task{n}`), with the NPC conversations and definitions of the later client, because the 2013 ones are lost:
+
+- `tools/gen_tasks.py` takes from the later `task/taskdefines` (24 January 2013 build, the copy in `game/`), `task/tasknpc` and config `tconfig` the quests whose script was made by the January 2013 release (its id is at most that of the newest era script), whose conversations survive for at least half their steps and whose scripts are all in `game/`, with every quest before them. 45 quests, 327 steps: 烈焰鸟 (267–346), 上古神殿 (724), the 星云 arc (1039–1155) and its side stories, 巨人山脉 (1214–1294), 蔓藤峡谷 (1343–1427), the 古老的传说 arc (1434–1477), 钻石岛 (1507–1549), 幽暗冥州 (1561–1641), and 1959, 2072, 2289. It writes `rebuild/gen/taskdata` (definitions, starters, panels, the scene table), `rebuild/gen/tasknpc/…/TaskTalkData.as` (764 task conversations, 26 start conversations) and `revival/tasks.json` for the emulator, which then keeps their steps like the newbie quest's.
+- The scenes of most of these quests were off the map by November 2012, so neither the January 2013 `config.xml` nor the archive has them. `tools/story_files.py` adds what they need from the live CDN as later copies (re-exports of 2015–2019, the same rooms): 28 rooms (巨人山脉 `giantcordillera1–6`, 幽暗冥州 `youanmingzhou1–5`, 钻石岛 `diamondisland1–4`, 蔓藤峡谷 `mantenxiagu1–3`, 章鱼海湾 and its neighbours `starsea1–3`, 斗魂平原 to 禁闭之门 `fightspace1–3`, 虚无长廊 and 修炼广场 `emptyspace1–2`, 念之大厅, 水帘洞), with their rows of the live `config.xml` in the overlay, and 87 files in all (scenes, NPC pictures, task panels, scripts the 2013 client lacks, resources the scripts name), each listed in `game/FILES.jsonl` with `"added": "story quests"`.
+- `tools/gen_npc_data.py` places the NPCs of those rooms from the later scene table; in the rooms of 2013 an NPC with only a later picture stands only while a story quest has something for it to say.
+
+`server/test/e2e/scenarios/story1214.mjs` (`npm run e2e:story`) plays the first two quests of 巨人山脉 through, as a player would: 1214 传说中的美丽山脉 (小犀 at the mountain's foot, 麦哲伦, 小南 in the library, 普伦博士, the footprint, the film of the giant and the mini game of pumping up the HELLO with the Space key) and 1219 奇怪的山脉 (waking in 小熊之家, the blueprint, the stones and the hole in the roof, finding wood, saw and nails, dragging the ladder together, the fight with 伊尼, out to 巨人山脚 and back, 普伦博士's message), after which 1237 山脉传说 begins. `server/test/e2e/scenarios/storysmoke.mjs` goes to each of the 26 quests that begin with an NPC and opens its start conversation (all 26 open).
+
+Engine pieces the story scripts needed, all in the rebuilt modules: scripts stay loaded until the scene goes (one waits for the reward of the task it has just finished); every scene announces its NPCs (TaskEvent.ON_INITED_NPC), with or without any of its own; the 任务传送 panel; task NPCs placed per scene; the emulator runs one player's requests one after another (two at once lost a change).
+
 Still to do:
 
 1. The HELLO in scenes and its ring menu (`init/robotmanager` survives only as a later copy), and handing out its experience (RobotExtension 2-13).
-2. The 2012 main story quests after the newbie quest, from the task panels and films that survive.
+2. Play the other story quests through: 1214 and 1219 are checked end to end; the rest run on the same pieces, and some use services still stood in for (sending, items, other fights).
 3. Daily tasks (`dailytask/dailytask`, DailyTaskExtension 7 commands), the NPC guide (`guide/npcguide`, original), gathering tasks (`task/taskgather`, original).
 
 ## Server emulation
@@ -299,7 +312,7 @@ Each milestone ends in something a player can do, checked by the automated test 
 | M1 Town | log in, walk, and enter six original scenes | done |
 | M2 Living scenes | NPCs in scenes, toolbar, chat bubbles over heads | done (the bar is drawn; its 2011 look is known from official screenshots) |
 | M3 Shop and wardrobe | buy a shirt in 服装店 and wear it in 奥拉广场 | done |
-| M4 Newbie quest | finish the 2012 quest and receive the first 亚比 | done: the whole quest (136–152) with its era panels and films, the first 亚比, the first fight and catch, the HELLO; the HELLO in scenes and later quests to do |
+| M4 Newbie quest | finish the 2012 quest and receive the first 亚比 | done: the whole quest (136–152) with its era panels and films, the first 亚比, the first fight and catch, the HELLO; 45 story quests of 2011–12 with their own scripts (1214 and 1219 checked end to end); the HELLO in scenes to do |
 | M5 Battles | win a battle against a wild 亚比 and catch it | done for wild 亚比: they walk in 73 era scenes; win, lose, escape, items, switching, catching into the bag (battle screen after the official 2011–12 screenshots; rules reconstructed); bosses, PvP and arenas to do |
 | M6 Home | place a sofa in 小屋; it is still there next visit | done for the 空间舱 (furniture, storage, saving); garden, visits, zoo to do |
 | M7 Map and friends | world map; two players see and visit each other | world map done |

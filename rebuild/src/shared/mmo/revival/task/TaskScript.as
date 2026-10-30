@@ -104,8 +104,22 @@ package mmo.revival.task
          if (npcs != null) npcs.showNpcPanelFreelyByXml(xml, npcId);
       }
 
-      /** Show a conversation now, once per scene for this key. */
+      /**
+       * Show a conversation now, once a session for this key: the reminders
+       * ("司令官麦哲伦还在指挥中心等你呢！") do not come back in every scene; the
+       * NPC keeps the conversation for a click (setTalk).
+       */
       protected function sayOnce(key:String, npcId:int, xml:XML):void
+      {
+         if (said[key]) return;
+         said[key] = true;
+         say(npcId, xml);
+      }
+
+      private static var said:Object = {};
+
+      /** Show a conversation now, once in this scene for this key (it comes back in the next visit). */
+      protected function sayHere(key:String, npcId:int, xml:XML):void
       {
          if (shown[key]) return;
          shown[key] = true;

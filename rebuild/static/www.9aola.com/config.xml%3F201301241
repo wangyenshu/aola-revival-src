@@ -694,6 +694,35 @@
       <r desc="海灵灵大作战" game="1" ms="" nm="gameHungryMonster" owner="mysticocean5" rm="gameHungryMonster" swf="game/hungrymonster"/>
       <r desc="圣诞礼物盒" game="1" ms="" nm="gameGoldPitman" owner="themepark" rm="gameGoldPitman" swf="game/goldpitman"/>
       <r desc="对决无双" game="1" ms="" nm="gameMatchThree4Activity" owner="themepark" rm="gameMatchThree4Activity" swf="game/matchthree4activity"/>
+      <!-- 2012 story quests (tools/story_files.py): rooms of the live config.xml -->
+      <r nm="diamondisland1" rm="diamondisland1" swf="scene/diamondisland1" desc="钻石屋" cansearch="true" mu="music/diamondisland.mp3" ms="diamondisland"/>
+      <r nm="diamondisland2" rm="diamondisland2" swf="scene/diamondisland2" desc="钻石大街" cansearch="true" mu="music/diamondisland.mp3" ms="diamondisland"/>
+      <r nm="diamondisland3" rm="diamondisland3" swf="scene/diamondisland3" desc="钻石宝殿" cansearch="true" mu="music/diamondisland.mp3" ms="diamondisland"/>
+      <r nm="diamondisland4" rm="diamondisland4" swf="scene/diamondisland4" desc="光明崖" cansearch="true" mu="music/diamondisland.mp3" ms="wolfkingarea"/>
+      <r nm="emptyspace1" rm="emptyspace1" swf="scene/emptyspace1" desc="虚无长廊" cansearch="true" mu="music/temple.mp3" ms="emptyspace"/>
+      <r nm="emptyspace2" rm="emptyspace2" swf="scene/emptyspace2" desc="修炼广场" cansearch="true" mu="music/temple.mp3" ms="emptyspace"/>
+      <r nm="fightspace1" rm="fightspace1" swf="scene/fightspace1" desc="斗魂平原" cansearch="true" mu="music/fightspace.mp3" ms="fightspace"/>
+      <r nm="fightspace2" rm="fightspace2" swf="scene/fightspace2" desc="环宇核心" cansearch="true" mu="music/fightspace.mp3" ms="fightspace"/>
+      <r nm="fightspace3" rm="fightspace3" swf="scene/fightspace3" desc="禁闭之门" cansearch="true" mu="music/fightspace.mp3" ms="fightspace"/>
+      <r nm="giantcordillera1" rm="giantcordillera1" swf="scene/giantcordillera1" desc="巨人山脚" cansearch="true" mu="music/giantcordillera.mp3" ms="giantcordillera"/>
+      <r nm="giantcordillera2" rm="giantcordillera2" swf="scene/giantcordillera2" desc="小熊之家" cansearch="true" mu="music/giantcordillera.mp3" ms="giantcordillera"/>
+      <r nm="giantcordillera3" rm="giantcordillera3" swf="scene/giantcordillera3" desc="巨人山腰" cansearch="true" mu="music/giantcordillera.mp3" ms="giantcordillera"/>
+      <r nm="giantcordillera4" rm="giantcordillera4" swf="scene/giantcordillera4" desc="科学研究所" cansearch="true" mu="music/giantcordillera.mp3" ms="giantcordillera"/>
+      <r nm="giantcordillera5" rm="giantcordillera5" swf="scene/giantcordillera5" desc="巨人山顶" cansearch="true" mu="music/giantcordillera.mp3" ms="giantcordillera"/>
+      <r nm="giantcordillera6" rm="giantcordillera6" swf="scene/giantcordillera6" desc="山脉核心" cansearch="true" mu="music/giantcordillera.mp3" ms="giantcordillera"/>
+      <r nm="mantenxiagu1" rm="mantenxiagu1" swf="scene/mantenxiagu1" desc="奇迹谷底" cansearch="true" mu="music/mantenxiagu.mp3" ms="mantenxiagu"/>
+      <r nm="mantenxiagu2" rm="mantenxiagu2" swf="scene/mantenxiagu2" desc="回忆之林" cansearch="true" mu="music/mantenxiagu.mp3" ms="mantenxiagu"/>
+      <r nm="mantenxiagu3" rm="mantenxiagu3" swf="scene/mantenxiagu3" desc="小小鸟森林" cansearch="true" mu="music/mantenxiagu.mp3" ms="mantenxiagu"/>
+      <r nm="starsea1" rm="starsea1" swf="scene/starsea1" desc="章鱼海湾" cansearch="true" mu="music/starsea.mp3" ms="starsea"/>
+      <r nm="starsea2" rm="starsea2" swf="scene/starsea2" desc="海洋密室" cansearch="true" mu="music/starsea.mp3" ms="starsea"/>
+      <r nm="starsea3" rm="starsea3" swf="scene/starsea3" desc="星云宝地" cansearch="true" mu="music/starsea.mp3" ms="starsea"/>
+      <r nm="thinktowerofnian" rm="thinktowerofnian" swf="scene/thinktowerofnian" desc="念之大厅" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="waterhole" rm="waterhole" swf="scene/waterhole" desc="水帘洞" cansearch="true" mu="music/fightspace.mp3" ms="fightspace"/>
+      <r nm="youanmingzhou1" rm="youanmingzhou1" swf="scene/youanmingzhou1" desc="幽冥前殿" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="youanmingzhou2" rm="youanmingzhou2" swf="scene/youanmingzhou2" desc="幽冥大殿" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="youanmingzhou3" rm="youanmingzhou3" swf="scene/youanmingzhou3" desc="太阳之殿" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="youanmingzhou4" rm="youanmingzhou4" swf="scene/youanmingzhou4" desc="月亮之殿" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="youanmingzhou5" rm="youanmingzhou5" swf="scene/youanmingzhou5" desc="命运之殿" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
     </roomMap>
     <map>
       <m desc="空间舱" gy="" nm="home" rm="home"/>

@@ -56,10 +56,14 @@ unset GEN
 # Tasks: rebuilt task/taskdefines (the 2012 newbie quest, RECONSTRUCTED),
 # task/taskservice and task/taskextmanager, and the newbie quest's scripts
 # taskext/task135, task140, task150.
+# The story quests' tables come from rebuild/gen/taskdata (tools/gen_tasks.py).
+export GEN="$HERE/../gen/taskdata"
 build taskdefines mmo/taskdefines/DocClass.as taskdefines.swf "task/taskdefines.swf%3F130124"
+unset GEN
 build taskservice mmo/taskservice/DocClass.as taskservice.swf "task/taskservice.swf%3F130103"
 build taskextmanager mmo/taskextmanager/DocClass.as taskextmanager.swf "task/taskextmanager.swf%3F1210"
 build taskpanelnew mmo/taskpanelnew/DocClass.as taskpanelnew.swf "task/taskpanelnew.swf%3F130103"
+build tasktransport mmo/tasktransport/DocClass.as tasktransport.swf "task/tasktransportpanel.swf%3F1210"
 build taskext/task135 mmo/task135/DocClass.as task135.swf "taskext/task135.swf%3F130110"
 build taskext/task140 mmo/task140/DocClass.as task140.swf "taskext/task140.swf%3F130117"
 build taskext/task150 mmo/task150/DocClass.as task150.swf "taskext/task150.swf%3F130110"

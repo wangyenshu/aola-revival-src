@@ -26,3 +26,4 @@ baseservice/weekly
 task/taskservice
 task/taskextmanager
 task/taskpanelnew
+task/tasktransportpanel

@@ -129,10 +129,24 @@ package mmo.play.scene
        */
       public static const STAND_INS:Object = {maintown1copy: "maintown1", maintown2copy: "maintown2", yabistudycopy: "yabistudy"};
 
-      public function loadScene(sceneName:String, locationKey:String = "default"):void
+      /**
+       * Go to a scene. The 2013 signature (the era scenes and task scripts
+       * call it with all six): reload even when already in that room, isEt,
+       * the direction to face on arrival, and extra data the next scene reads
+       * as loadedSceneInfo.extInfo (e.g. taskIdFromTP from the task panel).
+       * Asked for the room the player is in, without reload, it only
+       * announces ENTER_SCENE_SHOWTIPS, as the later client does.
+       */
+      public function loadScene(sceneName:String, locationKey:String = "default", reload:Boolean = false, isEt:Boolean = false,
+            faceDirection:* = "ld", extInfo:Object = null):void
       {
          if (busy) return;
          if (STAND_INS[sceneName] != null) sceneName = STAND_INS[sceneName];
+         if (!reload && loadedSceneInfo != null && loadedSceneInfo.sceneName == sceneName && extInfo == null)
+         {
+            dispatchEvent(new SceneManagerEvent(SceneManagerEvent.ENTER_SCENE_SHOWTIPS, {sceneInfo: loadedSceneInfo}));
+            return;
+         }
          var cfg:ConfigReader = ConfigReader.instance;
          var swf:String = cfg.getSceneSwf(sceneName);
          if (swf == null || swf == "")
@@ -156,6 +170,8 @@ package mmo.play.scene
             info = new SceneInfo(sceneName, room, swf);
          }
          info.locationKey = locationKey;
+         if (faceDirection is String && faceDirection != "") info.faceDirection = faceDirection;
+         info.extInfo = extInfo;
          var desc:String = cfg.getSceneDescription(sceneName);
          loadSceneWith(info, {desc: desc ? "正在前往" + desc + "……" : "请稍等……"});
       }

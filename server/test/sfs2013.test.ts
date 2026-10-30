@@ -129,3 +129,27 @@ test("login, join, move, chat and an extension call, as the 2013 client sends th
   got = a.received();
   assert.equal(got.at(-1)?.action, Down.userGone);
 });
+
+test("one player's extension requests run one after another", async () => {
+  const { world, connect } = harness();
+  // Each request loads the record, waits (as a store does), changes it and saves it.
+  let saved: string[] = [];
+  const slow = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  world.xt("SundriesExtension.*", async (ctx, cmd) => {
+    const rec = [...saved];
+    await slow(cmd === "first" ? 30 : 1);
+    rec.push(cmd);
+    saved = rec;
+    ctx.reply({ ok: 1 });
+  });
+  const a = connect();
+  a.send(clientPayload(0, Up.Login, -1).utf("aola").utf("小奥拉").utf("").body());
+  await tick();
+  a.send(clientPayload(0, Up.JoinRoom, -1).utf("starland").u8(49).i32(-1).u8(48).utf("").body());
+  await tick();
+  a.received();
+  a.send(clientPayload(1, Up.XtReq, 1).i16(34).utf("first").raw(amf3Encode({})).body());
+  a.send(clientPayload(1, Up.XtReq, 1).i16(34).utf("second").raw(amf3Encode({})).body());
+  await slow(80);
+  assert.deepEqual(saved, ["first", "second"]);
+});

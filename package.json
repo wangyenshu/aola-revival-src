@@ -15,6 +15,7 @@
     "check": "tsc -p server/tsconfig.json",
     "e2e": "node server/test/e2e/browser.e2e.mjs",
     "e2e:newbie": "node server/test/e2e/boot2013.mjs --out work/e2e-newbie --seconds 1300 --query dev=1 --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/newbie.mjs",
+    "e2e:story": "node server/test/e2e/boot2013.mjs --out work/e2e-story --seconds 1500 --query dev=1 --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/story1214.mjs",
     "start": "node server/src/node/main.ts"
   },
   "dependencies": {

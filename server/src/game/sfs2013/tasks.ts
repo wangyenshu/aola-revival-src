@@ -11,9 +11,10 @@
 //   10-5 clientSetData {ti, ed}   a number the task keeps (UserTask.extData)
 // UserTask.state: 0 doing, 1 finished, 2 dropped (the 2013 UserTask).
 //
-// Which tasks exist and what they give is in task/taskdefines on the client;
-// only the newbie quest is rebuilt so far, and its definitions here follow
-// the rebuilt taskdefines (RECONSTRUCTED: see TASK_DEFS).
+// Which tasks exist and what they give is in task/taskdefines on the client.
+// The newbie quest is RECONSTRUCTED (TASK_DEFS); the 2012 story quests whose
+// scripts survive come from revival/tasks.json (tools/gen_tasks.py, the
+// later client's tables), added with registerTaskTables().
 
 import type { World, XtContext } from "./server.ts";
 
@@ -51,6 +52,28 @@ export const TASK_DEFS: Record<number, TaskDef> = {
   140: { steps: [142, 143, 144, 145, 146, 147], pre: [135], auto: true },
   150: { steps: [152], pre: [140], auto: true, bonus: { score: 2000, robotExp: 3000 } },
 };
+
+/** revival/tasks.json: the later client's TaskDefine and TaskStarter rows of the story quests. */
+export interface TaskTables {
+  defines: Record<string, [number, string]>;
+  starters: Record<string, { type: number; pre: number[]; name: string }>;
+}
+
+/**
+ * Add the story quests: steps of every task (TaskDefine type 0), its
+ * pre-tasks, and whether the server starts it itself (TaskStarter type 12,
+ * TASK_FINISH) or the client asks (11, CLIENT). The newbie quest keeps its
+ * own definitions.
+ */
+export function registerTaskTables(t: TaskTables): void {
+  for (const [id, st] of Object.entries(t.starters ?? {})) {
+    const ti = Number(id);
+    if (TASK_DEFS[ti]) continue;
+    const d = t.defines[id];
+    if (!d || d[0] !== 0) continue;
+    TASK_DEFS[ti] = { steps: d[1].split(",").filter(Boolean).map(Number), pre: st.pre, auto: st.type === 12 };
+  }
+}
 
 /** The first task of a new player. */
 export const NEWBIE_TASK = 135;
@@ -188,48 +211,65 @@ export interface TaskDeps {
   load(ctx: XtContext): Promise<TaskOwner>;
   save(rec: TaskOwner): Promise<void>;
   now(): number;
+  /** Resolves once the story quests' tables are in (registerTaskTables). */
+  ready?: Promise<unknown>;
   /** Answer the test command revival_task (web/?dev=1). */
   dev?: boolean;
 }
 
-/** Test runs: every task and step before `step` finished, `step` (and its task) being done. */
+/**
+ * Test runs: the tasks before (pre-tasks, and theirs) finished, and `step`
+ * being done with the steps before it finished. Given a task instead of a
+ * step, only its pre-tasks are finished, so it can start.
+ */
 export function skipTo(rec: TaskOwner, step: number, now: number): TaskResult {
   const out: TaskResult = { changes: [] };
   const b = book(rec);
-  for (const [id, d] of Object.entries(TASK_DEFS)) {
-    const ti = Number(id);
-    const at = d.steps.indexOf(step);
-    if (at < 0 && !(step > Math.max(...d.steps))) continue;
-    if (at < 0) {
-      for (const s of [...d.steps, ti]) {
-        b[s] = { st: 1, ex: 0, ad: now, fd: now };
-        out.changes.push({ t: view(s, b[s]), ty: TaskUpdate.ADD_FINISH });
-      }
-      continue;
+  const parent = TASK_DEFS[step] ? step : parentOf(step);
+  if (parent === undefined) return out;
+  const chain: number[] = [];
+  const visit = (t: number) => {
+    for (const p of TASK_DEFS[t]?.pre ?? []) {
+      if (chain.includes(p)) continue;
+      visit(p);
+      chain.push(p);
     }
-    b[ti] = { st: 0, ex: 0, ad: now, fd: 0 };
-    out.changes.push({ t: view(ti, b[ti]), ty: TaskUpdate.ADD });
-    d.steps.forEach((s, i) => {
-      if (i > at) {
-        delete b[s];
-        return;
-      }
-      b[s] = { st: i < at ? 1 : 0, ex: 0, ad: now, fd: i < at ? now : 0 };
-      out.changes.push({ t: view(s, b[s]), ty: i < at ? TaskUpdate.ADD_FINISH : TaskUpdate.ADD });
-    });
-    break;
+  };
+  visit(parent);
+  for (const t of chain) {
+    for (const s of [...(TASK_DEFS[t]?.steps ?? []), t]) {
+      b[s] = { st: 1, ex: 0, ad: now, fd: now };
+      out.changes.push({ t: view(s, b[s]), ty: TaskUpdate.ADD_FINISH });
+    }
   }
+  if (parent === step) return out;
+  const d = TASK_DEFS[parent];
+  const at = d.steps.indexOf(step);
+  b[parent] = { st: 0, ex: 0, ad: now, fd: 0 };
+  out.changes.push({ t: view(parent, b[parent]), ty: TaskUpdate.ADD });
+  d.steps.forEach((s, i) => {
+    if (i > at) {
+      delete b[s];
+      return;
+    }
+    b[s] = { st: i < at ? 1 : 0, ex: 0, ad: now, fd: i < at ? now : 0 };
+    out.changes.push({ t: view(s, b[s]), ty: i < at ? TaskUpdate.ADD_FINISH : TaskUpdate.ADD });
+  });
   return out;
 }
 
 export function installTasks(world: World, deps: TaskDeps): void {
+  const load = async (ctx: XtContext) => {
+    await deps.ready?.catch(() => undefined);
+    return deps.load(ctx);
+  };
   const push = (ctx: XtContext, r: TaskResult) => {
     for (const c of r.changes) ctx.reply({ t: c.t, ty: c.ty }, "10-1");
     if (r.score !== undefined) ctx.reply({ score: r.score }, "onScoreUpdated");
   };
 
   world.xt("TaskExtension.10-0", async (ctx) => {
-    const rec = await deps.load(ctx);
+    const rec = await load(ctx);
     if (isNewPlayer(rec)) {
       startTask(rec, NEWBIE_TASK, deps.now());
       await deps.save(rec);
@@ -237,25 +277,25 @@ export function installTasks(world: World, deps: TaskDeps): void {
     ctx.reply({ t: taskList(rec), ou: false });
   });
   world.xt("TaskExtension.10-3", async (ctx) => {
-    const rec = await deps.load(ctx);
+    const rec = await load(ctx);
     const r = startTask(rec, Number(ctx.params.ti), deps.now());
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
   });
   world.xt("TaskExtension.10-2", async (ctx) => {
-    const rec = await deps.load(ctx);
+    const rec = await load(ctx);
     const r = finishStep(rec, Number(ctx.params.ti), deps.now());
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
   });
   world.xt("TaskExtension.10-4", async (ctx) => {
-    const rec = await deps.load(ctx);
+    const rec = await load(ctx);
     const r = dropTask(rec, Number(ctx.params.ti));
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
   });
   world.xt("TaskExtension.10-5", async (ctx) => {
-    const rec = await deps.load(ctx);
+    const rec = await load(ctx);
     const r = setTaskData(rec, Number(ctx.params.ti), Number(ctx.params.ed));
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
@@ -263,7 +303,7 @@ export function installTasks(world: World, deps: TaskDeps): void {
 
   if (deps.dev) {
     world.xt("TaskExtension.revival_task", async (ctx) => {
-      const rec = await deps.load(ctx);
+      const rec = await load(ctx);
       const r = skipTo(rec, Number(ctx.params.ti), deps.now());
       await deps.save(rec);
       push(ctx, r);

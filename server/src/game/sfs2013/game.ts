@@ -5,7 +5,7 @@
 import type { Emulator } from "../../core/emulator.ts";
 import { installPets, followVar, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
 import { installBattles, type WildEntry } from "./battle.ts";
-import { installTasks, type RobotRecord, type UserTaskRec } from "./tasks.ts";
+import { installTasks, registerTaskTables, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
 import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord } from "./house.ts";
 import { World, type XtContext } from "./server.ts";
@@ -273,7 +273,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today });
   installBattles(world, { load: me, save: (o) => save(o as UserRecord), tables, wild, today });
 
-  installTasks(world, { load: me, save: (o) => save(o as UserRecord), now: () => emu.clock.now().getTime(), dev: opts.dev });
+  const taskTables = json<TaskTables>("revival/tasks.json", { defines: {}, starters: {} }).then(registerTaskTables);
+  installTasks(world, { load: me, save: (o) => save(o as UserRecord), now: () => emu.clock.now().getTime(), ready: taskTables, dev: opts.dev });
 
   installHouse(world, {
     me,

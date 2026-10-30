@@ -235,7 +235,23 @@ export class World {
     if (gone) s.data[PLAYER] = undefined;
   }
 
-  private async dispatchXt(s: Session, ext: string, cmd: string, params: unknown): Promise<void> {
+  /**
+   * One player's extension requests run one after another, as on the 2013
+   * server: handlers load the player's record, change it and save it, and two
+   * at once (say a task step and a new 亚比) would lose one change.
+   */
+  private readonly xtQueues = new WeakMap<Session, Promise<void>>();
+
+  private dispatchXt(s: Session, ext: string, cmd: string, params: unknown): Promise<void> {
+    const run = (this.xtQueues.get(s) ?? Promise.resolve()).then(() => this.runXt(s, ext, cmd, params));
+    this.xtQueues.set(
+      s,
+      run.catch(() => undefined),
+    );
+    return run;
+  }
+
+  private async runXt(s: Session, ext: string, cmd: string, params: unknown): Promise<void> {
     const p = this.player(s);
     const h = this.handlers.get(`${ext}.${cmd}`) ?? this.handlers.get(`${ext}.*`) ?? this.handlers.get("*");
     if (!p || !h) {

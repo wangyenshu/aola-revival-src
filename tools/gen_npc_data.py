@@ -3,16 +3,22 @@
 
 The January 2013 TaskNpcService is lost. The later one (task/tasknpc.swf on the
 live CDN, decompiled with FFDEC) still carries the two tables the rebuild
-needs; both are 百田's data, so they are written to rebuild/gen/ (not in git):
+needs. Both go to rebuild/gen/ (committed, so building needs no decompiler):
 
   SceneNpcData   which NPC stands where in each scene (SceneNpcConfig), kept
-                 only for rooms of the 2013 config.xml and NPCs whose artwork
-                 tasknpc/npc<id>.swf is an era file in mirror/
+                 for the rooms of the config.xml overlay: in the rooms of the
+                 2013 config.xml only NPCs whose artwork tasknpc/npc<id>.swf
+                 is an era file in game/ (and, as task NPCs shown only while
+                 they have something to say, those a 2012 story quest talks
+                 to there: TaskTalkData of tools/gen_tasks.py), in the rooms
+                 the overlay adds for the 2012 story quests
+                 (tools/story_files.py) every NPC whose artwork game/ has
   FreeTalkData   the named conversations scenes open with
                  showNpcPanelFreely(name, npcId) (npcFreeTaskTalkConfig)
 
-  tools/gen_npc_data.py --later <decompile of task/tasknpc.swf>/scripts \\
-      --config mirror/www.9aola.com/config.xml%3F201301241 --mirror mirror --out rebuild/gen/tasknpc
+  tools/gen_npc_data.py --later <gen_tasks.py --work dir>/tasknpc/scripts --game game \\
+      --overlay rebuild/static/www.9aola.com/config.xml%3F201301241 \\
+      --talks rebuild/gen/tasknpc/mmo/tasknpc/TaskTalkData.as --out rebuild/gen/tasknpc
 """
 from __future__ import annotations
 
@@ -69,19 +75,37 @@ def free_talks(later: str) -> dict:
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--later", required=True)
-    ap.add_argument("--config", required=True)
-    ap.add_argument("--mirror", required=True)
+    ap.add_argument("--game", required=True)
+    ap.add_argument("--overlay", required=True, help="the config.xml overlay (rebuild/static)")
+    ap.add_argument("--talks", help="TaskTalkData.as of tools/gen_tasks.py: <npc>_<step>_<scene> conversations")
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
-    rooms = {r.get("nm") for r in ET.parse(a.config).getroot().find("roomMap").iter("r")}
-    era = set()
-    for f in os.listdir(os.path.join(a.mirror, "www.9aola.com", "tasknpc")):
-        m = re.match(r"npc(\d+)\.swf", f)
+    talks_in = set()
+    if a.talks:
+        for npc, label in re.findall(r'"(\d+)_\d+_([a-z][a-z0-9]*)', open(a.talks, encoding="utf-8").read()):
+            talks_in.add((int(npc), label))
+    cfg = "config.xml%3F201301241"
+    rooms_of = lambda f: {r.get("nm") for r in ET.parse(f).getroot().find("roomMap").iter("r")}
+    rooms_2013 = rooms_of(os.path.join(a.game, "www.9aola.com", cfg))
+    rooms = rooms_of(a.overlay)
+    era, art = set(), set()
+    for line in open(os.path.join(a.game, "FILES.jsonl"), encoding="utf-8"):
+        r = json.loads(line)
+        m = re.match(r"www\.9aola\.com/tasknpc/npc(\d+)\.swf", r["path"])
         if m:
-            era.add(int(m.group(1)))
+            art.add(int(m.group(1)))
+            if r["origin"] != "later":
+                era.add(int(m.group(1)))
     scenes = {}
     for sc, lst in scene_npcs(a.later).items():
-        keep = [d for d in lst if sc in rooms and d.get("npcId") in era]
+        if sc not in rooms:
+            continue
+        if sc not in rooms_2013:
+            keep = [d for d in lst if d.get("npcId") in art]
+        else:
+            keep = [d for d in lst if d.get("npcId") in era]
+            keep += [dict(d, type=2) for d in lst
+                     if d.get("npcId") not in era and d.get("npcId") in art and (d.get("npcId"), sc) in talks_in]
         if keep:
             scenes[sc] = keep
     pkg = os.path.join(a.out, "mmo", "tasknpc")
