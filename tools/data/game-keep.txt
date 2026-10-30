@@ -1,0 +1,9 @@
+# inputs of rebuild/build/all.sh (art the rebuilt modules are put on)
+www.9aola.com/baseservice/face.swf%3F1210
+www.9aola.com/house/housemenu.swf%3F121203
+www.9aola.com/house/housestorage.swf%3F121206
+www.9aola.com/pet/petpackage.swf%3F1210
+# files shipped beside the archive (_extra)
+www.9aola.com/task/tasknpcdefine.swf
+www.9aola.com/tasknpc/npc11.swf%3F1210
+www.9aola.com/peticon/peticon1.swf%3F1210

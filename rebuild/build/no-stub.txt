@@ -1,0 +1,28 @@
+# Modules stubs.sh must not install: they have a real rebuild (all.sh) or the
+# later copy in supplement/ is used as it is (it runs on the rebuilt engine).
+task/tasknpc
+catalog/bconfigreaderservice
+catalog/bookclubservice
+catalog/catalogservice
+usercard/usercardservice
+pet/petdataservice
+pet/petdictionarydata
+pet/petpackage
+pet/petfollow
+house/housecommon
+house/houseloader
+house/houseservice
+house/furnituredecorator
+house/housemenu
+house/housestorage
+baseservice/scenetalk
+antiaddiction/antiaddiction
+shoot/shooteffectservice
+pet/wildpetservice
+pet/loginpetfightnew
+baseservice/face
+hellohelper/helloiconservice
+baseservice/weekly
+task/taskservice
+task/taskextmanager
+task/taskpanelnew

@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+<style type="text/css">
+  *{padding:0;margin:0;}
+  body{background:#FFFDC4;font-size:16px;}
+  .pr{position:relative;}
+  .pa{position:absolute;}
+  .blank20{height:20px;clear:both;}
+  #main{margin:0 auto;width:1024px;height:768px;background:url(mainbg.png) no-repeat;}
+  #aola,#duoduo{top:301px;left:711px;font:bold 18px "宋体";color:#930;}
+  #duoduo{top:323px;}
+  .getin{background:url(getin.png) no-repeat;display:block;width:298px;height:99px;bottom: 0;left: 363px;
+}
+  .getin:hover{background-position:0 -99px;}
+  .swf{width:750px;height:320px;bottom:82px;left: 138px;}
+</style>
+<script type="text/javascript">
+  var sh = document.location.search.slice(1).split("&");
+  var obj = {};
+  for(i in sh){
+	 var ar = sh[i].split("=");
+	 obj[ar[0]] =  decodeURIComponent(ar[1]);
+  }
+</script>
+</head>
+
+<body>
+
+<div class="blank20"></div>
+<div id="main" class="pr">
+   <div id="aola" class="pa">
+     <script type="text/javascript">
+       document.write(obj.name||"小奥拉");
+     </script>
+   </div>
+   <div id="duoduo" class="pa">
+     <script type="text/javascript">
+       document.write(obj.id||"000000");
+     </script>
+   </div>
+   
+   <div class="swf pa">
+     <script type="text/javascript">
+	   var fl = '<embed name="iflash" width="750" height="320" src="open$$0.swf" quality="high"  wmode="transparent" type="application/x-shockwave-flash">';
+       document.write(fl.replace(/\$\$0/,/[^1-4]/.test(obj.num)?1:obj.num));
+     </script>
+   </div>
+   
+   <a class="getin pa" href="http://aola.100bt.com" target="_blank" title="进入奥拉星"></a>
+   
+   
+</div>
+
+
+
+
+</body>
+
+</html>

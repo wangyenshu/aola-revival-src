@@ -1,0 +1,13 @@
+# The January 2013 client libraries the rebuilt modules compile against
+# (as external SWCs, made with FFDec -swf2swc). <swc name> <file in game/>
+avatarservice   www.9aola.com/material/avatarservice.swf%3F121220
+common          www.9aola.com/library/common.swf%3F130124
+houseinterfaces www.9aola.com/house/houseinterfaces.swf%3F1210
+interfaces      www.9aola.com/library/interfaces.swf%3F130124
+loader          www.9aola.com/loader.swf%3F201301241
+materialdata    www.9aola.com/library/materialdata.swf%3F130124
+materialservice www.9aola.com/material/materialservice.swf%3F130117
+socketclient    www.9aola.com/library/socketclient.swf%3F130124
+socketserver    www.9aola.com/library/socketserver.swf%3F1301301
+uiskin          www.9aola.com/library/uiskin.swf%3F1210
+util            www.9aola.com/library/util.swf%3F1210

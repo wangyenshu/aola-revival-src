@@ -1,0 +1,1533 @@
+{
+ "baseservice/notify": {
+  "classes": [
+   "mmo.offlinemsg.OfflineMsgService",
+   "mmo.notify.NotifyService"
+  ],
+  "services": [
+   "OfflineMsgService",
+   "NotifyService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_notify.as"
+ },
+ "baseservice/notifyview": {
+  "classes": [
+   "mmo.notifyview.NotifyView"
+  ],
+  "services": [
+   "NotifyView"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_notifyview.as"
+ },
+ "msg/notifyinit": {
+  "classes": [
+   "mmo.notify.common.NotifyInit"
+  ],
+  "services": [
+   "NotifyInit"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_msg_notifyinit.as"
+ },
+ "pet/peteggtipsservice": {
+  "classes": [
+   "mmo.peteggtips.PetEggTipsService"
+  ],
+  "services": [
+   "PetEggTipsService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_peteggtipsservice.as"
+ },
+ "buyback/stuffbuyback": {
+  "classes": [
+   "mmo.buyback.stuff.StuffBuyBack"
+  ],
+  "services": [
+   "StuffBuyBack"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_buyback_stuffbuyback.as"
+ },
+ "rmbshoppingmallservice/rmbshoppingmallservice": {
+  "classes": [
+   "mmo.rmbshoppingmallservice.RmbShoppingMallService",
+   "mmo.rmbshoppingmallservice.RmbShoppingMallBuyMaterialHelper"
+  ],
+  "services": [
+   "RmbShoppingMallService",
+   "RmbShoppingMallBuyMaterialHelper"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_rmbshoppingmallservice_rmbshoppingmallservice.as"
+ },
+ "commoditybag/commoditybagservice": {
+  "classes": [
+   "mmo.commoditybag.CommoditybagService"
+  ],
+  "services": [
+   "CommoditybagService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_commoditybag_commoditybagservice.as"
+ },
+ "baseservice/movestateservice": {
+  "classes": [
+   "mmo.movestateservice.MoveStateService"
+  ],
+  "services": [
+   "MoveStateService"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_movestateservice.as"
+ },
+ "baseservice/userstate": {
+  "classes": [
+   "mmo.userstate.UserStateService"
+  ],
+  "services": [
+   "UserStateService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_userstate.as"
+ },
+ "usercard/usercardservice": {
+  "classes": [
+   "mmo.usercard.UserCardService",
+   "mmo.usercard.UserCardServiceLocator",
+   "mmo.usercard.PersonalInfoService"
+  ],
+  "services": [
+   "UserCardService",
+   "PersonalInfoService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_usercard_usercardservice.as"
+ },
+ "baseservice/msgdoc": {
+  "classes": [
+   "mmo.msg.doc.MsgDocService",
+   "mmo.msg.doc.MsgDocServiceLocator"
+  ],
+  "services": [
+   "MsgDocService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_msgdoc.as"
+ },
+ "baseservice/msgview": {
+  "classes": [
+   "mmo.msg.view.MsgViewService",
+   "mmo.msg.view.MsgViewServiceLocator"
+  ],
+  "services": [
+   "MsgViewService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_msgview.as"
+ },
+ "baseservice/msgctrl": {
+  "classes": [
+   "mmo.msg.ctrl.MsgCtrlService",
+   "mmo.msg.ctrl.MsgCtrlServiceLocator"
+  ],
+  "services": [
+   "MsgCtrlService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_msgctrl.as"
+ },
+ "baseservice/scenetalk": {
+  "classes": [
+   "mmo.scenetalk.SceneTalkService",
+   "mmo.scenetalk.SceneTalkServiceLocator"
+  ],
+  "services": [
+   "SceneTalkService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_scenetalk.as"
+ },
+ "buddylist/buddydoc": {
+  "classes": [
+   "mmo.buddylist.buddydoc.BuddyDocService",
+   "mmo.buddylist.buddydoc.BuddyDocServiceLocator"
+  ],
+  "services": [
+   "BuddyDocService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_buddylist_buddydoc.as"
+ },
+ "buddylist/buddylist": {
+  "classes": [
+   "mmo.buddylist.buddylist.BuddyListService",
+   "mmo.buddylist.buddylist.BuddyListServiceLocator"
+  ],
+  "services": [
+   "BuddyListService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_buddylist_buddylist.as"
+ },
+ "buddylist/buddyagent": {
+  "classes": [
+   "mmo.buddylist.buddyagent.BuddyAgentService",
+   "mmo.buddylist.buddyagent.BuddyAgentServiceLocator"
+  ],
+  "services": [
+   "BuddyAgentService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_buddylist_buddyagent.as"
+ },
+ "shoot/shooteffectservice": {
+  "classes": [
+   "mmo.shoot.effect.ShootEffectService"
+  ],
+  "services": [
+   "ShootEffectService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_shoot_shooteffectservice.as"
+ },
+ "family/familyservice": {
+  "classes": [
+   "mmo.family.common.FamilyService"
+  ],
+  "services": [
+   "FamilyService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_family_familyservice.as"
+ },
+ "family/register": {
+  "classes": [
+   "mmo.family.register.RegisterService"
+  ],
+  "services": [
+   "FamilyRegister"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_family_register.as"
+ },
+ "card/card": {
+  "classes": [
+   "mmo.card.DocClass"
+  ],
+  "services": [
+   "CardService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_card_card.as"
+ },
+ "mailbox/mailbox": {
+  "classes": [
+   "mmo.mailbox.MailBoxDoc"
+  ],
+  "services": [
+   "MailService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_mailbox_mailbox.as"
+ },
+ "family/familylist": {
+  "classes": [
+   "mmo.family.familylist.FamilyListService"
+  ],
+  "services": [
+   "FamilyListService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_family_familylist.as"
+ },
+ "family/bulletinboard": {
+  "classes": [
+   "mmo.family.bulletinboard.BulletinBoardService"
+  ],
+  "services": [
+   "BulletinBoardService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_family_bulletinboard.as"
+ },
+ "member/memberservice": {
+  "classes": [
+   "mmo.member.service.MemberService"
+  ],
+  "services": [
+   "MemberService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_member_memberservice.as"
+ },
+ "talk/talk": {
+  "classes": [
+   "mmo.talk.TalkService",
+   "mmo.talk.TalkServiceLocator"
+  ],
+  "services": [
+   "TalkService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_talk_talk.as"
+ },
+ "produde/produce": {
+  "classes": [
+   "mmo.produce.ProduceService"
+  ],
+  "services": [
+   "ProduceService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_produde_produce.as"
+ },
+ "unwallow/unwallow": {
+  "classes": [
+   "mmo.unwallow.UnwallowService"
+  ],
+  "services": [
+   "UnwallowService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_unwallow_unwallow.as"
+ },
+ "baseservice/taskinit": {
+  "classes": [
+   "mmo.taskinit.TaskInit"
+  ],
+  "services": [
+   "TaskInit"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_taskinit.as"
+ },
+ "house/houseservice": {
+  "classes": [
+   "mmo.houseservice.HouseService"
+  ],
+  "services": [
+   "HouseService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_house_houseservice.as"
+ },
+ "house/houseloader": {
+  "classes": [
+   "mmo.houseloader.HouseLoader"
+  ],
+  "services": [
+   "HouseLoader"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_house_houseloader.as"
+ },
+ "house/furnituredecorator": {
+  "classes": [
+   "mmo.housedecorator.FurnitureDecorator"
+  ],
+  "services": [
+   "FurnitureDecorator"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_house_furnituredecorator.as"
+ },
+ "house/housemenu": {
+  "classes": [
+   "mmo.housemenu.HouseMenuService"
+  ],
+  "services": [
+   "HouseMenuService"
+  ],
+  "version": "121203",
+  "doc": "mmo/revival/stubdoc/Doc_house_housemenu.as"
+ },
+ "house/housestorage": {
+  "classes": [
+   "mmo.housestorage.HouseStorageService"
+  ],
+  "services": [
+   "HouseStorageService"
+  ],
+  "version": "121206",
+  "doc": "mmo/revival/stubdoc/Doc_house_housestorage.as"
+ },
+ "robot/robotdecorator": {
+  "classes": [
+   "mmo.robot.RobotDecorator"
+  ],
+  "services": [
+   "RobotDecorator"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_robot_robotdecorator.as"
+ },
+ "yz/plantdecorator": {
+  "classes": [
+   "mmo.plantdecorator.PlantDecorator"
+  ],
+  "services": [
+   "PlantDecorator"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_yz_plantdecorator.as"
+ },
+ "zoo/petbreedingservice": {
+  "classes": [
+   "mmo.zoo.petbreeding.PetBreedingService"
+  ],
+  "services": [
+   "PetBreedingService"
+  ],
+  "version": "121206",
+  "doc": "mmo/revival/stubdoc/Doc_zoo_petbreedingservice.as"
+ },
+ "house/houseinteractive": {
+  "classes": [
+   "mmo.houseinteractive.HouseInterActiveService"
+  ],
+  "services": [
+   "HouseInterActiveService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_house_houseinteractive.as"
+ },
+ "house/messageboard": {
+  "classes": [
+   "mmo.messageboard.MessageBoardService"
+  ],
+  "services": [
+   "MessageBoardService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_house_messageboard.as"
+ },
+ "pet/petcommonservice": {
+  "classes": [
+   "mmo.pet.petcommonservice.PetAllInfoPanelController"
+  ],
+  "services": [
+   "PetAllInfoPanelController"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petcommonservice.as"
+ },
+ "userwork/userworkservice": {
+  "classes": [
+   "mmo.userwork.UserWorkService"
+  ],
+  "services": [
+   "UserWorkService"
+  ],
+  "version": "121108",
+  "doc": "mmo/revival/stubdoc/Doc_userwork_userworkservice.as"
+ },
+ "pet/petdisplay": {
+  "classes": [
+   "mmo.petdisplay.PetDisplayService"
+  ],
+  "services": [
+   "PetDisplayService",
+   "PetDisplayService"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petdisplay.as"
+ },
+ "pet/petlevelupaward": {
+  "classes": [
+   "mmo.petlevelupaward.PetLevelUpAwardService"
+  ],
+  "services": [
+   "PetLevelUpAwardService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petlevelupaward.as"
+ },
+ "startravel/startravelservice": {
+  "classes": [
+   "mmo.startravel.StarTravelService"
+  ],
+  "services": [
+   "StarTravelService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_startravel_startravelservice.as"
+ },
+ "stevestreasure/stevestreasure": {
+  "classes": [
+   "mmo.stevestreasure.StevesTreasureService"
+  ],
+  "services": [
+   "StevesTreasureService"
+  ],
+  "version": "121122",
+  "doc": "mmo/revival/stubdoc/Doc_stevestreasure_stevestreasure.as"
+ },
+ "squad/squadbastion": {
+  "classes": [
+   "mmo.squad.bastion.bastionservice.BastionService"
+  ],
+  "services": [
+   "BastionService"
+  ],
+  "version": "130110",
+  "doc": "mmo/revival/stubdoc/Doc_squad_squadbastion.as"
+ },
+ "squad/squadbastionloader": {
+  "classes": [
+   "mmo.squad.bastion.bastionloader.BastionLoader"
+  ],
+  "services": [
+   "BastionLoader"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_squad_squadbastionloader.as"
+ },
+ "squad/squadbastionfurniture": {
+  "classes": [
+   "mmo.squad.bastion.bastionfurniture.FurnitureDecorator"
+  ],
+  "services": [
+   "BastionFurnitureDecorator"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_squad_squadbastionfurniture.as"
+ },
+ "squad/squadbastionstorage": {
+  "classes": [
+   "mmo.squad.bastion.bastionstorage.BastionStorageService"
+  ],
+  "services": [
+   "BastionStorageService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_squad_squadbastionstorage.as"
+ },
+ "squad/dailytasknew": {
+  "classes": [
+   "mmo.squad.dailytasknew.SquadDailyTaskNewManager"
+  ],
+  "services": [
+   "SquadDailyTaskNewManager"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_squad_dailytasknew.as"
+ },
+ "squad/squadservice": {
+  "classes": [
+   "mmo.squad.service.SquadService"
+  ],
+  "services": [
+   "SquadService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_squad_squadservice.as"
+ },
+ "pet/petinfornservice": {
+  "classes": [
+   "mmo.petdisplay.PetInfornPanelService"
+  ],
+  "services": [
+   "PetInfornPanelService"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petinfornservice.as"
+ },
+ "catalog/catalogservice": {
+  "classes": [
+   "mmo.catalog.BookService",
+   "mmo.catalog.buyimp.BuyClothesService",
+   "mmo.catalog.buyimp.BuyFurnitureService",
+   "mmo.catalog.buyimp.BuyItemService",
+   "mmo.catalog.buyimp.BuyShootCardService",
+   "mmo.catalog.buyimp.BuyPetEggService",
+   "mmo.catalog.buyimp.BuyPlantService",
+   "mmo.catalog.buyimp.BuyPlantItemService",
+   "mmo.catalog.buyimp.BuyAnimalItemService"
+  ],
+  "services": [
+   "BookService",
+   "BuyMaterialService0",
+   "BuyMaterialService1",
+   "BuyMaterialService2",
+   "BuyMaterialService3",
+   "BuyMaterialService4",
+   "BuyMaterialService5",
+   "BuyMaterialService9",
+   "BuyMaterialService10",
+   "BuyMaterialService13"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_catalog_catalogservice.as"
+ },
+ "usercard/usercardscrapbookservice": {
+  "classes": [
+   "mmo.scrapbook.UserCardScrapBookService"
+  ],
+  "services": [
+   "UserCardScrapBookService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_usercard_usercardscrapbookservice.as"
+ },
+ "pet/loginpetfightnew": {
+  "classes": [
+   "mmo.petfightnew.LoginPetFightService"
+  ],
+  "services": [
+   "PetFightService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_loginpetfightnew.as"
+ },
+ "pet/petdataservice": {
+  "classes": [
+   "mmo.pet.dataservice.PetDataService"
+  ],
+  "services": [
+   "PetDataService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petdataservice.as"
+ },
+ "pet/petpackagesort": {
+  "classes": [
+   "mmo.petpackagesort.service.PetPackageSortService"
+  ],
+  "services": [
+   "PetPackageSort"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petpackagesort.as"
+ },
+ "pet/newpetpackage": {
+  "classes": [
+   "mmo.petpackage.service.PetPackageService"
+  ],
+  "services": [
+   "PetPackage"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_pet_newpetpackage.as"
+ },
+ "pet/petwarehouse": {
+  "classes": [
+   "mmo.petwarehouse.service.PetWareHouse"
+  ],
+  "services": [
+   "PetWareHouse"
+  ],
+  "version": "121227",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petwarehouse.as"
+ },
+ "pet/petgenius": {
+  "classes": [
+   "mmo.pet.petgenius.PetGenius"
+  ],
+  "services": [
+   "PetGenius"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petgenius.as"
+ },
+ "pet/peteggservice": {
+  "classes": [
+   "mmo.pet.peteggservice.UserPetEggService"
+  ],
+  "services": [
+   "UserPetEggService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_peteggservice.as"
+ },
+ "pet/petdictionarydata": {
+  "classes": [
+   "mmo.pet.petdictionarydata.PetDictionaryDataService"
+  ],
+  "services": [
+   "PetDictionaryDataService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petdictionarydata.as"
+ },
+ "pet/petitem": {
+  "classes": [
+   "mmo.pet.petitem.PetItem"
+  ],
+  "services": [
+   "PetItem"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petitem.as"
+ },
+ "pet/petride": {
+  "classes": [
+   "mmo.pet.petride.RideService"
+  ],
+  "services": [
+   "RideService"
+  ],
+  "version": "121227",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petride.as"
+ },
+ "pet/petridepanel": {
+  "classes": [
+   "mmo.pet.petride.PetRide"
+  ],
+  "services": [
+   "PetRideTrannig"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petridepanel.as"
+ },
+ "achievementchart/achievementchart": {
+  "classes": [
+   "mmo.achievementchart.AchievementChart"
+  ],
+  "services": [
+   "AchievementChart"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_achievementchart_achievementchart.as"
+ },
+ "dreambox/dreambox": {
+  "classes": [
+   "mmo.dreambox.DreamBox"
+  ],
+  "services": [
+   "DreamBox"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_dreambox_dreambox.as"
+ },
+ "robot/robotitem": {
+  "classes": [
+   "mmo.robot.robotitem.RobotItem"
+  ],
+  "services": [
+   "RobotItem"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_robot_robotitem.as"
+ },
+ "pet/petshareexp": {
+  "classes": [
+   "mmo.pet.petshareexp.PetShareExp"
+  ],
+  "services": [
+   "PetShareExp"
+  ],
+  "version": "130110",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petshareexp.as"
+ },
+ "antiaddiction/antiaddiction": {
+  "classes": [
+   "mmo.antiaddiction.AntiAddictionService"
+  ],
+  "services": [
+   "AntiAddictionService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_antiaddiction_antiaddiction.as"
+ },
+ "fightring/fightring": {
+  "classes": [
+   "mmo.petfight.ring.FightRingService"
+  ],
+  "services": [
+   "FightRingService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_fightring_fightring.as"
+ },
+ "pet/pmservice": {
+  "classes": [
+   "mmo.pm.service.PMService",
+   "mmo.pm.service.PMSearchService"
+  ],
+  "services": [
+   "PMService",
+   "PMSearchService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_pet_pmservice.as"
+ },
+ "pet/petskillmesservice": {
+  "classes": [
+   "mmo.pet.petskillmessage.PetSkillMesService"
+  ],
+  "services": [
+   "PetSkillMesService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petskillmesservice.as"
+ },
+ "arena/arena": {
+  "classes": [
+   "mmo.petfight.arena.ArenaService"
+  ],
+  "services": [
+   "ArenaService"
+  ],
+  "version": "121108",
+  "doc": "mmo/revival/stubdoc/Doc_arena_arena.as"
+ },
+ "user/usernamemanager": {
+  "classes": [
+   "mmo.user.namemanager.UserNameManager"
+  ],
+  "services": [
+   "UserNameManager"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_user_usernamemanager.as"
+ },
+ "control/iconbar": {
+  "classes": [
+   "mmo.iconbar.IconBarService"
+  ],
+  "services": [
+   "IconBar"
+  ],
+  "version": "130110",
+  "doc": "mmo/revival/stubdoc/Doc_control_iconbar.as"
+ },
+ "pet/petfollow": {
+  "classes": [
+   "mmo.petfollow.PetFollowService"
+  ],
+  "services": [
+   "PetFollowService"
+  ],
+  "version": "121213",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petfollow.as"
+ },
+ "pet/peticon": {
+  "classes": [
+   "mmo.peticon.PetIconService"
+  ],
+  "services": [
+   "PetIconService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_peticon.as"
+ },
+ "shoot/shoot": {
+  "classes": [
+   "mmo.shoot.ShootService"
+  ],
+  "services": [
+   "ShootService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_shoot_shoot.as"
+ },
+ "task/taskservice": {
+  "classes": [
+   "mmo.taskservice.TaskService"
+  ],
+  "services": [
+   "TaskService"
+  ],
+  "version": "130103",
+  "doc": "mmo/revival/stubdoc/Doc_task_taskservice.as"
+ },
+ "task/taskpanelshowservice": {
+  "classes": [
+   "mmo.taskpanel1.TaskPanelFacade",
+   "mmo.taskpanel1.TaskPanelDetail"
+  ],
+  "services": [
+   "TaskPanel",
+   "TaskPanelDetail"
+  ],
+  "version": "121122",
+  "doc": "mmo/revival/stubdoc/Doc_task_taskpanelshowservice.as"
+ },
+ "task/tasknpc": {
+  "classes": [
+   "mmo.tasknpc.TaskNpcService"
+  ],
+  "services": [
+   "TaskNpcService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_task_tasknpc.as"
+ },
+ "task/taskextmanager": {
+  "classes": [
+   "mmo.taskextmanager.TaskExtManager"
+  ],
+  "services": [
+   "TaskExtManager"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_task_taskextmanager.as"
+ },
+ "baseservice/face": {
+  "classes": [
+   "mmo.faceservice.FaceService"
+  ],
+  "services": [
+   "FaceService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_face.as"
+ },
+ "init/sceneinit": {
+  "classes": [
+   "mmo.sceneinit.SceneInit"
+  ],
+  "services": [
+   "SceneInit"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_init_sceneinit.as"
+ },
+ "levelup/levelup": {
+  "classes": [
+   "mmo.levelup.LevelupManager"
+  ],
+  "services": [
+   "LevelUpService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_levelup_levelup.as"
+ },
+ "task/taskpanelnew": {
+  "classes": [
+   "mmo.taskpanelnew.TaskPanelNewService"
+  ],
+  "services": [
+   "TaskPanelNewService"
+  ],
+  "version": "130103",
+  "doc": "mmo/revival/stubdoc/Doc_task_taskpanelnew.as"
+ },
+ "task/tasktransportpanel": {
+  "classes": [
+   "mmo.tasktransport.TaskTransportService"
+  ],
+  "services": [
+   "TaskTransportPanelService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_task_tasktransportpanel.as"
+ },
+ "feedback/feedback": {
+  "classes": [
+   "mmo.feedback.FeedbackService"
+  ],
+  "services": [
+   "FeedbackService"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_feedback_feedback.as"
+ },
+ "pet/wildpetservice": {
+  "classes": [
+   "mmo.wildpet.WildPetService"
+  ],
+  "services": [
+   "WildPetService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_pet_wildpetservice.as"
+ },
+ "baseservice/weekly": {
+  "classes": [
+   "mmo.weekly.WeeklyService"
+  ],
+  "services": [
+   "WeeklyService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_weekly.as"
+ },
+ "dailytask/dailytask": {
+  "classes": [
+   "mmo.dailytask.DailyTaskService"
+  ],
+  "services": [
+   "DailyTaskService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_dailytask_dailytask.as"
+ },
+ "anticheat/anticheat": {
+  "classes": [
+   "mmo.anticheat.AntiCheatService"
+  ],
+  "services": [
+   "AntiCheatService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_anticheat_anticheat.as"
+ },
+ "team/team": {
+  "classes": [
+   "mmo.team.TeamService"
+  ],
+  "services": [
+   "TeamService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_team_team.as"
+ },
+ "baseservice/follow": {
+  "classes": [
+   "mmo.follow.FollowService"
+  ],
+  "services": [
+   "FollowService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_follow.as"
+ },
+ "spacetime/spacetimeservice": {
+  "classes": [
+   "mmo.spacetime.SpacetimeService",
+   "mmo.spacetime.SpacetimeExchangePanel"
+  ],
+  "services": [
+   "SpacetimeService",
+   "SpacetimeExchangePanel"
+  ],
+  "version": "121213",
+  "doc": "mmo/revival/stubdoc/Doc_spacetime_spacetimeservice.as"
+ },
+ "dailyactivity/dailyactivityservice": {
+  "classes": [
+   "mmo.dailyactivity.DailyActivityService"
+  ],
+  "services": [
+   "DailyActivityService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_dailyactivity_dailyactivityservice.as"
+ },
+ "catalog/bconfigreaderservice": {
+  "classes": [
+   "mmo.reader.BconfigReaderService"
+  ],
+  "services": [
+   "BconfigReaderService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_catalog_bconfigreaderservice.as"
+ },
+ "catalog/bookclubservice": {
+  "classes": [
+   "mmo.bookclub.SellBookService",
+   "mmo.bookclub.HandBookService"
+  ],
+  "services": [
+   "SellBookService",
+   "HandBookService"
+  ],
+  "version": "121101",
+  "doc": "mmo/revival/stubdoc/Doc_catalog_bookclubservice.as"
+ },
+ "messagesend/messagesendservice": {
+  "classes": [
+   "mmo.MessageSend.MessageSendService"
+  ],
+  "services": [
+   "MessageSendService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_messagesend_messagesendservice.as"
+ },
+ "cardexchange/cardexchangeservice": {
+  "classes": [
+   "mmo.cardexchange.CardExchangeService"
+  ],
+  "services": [
+   "CardExchangeService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_cardexchange_cardexchangeservice.as"
+ },
+ "news/newsservice": {
+  "classes": [
+   "mmo.ad.AdService"
+  ],
+  "services": [
+   "AdService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_news_newsservice.as"
+ },
+ "pet/petfollowobserveservice": {
+  "classes": [
+   "mmo.petfollow.PetFollowObserveService"
+  ],
+  "services": [
+   "PetFollowObserveService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petfollowobserveservice.as"
+ },
+ "fbservice/fbservice": {
+  "classes": [
+   "mmo.fbservice.FbService",
+   "mmo.fbservice.auto.FbStepService",
+   "mmo.fbservice.auto.FbSceneService"
+  ],
+  "services": [
+   "FbService",
+   "FbStepService",
+   "FbSceneService"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_fbservice_fbservice.as"
+ },
+ "occupation/occupation_service": {
+  "classes": [
+   "mmo.occupation.OccupationService"
+  ],
+  "services": [
+   "OccupationService"
+  ],
+  "version": "121108",
+  "doc": "mmo/revival/stubdoc/Doc_occupation_occupation_service.as"
+ },
+ "occupationwork.occupationworkservice": {
+  "classes": [
+   "mmo.occupationwork.OccupationWorkService"
+  ],
+  "services": [
+   "OccupationWorkService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_occupationwork_occupationworkservice.as"
+ },
+ "baseservice/iconservice": {
+  "classes": [
+   "mmo.iconservice.service.IconServiceRightTop",
+   "mmo.iconservice.service.IconServiceLeftTop"
+  ],
+  "services": [
+   "IconServiceRightTop",
+   "IconServiceLeftTop"
+  ],
+  "version": "121206",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_iconservice.as"
+ },
+ "title/titleservice": {
+  "classes": [
+   "mmo.title.TitleService"
+  ],
+  "services": [
+   "TitleService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_title_titleservice.as"
+ },
+ "mailbox/mailboxservice": {
+  "classes": [
+   "mmo.mailbox.MailboxService"
+  ],
+  "services": [
+   "MailboxService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_mailbox_mailboxservice.as"
+ },
+ "achievement/achievementservice": {
+  "classes": [
+   "mmo.achievement.AchievementService"
+  ],
+  "services": [
+   "AchievementService"
+  ],
+  "version": "121227",
+  "doc": "mmo/revival/stubdoc/Doc_achievement_achievementservice.as"
+ },
+ "honour/honourservice": {
+  "classes": [
+   "mmo.honour.HonourService"
+  ],
+  "services": [
+   "HonourService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_honour_honourservice.as"
+ },
+ "fbteam/fbteamservice": {
+  "classes": [
+   "mmo.fbteam.service.FBTeamService",
+   "mmo.fbteam.service.FBLoaderService"
+  ],
+  "services": [
+   "FBTeamService",
+   "FBLoaderService"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_fbteam_fbteamservice.as"
+ },
+ "fortunemanager/starcoin": {
+  "classes": [
+   "mmo.starcoinexchange.StarCoinPanelService",
+   "mmo.starcoinexchange.StarCoinPanelWithReturnService"
+  ],
+  "services": [
+   "StarCoinPanelService",
+   "StarCoinPanelWithReturnService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_fortunemanager_starcoin.as"
+ },
+ "fortunemanager/fortunemanager": {
+  "classes": [
+   "mmo.fortunemanager.FortuneManagerService"
+  ],
+  "services": [
+   "FortuneManagerService"
+  ],
+  "version": "130117",
+  "doc": "mmo/revival/stubdoc/Doc_fortunemanager_fortunemanager.as"
+ },
+ "navigate/navigateservice": {
+  "classes": [
+   "mmo.navigate.NavigateService"
+  ],
+  "services": [
+   "NavigateService"
+  ],
+  "version": "121227",
+  "doc": "mmo/revival/stubdoc/Doc_navigate_navigateservice.as"
+ },
+ "yz/treemanager": {
+  "classes": [
+   "mmo.treemanager.TreeManager"
+  ],
+  "services": [
+   "TreeManager"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_yz_treemanager.as"
+ },
+ "useravatar/useravatarservice": {
+  "classes": [
+   "mmo.useravatar.UserAvatarService"
+  ],
+  "services": [
+   "UserAvatarService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_useravatar_useravatarservice.as"
+ },
+ "land/landonnewareaservice": {
+  "classes": [
+   "mmo.land.landonnewareaservice.LandOnNewAreaService"
+  ],
+  "services": [
+   "LandOnNewAreaService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_land_landonnewareaservice.as"
+ },
+ "areamap/areamap": {
+  "classes": [
+   "mmo.areamap.AreaMapService"
+  ],
+  "services": [
+   "AreaMapService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_areamap_areamap.as"
+ },
+ "baseservice/effectservice": {
+  "classes": [
+   "mmo.effectservice.EffectService"
+  ],
+  "services": [
+   "EffectService"
+  ],
+  "version": "121213",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_effectservice.as"
+ },
+ "robarena/robarenaservice": {
+  "classes": [
+   "mmo.robarena.RobArenaService"
+  ],
+  "services": [
+   "RobArenaService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_robarena_robarenaservice.as"
+ },
+ "fbservice/fbexchange": {
+  "classes": [
+   "mmo.fbexchange.FbExchangeService"
+  ],
+  "services": [
+   "FbExchangeService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_fbservice_fbexchange.as"
+ },
+ "vipnickname/vipnicknameservice": {
+  "classes": [
+   "mmo.vipnickname.VipNickNameService"
+  ],
+  "services": [
+   "VipNickNameService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_vipnickname_vipnicknameservice.as"
+ },
+ "viparena.viparenaservice": {
+  "classes": [
+   "mmo.viparena.VipArenaService"
+  ],
+  "services": [
+   "VipArenaService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_viparena_viparenaservice.as"
+ },
+ "game/gamemanager": {
+  "classes": [
+   "mmo.game.GameManager"
+  ],
+  "services": [
+   "GameManager"
+  ],
+  "version": "121220",
+  "doc": "mmo/revival/stubdoc/Doc_game_gamemanager.as"
+ },
+ "bumpbilliards/bumpbilliards": {
+  "classes": [
+   "mmo.bumpbilliards.BilliardsBump"
+  ],
+  "services": [
+   "BilliardsBump"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_bumpbilliards_bumpbilliards.as"
+ },
+ "cubemansion/cubemansionservice": {
+  "classes": [
+   "mmo.cubemansion.CubemansionService"
+  ],
+  "services": [
+   "CubemansionService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_cubemansion_cubemansionservice.as"
+ },
+ "fighttalk/fighttalkservice": {
+  "classes": [
+   "mmo.fighttalk.operate.FightTalkService"
+  ],
+  "services": [
+   "FightTalkService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_fighttalk_fighttalkservice.as"
+ },
+ "pet/petmixnew": {
+  "classes": [
+   "mmo.pet.petmixnew.PetMixService"
+  ],
+  "services": [
+   "PetMixService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petmixnew.as"
+ },
+ "petmixnewinit/petmixnewinitservice": {
+  "classes": [
+   "mmo.pet.petmixnewinit.PetMixNewInitService"
+  ],
+  "services": [
+   "PetMixNewInitService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_petmixnewinit_petmixnewinitservice.as"
+ },
+ "pet/petnicknameservice": {
+  "classes": [
+   "mmo.petnickname.PetNicknameService"
+  ],
+  "services": [
+   "PetNicknameService"
+  ],
+  "version": "121213",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petnicknameservice.as"
+ },
+ "pettraininghouse/pettraininghouse": {
+  "classes": [
+   "mmo.pettraininghouse.PetTrainingHouse"
+  ],
+  "services": [
+   "PetTrainingHouse"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_pettraininghouse_pettraininghouse.as"
+ },
+ "thinktower/thinktowerservice": {
+  "classes": [
+   "mmo.thinktower.ThinkTowerService"
+  ],
+  "services": [
+   "ThinkTowerService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_thinktower_thinktowerservice.as"
+ },
+ "hellohelper/helloiconservice": {
+  "classes": [
+   "mmo.hellohelper.helloicon.HelloIconService"
+  ],
+  "services": [
+   "HelloIconService"
+  ],
+  "version": "130110",
+  "doc": "mmo/revival/stubdoc/Doc_hellohelper_helloiconservice.as"
+ },
+ "anniversary/anniversary": {
+  "classes": [
+   "mmo.anniversary.AnniversaryMovieService"
+  ],
+  "services": [
+   "AnniversaryMovieService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_anniversary_anniversary.as"
+ },
+ "dailyland/dailyqueueservice": {
+  "classes": [
+   "mmo.dailyqueue.DailyQueueService"
+  ],
+  "services": [
+   "DailyQueueService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_dailyland_dailyqueueservice.as"
+ },
+ "baseservice/scenearrow": {
+  "classes": [
+   "mmo.scenearrow.SceneArrowService"
+  ],
+  "services": [
+   "SceneArrowService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_baseservice_scenearrow.as"
+ },
+ "hotspring/hotspringservice": {
+  "classes": [
+   "mmo.hotspring.HotSpringService"
+  ],
+  "services": [
+   "HotSpringService"
+  ],
+  "version": "121213",
+  "doc": "mmo/revival/stubdoc/Doc_hotspring_hotspringservice.as"
+ },
+ "mastersystem/mastersystemservice": {
+  "classes": [
+   "mmo.mastersystem.MasterSystemService"
+  ],
+  "services": [
+   "MasterSystemService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_mastersystem_mastersystemservice.as"
+ },
+ "pet/petUIservice": {
+  "classes": [
+   "mmo.petUI.service.PetUIService"
+  ],
+  "services": [
+   "PetUIService"
+  ],
+  "version": "130103",
+  "doc": "mmo/revival/stubdoc/Doc_pet_petUIservice.as"
+ },
+ "buttonhandler/buttonhandlerservice": {
+  "classes": [
+   "mmo.buttonhandler.ButtonHandlerService"
+  ],
+  "services": [
+   "ButtonHandlerService"
+  ],
+  "version": "121227",
+  "doc": "mmo/revival/stubdoc/Doc_buttonhandler_buttonhandlerservice.as"
+ },
+ "unicorn/skyunicornservice": {
+  "classes": [
+   "mmo.unicorn.skyunicorn.SkyUnicornService"
+  ],
+  "services": [
+   "SkyUnicornService"
+  ],
+  "version": "121213",
+  "doc": "mmo/revival/stubdoc/Doc_unicorn_skyunicornservice.as"
+ },
+ "fly/flyservice": {
+  "classes": [
+   "mmo.fly.FlyService"
+  ],
+  "services": [
+   "FlyService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_fly_flyservice.as"
+ },
+ "sceneicon/sceneiconservice": {
+  "classes": [
+   "mmo.sceneicon.SceneIconService"
+  ],
+  "services": [
+   "SceneIconService"
+  ],
+  "version": "121203",
+  "doc": "mmo/revival/stubdoc/Doc_sceneicon_sceneiconservice.as"
+ },
+ "campbattlefield/campbattlefieldservice": {
+  "classes": [
+   "mmo.campbattlefield.CampBattleFieldService"
+  ],
+  "services": [
+   "CampBattleFieldService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_campbattlefield_campbattlefieldservice.as"
+ },
+ "vip/vipgiftbagservice": {
+  "classes": [
+   "mmo.vip.viplevel.VipGiftBagWeelyService"
+  ],
+  "services": [
+   "VipGiftBagWeelyService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_vip_vipgiftbagservice.as"
+ },
+ "activityres/activity130110/lightmagichouse/lightmagichouseservice": {
+  "classes": [
+   "mmo.activity130110.lightmagichouse.LightMagicHouseService"
+  ],
+  "services": [
+   "LightMagicHouseService"
+  ],
+  "version": "1210",
+  "doc": "mmo/revival/stubdoc/Doc_activityres_activity130110_lightmagichouse_lightmagichouseservice.as"
+ },
+ "activityres/activityservice": {
+  "classes": [
+   "mmo.activity.ActivityService"
+  ],
+  "services": [
+   "ActivityService"
+  ],
+  "version": "130124",
+  "doc": "mmo/revival/stubdoc/Doc_activityres_activityservice.as"
+ }
+}

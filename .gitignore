@@ -1,0 +1,11 @@
+# Built
+/node_modules/
+/dist/
+/build/
+/rebuild/out/
+/work/
+# Fetched build tools (rebuild/build/setup-toolchain.sh)
+.toolchain/
+desktop/target/
+__pycache__/
+*.pyc

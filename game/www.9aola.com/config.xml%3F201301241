@@ -1,0 +1,895 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <version>1.0.0</version>
+    <debug>false</debug>
+    <domain>false</domain>
+    <limit>10</limit>
+    <server>
+        <urls>
+            <loginSite>http://login.9aola.com/</loginSite>
+            <serviceSite>http://service.9aola.com/</serviceSite>
+            <homePage>http://www.9aola.com/</homePage>
+            <aolamovie>aolamovie/aola1movie.html</aolamovie>
+            <yayaleSite>http://yayale.cnnice.com/newyear/</yayaleSite>
+            <yayaleBaseUrl>http://yayale.cnnice.com/</yayaleBaseUrl>
+            <loginUrl>newLogin.jsp</loginUrl>
+            <registerUrl>newRegister.jsp</registerUrl>
+            <captchaUrl>captcha.jsp</captchaUrl>
+			<redirectUrl>redirect.jsp</redirectUrl>
+            <parents>website/tos1.html</parents>
+            <agreement>website/tos6.html</agreement>
+            <noaddict>website/tos9.html</noaddict>
+            <chargeSite>http://pay.100bt.com/</chargeSite>
+            <blueDiamond>service/baitian/mycard.jsp?</blueDiamond>
+            <aoCoin>balance/mycard.jsp?</aoCoin>
+            <duoduoCart>card/cardsold.html</duoduoCart>
+            <feedback>card/feedback.html</feedback>
+            <comic>comic.html</comic>
+            <accountSite>http://account.9aoduo.com/</accountSite>
+            <appid>appid/sercontract.html</appid>
+            <download>website/help/download.html</download>
+            <resetPwUrl>access/resetPwdLogin.action?</resetPwUrl>
+            <forgetPwUrl>myddid.action?</forgetPwUrl>
+            <aoRegisterUrl>register/register.action?</aoRegisterUrl>
+            <snapshotUrl>http://up.9aola.com/snapshot.jsp?</snapshotUrl>
+            <wandbUrl>http://www.9aola.com/wandb.html</wandbUrl>
+            <aoqiUrl>http://www.9aoqi.com/</aoqiUrl>
+            <ldsUrl>http://www.9lds.com/</ldsUrl>
+            <aobiUrl>http://www.aobi.com/</aobiUrl>
+            <aoyaUrl>http://www.9aoya.com/</aoyaUrl>
+            <baitianUrl>http://www.100bt.com/</baitianUrl>
+            <ygUrl>http://yg.100bt.com/</ygUrl>
+            <zlUrl>http://zl.100bt.com/</zlUrl>
+            <platformUrl>http://my.100bt.com/HandleGameLoginRequest.action</platformUrl>
+            </urls>
+        <idleTime>7200</idleTime>
+        <logZones>nolog</logZones>
+    </server>
+    <socket>
+        <debug>true</debug>
+        <protocol>binary</protocol>
+        <exProtocol>binary</exProtocol>
+    </socket>
+    <uiModel>
+        <sceneManager>game/scenemanager</sceneManager>
+        <control>control/control</control>
+        <buddy>buddy/buddyList</buddy>
+        <weekly>weekly127</weekly>
+    </uiModel>
+    <init>
+        <libs>library/socketserver,library/materialdata,library/interfaces,house/houseinterfaces,library/uiskin,library/util,library/common,library_res/common_res_dialog,library_res/common_res_membericon,material/materialservice,material/avatarservice,library/socketclient</libs>
+        <play>house/housecommon,pet/petcommonservice,pet/petdataservice,team/team,pet/loginpetfightnew,pet/wildpetservice,shoot/shoot,gather/gather,robot/robotdateservice,init/robotmanager,init/badwordsdat,levelup/levelup,user/usernamemanager,baseservice/notify,baseservice/notifyview,baseservice/scenetalk,baseservice/face,baseservice/movestateservice,baseservice/userstate,baseservice/effectservice,msg/notifyinit,house/houseext,buddylist/buddydoc,talk/talk,control/control,control/iconbar,pet/pmservice,pet/petdictionarydata,pet/petskillmesservice,pet/petfollow,task/taskservice,dailytask/dailytask,task/taskgather,task/tasknpc,task/taskinit,task/taskextmanager,init/sceneinit,skin/a000001,skin/a000002,skin/a010145,task/taskpanelnew,pet/peticon,baseservice/weekly,pet/petpanelservice,spacetime/spacetimeservice,sounds/scenesounds,sounds/uisounds,sounds/commonsounds,sounds/musicservice,dailyactivity/dailyactivityservice,dailytaskcalendar/calendar,messagesend/messagesendservice,fbservice/fbservice,pet/petgrowgiftnull,pet/petfollowobserveservice,catalog/bconfigreaderservice,pet/petcatchgiftservice,occupationwork/occupationworkservice,baseservice/iconservice,antiaddiction/antiaddiction,title/titleservice,starcoin/npctalkpanel,pet/petride,festival/festivalservice,arrowguide/arrowguide,baseservice/follow,land/landonrecordservice,land/landonnewareaservice,achievement/achievementservice,mailbox/mailboxservice,vipnickname/vipnicknameservice,viparena/viparenaservice,fbteam/fbteamservice,ballwish/ballwish,guide/npcguide,npcchallenge/npcchallengeservice,exploretimer/exploretimerservice,fighttalk/fighttalkservice,pet/petdictinitservice,honour/honourservice,pet/peteggservice,petmixnewinit/petmixnewinitservice,squad/squadservice,squad/dailytasknew,npcchallenge/npcchallengecommonservice,hellohelper/helloiconservice,dailyland/dailyqueueservice,baseservice/scenearrow,mastersystem/mastersystemservice,fly/flyservice,unicorn/skyunicornservice,occupation/occupation_service,sceneicon/sceneiconservice,navigate/navigateservice,activityres/activityservice</play>
+        <service>TeamService,MoveStateService,ShootService,PetDataService,LevelUpService,GatherService,IconBar,RobotDataService,ClothesService,WildPetService,PetFightService,RobotClothesService,PetClothesService,PetCardService,PetCard2Service,PlantService,PlantItemService,ZooItemDataService,ZooAnimalDataService,SceneTalkService,FurnitureService,ItemService,RobotItemService,BadgeService,PetEggService,AmountUpdateService,UserNameManager,Control,NotifyView,IconBar,PMService,PMSearchService,PetDictionaryDataService,PetFollowService,TaskService,NotifyInit,DailyTaskService,TaskGather,TaskNpcService,TaskInit,TaskExtManager,SceneInit,AntiAddictionService,TaskPanelNewService,WeeklyService,SpacetimeService,MusicService,DailyActivityService,MessageSendService,FbService,PetGrowGiftService,PetFollowObserveService,BconfigReaderService,PetCatchLevelGiftService,OccupationWorkService,TitleService,NpcTalkPanelService,RideService,UserStateService,FestivalService,ArrowGuideService,FollowService,LandOnRecordService,LandOnNewAreaService,AchievementService,EffectService,MailboxService,VipNickNameService,VipArenaService,FBLoaderService,BallWishService,NpcGuideService,NpcChallengeService,ExploreTimerService,FightTalkService,PetDictInitService,HonourService,UserPetEggService,PetMixNewInitService,SquadService,SquadDailyTaskNewManager,NpcChallengeCommonService,HelloIconService,DailyQueueService,SceneArrowService,MasterSystemService,FlyService,SkyUnicornService,OccupationService,SceneIconService,ActivityService</service>
+        <debug>
+            <play>team/team,baseservice/follow</play>
+            <service>TeamService,FollowService</service>
+        </debug>
+    </init>
+    <!--查看过期周刊-->
+    <weeklies>
+        <notify msg=""/>
+    </weeklies>
+    <message>
+        <maxHistoryMessage>50</maxHistoryMessage>
+        <phrases>
+            <p t="节日祝语">
+              <p t="春节祝语">
+                <p t="春节快乐！"/>
+                <p t="身体健康！"/>
+                <p t="大吉大利！"/>
+                <p t="红包多多！"/>
+              </p>
+              <p t="新年快乐！"/>
+              <p t="圣诞快乐！"/>
+              <p t="寒假快乐！"/>
+              <p t="暑假快乐！"/>
+              <p t="万圣节快乐！"/>
+            </p>
+            <p t="问好">
+              <p t="你好">
+                <p t="早上好！"/>
+                <p t="中午好！"/>
+                <p t="下午好！"/>
+                <p t="晚上好！"/>
+              </p>
+              <p t="大家好!"/>
+              <p t="很高兴认识你!"/>
+              <p t="HELLO!"/>
+              <p t="HI!"/>
+            </p>
+            <p t="告别">
+                <p t="拜拜！"/>
+                <p t="明天见！"/>
+                <p t="我马上回来！"/>
+                <p t="下次再玩吧！"/>
+                <p t="我要走啦！88"/>
+                <p t="祝你好运！"/>
+            </p>
+            <p t="朋友">
+                <p t="可以加我为好友吗？"/>
+                <p t="我们一起去吧！"/>
+                <p t="你是我的好朋友！"/>
+                <p t="发出邀请">
+                    <p t="来我的空间舱参观吧！"/>
+                </p>
+                <p t="真好看！">
+                    <p t="我好喜欢你的衣服！"/>
+                    <p t="你的空间舱真漂亮！"/>
+                    <p t="你的亚比好漂亮！"/>
+                </p>
+                <p t="你真棒！"/>
+                <p t="对不起">
+                    <p t="对不起，我要先走了！"/>
+                    <p t="原谅我吧！"/>
+                    <p t="对不起，我很忙。"/>
+                </p>
+                <p t="谢谢">
+                    <p t="谢谢你来参观我的空间舱！"/>
+                    <p t="谢谢你和我一起战斗！"/>
+                    <p t="不用了，但还是谢谢。"/>
+                </p>
+            </p>
+            <p t="发问">
+                <p t="你最喜欢哪个亚比呢？"/>
+                <p t="哪里买衣服和设备啊？"/>
+                <p t="我们一起战斗好吗？"/>
+                <p t="你今天心情怎么样？"/>
+                <p t="要跟我一起去吗？"/>
+            </p>
+            <p t="回答">
+                <p t="好的。"/>
+                <p t="不了。"/>
+                <p t="谢谢！"/>
+                <p t="不客气！"/>
+                <p t="原谅你。"/>
+                <p t="我想去！"/>
+                <p t="再去一次吧！"/>
+            </p>
+            <p t="战斗">
+                <p t="我们来战斗吧！"/>
+                <p t="要较量一下吗？"/>
+                <p t="再来一局吧？"/>
+                <p t="后会有期。"/>
+            </p>
+        </phrases>
+    </message>
+    <catalogs>
+        <!--
+        <catalog no="weekly1" n="奥拉周刊创刊号" f="weekly/aolaweekly1_" t="mmo.weekly._1Page"  p="1,1;3,1;4,1;5,1;6,1;7,1;8,1;9,1;2,1" />
+        -->
+      <catalog f="weekly/weekly128/aolaweekly128_" n="奥拉周刊第一百二十八期" no="weekly127" p="1,1;2,1;3,1;4,1;5,1;6,1;7,1;8,1;9,1;10,1;11,1;12,1;13,1;14,1;15,1" t="mmo.weekly.weekly128._128Page"/>
+    </catalogs>
+    <defaultRoom>
+      <r low="1" nm="starland" up="30"/>
+      <r low="31" nm="bluesquare" up="60"/>
+      <r low="61" nm="ecologicalpark" up="100"/>    
+    </defaultRoom>
+    <snowsn>yabiunion,science,bluesquare,ecologicalpark,starland,starshopping,themepark,amusementpark,gymnasium,teambattleoutside,crossroad,aolatree,employmenttown</snowsn>
+    <bigScene>
+        <r height="1000" mcls="mmo.scenemap.SceneMapTest" mf="scenemapasset/scenemaptest" nm="bigroom" rm="bigroom" width="1400"/>
+        <!--<r nm="starland" rm="starland" width="3575" height="606" mf="scenemapasset/starlandmap" mcls="mmo.scenemap.StarlandMap" />-->
+        <r height="560" mcls="" mf="" nm="happyark" rm="happyark" width="1900"/>
+        <r height="560" mcls="" mf="" nm="fbsuolide5" rm="fbsuolide5" width="1900"/>
+        <!--<r nm="bluesquare" rm="bluesquare" width="1863" height="560" mf="" mcls="" />-->
+        <r height="560" mcls="" mf="" nm="clothesshop" rm="clothesshop" width="1475"/>
+    </bigScene>
+    <roomMap>
+      <r desc="大场景1" mr="" nm="bigroom" rm="bigroom" swf="bigscene/bigscene1"/>
+      
+      
+      <r desc="xx之塔" ms="" nm="fightTower" rm="fightTower" swf="scene/fighttower"/>
+      <r desc="新手夺牌竞技场" ms="" nm="arena0" rm="arena0" swf="robarena/newbiearena1"/>
+      <r desc="新手夺牌竞技场" ms="" nm="arena1" rm="arena1" swf="robarena/newbiearena2"/>
+      <r desc="高级夺牌竞技场" ms="" nm="arena2" rm="arena2" swf="robarena/superiorarena1"/>
+      <r desc="高级夺牌竞技场" ms="" nm="arena3" rm="arena3" swf="robarena/superiorarena2"/>
+      <r desc="高级夺牌竞技场" ms="" nm="arena4" rm="arena4" swf="robarena/superiorarena3"/>
+      <!--奥拉星星球-->
+      <r desc="传送核心" ms="maintown1" mu="music/centre.mp3" nm="maintown1" rm="maintown1" swf="scene/maintown1"/>
+      <r desc="指挥中心" ms="maintown2" mu="music/centre.mp3" nm="maintown2" rm="maintown2" swf="scene/maintown2"/>
+      <r desc="极速俱乐部" ms="fastclub" mu="music/centre.mp3" nm="fastclub" rm="fastclub" swf="scene/fastclub"/>
+      <!--r nm="jungle" rm="jungle" swf="scene/jungle" desc="幻影丛林" ms="jungle" mu="music/library.mp3"/-->
+      <r desc="快乐方舟" ms="hami" mu="music/festival.mp3" nm="happyark" rm="happyark" swf="bigscene/happyark"/>
+      <r desc="星星广场" ms="hami" mu="music/festival.mp3" nm="starsquare" rm="starsquare" swf="scene/starsquare"/>
+      <r desc="梦剧场" ms="hami" mu="music/festival.mp3" nm="dreamhouse" rm="dreamhouse" swf="scene/dreamhouse"/>
+      <r desc="蓝宝石要塞" ms="bluesquare" mu="music/themeparknew4.mp3" nm="bluesquare" rm="bluesquare" swf="scene/bluesquare"/>
+      <r desc="HELLO学院" ms="helloschool" mu="music/library.mp3" nm="helloschool" rm="helloschool" swf="scene/helloschool"/>
+      <r desc="亚比研究中心" ms="yabistudy" mu="music/library.mp3" nm="yabistudy" rm="yabistudy" swf="scene/yabistudy"/>
+      <r desc="亚比训练室" ms="yabistudy" mu="music/library.mp3" nm="yabitrain" rm="yabitrain" swf="scene/yabitrain"/>
+      <r desc="实战特训场" ms="yabistudy" mu="music/library.mp3" nm="actualcombat" rm="actualcombat" swf="scene/actualcombat"/>
+      <r desc="道具店" ms="starshopping" mu="music/city.mp3" nm="toolshop" rm="toolshop" swf="scene/toolshop"> </r>
+      <r desc="服装店" ms="starshopping" mu="music/city.mp3" nm="clothesshop" rm="clothesshop" swf="bigscene/clothesshop"/>
+      <r desc="制衣间" ms="starshopping" mu="music/city.mp3" nm="clothesshop2" rm="clothesshop2" swf="scene/clothesshop2"/>
+      <r desc="家具店" ms="starshopping" mu="music/city.mp3" nm="furnitureshop" rm="furnitureshop" swf="scene/furnitureshop"/>
+      <r desc="魔力工坊" ms="starshopping" mu="music/city.mp3" nm="furnitureshop2" rm="furnitureshop2" swf="scene/furnitureshop2"/>
+      <r desc="飞碟美食塔" ms="starland" mu="music/city.mp3" nm="restaurant" rm="restaurant" swf="scene/restaurant"/>
+      <r desc="科技厨房" ms="starland" mu="music/city.mp3" nm="restaurant2" rm="restaurant2" swf="scene/restaurant2"/>
+      <r desc="小屋" ms="home" mu="music/house.mp3" nm="home" rm="home" swf=""/>
+      <r desc="战队基地" ms="" mu="music/house.mp3" nm="bastion" rm="bastion" swf=""/>
+      <r desc="流星购物街" ms="starshopping" mu="music/themeparknew4.mp3" nm="starshopping" rm="starshopping" swf="scene/starshopping"/>
+      <r desc="种植园" ms="starshopping" mu="music/city.mp3" nm="plantpark" rm="plantpark" swf="scene/plantpark"/>
+      <r desc="十字大道" ms="crossroad" mu="music/themeparknew2.mp3" nm="crossroad" rm="crossroad" swf="scene/crossroad"/>
+      <r desc="科学院" ms="yabistudy" mu="music/city.mp3" nm="science" rm="science" swf="scene/science"/>
+      <r desc="科学院" mu="music/newyearspringmusic.mp3" nm="sciencecopy" rm="sciencecopy" swf="scene/sciencecopy"/>
+      <r desc="图书馆" ms="crossroad" mu="music/library.mp3" nm="library" rm="library" swf="scene/library"/>
+      <r desc="爱心协会" ms="crossroad" mu="music/library.mp3" nm="loveassociation" rm="loveassociation" swf="scene/loveassociation"/>
+      <r desc="奥拉展馆" ms="crossroad" mu="music/city.mp3" nm="xianxiazhanguan" rm="xianxiazhanguan" swf="scene/xianxiazhanguan"/>
+      <r desc="奥拉广场" ms="starland" mu="music/themeparknew4.mp3" nm="starland" rm="starland" swf="scene/starland"/>
+      <r desc="奥拉之树" ms="aolatree" mu="music/forevernight.mp3" nm="aolatree" rm="aolatree" swf="scene/aolatree"/>
+      <r desc="生态园" ms="ecologicalpark" mu="music/themeparknew4.mp3" nm="ecologicalpark" rm="ecologicalpark" swf="scene/ecologicalpark"/>
+      <r desc="亚比协会" ms="yabiunion" mu="music/hallowmas.mp3" nm="yabiunion" rm="yabiunion" swf="scene/yabiunion"/>
+      <!--r nm="employmenttown" rm="employmenttown" swf="scene/employmenttown" desc="职业广场"  mu="music/ecologicalparknew.mp3" ms="employmenttown"/-->
+      <!--战斗星域改版-->
+      <r desc="银河冠军擂台" ms="spacetimechallenge" mu="music/challenger.mp3" nm="spacetimechallenge" rm="spacetimechallenge" swf="scene/spacetimechallenge"/>
+      <r desc="试炼平台" ms="spacetimechallenge" mu="music/challenger.mp3" nm="spacetimechallenge2" rm="spacetimechallenge2" swf="scene/spacetimechallenge2"/>
+      <r desc="挑战平台" ms="spacetimechallenge" mu="music/challenger.mp3" nm="spacetimechallenge3" rm="spacetimechallenge3" swf="scene/spacetimechallenge3"/>
+      <r desc="亚比精英赛场" ms="spacetimechallenge" mu="music/challenger.mp3" nm="outstandingyabiarena" rm="outstandingyabiarena" swf="scene/outstandingyabiarena"/>
+      <r desc="时空隧道" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="spacetime" rm="spacetime" swf="scene/spacetime"/>
+      <r desc="模拟空间" ms="spacetimechallenge" mu="music/challenger.mp3" nm="fightlab" rm="fightlab" swf="scene/fightlab"/>
+      <!--星光游乐场所属-->
+      <r desc="星光游乐场" ms="amusementpark" mu="music/themeparknew4.mp3" nm="amusementpark" rm="amusementpark" swf="scene/amusementpark"/>
+      <r desc="伢牙乐大庙会" ms="amusementpark" mu="music/yabiexhibition.mp3" nm="templefair" rm="templefair" swf="scene/templefair"/>
+      <r desc="主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="themepark" rm="themepark" swf="scene/themepark"/>
+      <!--r nm="millionexpfight" rm="millionexpfight" swf="scene/millionexpfight" desc="主题公园" mu="music/hallowmas.mp3" ms=""/-->
+      <r desc="地府" ms="themepark" mu="music/forevernight.mp3" nm="hell" rm="hell" swf="scene/hell"/>
+      <r desc="贵宾广场" ms="" mu="music/twoyearscherry.mp3" nm="anniversary" rm="anniversary" swf="scene/anniversary"/>      
+      <r desc="缤纷泡泡街" ms="themepark" mu="music/hubblebubble.mp3" nm="hubblebubblestreet1" rm="hubblebubblestreet1" swf="scene/hubblebubblestreet1"/>
+      <r desc="哈哈泡泡街" ms="themepark" mu="music/hubblebubble.mp3" nm="hubblebubblestreet2" rm="hubblebubblestreet2" swf="scene/hubblebubblestreet2"/>
+      <r desc="银河商会" ms="employmenttown" mu="music/yabiexhibition.mp3" nm="employmenttown" rm="employmenttown" swf="scene/chamberofcommerce"/>
+
+
+      <!--选择之殿-->
+      <r desc="选择之殿" ms="" mu="music/youanmingzhou.mp3" nm="choicetemple" rm="choicetemple" swf="scene/choicetemple"/>
+      
+      <!--体育场-->
+      <r desc="奥拉运动场" ms="gymnasium" mu="music/themeparknew4.mp3" nm="gymnasium" rm="gymnasium" swf="scene/gymnasium"/>
+      <r desc="雪球大战" ms="gymnasium" mu="music/themeparknew4.mp3" nm="snowwar" rm="snowwar" swf="scene/snowwar"/>
+      <!--艾夕区-->
+      <r desc="艾夕" ms="aixiscene" nm="aixi" rm="aixi" swf="scene/aixi"/>
+      <r desc="冰雕广场" ms="aixiscene" mu="music/ice.mp3" nm="aixiscene1" rm="aixiscene1" swf="scene/aixiscene1"/>
+      <r desc="冰河瀑布" ms="aixiscene" mu="music/ice.mp3" nm="aixiscene2" rm="aixiscene2" swf="scene/aixiscene2"/>
+      <r desc="寒冰矿场" ms="aixiscene" mu="music/ice.mp3" nm="aixiscene3" rm="aixiscene3" swf="scene/aixiscene3"/>
+      <r desc="奇迹冰殿" ms="aixiscene" mu="music/ice.mp3" nm="aixiscene4" rm="aixiscene4" swf="scene/aixiscene4"/>
+      <r desc="水晶矿洞" ms="aixiscene" mu="music/ice.mp3" nm="aixiscene5" rm="aixiscene5" swf="scene/aixiscene5"/>
+      <r desc="寒冰洞" ms="aixiscene" mu="music/ice.mp3" nm="aixiscene6" rm="aixiscene6" swf="scene/aixiscene6"/>
+      <!--索里德区-->
+      <r desc="索里德" ms="suolide" nm="suolide" rm="suolide" swf="scene/suolide"/>
+      <r desc="遗迹区域" ms="suolide" mu="music/dust.mp3" nm="suolide1" rm="suolide1" swf="scene/suolide1"/>
+      <r desc="流沙区域" ms="suolide" mu="music/dust.mp3" nm="suolide2" rm="suolide2" swf="scene/suolide2"/>
+      <r desc="风暴之眼" ms="suolide" mu="music/dust.mp3" nm="suolide3" rm="suolide3" swf="scene/suolide3"/>
+      <r desc="新世界" ms="suolide" mu="music/dust.mp3" nm="suolide4" rm="suolide4" swf="scene/suolide4"/>
+      <r desc="风暴沙漠" ms="suolide" mu="music/dust.mp3" nm="suolide5" rm="suolide5" swf="scene/suolide5"/>
+      <r desc="九宫格任务地图" ms="suolide" mu="music/dust.mp3" nm="suolide6" rm="suolide6" swf="scene/suolide6"/>
+      <!--思伍德区-->
+      <r desc="部落林地" ms="siwude" mu="music/wood.mp3" nm="siwude1" rm="siwude1" swf="scene/siwude1"/>
+      <r desc="连接藤蔓" ms="siwude" mu="music/wood.mp3" nm="siwude2" rm="siwude2" swf="scene/siwude2"/>
+      <r desc="原始林地" ms="siwude" mu="music/wood.mp3" nm="siwude3" rm="siwude3" swf="scene/siwude3"/>
+      <r desc="生命之树" ms="siwude" mu="music/wood.mp3" nm="siwude4" rm="siwude4" swf="scene/siwude4"/>
+      <r desc="水木洞天" ms="siwude" mu="music/wood.mp3" nm="siwude5" rm="siwude5" swf="scene/siwude5"/>
+      <r desc="光影森林" ms="siwude" mu="music/wood.mp3" nm="siwude6" rm="siwude6" swf="scene/siwude6"/>
+      <!--沃尔特-->
+      <r desc="回音海岸" ms="woerte" mu="music/water.mp3" nm="woerte1" rm="woerte1" swf="scene/woerte1"/>
+      <r desc="水上都市" ms="woerte" mu="music/water.mp3" nm="woerte2" rm="woerte2" swf="scene/woerte2"/>
+      <r desc="水下广场" ms="woerte" mu="music/water.mp3" nm="woerte3" rm="woerte3" swf="scene/woerte3"/>
+      <r desc="贝壳城堡" ms="woerte" mu="music/water.mp3" nm="woerte4" rm="woerte4" swf="scene/woerte4"/>
+      <!--费尔区-->
+      <r desc="费尔村落" ms="feier" mu="music/fire.mp3" nm="feier1" rm="feier1" swf="scene/feier1"/>
+      <r desc="火山山脚" ms="feier" mu="music/fire.mp3" nm="feier2" rm="feier2" swf="scene/feier2"/>
+      <r desc="火山山口" ms="feier" mu="music/fire.mp3" nm="feier3" rm="feier3" swf="scene/feier3"/>
+      <r desc="烈焰洞穴" ms="feier" mu="music/fire.mp3" nm="feier4" rm="feier4" swf="scene/feier4"/>
+      <r desc="火山洞" ms="feier" mu="music/fire.mp3" nm="volcano" rm="volcano" swf="scene/volcano"/>
+      <!--比特区-->
+      <r desc="机械废墟" ms="bite" mu="music/bite.mp3" nm="bite1" rm="bite1" swf="scene/bite1"/>
+      <r desc="数码城" ms="bite" mu="music/bite.mp3" nm="bite2" rm="bite2" swf="scene/bite2"/>
+      <r desc="机械工厂" ms="bite" mu="music/bite.mp3" nm="bite3" rm="bite3" swf="scene/bite3"/>
+      <r desc="数码研究室" ms="bite" mu="music/bite.mp3" nm="bite4" rm="bite4" swf="scene/bite4"/>
+      <!--海文花园-->
+      <r desc="天空大陆" ms="haiwen" mu="music/haiwen.mp3" nm="haiwen1" rm="haiwen1" swf="scene/haiwen1"/>
+      <r desc="晨光大陆" ms="haiwen" mu="music/haiwen.mp3" nm="haiwen2" rm="haiwen2" swf="scene/haiwen2"/>
+      <r desc="暮光大陆" ms="haiwen" mu="music/haiwen.mp3" nm="haiwen3" rm="haiwen3" swf="scene/haiwen3"/>
+      <r desc="暮光禁地" ms="haiwen" mu="music/haiwen.mp3" nm="haiwen4" rm="haiwen4" swf="scene/haiwen4"/>
+      <r desc="永恒之瀑" ms="haiwen" mu="music/haiwen.mp3" nm="haiwen5" rm="haiwen5" swf="scene/haiwen5"/>
+      <!--雷鸣区-->
+      <r desc="雷鸣海滨" ms="leiming" mu="music/leiming.mp3" nm="leiming1" rm="leiming1" swf="scene/leiming1"/>
+      <r desc="雷鸣平原" ms="leiming" mu="music/leiming.mp3" nm="leiming2" rm="leiming2" swf="scene/leiming2"/>
+      <r desc="雷鸣山丘" ms="leiming" mu="music/leiming.mp3" nm="leiming3" rm="leiming3" swf="scene/leiming3"/>
+      <r desc="雷鸣悬崖" ms="leiming" mu="music/leiming.mp3" nm="leiming4" rm="leiming4" swf="scene/leiming4"/>
+      <!--艺术之都-->
+      <r desc="艺术广场" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="yishuzhidu1" rm="yishuzhidu1" swf="scene/yishuzhidu1"/>
+      <r desc="艺术馆" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="yishuzhidu2" rm="yishuzhidu2" swf="scene/yishuzhidu2"/>
+      <r desc="艺术长廊" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="yishuzhidu3" rm="yishuzhidu3" swf="scene/yishuzhidu3"/>
+      <r desc="名画家小屋" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="yishuzhidu4" rm="yishuzhidu4" swf="scene/yishuzhidu4"/>
+      <r desc="小屋密室" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="yishuzhidu5" rm="yishuzhidu5" swf="scene/yishuzhidu5"/>
+      <r desc="博物馆大厅" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="yishuzhidu6" rm="yishuzhidu6" swf="scene/yishuzhidu6"/>
+      <r desc="喷泉水族馆" ms="yishuzhidu" mu="music/yishuzhidu.mp3" nm="aquarium" rm="aquarium" swf="scene/aquarium"/>
+      <!--发明岛-->
+      <r desc="发明港口" ms="inventisland" mu="music/inventisland.mp3" nm="inventisland1" rm="inventisland1" swf="scene/inventisland1"/>
+      <r desc="发明城" ms="inventisland" mu="music/inventisland.mp3" nm="inventisland2" rm="inventisland2" swf="scene/inventisland2"/>
+      <r desc="实验室" ms="inventisland" mu="music/inventisland.mp3" nm="inventisland3" rm="inventisland3" swf="scene/inventisland3"/>
+      <r desc="发明中心" ms="inventisland" mu="music/inventisland.mp3" nm="inventisland4" rm="inventisland4" swf="scene/inventisland4"/>
+      <r desc="武器基地" ms="inventisland" mu="music/inventisland.mp3" nm="inventisland5" rm="inventisland5" swf="scene/inventisland5"/>
+      <!--上古神殿-->
+      <r desc="崩坏的上古神殿" ms="temple" mu="music/temple.mp3" nm="temple1" rm="temple1" swf="scene/temple1"/>
+      <r desc="日月之境" ms="temple" mu="music/temple.mp3" nm="temple2" rm="temple2" swf="scene/temple2"/>
+      <r desc="木石之境" ms="temple" mu="music/temple.mp3" nm="temple3" rm="temple3" swf="scene/temple3"/>
+      <r desc="玄武大道" ms="temple" mu="music/temple.mp3" nm="temple4" rm="temple4" swf="scene/temple4"/>
+      <r desc="玄武堂" ms="temple" mu="music/temple.mp3" nm="temple5" rm="temple5" swf="scene/temple5"/>
+      <r desc="灵兽宫" ms="temple" mu="music/temple.mp3" nm="temple6" rm="temple6" swf="scene/temple6"/>
+      <r desc="上古神殿" ms="temple" mu="music/temple.mp3" nm="temple7" rm="temple7" swf="scene/temple7"/>
+      <r desc="玄武大道" ms="temple" mu="music/temple.mp3" nm="temple8" rm="temple8" swf="scene/temple8"/>
+      <r desc="玄武大道第四重" ms="temple" mu="music/temple.mp3" nm="temple9" rm="temple9" swf="scene/temple9"/>
+      <r desc="青龙堂" ms="temple" mu="music/temple.mp3" nm="temple10" rm="temple10" swf="scene/temple10"/>
+      <r desc="青龙宝殿" ms="temple" mu="music/temple.mp3" nm="temple11" rm="temple11" swf="scene/temple11"/>
+      <r desc="盘龙池" ms="temple" mu="music/temple.mp3" nm="temple12" rm="temple12" swf="scene/temple12"/>
+      <r desc="雪人村落" ms="temple" mu="music/temple.mp3" nm="temple13" rm="temple13" swf="scene/temple13"/>
+      <r desc="寒冰王座" ms="temple" mu="music/temple.mp3" nm="temple14" rm="temple14" swf="scene/temple14"/>
+      <r desc="雪人祭坛" ms="temple" mu="music/temple.mp3" nm="temple15" rm="temple15" swf="scene/temple15"/>
+      <r desc="赤羽道场" ms="temple" mu="music/temple16.mp3" nm="temple16" rm="temple16" swf="scene/temple16"/>
+      <r desc="烈焰宝塔" ms="temple" mu="music/temple16.mp3" nm="temple17" rm="temple17" swf="scene/temple17"/>
+      <!--智乐馆-->
+      <r desc="智乐馆" ms="amusementpark" mu="music/yabiexhibition.mp3" nm="zhileguan" rm="zhileguan" swf="scene/zhileguan"/>
+      <r desc="狂欢街" ms="amusementpark" mu="music/yabiexhibition.mp3" nm="youleyuan" rm="youleyuan" swf="scene/youleyuan"/>
+      <r desc="QQ星酸牛奶乐园" ms="amusementpark" mu="music/yabiexhibition.mp3" nm="milkpark" rm="milkpark" swf="scene/milkpark"/>
+      <!--奥拉大战-->
+      <!--r nm="aolafight1" rm="aolafight1" swf="scene/aolafight1" desc="奥拉大战遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight2" rm="aolafight2" swf="scene/aolafight2" desc="陆军战斗遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight3" rm="aolafight3" swf="scene/aolafight3" desc="空军基地遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight4" rm="aolafight4" swf="scene/aolafight4" desc="可帕斯基地遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight5" rm="aolafight5" swf="scene/aolafight5" desc="菲莉基地遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight6" rm="aolafight6" swf="scene/aolafight6" desc="珠宝室遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight7" rm="aolafight7" swf="scene/aolafight7" desc="实验室遗址" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight8" rm="aolafight8" swf="scene/aolafight8" desc="要塞迷宫遗址A" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight9" rm="aolafight9" swf="scene/aolafight9" desc="要塞迷宫遗址B" mu="music/aolafight.mp3" ms="aolafight"/>
+      <r nm="aolafight10" rm="aolafight10" swf="scene/aolafight10" desc="要塞核心遗址" mu="music/aolafight.mp3" ms="aolafight"/-->
+      <!--下水道迷宫-->
+      <r desc="下水道迷宫" ms="" mu="music/yabiexhibition.mp3" nm="sewermaze1" rm="sewermaze1" swf="scene/sewermaze1"/>
+      <r desc="下水道迷宫" ms="" mu="music/yabiexhibition.mp3" nm="sewermaze2" rm="sewermaze2" swf="scene/sewermaze2"/>
+      <r desc="下水道迷宫" ms="" mu="music/yabiexhibition.mp3" nm="sewermaze3" rm="sewermaze3" swf="scene/sewermaze3"/>
+      <!--魔方大厦-->
+      <r desc="魔方迷宫" ms="spacetimechallenge" mu="music/yabiexhibition.mp3" nm="cubemansion" rm="cubemansion" swf="scene/cubemansion"/>
+      <r desc="魔方迷宫" ms="" mu="music/yabiexhibition.mp3" nm="mazecube" rm="mazecube" swf="scene/mazecube"/>
+      <!--副本——幻影冰宫-->
+      <r desc="幻影冰宫" nm="fbaixi"/>
+      <r desc="叹息小径" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi1" rm="fbaixi1" swf="scene/fbaixi1"/>
+      <r desc="冰封路口" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi2" rm="fbaixi2" swf="scene/fbaixi2"/>
+      <r desc="通幽小路" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi3" rm="fbaixi3" swf="scene/fbaixi3"/>
+      <r desc="冰霜断崖" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi4" rm="fbaixi4" swf="scene/fbaixi4"/>
+      <r desc="水晶密室" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi5" rm="fbaixi5" swf="scene/fbaixi5"/>
+      <r desc="冰封回廊" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi6" rm="fbaixi6" swf="scene/fbaixi6"/>
+      <r desc="冰宫前殿" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi7" rm="fbaixi7" swf="scene/fbaixi7"/>
+      <r desc="冰风地带" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi8" rm="fbaixi8" swf="scene/fbaixi8"/>
+      <r desc="风暴核心" ls="aixifb" ms="aixiscene" mu="music/aixifb.mp3" nm="fbaixi9" rm="fbaixi9" swf="scene/fbaixi9"/>
+      <!--副本——倒立金字塔-->
+      <r desc="倒立金字塔" nm="fbsuolide"/>
+      <r desc="沙漏密室" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide1" rm="fbsuolide1" swf="scene/fbsuolide1"/>
+      <r desc="石像迷阵" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide2" rm="fbsuolide2" swf="scene/fbsuolide2"/>
+      <r desc="木乃伊之棺" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide3" rm="fbsuolide3" swf="scene/fbsuolide3"/>
+      <r desc="阿努比斯之门" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide4" rm="fbsuolide4" swf="scene/fbsuolide4"/>
+      <r desc="善恶天秤" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide5" rm="fbsuolide5" swf="scene/fbsuolide5"/>
+      <r desc="土木战场" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide6" rm="fbsuolide6" swf="scene/fbsuolide6"/>
+      <r desc="莎华之间" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide7" rm="fbsuolide7" swf="scene/fbsuolide7"/>
+      <r desc="法老王宫殿" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide8" rm="fbsuolide8" swf="scene/fbsuolide8"/>
+      <r desc="法老王宫殿" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide9" rm="fbsuolide9" swf="scene/fbsuolide9"/>
+      <r desc="永生回廊" ls="suolidefb" ms="suolide" mu="music/suolidefb.mp3" nm="fbsuolide10" rm="fbsuolide10" swf="scene/fbsuolide10"/>
+      <!--副本——蚁族王朝-->
+      <r desc="蚁族王朝" nm="fbsiwude"/>
+      <r desc="蚁穴前哨" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude1" rm="fbsiwude1" swf="scene/fbsiwude1"/>
+      <r desc="蚁兵基地" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude2" rm="fbsiwude2" swf="scene/fbsiwude2"/>
+      <r desc="蚁穴下水道" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude3" rm="fbsiwude3" swf="scene/fbsiwude3"/>
+      <r desc="下水道深处" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude4" rm="fbsiwude4" swf="scene/fbsiwude4"/>
+      <r desc="工蚁聚集地" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude5" rm="fbsiwude5" swf="scene/fbsiwude5"/>
+      <r desc="蚁神守护大厅" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude6" rm="fbsiwude6" swf="scene/fbsiwude6"/>
+      <r desc="战蚁荒地" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude7" rm="fbsiwude7" swf="scene/fbsiwude7"/>
+      <r desc="蚁神守护大厅" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude8" rm="fbsiwude8" swf="scene/fbsiwude8"/>
+      <r desc="蚁神巨像" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude9" rm="fbsiwude9" swf="scene/fbsiwude9"/>
+      <r desc="蚁神殿前殿" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude10" rm="fbsiwude10" swf="scene/fbsiwude10"/>
+      <r desc="蚁神殿正殿" ls="siwudefb" ms="siwude" mu="music/siwudefb.mp3" nm="fbsiwude11" rm="fbsiwude11" swf="scene/fbsiwude11"/>
+      <!--副本——艺术之都恐龙馆-->
+      <r desc="艺术之都恐龙馆" nm="fbyishuzhidu"/>
+      <r desc="迅猛龙巢穴" ls="yishuzhidufb" ms="yishuzhidu" mu="music/dinosaurfb.mp3" nm="fbyishuzhidu1" rm="fbyishuzhidu1" swf="scene/fbyishuzhidu1"/>
+      <r desc="龙之谷" ls="yishuzhidufb" ms="yishuzhidu" mu="music/dinosaurfb.mp3" nm="fbyishuzhidu2" rm="fbyishuzhidu2" swf="scene/fbyishuzhidu2"/>
+      <r desc="暴君王座" ls="yishuzhidufb" ms="yishuzhidu" mu="music/dinosaurfb.mp3" nm="fbyishuzhidu3" rm="fbyishuzhidu3" swf="scene/fbyishuzhidu3"/>
+      <r desc="龙殇星墓" ls="yishuzhidufb" ms="yishuzhidu" mu="music/dinosaurfb.mp3" nm="fbyishuzhidu4" rm="fbyishuzhidu4" swf="scene/fbyishuzhidu4"/>
+      <!--会员副本——黑星堡垒-->
+      <r desc="黑星堡垒" nm="viparena"/>
+      <r desc="堡垒外沿" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="arenaexterior" rm="arenaexterior" swf="scene/arenaexterior"/>
+      <r desc="堡垒登陆舱" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena1" rm="viparena1" swf="scene/viparena1"/>
+      <r desc="巨人仓库" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena2" rm="viparena2" swf="scene/viparena2"/>
+      <r desc="猛兽仓库" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena3" rm="viparena3" swf="scene/viparena3"/>
+      <r desc="射击平台" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena4" rm="viparena4" swf="scene/viparena4"/>
+      <r desc="东面炮台" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena5" rm="viparena5" swf="scene/viparena5"/>
+      <r desc="北面炮台" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena6" rm="viparena6" swf="scene/viparena6"/>
+      <r desc="秘密实验室" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="viparena7" rm="viparena7" swf="scene/viparena7"/>
+      <!--战队要塞-->
+      <r desc="太空港" ms="teambattlefort" mu="music/teambattleoutside.mp3" nm="teambattleoutside" rm="teambattleoutside" swf="scene/teambattleoutside"/>
+      <r desc="太空港" ms="teambattlefort" mu="music/teambattleoutside.mp3" nm="fbteambattleoutside" rm="fbteambattleoutside" swf="scene/fbteambattleoutside"/>
+      <r desc="战队要塞" ms="teambattlefort" mu="music/bluesquare.mp3" nm="teambattlefort" rm="teambattlefort" swf="scene/teambattlefort"/>
+      <!--明星赛事活动馆-->
+      <r desc="明星赛事活动馆" ms="yabiexhibition" mu="music/yabiexhibition.mp3" nm="yabiexhibition" rm="yabiexhibition" swf="scene/yabiexhibition"/>
+      <!--新手任务专属场景-->
+      <r desc="传送核心" ms="" mu="music/centre.mp3" nm="maintown1copy" rm="maintown1copy" swf="scene/maintown1copy"/>
+      <r desc="指挥中心" ms="" mu="music/centre.mp3" nm="maintown2copy" rm="maintown2copy" swf="scene/maintown2copy"/>
+      <r desc="HELLO学院" ms="" mu="music/library.mp3" nm="helloschoolcopy" rm="helloschoolcopy" swf="scene/helloschoolcopy"/>
+      <r desc="亚比研究中心" ms="" mu="music/library.mp3" nm="yabistudycopy" rm="yabistudycopy" swf="scene/yabistudycopy"/>
+      <r desc="流星购物街" ms="" mu="music/city.mp3" nm="starlandcopy" rm="starlandcopy" swf="bigscene/starlandcopy"/>
+      <r desc="道具店" ms="" mu="music/city.mp3" nm="toolshopcopy" rm="toolshopcopy" swf="scene/toolshopcopy"/>
+      <r desc="机械废墟" ms="" mu="music/bite.mp3" nm="junglecopy" rm="junglecopy" swf="scene/junglecopy"/>
+      <!--时空隧道场景-->
+      <r desc="时空隧道内场景" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="spacetimefb1" rm="spacetimefb" swf="scene/spacetimefb"/>
+      <r desc="时空隧道内场景" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="spacetimefb2" rm="spacetimefbcopy" swf="scene/spacetimefb"/>
+      <r desc="时空隧道BOSS厅" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="spacetimeboss" rm="spacetimeboss" swf="scene/spacetimeboss"/>
+      <!--潜能试炼之塔场景-->
+      <r desc="潜能试练之塔" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="ptower1" rm="ptower1" swf="scene/ptower1"/>
+      <r desc="潜能试练之塔" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="ptower2" rm="ptower2" swf="scene/ptower2"/>
+      <r desc="潜能试练之塔" ms="spacetimechallenge" mu="music/spacetime.mp3" nm="ptower3" rm="ptower3" swf="scene/ptower3"/>
+      <!--异空间宝藏-->
+      <r desc="异空间宝藏1" ms="" nm="yispace1" rm="yispace1" swf="scene/yispace1"/>
+      <r desc="异空间宝藏2" ms="" nm="yispace2" rm="yispace2" swf="scene/yispace2"/>
+
+      <!--星座亚比场景-->
+      <r desc="生肖乐园" ms="" mu="music/hubblebubble.mp3" nm="constellationpark" rm="constellationpark" swf="scene/constellation"/>
+
+      <!--美食之星-->
+      <r desc="冰淇淋大街" ms="catestar" mu="music/catestar.mp3" nm="catestar1" rm="catestar1" swf="scene/catestar1"/>
+      <r desc="松软蛋糕店" ms="catestar" mu="music/catestar.mp3" nm="catestar2" rm="catestar2" swf="scene/catestar2"/>
+      <r desc="露可的美食小屋" ms="catestar" mu="music/catestar.mp3" nm="catestar3" rm="catestar3" swf="scene/catestar3"/>
+      <r desc="美食节广场" ms="catestar" mu="music/catestar.mp3" nm="catestar4" rm="catestar4" swf="scene/catestar4"/>
+      <!--独角之星-->
+      <r desc="皇宫外城" ms="unicornstar" mu="music/unicornstar.mp3" nm="unicornstar1" rm="unicornstar1" swf="scene/unicornstar1"/>
+      <r desc="阳光荷塘" ms="unicornstar" mu="music/unicornstar.mp3" nm="unicornstar2" rm="unicornstar2" swf="scene/unicornstar2"/>
+      <r desc="独角兽密林" ms="unicornstar" mu="music/unicornstar.mp3" nm="unicornstar3" rm="unicornstar3" swf="scene/unicornstar3"/>
+      <r desc="皇宫地牢" ms="unicornstar" mu="music/unicornstar.mp3" nm="unicornstar4" rm="unicornstar4" swf="scene/unicornstar4"/>
+      <r desc="皇宫大殿" ms="unicornstar" mu="music/unicornstar.mp3" nm="unicornstar5" rm="unicornstar5" swf="scene/unicornstar5"/>
+      <!--童话之星-->
+      <r desc="童心小屋" ms="fairytalestar" mu="music/fairytalestar.mp3" nm="fairytalestar1" rm="fairytalestar1" swf="scene/fairytalestar1"/>
+      <r desc="公主森林" ms="fairytalestar" mu="music/fairytalestar.mp3" nm="fairytalestar2" rm="fairytalestar2" swf="scene/fairytalestar2"/>
+      <r desc="丑小鸭世界" ms="fairytalestar" mu="music/fairytalestar.mp3" nm="fairytalestar3" rm="fairytalestar3" swf="scene/fairytalestar3"/>
+      <r desc="小猪之家" ms="fairytalestar" mu="music/fairytalestar.mp3" nm="fairytalestar4" rm="fairytalestar4" swf="scene/fairytalestar4"/>
+      <!--魔术之星-->
+      <r desc="魔术广场" ms="magicstar" mu="music/magicstar.mp3" nm="magicstar1" rm="magicstar1" swf="scene/magicstar1"/>
+      <r desc="魔术馆" ms="magicstar" mu="music/magicstar.mp3" nm="magicstar2" rm="magicstar2" swf="scene/magicstar2"/>
+      <r desc="魔术小镇" ms="magicstar" mu="music/magicstar.mp3" nm="magicstar3" rm="magicstar3" swf="scene/magicstar3"/>
+      <!--海枯之星-->
+      <r desc="观星海岸" ms="haikustar" mu="music/haikustar.mp3" nm="haikustar1" rm="haikustar1" swf="scene/haikustar1"/>
+      <r desc="海枯之海" ms="haikustar" mu="music/haikustar.mp3" nm="haikustar2" rm="haikustar2" swf="scene/haikustar2"/>
+      <r desc="海枯小镇" ms="haikustar" mu="music/haikustar.mp3" nm="haikustar3" rm="haikustar3" swf="scene/haikustar3"/>
+      <r desc="海枯之山" ms="haikustar" mu="music/haikustar.mp3" nm="haikustar4" rm="haikustar4" swf="scene/haikustar4"/>
+      <!--冰雪之星-->
+      <r desc="怀特雪原" ms="bingxuestar" mu="music/bingxuestar.mp3" nm="bingxuestar1" rm="bingxuestar1" swf="scene/bingxuestar1"/>
+      <r desc="迪恩的小屋" ms="bingxuestar" mu="music/bingxuestar.mp3" nm="bingxuestar2" rm="bingxuestar2" swf="scene/bingxuestar2"/>
+      <r desc="暴雪冰山" ms="bingxuestar" mu="music/bingxuestar.mp3" nm="bingxuestar3" rm="bingxuestar3" swf="scene/bingxuestar3"/>
+      <r desc="虚幻之春" ms="bingxuestar" mu="music/xuhuanzhichun.mp3" nm="bingxuestar4" rm="bingxuestar4" swf="scene/bingxuestar4"/>
+      <!--六芒神殿-->
+      <r desc="六芒前殿" ms="hexagrampalace" mu="music/hexagrampalace.mp3" nm="hexagrampalace1" rm="hexagrampalace1" swf="scene/hexagrampalace1"/>
+      <r desc="灵力空间" ms="hexagrampalace" mu="music/hexagrampalace.mp3" nm="hexagrampalace2" rm="hexagrampalace2" swf="scene/hexagrampalace2"/>
+      <r desc="奇灵神树" ms="hexagrampalace" mu="music/hexagrampalace.mp3" nm="hexagrampalace3" rm="hexagrampalace3" swf="scene/hexagrampalace3"/>
+      <r desc="六芒内殿" ms="hexagrampalace" mu="music/hexagrampalace.mp3" nm="hexagrampalace4" rm="hexagrampalace4" swf="scene/hexagrampalace4"/>
+      <!--温泉-->
+      <r desc="欢乐岛" ms="summerhotspring" mu="music/summerhotspringnew.mp3" nm="summerhotspring" rm="summerhotspring" swf="scene/summerhotspring"/>
+      <!--圣诞收费房型场景-->
+      <r desc="圣诞欢乐城堡" ms="" mu="music/city.mp3" nm="christmashouse1" rm="christmashouse1" swf="scene/christmashouse1"/>
+      <r desc="圣诞欢乐城堡" ms="" mu="music/city.mp3" nm="christmashouse2" rm="christmashouse2" swf="scene/christmashouse2"/>
+      <r desc="圣诞欢乐城堡" ms="" mu="music/city.mp3" nm="christmashouse3" rm="christmashouse3" swf="scene/christmashouse3"/>
+
+      <r desc="古代遗迹" ms="msevenstar" mu="music/msevenstar.mp3" nm="msevenstar1" rm="msevenstar1" swf="scene/msevenstar1"/>
+      <r desc="龙族圣殿" ms="msevenstar" mu="music/msevenstar.mp3" nm="msevenstar2" rm="msevenstar2" swf="scene/msevenstar2"/>
+      <r desc="黑暗星穴" ms="msevenstar" mu="music/msevenstar.mp3" nm="msevenstar3" rm="msevenstar3" swf="scene/msevenstar3"/>
+      <r desc="深渊之门" ms="msevenstar" mu="music/msevenstar.mp3" nm="msevenstar4" rm="msevenstar4" swf="scene/msevenstar4"/>
+      <r desc="深渊魔域" ms="msevenstar" mu="music/msevenstar.mp3" nm="msevenstar5" rm="msevenstar5" swf="scene/msevenstar5"/>
+      <r desc="浮岛废墟" ms="msevenstar" mu="music/msevenstar.mp3" nm="msevenstar6" rm="msevenstar6" swf="scene/msevenstar6"/>
+
+      <!--诺亚星系 雅克星-->
+      <r desc="伊索部落" ms="yakestar" mu="music/yakestar.mp3" nm="yakestar1" rm="yakestar1" swf="scene/yakestar1"/>
+      <r desc="乱石之丘" ms="yakestar" mu="music/yakestar.mp3" nm="yakestar2" rm="yakestar2" swf="scene/yakestar2"/>
+      <r desc="族长之帐" ms="yakestar" mu="music/yakestar.mp3" nm="yakestar3" rm="yakestar3" swf="scene/yakestar3"/>
+      <r desc="玛雅山" ms="yakestar" mu="music/yakestar.mp3" nm="yakestar4" rm="yakestar4" swf="scene/yakestar4"/>
+      
+      <!--糖果星-->
+      <r desc="彩虹小城" ms="candystar" mu="music/candystar.mp3" nm="candystar1" rm="candystar1" swf="scene/candystar1"/>
+      <r desc="糖爷爷小店" ms="candystar" mu="music/candystar.mp3" nm="candystar2" rm="candystar2" swf="scene/candystar2"/>
+      <r desc="糖果工厂" ms="candystar" mu="music/candystar.mp3" nm="candystar3" rm="candystar3" swf="scene/candystar3"/>
+      <r desc="糖果博物馆" ms="candystar" mu="music/candystar.mp3" nm="candystar4" rm="candystar4" swf="scene/candystar4"/>
+
+      <!--风车谷-->
+      <r desc="风车城" ms="windmillstar" mu="music/windmillstar.mp3" nm="windmillstar1" rm="windmillstar1" swf="scene/windmillstar1"/>
+      <r desc="秘密基地" ms="windmillstar" mu="music/windmillstar.mp3" nm="windmillstar2" rm="windmillstar2" swf="scene/windmillstar2"/>
+      <r desc="风之城堡" ms="windmillstar" mu="music/windmillstar.mp3" nm="windmillstar3" rm="windmillstar3" swf="scene/windmillstar3"/>
+      <r desc="风车谷底" ms="windmillstar" mu="music/windmillstar.mp3" nm="windmillstar4" rm="windmillstar4" swf="scene/windmillstar4"/>
+
+      <!--时钟之域-->
+      <r desc="雕刻时光沙滩" ms="clockstar" mu="music/clockstar.mp3" nm="clockstar1" rm="clockstar1" swf="scene/clockstar1"/>
+      <r desc="钟摆孤岛" ms="clockstar" mu="music/clockstar.mp3" nm="clockstar2" rm="clockstar2" swf="scene/clockstar2"/>
+      <r desc="时钟大殿" ms="clockstar" mu="music/clockstar.mp3" nm="clockstar3" rm="clockstar3" swf="scene/clockstar3"/>
+      <r desc="明灭之轮" ms="clockstar" mu="music/clockstar.mp3" nm="clockstar4" rm="clockstar4" swf="scene/clockstar4"/>
+
+      <!--骑士王国-->
+      <r desc="骑士学院" ms="knightstar" mu="music/knightstar.mp3" nm="knightstar1" rm="knightstar1" swf="scene/knightstar1"/>
+      <r desc="教学楼" ms="knightstar" mu="music/knightstar.mp3" nm="knightstar2" rm="knightstar2" swf="scene/knightstar2"/>
+      <r desc="黑森林" ms="knightstar" mu="music/knightstar.mp3" nm="knightstar3" rm="knightstar3" swf="scene/knightstar3"/>
+      <r desc="地下密室" ms="knightstar" mu="music/knightstar.mp3" nm="knightstar4" rm="knightstar4" swf="scene/knightstar4"/>
+      
+      <!--尖叫游乐园-->
+      <r desc="尖叫游乐园" ms="screampark" mu="music/screampark.mp3" nm="screampark1" rm="screampark1" swf="scene/screampark1"/>
+      <r desc="开心园区" ms="screampark" mu="music/screampark.mp3" nm="screampark2" rm="screampark2" swf="scene/screampark2"/>
+      <r desc="恐怖鬼屋" ms="screampark" mu="music/screampark.mp3" nm="screampark3" rm="screampark3" swf="scene/screampark3"/>
+      <r desc="幸福摩天轮" ms="screampark" mu="music/screampark.mp3" nm="screampark4" rm="screampark4" swf="scene/screampark4"/>
+
+      <!--音乐之都-->
+      <r desc="时代广场" ms="musicstar" mu="music/musicstar.mp3" nm="musicstar1" rm="musicstar1" swf="scene/musicstar1"/>
+      <r desc="售票厅" ms="musicstar" mu="music/musicstar.mp3" nm="musicstar2" rm="musicstar2" swf="scene/musicstar2"/>
+      <r desc="世纪大舞台" ms="musicstar" mu="music/musicstar.mp3" nm="musicstar3" rm="musicstar3" swf="scene/musicstar3"/>
+      <r desc="音之迷境" ms="musicstar" mu="music/musicstar.mp3" nm="musicstar4" rm="musicstar4" swf="scene/musicstar4"/>
+
+      <!--白灵圣殿-->
+      <r desc="白灵古道" ms="bailingstar" mu="music/bailingstar.mp3" nm="bailingstar1" rm="bailingstar1" swf="scene/bailingstar1"/>
+      <r desc="禁林" ms="bailingstar" mu="music/bailingstar.mp3" nm="bailingstar2" rm="bailingstar2" swf="scene/bailingstar2"/>
+      <r desc="凌云圣殿" ms="bailingstar" mu="music/bailingstar.mp3" nm="bailingstar3" rm="bailingstar3" swf="scene/bailingstar3"/>
+      <r desc="魂塔顶端" ms="bailingstar" mu="music/bailingstar.mp3" nm="bailingstar4" rm="bailingstar4" swf="scene/bailingstar4"/>
+
+      <!--云端王国-->
+      <r desc="奇草树林" ms="cloudstar" mu="music/cloudstar.mp3" nm="cloudstar1" rm="cloudstar1" swf="scene/cloudstar1"/>
+      <r desc="魔法羽林" ms="cloudstar" mu="music/cloudstar.mp3" nm="cloudstar2" rm="cloudstar2" swf="scene/cloudstar2"/>
+      <r desc="星芒小镇" ms="cloudstar" mu="music/cloudstar.mp3" nm="cloudstar3" rm="cloudstar3" swf="scene/cloudstar3"/>
+      <r desc="索尔石城" ms="cloudstar" mu="music/cloudstar.mp3" nm="cloudstar4" rm="cloudstar4" swf="scene/cloudstar4"/>
+      <r desc="参天瀑布" ms="cloudstar" mu="music/cloudstar.mp3" nm="cloudstar5" rm="cloudstar5" swf="scene/cloudstar5"/>
+      <r desc="天神圣殿" ms="cloudstar" mu="music/cloudstar.mp3" nm="cloudstar6" rm="cloudstar6" swf="scene/cloudstar6"/>
+
+      <!--武神战争-->
+      <r desc="奔马平原" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar1" rm="fightkingwar1" swf="scene/fightkingwar1"/>
+      <r desc="恶人山道" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar2" rm="fightkingwar2" swf="scene/fightkingwar2"/>
+      <r desc="恶人山顶" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar3" rm="fightkingwar3" swf="scene/fightkingwar3"/>
+      <r desc="长坂坡" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar4" rm="fightkingwar4" swf="scene/fightkingwar4"/>
+      <r desc="乱石战场" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar5" rm="fightkingwar5" swf="scene/fightkingwar5"/>
+      <r desc="卧龙岗" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar6" rm="fightkingwar6" swf="scene/fightkingwar6"/>
+      <r desc="虎牢关" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar7" rm="fightkingwar7" swf="scene/fightkingwar7"/>
+      <r desc="蜀中平原" ms="fightkingwar" mu="music/fightkingwar.mp3" nm="fightkingwar9" rm="fightkingwar9" swf="scene/fightkingwar9"/>
+      <!--r nm="fightkingwar8" rm="fightkingwar8" swf="scene/fightkingwar8" desc="占卜神坛" mu="music/fightkingwar.mp3" ms="fightkingwar" /-->
+
+      <!--王子星球-->
+      <!--
+      <r nm="princestar1" rm="princestar1" swf="scene/princestar1" desc="卡尔夫魔法学院" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar2" rm="princestar2" swf="scene/princestar2" desc="王子图书馆" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar3" rm="princestar3" swf="scene/princestar3" desc="公园" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar4" rm="princestar4" swf="scene/princestar4" desc="王子植物园" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar5" rm="princestar5" swf="scene/princestar5" desc="学校门口" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar6" rm="princestar6" swf="scene/princestar6" desc="胖胖家" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar7" rm="princestar7" swf="scene/princestar7" desc="文文家" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar8" rm="princestar8" swf="scene/princestar8" desc="卡尔夫超市" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar9" rm="princestar9" swf="scene/princestar9" desc="卡尔夫运动场" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar10" rm="princestar10" swf="scene/princestar10" desc="卡尔夫榕树下" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar11" rm="princestar11" swf="scene/princestar11" desc="萨丁小屋" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar12" rm="princestar12" swf="scene/princestar12" desc="卡尔夫教室" mu="music/starlandnew.mp3" ms="princestar" />
+      <r nm="princestar13" rm="princestar13" swf="scene/princestar13" desc="图书馆露台" mu="music/starlandnew.mp3" ms="princestar" />
+      -->
+      <!--大地迷城-->
+      <r desc="迷城河畔" ms="mysticearth" mu="music/mysticearth.mp3" nm="mysticearth1" rm="mysticearth1" swf="scene/mysticearth1"/>
+      <r desc="雏菊平原" ms="mysticearth" mu="music/mysticearth.mp3" nm="mysticearth2" rm="mysticearth2" swf="scene/mysticearth2"/>
+      <r desc="伯爵城堡" ms="mysticearth" mu="music/mysticearth.mp3" nm="mysticearth3" rm="mysticearth3" swf="scene/mysticearth3"/>
+      <r desc="零时迷城" ms="mysticearth" mu="music/mysticearth.mp3" nm="mysticearth4" rm="mysticearth4" swf="scene/mysticearth4"/>
+
+      <!--海洋幻境-->
+      <r desc="幻之结界" ms="mysticocean" mu="music/mysticocean.mp3" nm="mysticocean1" rm="mysticocean1" swf="scene/mysticocean1"/>
+      <r desc="迦娜的梦境" ms="mysticocean" mu="music/mysticocean.mp3" nm="mysticocean2" rm="mysticocean2" swf="scene/mysticocean2"/>
+      <r desc="外海之域" ms="mysticocean" mu="music/mysticocean.mp3" nm="mysticocean3" rm="mysticocean3" swf="scene/mysticocean3"/>
+      <r desc="内海之域" ms="mysticocean" mu="music/mysticocean.mp3" nm="mysticocean4" rm="mysticocean4" swf="scene/mysticocean4"/>
+      <r desc="海洋神域" ms="mysticocean" mu="music/mysticocean.mp3" nm="mysticocean5" rm="mysticocean5" swf="scene/mysticocean5"/>
+      <!--天界十二宫-->
+      <r desc="太阳神殿" ms="zodiac" mu="music/mysticocean.mp3" nm="zodiac0" rm="zodiac0" swf="scene/zodiac/zodiac0"/>
+      <r desc="响雷神殿" ms="zodiac" mu="music/mysticocean.mp3" nm="zodiac1" rm="zodiac1" swf="scene/zodiac/zodiac1"/>
+      <!--炫光王国-->
+      <r desc="炫光森林" ms="zodiac2" mu="music/mysticocean.mp3" nm="zodiac2" rm="zodiac2" swf="scene/zodiac/zodiac2"/>
+      <!--白夜山-->
+      <r desc="白昼峡谷" ms="whitenight" mu="music/whitenight.mp3" nm="whitenight0" rm="whitenight0" swf="scene/whitenight/whitenight0"/>
+      <r desc="迷境花园" ms="whitenight" mu="music/whitenight.mp3" nm="whitenight1" rm="whitenight1" swf="scene/whitenight/whitenight1"/>
+      <r desc="魔箭城" ms="whitenight" mu="music/whitenight.mp3" nm="whitenight2" rm="whitenight2" swf="scene/whitenight/whitenight2"/>
+      <r desc="夜影之渊" ms="whitenight" mu="music/whitenight.mp3" nm="whitenight3" rm="whitenight3" swf="scene/whitenight/whitenight3"/>
+      <!--大剧院-->
+      <r desc="大剧院" ms="theatre" nm="theatre" rm="theatre" swf="scene/theatre"/>
+
+      <!--活动临时场景-->
+      <r desc="御水道馆" ms="huanliuarea" mu="music/mysticearth.mp3" nm="huanliu" rm="huanliu" swf="scene/huanliu"/>
+      <r desc="炼火道馆" ms="huanyanarea" mu="music/mysticearth.mp3" nm="huanyan" rm="huanyan" swf="scene/huanyan"/>
+      <r desc="惊雷道馆" ms="huanleiarea" mu="music/mysticearth.mp3" nm="huanlei" rm="huanlei" swf="scene/huanlei"/>
+      <r desc="光明道馆" ms="huanguangarea" mu="music/mysticearth.mp3" nm="huanguang" rm="huanguang" swf="scene/huanguang"/>
+      <r desc="命运道馆" ms="huanmingarea" mu="music/mysticearth.mp3" nm="huanming" rm="huanming" swf="scene/huanming"/>
+      <r desc="终极神殿" ms="huanfinalarea" mu="music/mysticearth.mp3" nm="huanfinal" rm="huanfinal" swf="scene/huanfinal"/>
+      <!--r nm="milliondance" rm="milliondance" swf="scene/milliondance" desc="百万舞会" mu="music/milliondance.mp3" ms="aolatree" /-->
+      <!--<r nm="snowhose" rm="snowhose" swf="scene/activitytempscene/snowhosescene" desc="小雪人的许愿袜子"  mu="music/forevernight.mp3" ms=""/> /-->
+      <r desc="卡通拯救世界" ms="" mu="music/forevernight.mp3" nm="worldboss1227" rm="worldboss1227" swf="scene/activitytempscene/worldboss1227"/>
+
+
+      <r desc="愚人节主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="memory1" rm="memory1" swf="scene/memory/memory1"/>
+      <r desc="六一节主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="memory2" rm="memory2" swf="scene/memory/memory2"/>
+      <r desc="外星人主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="memory3" rm="memory3" swf="scene/memory/memory3"/>
+      <r desc="万圣节主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="memory4" rm="memory4" swf="scene/memory/memory4"/>
+      <r desc="黑白天空之城" ms="themepark" mu="music/themeparknew4.mp3" nm="memory5" rm="memory5" swf="scene/memory/memory5"/>
+      <r desc="点点活动主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="memory6" rm="memory6" swf="scene/memory/memory6"/>
+      <r desc="重阳节主题公园" ms="themepark" mu="music/themeparknew4.mp3" nm="memory7" rm="memory7" swf="scene/memory/memory7"/>
+      <r desc="绝版乐园" ms="eden" mu="music/themeparknew4.mp3" nm="outprinteden" rm="outprinteden" swf="scene/activitytempscene/outprinteden"/>
+      
+      <!--小游戏-->
+      <r desc="开心餐厅" game="1" ms="" nm="gameRestaurant" owner="Restaurant" rm="gameRestaurant" swf="game/restaurant"/>
+      <r desc="颜色诱惑" game="1" ms="" nm="gameColorful" owner="room1" rm="gameColorful" swf="game/colorful"/>
+      <r desc="逃离金字塔游戏" game="1" ms="" nm="gameFlyCat" owner="suolide1" rm="gameFlyCat" swf="game/flycat"/>
+      <r desc="毛毛飞天记" game="1" ms="" nm="gamePenguin" owner="siwude1" rm="gamePenguin" swf="game/penguin"/>
+      <r desc="猜灯谜" game="1" ms="" nm="gameGuess" owner="room1" rm="gameGuess" swf="lanternsfestival/guessgame"/>
+      <r desc="亚比连连看" game="1" ms="" nm="gameLlk" owner="amusementpark" rm="gameLlk" swf="game/gamellk"/>
+      <!--r nm="gamePigBoat" rm="gamePigBoat" owner="aolafight2" game="1" swf="game/pigboat" desc="海底大作战" ms=""/-->
+      <r desc="舞动全星" game="1" ms="" nm="gameDance" owner="amusementpark" rm="gameDance" swf="game/dance"/>
+      <r desc="张灯结彩" game="1" ms="" nm="gameMakelantern" owner="room1" rm="gameMakelantern" swf="game/makelantern"/>
+      <r desc="团团圆圆" game="1" ms="" nm="gameMakeGulePudding" owner="youleyuan" rm="gameMakeGulePudding" swf="game/makegulepudding"/>
+      <r desc="天降神饼" game="1" ms="" nm="gamePickCookies" owner="fightspace1" rm="gamePickCookies" swf="game/pickcookies"/>
+      <r desc="吉拉狮跳火圈" game="1" ms="" nm="gameJumpFireRing" owner="feier1" rm="gameJumpFireRing" swf="game/jumpfirering"/>
+      <r desc="环保小卫士" game="1" ms="" nm="gameRecycleGame" owner="starshopping" rm="gameRecycleGame" swf="game/recyclegame"/>
+      <r desc="奥拉大战达斯特" game="1" ms="" nm="gameAolaVsDaserte" owner="room1" rm="gameAolaVsDaserte" swf="game/aolavsdaserte"/>
+      <r desc="小星猴走钢丝" game="1" ms="" nm="gameRopedancer" owner="room1" rm="gameRopedancer" swf="game/ropedancer"/>
+      <r desc="滴滴快回家" game="1" ms="" nm="gameDidiGoHome" owner="woerte3" rm="gameDidiGoHome" swf="game/didigohome"/>
+      <r desc="兔小子拔萝卜" game="1" ms="" nm="gamerabbit" owner="siwude6" rm="gamerabbit" swf="game/rabbitgame"/>
+      <r desc="粽子大作战" game="1" ms="" nm="gameJumpPet" owner="hubblebubblestreet1" rm="gameJumpPet" swf="game/jumppet"/>
+      <r desc="抢龙鳞" game="1" ms="" nm="gameRobDragon" owner="temple10" rm="gameRobDragon" swf="game/robdragon"/>
+      <r desc="端午龙舟赛" game="1" ms="" nm="gameDragonBoat" owner="hubblebubblestreet1" rm="gameDragonBoat" swf="game/dragonboat"/>
+      <r desc="亚比记一记" game="1" ms="" nm="gameHelloYabijiyiji" owner="helloschool" rm="gameHelloYabijiyiji" swf="game/yabijiyiji"/>
+      <r desc="消失的系别" game="1" ms="" nm="gameHelloWhodisappear" owner="helloschool" rm="gameHelloWhodisappear" swf="game/whodisappear"/>
+      <r desc="由少到多" game="1" ms="" nm="gameHelloLittle2more" owner="helloschool" rm="gameHelloLittle2more" swf="game/littletomore"/>
+      <r desc="计时" game="1" ms="" nm="gameHelloRuleanalyse" owner="helloschool" rm="gameHelloRuleanalyse" swf="game/timeguessgame"/>
+      <r desc="动物保卫战" game="1" ms="" nm="gamePvZ" owner="ecologicalpark" rm="gamePvZ" swf="game/pvz"/>
+      <r desc="雪人跳舞" game="1" ms="" nm="gameBearDance" owner="temple14" rm="gameBearDance" swf="game/beardance"/>
+      <r desc="动物捕捉" game="1" ms="" nm="gameCatchAnimal" owner="ecologicalpark" rm="gameCatchAnimal" swf="game/catchanimal"/>
+      <r desc="宇宙神射手" game="1" ms="" mu="music/shootgame.mp3" nm="gameShootGame" owner="gymnasium" rm="gameShootGame" swf="game/shootgame"/>
+      <r desc="卖蛋糕小达人" game="1" ms="" nm="gameMakeCake" owner="catestar2" rm="gameMakeCake" swf="game/makecake"/>
+      <r desc="灌篮高手" game="1" ms="" nm="gameSlamDunk" owner="gymnasium" rm="gameSlamDunk" swf="game/slamdunk"/>
+      <r desc="跳伞" game="1" ms="" nm="gameYiNiJump" owner="gymnasium" rm="gameYiNiJump" swf="game/yinijump"/>
+      <r desc="月饼小当家" game="1" ms="" nm="gameMakeMooncake" owner="themepark" rm="gameMakeMooncake" swf="game/makemooncake"/>
+      <r desc="欢乐满天飞" game="1" ms="" mu="music/blowbubble.mp3" nm="gameBlowBubble" owner="themepark" rm="gameBlowBubble" swf="game/blowbubble"/>
+      <r desc="天空保卫战" game="1" ms="" nm="gameGuardNut" owner="ecologicalpark" rm="gameGuardNut" swf="game/guardnut"/>
+      <r desc="飞天独角兽" game="1" ms="" nm="gameFlyingUnicorn" owner="unicornstar2" rm="gameFlyingUnicorn" swf="game/flyingunicorn"/>
+      <r desc="减肥大作战" game="1" ms="" mu="music/swimming.mp3" nm="gameSwimming" owner="fairytalestar3" rm="gameSwimming" swf="game/swimming"/>
+      <r desc="海底保卫战" game="1" ms="" nm="gameSeaDefend" owner="ecologicalpark" rm="gameSeaDefend" swf="game/seadefend"/>
+      <r desc="童话鬼屋" game="1" ms="" nm="gameGhostHoliday" owner="themepark" rm="gameGhostHoliday" swf="game/ghostholidaygame"/>
+      <r desc="对对碰" game="1" ms="" mu="music/matchthreegame.mp3" nm="gameMatchThree" owner="toolshop" rm="gameMatchThree" swf="game/matchthree"/>
+      <r desc="小小印花家" game="1" ms="" mu="music/onelinegame.mp3" nm="gameOneLine" owner="clothesshop" rm="gameOneLine" swf="game/onelinegame"/>
+      <r desc="霓虹泡泡珠" game="1" ms="" mu="music/puzzlebobble.mp3" nm="gamePuzzleBobble" owner="furnitureshop" rm="gamePuzzleBobble" swf="game/puzzlebobble"/>
+      <r desc="冰之迷阵" game="1" ms="" nm="gameBrickGame" owner="aixiscene4" rm="gameBrickGame" swf="game/brickgame"/>
+      <r desc="忍术修炼" game="1" ms="" nm="gameHitBrick" owner="temple17" rm="gameHitBrick" swf="game/hitbrick"/>
+      <r desc="勇闯冰雪溶洞" game="1" ms="" nm="gameEatBeans" owner="bingxuestar3" rm="gameEatBeans" swf="game/eatbeans"/>
+      <r desc="礼物争夺战" game="1" ms="" nm="gameZillionaire" owner="room1" rm="gameZillionaire" swf="game/zillionaire"/>
+      <r desc="伢牙乐营养全席" game="1" ms="" nm="gameYaYaEatBeans" owner="bingxuestar3" rm="gameYaYaEatBeans" swf="game/yayaeatbeans"/>
+      <r desc="星星能量" game="1" ms="" nm="gameZuMa" owner="room1" rm="gameZuMa" swf="game/zuma"/>
+      <r desc="皇牌空战" game="1" ms="" nm="gameCampBattleField" owner="teambattleoutside" rm="gameCampBattleField" swf="campbattlefield/campbattlefield"/>
+      <r desc="欢乐萌果果" game="1" ms="" nm="gameReunionGame" owner="themepark" rm="gameReunionGame" swf="game/reuniongame"/>
+      <r desc="元宵滚滚弹" game="1" ms="" nm="gameTangyuanBall" owner="themepark" rm="gameTangyuanBall" swf="game/tangyuanball"/>
+      <r desc="飞越巨石阵" game="1" ms="" nm="gameFlyStone" owner="yakestar3" rm="gameFlyStone" swf="game/flystone"/>
+      <r desc="3D赛车" game="1" ms="" nm="gameMyCat" owner="fastclub" rm="gameMyCat" swf="game/mycat"/>
+      <r desc="大战TT兔" game="1" ms="" nm="gameChocolateRabbit" owner="candystar4" rm="gameChocolateRabbit" swf="game/chocolaterabbit"/>
+      <r desc="爱心节游戏" game="1" ms="" nm="gameLoveFes" owner="themepark" rm="gameLoveFes" swf="game/lovefesgame"/>
+      <r desc="小猫快跑" game="1" ms="" nm="gameAnimalRun" owner="themepark" rm="gameAnimalRun" swf="game/catrun"/>
+      <r desc="飞越时间海" game="1" ms="" nm="gameFlyGame" owner="clockstar1" rm="gameFlyGame" swf="game/flygame"/>
+      <r desc="杂物大整理" game="1" ms="" nm="gameCarfu" owner="princestar11" rm="gameCarfu" swf="game/carfu"/>
+      <r desc="王子图书大作战" game="1" ms="" nm="gameKrfBook" owner="princestar2" rm="gameKrfBook" swf="game/bookbattle"/>
+      <r desc="斗魂小星猴" game="1" ms="" nm="gameFighting" owner="emptyspace1" rm="gameFighting" swf="game/fightinggame"/>
+      <r desc="王子脆脆多" game="1" ms="" nm="gameKaFuCookie" owner="princestar5" rm="gameKaFuCookie" swf="game/kafucookie"/>
+      <r desc="霹雳神枪手" game="1" ms="" nm="gameFlyingDisk" owner="themepark" rm="gameFlyingDisk" swf="game/flyingdisk"/>
+      <r desc="超武斗大会" game="1" ms="" nm="gameBedlamFight" owner="teambattleoutside" rm="gameBedlamFight" swf="bedlamfight/bedlamfight"/>
+      <r desc="云霄飞车" game="1" ms="" nm="gameCarSurf" owner="screampark1" rm="gameCarSurf" swf="game/carsurf"/>
+      <r desc="路比跳音符" game="1" ms="" nm="gameLubiJump" owner="musicstar3" rm="gameLubiJump" swf="game/lubigame"/>
+      <r desc="王子记忆翻牌" game="1" ms="" nm="gameMemoryCard" owner="princestar7" rm="gameMemoryCard" swf="game/memorycard"/>
+      <r desc="飞天奇奇" game="1" ms="" nm="gameFlyingQiQi" owner="themepark" rm="gameFlyingQiQi" swf="game/flyingqiqi"/>
+      <r desc="极限投篮王" game="1" ms="" nm="gameYaYaSlamDunk" owner="themepark" rm="gameYaYaSlamDunk" swf="game/yayaslamdunk"/>
+      <r desc="炮打外星人" game="1" ms="" nm="gameHitAlien" owner="themepark" rm="gameHitAlien" swf="game/hitalien"/>
+      <r desc="疯狂的水果" game="1" ms="" nm="gameFlyingFruit" owner="themepark" rm="gameFlyingFruit" swf="game/flyingfruit"/>
+      <r desc="卡尔夫赛马" game="1" ms="" nm="gameHorseRace" owner="princestar9" rm="gameHorseRace" swf="game/horserace"/>
+      <r desc="香槟派对" game="1" ms="" nm="gameHitGame" owner="themepark" rm="gameHitGame" swf="game/hitgame"/>
+      <r desc="冰花天降" game="1" ms="" nm="gameDropIcePieces" owner="themepark" rm="gameDropIcePieces" swf="game/dropicepieces"/>
+      <r desc="天使大作战" game="1" ms="" nm="gameThrowBalls" owner="themepark" rm="gameThrowBalls" swf="game/throwballs"/>
+      <r desc="王子饼干泡泡珠" game="1" ms="" nm="gamePrincePuzzleBobble" owner="princestar13" rm="gamePrincePuzzleBobble" swf="game/princepuzzlebobble"/>
+      <r desc="灵兽保卫战" game="1" ms="" nm="gameLinThrowBall" owner="themepark" rm="gameLinThrowBall" swf="game/linthrowball"/>
+      <r desc="列卡捕鸟" game="1" ms="" nm="gameEatBird" owner="cloudstar3" rm="gameEatBird" swf="game/eatbird"/>
+      <r desc="高空摘云" game="1" ms="" nm="gamePickCloud" owner="themepark" rm="gamePickCloud" swf="game/pickcloudgame"/>
+      <r desc="水上追逐战" game="1" ms="" nm="gameIceskating" owner="cloudstar5" rm="gameIceskating" swf="game/iceskating"/>
+      <r desc="乐乐快跑" game="1" ms="" nm="gameLeLeRun" owner="themepark" rm="gameLeLeRun" swf="game/lelerun"/>
+      <r desc="捣蛋的契约书" game="1" ms="" nm="gameCleanIce" owner="mysticearth2" rm="gameCleanIce" swf="game/cleanice"/>
+      <r desc="古堡大逃亡" game="1" ms="" nm="gameCastleEscape" owner="themepark" rm="gameCastleEscape" swf="game/castleescape"/>
+      <r desc="魔法房子" game="1" ms="" nm="gameTowerBoxx" owner="mysticocean2" rm="gameTowerBoxx" swf="game/towerboxx"/>
+      <r desc="我的伙伴我做主" game="1" ms="" nm="gameYabiHit" owner="huanguang" rm="gameYabiHit" swf="game/yabihit"/>
+      <r desc="海灵灵大作战" game="1" ms="" nm="gameHungryMonster" owner="mysticocean5" rm="gameHungryMonster" swf="game/hungrymonster"/>
+      <r desc="圣诞礼物盒" game="1" ms="" nm="gameGoldPitman" owner="themepark" rm="gameGoldPitman" swf="game/goldpitman"/>
+      <r desc="对决无双" game="1" ms="" nm="gameMatchThree4Activity" owner="themepark" rm="gameMatchThree4Activity" swf="game/matchthree4activity"/>
+    </roomMap>
+    <map>
+      <m desc="空间舱" gy="" nm="home" rm="home"/>
+      <m desc="传送核心" gy="" nm="maintown1" rm="maintown1"/>
+      <m desc="指挥中心" gy="" nm="maintown2" rm="maintown2"/>
+      <m desc="HELLO学院" gy="" nm="helloschool" rm="helloschool"/>
+      <m desc="亚比研究中心" gy="" nm="yabistudy" rm="yabistudy"/>
+      <m desc="亚比协会" gy="" nm="yabiunion" rm="yabiunion"/>
+      <m desc="流星大陆" gy="" nm="starland" rm="starland"/>
+      <m desc="奥拉之树" gy="" nm="aolatree" rm="aolatree"/>
+      <m desc="极速俱乐部" gy="" nm="fastclub" rm="fastclub"/>
+      <m desc="图书馆" gy="" nm="library" rm="library"/>
+      <m desc="战斗星域" gy="" nm="spacetimechallenge" rm="spacetimechallenge"/>
+      <m desc="哈米乐园" gy="" nm="hami" rm="starsquare"/>
+      <m desc="蓝宝石要塞" gy="" nm="bluesquare" rm="bluesquare"/>
+      <m desc="主题公园" gy="" nm="themepark" rm="themepark"/>
+      <m desc="星光游乐场" gy="" nm="amusementpark" rm="amusementpark"/>
+      <m desc="战队要塞" gy="" nm="teambattlefort" rm="teambattlefort"/>
+      <m desc="流星购物街" gy="" nm="starshopping" rm="starshopping"/>
+      <m desc="十字大道" gy="" nm="crossroad" rm="crossroad"/>
+      <m desc="科学院" gy="" nm="science" rm="science"/>
+      <m desc="斯拉克星" gy="" nm="silake" rm="challengersquare"/>
+      <m desc="生态园" gy="" nm="ecologicalpark" rm="ecologicalpark"/>
+      <m desc="职业小镇" gy="" nm="employmenttown" rm="employmenttown"/>
+      <m desc="奥拉运动场" gy="" nm="gymnasium" rm="gymnasium"/>
+      <m desc="圣战团基地" gy="" nm="jehadbase" rm="jehadbase"/>
+      <!--m7星云-->
+      <m desc="M7星云" gy="" nm="msevenstar" rm="msevenstar1"/>
+      <!--武神大陆-->
+      <m desc="武神大陆" gy="" nm="fightkingwar" rm="fightkingwar1"/>
+      <!--温泉-->
+      <m desc="温泉" gy="" nm="summerhotspring" rm="summerhotspring"/>
+      <!--王子星球-->
+      <m desc="王子星球" gy="" nm="princestar" rm="princestar1"/>
+      <!--天界十二宫-->
+      <m desc="天界十二宫" gy="" nm="zodiac" rm="zodiac0"/>
+      <!--炫光王国-->
+      <m desc="炫光王国" gy="" nm="zodiac2" rm="zodiac2"/>
+      <!--大地迷城-->
+      <m desc="大地迷城" gy="galaxy_dragon" nm="mysticearth" rm="mysticearth1"/>
+      <!--海洋幻境-->
+      <m desc="海洋幻境" gy="galaxy_dragon" nm="mysticocean" rm="mysticocean1"/>
+      <!--白夜山-->
+      <m desc="白夜山" gy="galaxy_dragon" nm="whitenight" rm="whitenight0"/>
+      <!--大剧院-->
+      <m desc="剧院" gy="" nm="theatre" rm="theatre"/>
+      <!--奥拉大战纪念馆-->
+      <!--m nm="aolafight" rm="aolafight1" desc="奥拉大战纪念馆" gy="galaxy_aolafight" /-->
+      <!--异空间-->
+      <m desc="艾夕区" gy="galaxy_other" nm="aixiscene" rm="aixiscene1"/>
+      <m desc="索里德" gy="galaxy_other" nm="suolide" rm="suolide1"/>
+      <m desc="思伍德" gy="galaxy_other" nm="siwude" rm="siwude1"/>
+      <m desc="沃尔特" gy="galaxy_other" nm="woerte" rm="woerte1"/>
+      <m desc="费尔区" gy="galaxy_other" nm="feier" rm="feier1"/>
+      <m desc="比特区" gy="galaxy_other" nm="bite" rm="bite1"/>
+      <m desc="海文花园" gy="galaxy_other" nm="haiwen" rm="haiwen1"/>
+      <m desc="雷鸣区" gy="galaxy_other" nm="leiming" rm="leiming1"/>
+      <m desc="艺术之都" gy="galaxy_other" nm="yishuzhidu" rm="yishuzhidu1"/>
+      <m desc="发明岛" gy="galaxy_other" nm="inventisland" rm="inventisland1"/>
+      <m desc="上古神殿" gy="galaxy_other" nm="temple" rm="temple1"/>
+      <!--六芒星系-->
+      <m desc="美食之星" gy="galaxy_hexagram" nm="catestar" rm="catestar1"/>
+      <m desc="独角之星" gy="galaxy_hexagram" nm="unicornstar" rm="unicornstar1"/>
+      <m desc="童话之星" gy="galaxy_hexagram" nm="fairytalestar" rm="fairytalestar1"/>
+      <m desc="魔术之星" gy="galaxy_hexagram" nm="magicstar" rm="magicstar1"/>
+      <m desc="海枯之星" gy="galaxy_hexagram" nm="haikustar" rm="haikustar1"/>
+      <m desc="冰雪之星" gy="galaxy_hexagram" nm="bingxuestar" rm="bingxuestar1"/>
+      <m desc="六芒前殿" gy="galaxy_hexagram" nm="hexagrampalace" rm="hexagrampalace1"/>
+      <!--诺亚星系-->
+      <m desc="雅克星" gy="galaxy_noyastar" nm="yakestar" rm="yakestar1"/>
+      <m desc="糖果星" gy="galaxy_noyastar" nm="candystar" rm="candystar1"/>
+      <m desc="风车谷" gy="galaxy_noyastar" nm="windmillstar" rm="windmillstar1"/>
+      <m desc="时钟之域" gy="galaxy_noyastar" nm="clockstar" rm="clockstar1"/>
+      <m desc="骑士王国" gy="galaxy_noyastar" nm="knightstar" rm="knightstar1"/>
+      <m desc="尖叫游乐园" gy="galaxy_noyastar" nm="screampark" rm="screampark1"/>
+      <m desc="时代广场" gy="galaxy_noyastar" nm="musicstar" rm="musicstar1"/>
+      <m desc="白灵圣殿" gy="galaxy_noyastar" nm="bailingstar" rm="bailingstar1"/>
+      <!--云端王国-->
+      <m desc="云端王国" gy="galaxy_dragon" nm="cloudstar" rm="cloudstar1"/>
+      
+      <!--道馆-->
+      <m desc="幻流道馆" gy="galaxy_daoguan" nm="huanliuarea" rm="huanliu"/>
+      <m desc="炼火道馆" gy="galaxy_daoguan" nm="huanyanarea" rm="huanyan"/>
+      <m desc="幻雷王国" gy="galaxy_daoguan" nm="huanleiarea" rm="huanlei"/>
+      <m desc="光明道馆" gy="galaxy_daoguan" nm="huanguangarea" rm="huanguang"/>
+      <m desc="命运道馆" gy="galaxy_daoguan" nm="huanmingarea" rm="huanming"/>      
+      <m desc="终极神殿" gy="galaxy_daoguan" nm="huanfinalarea" rm="huanfinal"/>
+      <!--绝版乐园-->      
+      <m desc="绝版乐园" gy="" nm="eden" rm="outprinteden"/>
+      <!--绝版乐园-->
+    </map>
+    <galaxy>
+      <g d="" desc="异空间" nm="galaxy_other"/>
+      <!--g nm="galaxy_aolafight" desc="达斯特要塞" d="aolafight"/-->
+      <g d="" desc="六芒星系" nm="galaxy_hexagram"/>
+      <g d="" desc="诺亚星系" nm="galaxy_noyastar"/>
+      <g d="" desc="幻龙星系" nm="galaxy_dragon"/>
+      <g d="" desc="道馆" nm="galaxy_daoguan"/>
+    </galaxy>
+    <player>
+        <colors>
+            <color alpha="" color="0xFF6600" colorNo="color1"/>
+            <color alpha="" color="0xFFCC00" colorNo="color2"/>
+            <color alpha="" color="0x045B95" colorNo="color3"/>
+            <color alpha="" color="0xAAD500" colorNo="color4"/>
+            <color alpha="" color="0xFE78A0" colorNo="color5"/>
+            <color alpha="" color="0x333333" colorNo="color6"/>
+            <color alpha="" color="0x6633CC" colorNo="color7"/>
+            <color alpha="" color="0xCC0001" colorNo="color8"/>
+            <color alpha="" color="0x0099CB" colorNo="color9"/>
+            <color alpha="" color="0x996600" colorNo="color10"/>
+        </colors>
+    </player>
+    <loginPage>
+        <!--树与人数比例的关系-->
+        <treeRates>
+            <treeRate treeNum="1" userRate="0"/>
+            <treeRate treeNum="2" userRate="5"/>
+            <treeRate treeNum="3" userRate="10"/>
+            <treeRate treeNum="4" userRate="30"/>
+            <treeRate treeNum="5" userRate="50"/>
+            <treeRate treeNum="6" userRate="70"/>
+        </treeRates>
+    </loginPage>
+    <provinces>
+        <p>北京市</p>
+        <p>天津市</p>
+        <p>河北省</p>
+        <p>山西省</p>
+        <p>内蒙古自治区</p>
+        <p>辽宁省</p>
+        <p>吉林省</p>
+        <p>黑龙江省</p>
+        <p>上海市</p>
+        <p>江苏省</p>
+        <p>浙江省</p>
+        <p>安徽省</p>
+        <p>福建省</p>
+        <p>江西省</p>
+        <p>山东省</p>
+        <p>河南省</p>
+        <p>湖北省</p>
+        <p>湖南省</p>
+        <p>广东省</p>
+        <p>广西壮族自治区</p>
+        <p>海南省</p>
+        <p>重庆市</p>
+        <p>四川省</p>
+        <p>贵州省</p>
+        <p>云南省</p>
+        <p>西藏自治区</p>
+        <p>陕西省</p>
+        <p>甘肃省</p>
+        <p>青海省</p>
+        <p>宁夏回族自治区</p>
+        <p>新疆维吾尔自治区</p>
+        <p>台湾省</p>
+        <p>香港特别行政区</p>
+        <p>澳门特别行政区</p>
+        <p>其他地区</p>
+    </provinces>
+    <materialInfo>
+        <buyback percent="0.5"/>
+    </materialInfo>
+    <autoRun>
+        <open>true</open>
+    </autoRun>
+    <memberNewsVersion>091230</memberNewsVersion>
+    <!--精灵的类型-->
+    <pettype>
+        <item id="普通系"/>
+        <item id="格斗系"/>
+        <item id="飞行系"/>
+        <item id="毒系"/>
+        <item id="爬行系"/>
+        <item id="土系"/>
+        <item id="虫系"/>
+        <item id="数码系"/>
+        <item id="机械系"/>
+        <item id="火系"/>
+        <item id="水系"/>
+        <item id="木系"/>
+        <item id="电系"/>
+        <item id="神秘系"/>
+        <item id="冰系"/>
+        <item id="上古系"/>
+        <item id="暗黑系"/>
+        <item id="未知系"/>
+    </pettype>
+
+    <!--位图缓存特效最大个数-->
+    <cacheEffectNum>15</cacheEffectNum>
+
+    <!--进入战斗loading界面是否实时更新其他玩家的读取进度-->
+    <showOthersFightLoad>false</showOthersFightLoad>
+
+    <fixZone desc="格式:岛编号/位置号,岛编号/位置号" values=""/>
+
+    <avatar dids="1,10145" fvc="35" merge="false"/>
+</config>

@@ -1,0 +1,7 @@
+# Text files are stored with LF; shell scripts keep LF on Windows checkouts too.
+* text=auto
+*.sh text eol=lf
+# The archived game files are binary and never diffed or converted.
+game/** -text -diff
+*.swf -text -diff
+rebuild/static/** -text -diff

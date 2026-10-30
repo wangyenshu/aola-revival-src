@@ -1,0 +1,652 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index ffc56d6..39d1df2 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -2439,6 +2439,7 @@ dependencies = [
+  "dirs",
+  "encoding_rs",
+  "fontdb",
++ "futures",
+  "indexmap",
+  "objc2-foundation 0.2.2",
+  "objc2-ui-kit",
+diff --git a/crates/moleruffle-core/Cargo.toml b/crates/moleruffle-core/Cargo.toml
+index 3f5557b..2eb9d67 100644
+--- a/crates/moleruffle-core/Cargo.toml
++++ b/crates/moleruffle-core/Cargo.toml
+@@ -22,6 +22,9 @@ encoding_rs = "0.8"
+ indexmap = "2"
+ async-channel = "2"
+ 
++[dev-dependencies]
++futures.workspace = true
++
+ # 系统剪贴板(复制粘贴)。桌面用 arboard。
+ [target.'cfg(not(any(target_os = "ios", target_os = "android")))'.dependencies]
+ arboard = "3"
+diff --git a/crates/moleruffle-core/src/lib.rs b/crates/moleruffle-core/src/lib.rs
+index 8a875e0..4daeb1b 100644
+--- a/crates/moleruffle-core/src/lib.rs
++++ b/crates/moleruffle-core/src/lib.rs
+@@ -29,16 +29,30 @@ use url::Url;
+ pub mod cache;
+ pub use cache::{cache_dir, CachingNavigator};
+ pub mod mem;
++pub mod mirror;
++pub mod mirrorpath;
++pub use mirror::{mirror_dir, EmulatorConfig, MirrorNavigator};
+ 
+ /// 摩尔庄园网页版的引导 SWF(外壳 / 加载器,AS3+Flex4)。
+ /// 相对路径(version/、resource/、config/、dll/)都相对它来解析。
+-pub const GAME_SWF_URL: &str = "http://mole.61.com/Client.swf";
++pub const GAME_SWF_URL: &str = "http://www.9aola.com/start.swf?120830";
++
++/// 2012 boot SWF at its ORIGINAL URL (served from the mirror, never the network).
++/// Placeholder until Phase 0 finds the real name; override with AOLA_BOOT_URL.
++pub fn boot_url() -> String {
++    std::env::var("AOLA_BOOT_URL").unwrap_or_else(|_| GAME_SWF_URL.to_string())
++}
++
++/// URL of the page the SWF believes it is embedded in (AOLA_PAGE_URL).
++pub fn page_url() -> String {
++    std::env::var("AOLA_PAGE_URL").unwrap_or_else(|_| GAME_BASE_URL.to_string())
++}
+ 
+ /// 所有相对 fetch 的 base，回源到 mole.61.com。
+-pub const GAME_BASE_URL: &str = "http://mole.61.com/";
++pub const GAME_BASE_URL: &str = "http://www.9aola.com/";
+ 
+ /// 窗口标题。
+-pub const WINDOW_TITLE: &str = "摩尔庄园 · MoleRuffle";
++pub const WINDOW_TITLE: &str = "奥拉星 2012 · AolaRuffle";
+ 
+ /// 固定舞台尺寸(Client.swf 的逻辑尺寸)。
+ pub const STAGE_WIDTH: u32 = 960;
+@@ -51,7 +65,7 @@ pub const STAGE_HEIGHT: u32 = 560;
+ pub const SPOOF_URL: &str = GAME_SWF_URL;
+ 
+ pub fn game_swf_url() -> Url {
+-    Url::parse(GAME_SWF_URL).expect("GAME_SWF_URL 必须是合法 URL")
++    Url::parse(&boot_url()).expect("AOLA_BOOT_URL must be a valid URL")
+ }
+ 
+ pub fn game_base_url() -> Url {
+@@ -83,8 +97,8 @@ pub fn apply_mole_settings(builder: PlayerBuilder) -> PlayerBuilder {
+         // 边下边跑:数百个资源 SWF 是运行时陆续拉的
+         .with_load_behavior(LoadBehavior::Streaming)
+         // ★ 域名守卫 spoof:让 Client.swf 以为自己就在官网上,不要 navigateToURL 弹走
+-        .with_spoofed_url(Some(SPOOF_URL.to_string()))
+-        .with_page_url(Some(SPOOF_URL.to_string()))
++        .with_spoofed_url(Some(boot_url()))
++        .with_page_url(Some(page_url()))
+         // 伪装成较新的 Flash Player 版本(摩尔庄园按 plugin 版本判断兼容)
+         .with_player_version(Some(32))
+ }
+@@ -142,6 +156,8 @@ pub fn set_mole_fonts(player: &mut Player) {
+     player.set_default_font(
+         DefaultFont::Sans,
+         vec![
++            "SimSun".into(),            // 宋体: the default Chinese UI font of 2012 Windows
++            "NSimSun".into(),
+             "PingFang SC".into(),       // macOS / iOS
+             "Microsoft YaHei".into(),   // Windows
+             "Noto Sans CJK SC".into(),  // Linux / Android
+diff --git a/crates/moleruffle-core/src/mirror.rs b/crates/moleruffle-core/src/mirror.rs
+new file mode 100644
+index 0000000..9d23362
+--- /dev/null
++++ b/crates/moleruffle-core/src/mirror.rs
+@@ -0,0 +1,335 @@
++//! AolaRuffle: serve the original hosts from the frozen mirror and send game
++//! sockets to the local emulator. Replaces MoleRuffle's CachingNavigator.
++//!
++//! - fetch for an original host (aola.100bt.com, …) is answered from
++//!   `<mirror>/<relpath>`; never from the network. A miss goes to the
++//!   emulator's `/__original?url=` endpoint when `AOLA_EMULATOR_HTTP` is set
++//!   (emulated login/.jsp pages + the miss log), otherwise it is a 404.
++//! - fetch for any other host is blocked unless `AOLA_ALLOW_NETWORK=1`.
++//! - connect_socket(host, port) is rewritten to `AOLA_EMULATOR_HOST`
++//!   (default 127.0.0.1) at the same port, so the original SWF needs no patch.
++
++use std::borrow::Cow;
++use std::path::PathBuf;
++use std::time::Duration;
++
++use async_channel::{Receiver, Sender};
++use encoding_rs::Encoding;
++use indexmap::IndexMap;
++use ruffle_core::backend::navigator::{
++    ErrorResponse, NavigationMethod, NavigatorBackend, OwnedFuture, Request, SuccessResponse,
++};
++use ruffle_core::loader::Error;
++use ruffle_core::socket::{SocketAction, SocketHandle};
++use url::{ParseError, Url};
++
++use crate::mirrorpath::{url_to_relpath, without_query};
++
++/// Hosts whose content lives in the mirror.
++pub const ORIGINAL_HOSTS: &[&str] = &[
++    "www.9aola.com",
++    "web.9aola.com",
++    "login.9aola.com",
++    "service.9aola.com",
++    "aola.100bt.com",
++    "www.100bt.com",
++    "service-aola.100bt.com",
++];
++
++#[derive(Clone, Debug)]
++pub struct EmulatorConfig {
++    /// Host the game sockets are redirected to.
++    pub socket_host: String,
++    /// Base URL of the Node server, for emulated HTTP endpoints (optional).
++    pub http_base: Option<String>,
++    /// Let requests to non-original hosts through (off: fully offline).
++    pub allow_network: bool,
++}
++
++impl EmulatorConfig {
++    pub fn from_env() -> Self {
++        Self {
++            socket_host: std::env::var("AOLA_EMULATOR_HOST").unwrap_or_else(|_| "127.0.0.1".into()),
++            http_base: std::env::var("AOLA_EMULATOR_HTTP").ok().filter(|s| !s.is_empty()),
++            allow_network: std::env::var("AOLA_ALLOW_NETWORK").is_ok_and(|v| v == "1"),
++        }
++    }
++}
++
++/// Mirror root: `AOLA_MIRROR`, else `./mirror` next to the working directory.
++pub fn mirror_dir() -> PathBuf {
++    std::env::var_os("AOLA_MIRROR")
++        .map(PathBuf::from)
++        .unwrap_or_else(|| PathBuf::from("mirror"))
++}
++
++pub struct MirrorNavigator<N> {
++    inner: N,
++    mirror: PathBuf,
++    cfg: EmulatorConfig,
++}
++
++impl<N> MirrorNavigator<N> {
++    pub fn new(inner: N, mirror: PathBuf, cfg: EmulatorConfig) -> Self {
++        tracing::info!("mirror: {} | sockets -> {} | http fallback: {:?}", mirror.display(), cfg.socket_host, cfg.http_base);
++        Self { inner, mirror, cfg }
++    }
++
++    fn lookup(&self, url: &str) -> Option<(String, Vec<u8>)> {
++        let rel = url_to_relpath(url)?;
++        for candidate in [rel.as_str(), without_query(&rel)] {
++            if candidate.split('/').any(|seg| seg == "..") {
++                return None;
++            }
++            let path = self.mirror.join(candidate);
++            if let Ok(bytes) = std::fs::read(&path) {
++                return Some((candidate.to_string(), bytes));
++            }
++        }
++        None
++    }
++}
++
++fn is_original(url: &str) -> bool {
++    Url::parse(url)
++        .ok()
++        .and_then(|u| u.host_str().map(|h| ORIGINAL_HOSTS.contains(&h.to_ascii_lowercase().as_str())))
++        .unwrap_or(false)
++}
++
++fn not_found(url: String) -> OwnedFuture<Box<dyn SuccessResponse>, ErrorResponse> {
++    Box::pin(async move {
++        let error = Error::HttpNotOk("not in mirror".into(), 404, false, 0);
++        Err(ErrorResponse { url, error })
++    })
++}
++
++impl<N: NavigatorBackend> NavigatorBackend for MirrorNavigator<N> {
++    fn fetch(&self, request: Request) -> OwnedFuture<Box<dyn SuccessResponse>, ErrorResponse> {
++        let url = request.url().to_string();
++        if is_original(&url) {
++            // Static files answer any method, as the original web servers did.
++            if let Some((rel, bytes)) = self.lookup(&url) {
++                tracing::debug!("mirror 200 {url} -> {rel}");
++                return Box::pin(async move { Ok(Box::new(MirrorResponse::new(url, bytes)) as Box<dyn SuccessResponse>) });
++            }
++            if let Some(base) = &self.cfg.http_base {
++                let target = format!(
++                    "{}/__original?url={}",
++                    base.trim_end_matches('/'),
++                    url::form_urlencoded::byte_serialize(url.as_bytes()).collect::<String>()
++                );
++                tracing::info!("mirror miss, asking emulator: {url}");
++                let mut fwd = Request::request(request.method(), target, request.body().clone());
++                fwd.set_headers(request.headers().clone());
++                let inner = self.inner.fetch(fwd);
++                // Keep the original URL so loaderInfo.url and relative loads stay authentic.
++                return Box::pin(async move {
++                    let mut resp = inner.await.map_err(|e| ErrorResponse { url: url.clone(), error: e.error })?;
++                    resp.set_url(url);
++                    Ok(resp)
++                });
++            }
++            tracing::warn!("mirror 404 {url}");
++            return not_found(url);
++        }
++        if self.cfg.allow_network {
++            return self.inner.fetch(request);
++        }
++        tracing::warn!("blocked (offline mode): {url}");
++        not_found(url)
++    }
++
++    fn navigate_to_url(&self, url: &str, target: &str, vars: Option<(NavigationMethod, IndexMap<String, String>)>) {
++        // Links out of the game (recharge pages, forums): the inner navigator only logs them.
++        tracing::info!("navigate_to_url: {url} ({target})");
++        self.inner.navigate_to_url(url, target, vars)
++    }
++
++    fn resolve_url(&self, url: &str) -> Result<Url, ParseError> {
++        self.inner.resolve_url(url)
++    }
++
++    fn spawn_future(&mut self, future: OwnedFuture<(), Error>) {
++        self.inner.spawn_future(future)
++    }
++
++    fn pre_process_url(&self, url: Url) -> Url {
++        self.inner.pre_process_url(url)
++    }
++
++    fn connect_socket(
++        &mut self,
++        host: String,
++        port: u16,
++        timeout: Duration,
++        handle: SocketHandle,
++        receiver: Receiver<Vec<u8>>,
++        sender: Sender<SocketAction>,
++    ) {
++        tracing::info!("socket {host}:{port} -> {}:{port}", self.cfg.socket_host);
++        let to = self.cfg.socket_host.clone();
++        self.inner.connect_socket(to, port, timeout, handle, receiver, sender)
++    }
++}
++
++/// A file from the mirror presented as an HTTP 200 for its original URL.
++struct MirrorResponse {
++    url: String,
++    bytes: Vec<u8>,
++    chunk_done: bool,
++}
++
++impl MirrorResponse {
++    fn new(url: String, bytes: Vec<u8>) -> Self {
++        Self { url, bytes, chunk_done: false }
++    }
++}
++
++impl SuccessResponse for MirrorResponse {
++    fn url(&self) -> Cow<'_, str> {
++        Cow::Borrowed(&self.url)
++    }
++
++    fn set_url(&mut self, url: String) {
++        self.url = url;
++    }
++
++    fn body(self: Box<Self>) -> OwnedFuture<Vec<u8>, Error> {
++        let bytes = self.bytes;
++        Box::pin(async move { Ok(bytes) })
++    }
++
++    fn text_encoding(&self) -> Option<&'static Encoding> {
++        None
++    }
++
++    fn status(&self) -> u16 {
++        200
++    }
++
++    fn redirected(&self) -> bool {
++        false
++    }
++
++    fn next_chunk(&mut self) -> OwnedFuture<Option<Vec<u8>>, Error> {
++        if self.chunk_done {
++            Box::pin(async { Ok(None) })
++        } else {
++            self.chunk_done = true;
++            let bytes = std::mem::take(&mut self.bytes);
++            Box::pin(async move { Ok(Some(bytes)) })
++        }
++    }
++
++    fn expected_length(&self) -> Result<Option<u64>, Error> {
++        Ok(Some(self.bytes.len() as u64))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use std::cell::RefCell;
++    use std::rc::Rc;
++
++    /// Stand-in for ExternalNavigatorBackend that records what reaches it.
++    #[derive(Clone, Default)]
++    struct Stub {
++        seen: Rc<RefCell<Vec<String>>>,
++    }
++
++    impl NavigatorBackend for Stub {
++        fn fetch(&self, request: Request) -> OwnedFuture<Box<dyn SuccessResponse>, ErrorResponse> {
++            let url = request.url().to_string();
++            self.seen.borrow_mut().push(format!("fetch {url}"));
++            Box::pin(async move { Ok(Box::new(MirrorResponse::new(url, b"from-emulator".to_vec())) as Box<dyn SuccessResponse>) })
++        }
++        fn navigate_to_url(&self, url: &str, _: &str, _: Option<(NavigationMethod, IndexMap<String, String>)>) {
++            self.seen.borrow_mut().push(format!("navigate {url}"));
++        }
++        fn resolve_url(&self, url: &str) -> Result<Url, ParseError> {
++            Url::parse(url)
++        }
++        fn spawn_future(&mut self, _future: OwnedFuture<(), Error>) {}
++        fn pre_process_url(&self, url: Url) -> Url {
++            url
++        }
++        fn connect_socket(
++            &mut self,
++            host: String,
++            port: u16,
++            _timeout: Duration,
++            _handle: SocketHandle,
++            _receiver: Receiver<Vec<u8>>,
++            _sender: Sender<SocketAction>,
++        ) {
++            self.seen.borrow_mut().push(format!("socket {host}:{port}"));
++        }
++    }
++
++    fn mirror(tag: &str) -> PathBuf {
++        let dir = std::env::temp_dir().join(format!("aolaruffle-test-{}-{tag}", std::process::id()));
++        std::fs::create_dir_all(dir.join("aola.100bt.com/play")).unwrap();
++        std::fs::write(dir.join("aola.100bt.com/play/Main.swf"), b"FWS-main").unwrap();
++        std::fs::write(dir.join("aola.100bt.com/play/map.swf%3Fv=3"), b"map-v3").unwrap();
++        dir
++    }
++
++    fn body(nav: &MirrorNavigator<Stub>, url: &str) -> Result<(String, Vec<u8>), u16> {
++        futures::executor::block_on(async {
++            match nav.fetch(Request::get(url.to_string())).await {
++                Ok(resp) => {
++                    let final_url = resp.url().to_string();
++                    Ok((final_url, resp.body().await.unwrap()))
++                }
++                Err(e) => match e.error {
++                    Error::HttpNotOk(_, status, _, _) => Err(status),
++                    _ => Err(0),
++                },
++            }
++        })
++    }
++
++    #[test]
++    fn serves_original_hosts_from_the_mirror_only() {
++        let stub = Stub::default();
++        let cfg = EmulatorConfig { socket_host: "127.0.0.1".into(), http_base: None, allow_network: false };
++        let nav = MirrorNavigator::new(stub.clone(), mirror("serve"), cfg);
++        assert_eq!(body(&nav, "http://aola.100bt.com/play/Main.swf").unwrap().1, b"FWS-main");
++        assert_eq!(body(&nav, "http://aola.100bt.com/play/map.swf?v=3").unwrap().1, b"map-v3");
++        assert_eq!(body(&nav, "http://aola.100bt.com/play/Main.swf?v=99").unwrap().1, b"FWS-main");
++        assert_eq!(body(&nav, "http://aola.100bt.com/play/gone.swf"), Err(404));
++        assert_eq!(body(&nav, "http://example.com/tracker.js"), Err(404));
++        assert!(stub.seen.borrow().is_empty(), "nothing reached the network: {:?}", stub.seen.borrow());
++    }
++
++    #[test]
++    fn misses_go_to_the_emulator_and_keep_their_original_url() {
++        let stub = Stub::default();
++        let cfg = EmulatorConfig {
++            socket_host: "127.0.0.1".into(),
++            http_base: Some("http://127.0.0.1:8080".into()),
++            allow_network: false,
++        };
++        let nav = MirrorNavigator::new(stub.clone(), mirror("miss"), cfg);
++        let (url, bytes) = body(&nav, "http://aola.100bt.com/play/login.jsp?u=1").unwrap();
++        assert_eq!(bytes, b"from-emulator");
++        assert_eq!(url, "http://aola.100bt.com/play/login.jsp?u=1");
++        assert_eq!(
++            stub.seen.borrow().as_slice(),
++            ["fetch http://127.0.0.1:8080/__original?url=http%3A%2F%2Faola.100bt.com%2Fplay%2Flogin.jsp%3Fu%3D1"]
++        );
++    }
++
++    #[test]
++    fn sockets_are_redirected_to_the_emulator() {
++        let stub = Stub::default();
++        let cfg = EmulatorConfig { socket_host: "127.0.0.1".into(), http_base: None, allow_network: false };
++        let mut nav = MirrorNavigator::new(stub.clone(), mirror("socket"), cfg);
++        let (_tx, rx) = async_channel::unbounded();
++        let (tx2, _rx2) = async_channel::unbounded();
++        nav.connect_socket("118.123.4.5".into(), 8001, Duration::from_secs(5), SocketHandle::default(), rx, tx2);
++        assert_eq!(stub.seen.borrow().as_slice(), ["socket 127.0.0.1:8001"]);
++    }
++}
+diff --git a/crates/moleruffle-core/src/mirrorpath.rs b/crates/moleruffle-core/src/mirrorpath.rs
+new file mode 100644
+index 0000000..6bd6036
+--- /dev/null
++++ b/crates/moleruffle-core/src/mirrorpath.rs
+@@ -0,0 +1,180 @@
++//! Rust twin of tools/mirrorpath.py and server/src/core/mirrorPath.ts:
++//! original URL -> relative path inside mirror/. No dependencies, so it can be
++//! tested on its own:  rustc --edition 2021 --test mirrorpath.rs && ./mirrorpath
++
++const SAFE_PATH: &[u8] = b"/-_.~!$'()+,;=@";
++const SAFE_QUERY: &[u8] = b"-_.~=&";
++pub const QUERY_MARK: &str = "%3F";
++
++fn is_unreserved(b: u8) -> bool {
++    b.is_ascii_alphanumeric() || matches!(b, b'_' | b'.' | b'-' | b'~')
++}
++
++/// Same result as Python's `urllib.parse.quote(s, safe)`.
++pub fn quote(s: &str, safe: &[u8]) -> String {
++    let mut out = String::with_capacity(s.len());
++    for &b in s.as_bytes() {
++        if is_unreserved(b) || (b < 0x80 && safe.contains(&b)) {
++            out.push(b as char);
++        } else {
++            out.push_str(&format!("%{b:02X}"));
++        }
++    }
++    out
++}
++
++/// Same result as Python's `urllib.parse.unquote(s)` (UTF-8, errors replaced).
++pub fn unquote(s: &str) -> String {
++    let bytes = s.as_bytes();
++    let mut out = Vec::with_capacity(bytes.len());
++    let mut i = 0;
++    while i < bytes.len() {
++        if bytes[i] == b'%'
++            && i + 2 < bytes.len()
++            && bytes[i + 1].is_ascii_hexdigit()
++            && bytes[i + 2].is_ascii_hexdigit()
++        {
++            let hex = std::str::from_utf8(&bytes[i + 1..i + 3]).unwrap_or("00");
++            out.push(u8::from_str_radix(hex, 16).unwrap_or(0));
++            i += 3;
++            continue;
++        }
++        out.push(bytes[i]);
++        i += 1;
++    }
++    String::from_utf8_lossy(&out).into_owned()
++}
++
++struct Split {
++    scheme: String,
++    host: String,
++    port: Option<u16>,
++    path: String,
++    query: String,
++}
++
++fn split(url: &str) -> Option<Split> {
++    let url = if url.contains("://") { url.to_string() } else { format!("http://{url}") };
++    let (scheme, rest) = url.split_once("://")?;
++    let rest = rest.split('#').next().unwrap_or("");
++    let end = rest.find(['/', '?']).unwrap_or(rest.len());
++    let (netloc, tail) = rest.split_at(end);
++    let (path, query) = match tail.split_once('?') {
++        Some((p, q)) => (p.to_string(), q.to_string()),
++        None => (tail.to_string(), String::new()),
++    };
++    let hostport = netloc.rsplit('@').next().unwrap_or(netloc);
++    let (host, port) = if hostport.starts_with('[') {
++        match hostport.find(']') {
++            Some(i) => (&hostport[..=i], hostport[i + 1..].strip_prefix(':').and_then(|p| p.parse().ok())),
++            None => (hostport, None),
++        }
++    } else {
++        match hostport.rsplit_once(':') {
++            Some((h, p)) => (h, p.parse().ok()),
++            None => (hostport, None),
++        }
++    };
++    Some(Split {
++        scheme: scheme.to_ascii_lowercase(),
++        host: host.to_ascii_lowercase(),
++        port,
++        path,
++        query,
++    })
++}
++
++fn clean_path(raw: &str) -> String {
++    let decoded = unquote(if raw.is_empty() { "/" } else { raw }).replace('\\', "/");
++    let trailing = decoded.ends_with('/');
++    let mut stack: Vec<&str> = Vec::new();
++    for seg in decoded.split('/') {
++        match seg {
++            "" | "." => {}
++            ".." => {
++                stack.pop();
++            }
++            s => stack.push(s),
++        }
++    }
++    let mut path = format!("/{}", stack.join("/"));
++    if trailing && !path.ends_with('/') {
++        path.push('/');
++    }
++    quote(&path, SAFE_PATH)
++}
++
++/// Canonical key: always `http://`, default port dropped, path normalised.
++pub fn normalize_url(url: &str) -> Option<String> {
++    let u = split(url)?;
++    let mut host = u.host.clone();
++    if let Some(p) = u.port {
++        let default = (u.scheme == "http" && p == 80) || (u.scheme == "https" && p == 443);
++        if !default {
++            host = format!("{host}:{p}");
++        }
++    }
++    let mut out = format!("http://{host}{}", clean_path(&u.path));
++    if !u.query.is_empty() {
++        out.push('?');
++        out.push_str(&u.query);
++    }
++    Some(out)
++}
++
++/// Relative file path inside the mirror root.
++pub fn url_to_relpath(url: &str) -> Option<String> {
++    let u = split(&normalize_url(url)?)?;
++    let host = match u.port {
++        Some(p) => format!("{}_{p}", u.host),
++        None => u.host,
++    };
++    let mut path = u.path;
++    if path.ends_with('/') {
++        path.push_str("index.html");
++    }
++    let mut rel = format!("{host}{path}");
++    if !u.query.is_empty() {
++        rel.push_str(QUERY_MARK);
++        rel.push_str(&quote(&u.query, SAFE_QUERY));
++    }
++    Some(rel)
++}
++
++pub fn without_query(rel: &str) -> &str {
++    rel.find(QUERY_MARK).map_or(rel, |i| &rel[..i])
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Same cases as tests/mirrorpath-fixtures.json.
++    const FIXTURES: &[(&str, &str)] = &[
++        ("http://aola.100bt.com/play/start~1.xml", "aola.100bt.com/play/start~1.xml"),
++        ("http://AOLA.100bt.com:80/play/Main.swf", "aola.100bt.com/play/Main.swf"),
++        ("https://aola.100bt.com:443/play/", "aola.100bt.com/play/index.html"),
++        ("http://aola.100bt.com", "aola.100bt.com/index.html"),
++        ("http://aola.100bt.com/play/a/./b/../c.swf", "aola.100bt.com/play/a/c.swf"),
++        ("http://aola.100bt.com/../../etc/passwd", "aola.100bt.com/etc/passwd"),
++        ("http://aola.100bt.com/play/map.swf?v=3", "aola.100bt.com/play/map.swf%3Fv=3"),
++        ("http://aola.100bt.com/play/map.swf?v=3&t=a b", "aola.100bt.com/play/map.swf%3Fv=3&t=a%20b"),
++        ("http://aola.100bt.com/play/%E4%BA%9A%E6%AF%94.swf", "aola.100bt.com/play/%E4%BA%9A%E6%AF%94.swf"),
++        ("http://aola.100bt.com/play/亚比.swf", "aola.100bt.com/play/%E4%BA%9A%E6%AF%94.swf"),
++        ("http://aola.100bt.com/play/a:b*c.swf", "aola.100bt.com/play/a%3Ab%2Ac.swf"),
++        ("http://service-aola.100bt.com:8080/x.jsp?uid=1", "service-aola.100bt.com_8080/x.jsp%3Fuid=1"),
++    ];
++
++    #[test]
++    fn matches_shared_fixtures() {
++        for (url, rel) in FIXTURES {
++            assert_eq!(url_to_relpath(url).as_deref(), Some(*rel), "{url}");
++        }
++    }
++
++    #[test]
++    fn strips_query_mark() {
++        assert_eq!(without_query("a/b.swf%3Fv=1"), "a/b.swf");
++        assert_eq!(without_query("a/b.swf"), "a/b.swf");
++    }
++}
+diff --git a/desktop/src/main.rs b/desktop/src/main.rs
+index fef25a3..f6a0998 100644
+--- a/desktop/src/main.rs
++++ b/desktop/src/main.rs
+@@ -306,7 +306,8 @@ impl App {
+         );
+         // ★ 本地资源缓存(CDN 思路):静态资源 SWF/图片缓存到磁盘,二次加载秒开且免网络,
+         //   缓解 mole.61.com 慢/抖动导致的"维护"与每次重下。socket/登录动态请求不走缓存。
+-        let navigator = mole::CachingNavigator::new(navigator, mole::cache_dir());
++        // AolaRuffle: original hosts come from the frozen mirror, sockets go to the emulator.
++        let navigator = mole::MirrorNavigator::new(navigator, mole::mirror_dir(), mole::EmulatorConfig::from_env());
+ 
+         // 设备字体后端:系统字体 + 中文回退;并取软键盘标志(文本框聚焦时弹键盘)
+         let ui = mole::MoleUiBackend::with_system_fonts();
+@@ -334,7 +335,7 @@ impl App {
+                 scale_factor: window.scale_factor(),
+             });
+             mole::set_mole_fonts(&mut p);
+-            p.fetch_root_movie(mole::GAME_SWF_URL.to_string(), vec![], Box::new(|_| {}));
++            p.fetch_root_movie(mole::boot_url(), vec![], Box::new(|_| {}));
+         }
+         (player, kbd, render_api)
+     }
+@@ -749,7 +750,7 @@ fn main() -> anyhow::Result<()> {
+     });
+     tracing_subscriber::fmt().with_env_filter(filter).init();
+ 
+-    tracing::info!("MoleRuffle 桌面端启动,加载 {}", mole::GAME_SWF_URL);
++    tracing::info!("MoleRuffle 桌面端启动,加载 {}", mole::boot_url());
+ 
+     let event_loop = EventLoop::<UserEvent>::with_user_event().build()?;
+     let proxy = event_loop.create_proxy();

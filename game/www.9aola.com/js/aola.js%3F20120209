@@ -1,0 +1,98 @@
+﻿    function addFav(key) {
+        try
+        {
+            window.external.addFavorite("http://www.9aola.com/?fav=" + key  ,"奥拉星-奇趣奥拉星，你我快乐行");
+        }
+        catch (e)
+        {
+            try{
+                window.external.addToFavoritesBar("http://www.9aola.com/?fav=" + key  ,"奥拉星-奇趣奥拉星，你我快乐行", "slice");    
+            }
+            catch(e)
+            {
+                try
+                {
+                    window.sidebar.addPanel("奥拉星-奇趣奥拉星，你我快乐行","http://www.9aola.com/?fav=" + key  , "");
+                }
+                catch (e)
+                {
+                    alert("非常抱歉，你的浏览器目前还不支持此功能！请在浏览器的收藏夹或书签菜单里进行手动添加。");
+                }
+            }
+        }
+        
+        return "callsuccess";
+    }
+        
+    function setHomePage() {
+        if (document.all) {
+            document.body.style.behavior='url(#default#homepage)';
+            document.body.setHomePage('http://www.9aola.com'); 
+        }
+    }
+        
+    function navToHelp() {
+        window.location.href = "http://www.9aola.com/help/quickstart.html";
+    }   
+    
+    function bOver(btn){
+        btn.src = btn.src.replace('.jpg', '_active.jpg');
+    }
+    
+    function bOut(btn){
+        btn.src = btn.src.replace('_active.jpg', '.jpg');
+    }
+    
+    function logout(){
+        window.location.href = "http://www.9aola.com";
+    }
+
+	function getSN() {
+        if (document.referrer == null) return "";       
+        var domain = document.referrer.split('/')[2];
+        var domainParts = domain.split('.');
+        return domainParts.length == 2 ? domainParts[0] : domainParts[1];          
+    }
+    
+    function getRef() { 
+	    return document.referrer; 
+	}
+
+    var needAddFav = false;
+	/*function window.onbeforeunload()
+	{
+		if (needAddFav)
+		{
+			addFav("activate");
+		}
+	}*/
+	window.onbeforeunload=function()
+        {
+               callASFun();
+               if (needAddFav)
+               {
+                       addFav("activate");
+               }
+        }
+        
+        //JS调用AS
+
+        function callASFun(){
+        try{
+           thisMovie("myFlash").closeSocket("关闭Socket");
+           }
+           catch(e){}
+        }
+
+        function thisMovie(movieName) {
+            if (navigator.appName.indexOf("Microsoft") != -1) {
+                return window[movieName];
+           }else{
+                return document[movieName];
+            }
+        }
+
+	function setNeedAddFav()
+	{
+		needAddFav = true;
+	}

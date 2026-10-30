@@ -1,0 +1,31 @@
+{
+  "name": "aola-revival",
+  "version": "0.2.0",
+  "private": true,
+  "description": "奥拉星 as of January 2013, revived: the archived client, rebuilt modules and an in-browser server emulator, built into a static site",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build:swf": "sh rebuild/build/build-swf.sh",
+    "build": "node scripts/build-static.mjs",
+    "serve": "node scripts/serve.mjs",
+    "test": "node --test server/test/*.test.ts && python3 -m unittest discover -s tests",
+    "check": "tsc -p server/tsconfig.json",
+    "e2e": "node server/test/e2e/browser.e2e.mjs",
+    "e2e:newbie": "node server/test/e2e/boot2013.mjs --out work/e2e-newbie --seconds 1300 --query dev=1 --actions \"38:500,520;46:500,520\" --scenario server/test/e2e/scenarios/newbie.mjs",
+    "start": "node server/src/node/main.ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@ruffle-rs/ruffle": "0.7.1",
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13",
+    "esbuild": "^0.25.0",
+    "playwright": "1.56.0",
+    "typescript": "^5.9.0"
+  }
+}

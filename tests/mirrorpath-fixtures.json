@@ -1,0 +1,14 @@
+{
+  "http://aola.100bt.com/play/start~1.xml": "aola.100bt.com/play/start~1.xml",
+  "http://AOLA.100bt.com:80/play/Main.swf": "aola.100bt.com/play/Main.swf",
+  "https://aola.100bt.com:443/play/": "aola.100bt.com/play/index.html",
+  "http://aola.100bt.com": "aola.100bt.com/index.html",
+  "http://aola.100bt.com/play/a/./b/../c.swf": "aola.100bt.com/play/a/c.swf",
+  "http://aola.100bt.com/../../etc/passwd": "aola.100bt.com/etc/passwd",
+  "http://aola.100bt.com/play/map.swf?v=3": "aola.100bt.com/play/map.swf%3Fv=3",
+  "http://aola.100bt.com/play/map.swf?v=3&t=a b": "aola.100bt.com/play/map.swf%3Fv=3&t=a%20b",
+  "http://aola.100bt.com/play/%E4%BA%9A%E6%AF%94.swf": "aola.100bt.com/play/%E4%BA%9A%E6%AF%94.swf",
+  "http://aola.100bt.com/play/亚比.swf": "aola.100bt.com/play/%E4%BA%9A%E6%AF%94.swf",
+  "http://aola.100bt.com/play/a:b*c.swf": "aola.100bt.com/play/a%3Ab%2Ac.swf",
+  "http://service-aola.100bt.com:8080/x.jsp?uid=1": "service-aola.100bt.com_8080/x.jsp%3Fuid=1"
+}

@@ -1,0 +1,1107 @@
+{
+"aixiscene1": [
+{
+"raceId": 43,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"aixiscene2": [
+{
+"raceId": 10,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 61,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 142,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+}
+],
+"aixiscene4": [
+{
+"raceId": 11,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 62,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"aquarium": [
+{
+"raceId": 181,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 182,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"bailingstar1": [
+{
+"raceId": 1094,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+}
+],
+"bingxuestar1": [
+{
+"raceId": 732,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 733,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"bingxuestar3": [
+{
+"raceId": 734,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 745,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
+}
+],
+"bingxuestar4": [
+{
+"raceId": 751,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 752,
+"min": 17,
+"max": 21,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 753,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"bite1": [
+{
+"raceId": 25,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 76,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"bite2": [
+{
+"raceId": 26,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 49,
+"min": 3,
+"max": 6,
+"common": 1,
+"rate": 0
+}
+],
+"bite3": [
+{
+"raceId": 50,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 77,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"bite4": [
+{
+"raceId": 27,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 78,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"candystar1": [
+{
+"raceId": 844,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 846,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"candystar4": [
+{
+"raceId": 845,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"catestar1": [
+{
+"raceId": 625,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 626,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"catestar4": [
+{
+"raceId": 627,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"clockstar1": [
+{
+"raceId": 906,
+"min": 7,
+"max": 10,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 913,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"clockstar3": [
+{
+"raceId": 907,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"ecologicalpark": [
+{
+"raceId": 1205,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"fairytalestar1": [
+{
+"raceId": 671,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 672,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"fairytalestar3": [
+{
+"raceId": 673,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 674,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"feier1": [
+{
+"raceId": 13,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 46,
+"min": 3,
+"max": 6,
+"common": 1,
+"rate": 0
+}
+],
+"feier2": [
+{
+"raceId": 14,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 47,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"feier3": [
+{
+"raceId": 15,
+"min": 30,
+"max": 34,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 48,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"feier4": [
+{
+"raceId": 15,
+"min": 30,
+"max": 34,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 48,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"haikustar1": [
+{
+"raceId": 705,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 706,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 708,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
+}
+],
+"haikustar3": [
+{
+"raceId": 707,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"haiwen1": [
+{
+"raceId": 28,
+"min": 7,
+"max": 10,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 52,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"haiwen2": [
+{
+"raceId": 53,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 54,
+"min": 30,
+"max": 34,
+"common": 1,
+"rate": 0
+}
+],
+"haiwen3": [
+{
+"raceId": 29,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 55,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 56,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+}
+],
+"haiwen4": [
+{
+"raceId": 57,
+"min": 30,
+"max": 34,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 125,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"haiwen5": [
+{
+"raceId": 30,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 54,
+"min": 30,
+"max": 34,
+"common": 1,
+"rate": 0
+}
+],
+"hexagrampalace1": [
+{
+"raceId": 786,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"hexagrampalace3": [
+{
+"raceId": 786,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 787,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"inventisland1": [
+{
+"raceId": 172,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 184,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 202,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"inventisland2": [
+{
+"raceId": 175,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 185,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"inventisland3": [
+{
+"raceId": 173,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 176,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"inventisland4": [
+{
+"raceId": 174,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 186,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 203,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"inventisland5": [
+{
+"raceId": 204,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"knightstar1": [
+{
+"raceId": 932,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+}
+],
+"leiming1": [
+{
+"raceId": 157,
+"min": 3,
+"max": 6,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 158,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"leiming2": [
+{
+"raceId": 154,
+"min": 3,
+"max": 6,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 155,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"leiming3": [
+{
+"raceId": 151,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 152,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"leiming4": [
+{
+"raceId": 153,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 156,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 159,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"magicstar1": [
+{
+"raceId": 695,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 696,
+"min": 17,
+"max": 21,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 698,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"magicstar3": [
+{
+"raceId": 697,
+"min": 36,
+"max": 40,
+"common": 1,
+"rate": 0
+}
+],
+"musicstar1": [
+{
+"raceId": 977,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+}
+],
+"screampark1": [
+{
+"raceId": 949,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 951,
+"min": 33,
+"max": 37,
+"common": 0,
+"rate": 5
+}
+],
+"siwude1": [
+{
+"raceId": 22,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"siwude2": [
+{
+"raceId": 40,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 58,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"siwude3": [
+{
+"raceId": 23,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 41,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"siwude4": [
+{
+"raceId": 24,
+"min": 30,
+"max": 34,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 138,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"siwude5": [
+{
+"raceId": 137,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 146,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"siwude6": [
+{
+"raceId": 136,
+"min": 3,
+"max": 6,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 145,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"suolide1": [
+{
+"raceId": 19,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"suolide2": [
+{
+"raceId": 34,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 70,
+"min": 2,
+"max": 5,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 282,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
+}
+],
+"suolide3": [
+{
+"raceId": 71,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"suolide4": [
+{
+"raceId": 36,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 72,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"temple1": [
+{
+"raceId": 534,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"unicornstar1": [
+{
+"raceId": 645,
+"min": 6,
+"max": 9,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 646,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 651,
+"min": 22,
+"max": 26,
+"common": 1,
+"rate": 0
+}
+],
+"unicornstar4": [
+{
+"raceId": 647,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"volcano": [
+{
+"raceId": 205,
+"min": 14,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 206,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"windmillstar1": [
+{
+"raceId": 875,
+"min": 8,
+"max": 11,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 894,
+"min": 30,
+"max": 34,
+"common": 0,
+"rate": 5
+}
+],
+"woerte1": [
+{
+"raceId": 67,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"woerte2": [
+{
+"raceId": 68,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 256,
+"min": 14,
+"max": 18,
+"common": 0,
+"rate": 5
+}
+],
+"woerte3": [
+{
+"raceId": 16,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 31,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"woerte4": [
+{
+"raceId": 18,
+"min": 40,
+"max": 44,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 32,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"yakestar1": [
+{
+"raceId": 825,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+}
+],
+"yakestar4": [
+{
+"raceId": 826,
+"min": 34,
+"max": 38,
+"common": 1,
+"rate": 0
+}
+],
+"yishuzhidu1": [
+{
+"raceId": 166,
+"min": 1,
+"max": 4,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 167,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+}
+],
+"yishuzhidu3": [
+{
+"raceId": 148,
+"min": 5,
+"max": 8,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 149,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 150,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"yishuzhidu4": [
+{
+"raceId": 167,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 171,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"yishuzhidu5": [
+{
+"raceId": 133,
+"min": 10,
+"max": 14,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 135,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+]
+}

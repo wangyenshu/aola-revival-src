@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link type="text/css" href="css/hk.css" media="all" rel="stylesheet" />
+<title>母亲节贺卡_奥拉星</title>
+</head>
+
+<body id="hk" class="">
+<div class="main">
+ <div class="ct thid">给妈妈的祝福
+ <a href="http://www.9aola.com/" class="getin">进入奥拉星</a>
+ <div id="bt" class="bt">
+     小奥拉:
+ </div>
+ <div>
+ </div>
+ </div>
+ <div class="foot">
+ <a class="getin thid" href="http://www.9aola.com/">进入奥拉星</a>
+ <div class="rg">
+ <p>
+ <a target="_blank" href="http://web.9aola.com/story/story.html">关于奥拉星</a>
+ |
+ <a target="_blank" href="http://blog.9aola.com/">官方博客</a>
+ |
+ <a target="_blank" href="http://www.9aola.com/website/tos6.html">服务条款</a>
+ |
+ <a target="_blank" href="http://www.baitianinfo.com/join/campus.html">加盟奥拉星</a>
+ |
+ <a target="_blank" href="http://www.baitianinfo.com/about/contact.html">联系我们</a>
+ </p>
+ <p>
+ <p>
+<span><a target="_blank" href="http://www.9aola.com/licence.html">文网文[2009]103号</a></span>
+<span><a target="_blank" href="http://www.9aola.com/splicence.html">增值电信业务经营许可证粤B2-20090388号</a></span>
+ </p>
+ <p>
+ <span>文化部监督邮箱：kefu@9aola.com
+ </span>
+ </p>
+ <p>
+ Copyright © 2009 - 2012 BaitianInfo Ltd.All Rights Reserved
+ </p>
+ </div>
+ </div>
+</div>
+</body>
+<script type="text/javascript" src="http://www.9aola.com/commonNav/js/jquery.js"></script>
+<script type="text/javascript">
+	var qurl = window.location.search.slice(1);
+	var arr = qurl.split('&');
+	var obj = {};
+	for(var i=0;i<arr.length;i++){
+		  var t = arr[i].split('=');
+		  obj[t[0]] = t[1];
+		};
+	var p = obj.page?((obj.page=='blue'||obj.page=='yellow'||obj.page=='red')?obj.page:'blue'):'blue',n = obj.name?decodeURIComponent(obj.name):'匿名的小奥拉',id = obj.uid?decodeURIComponent(obj.uid):'未知';
+	$(function(){	
+	   $('#hk').addClass('b_'+p);
+	   var t = n;
+	   $('#bt').append(t);
+	   if(t.length<=6)$('#bt').css('top','+=12');
+	})	
+</script>
+</html>
