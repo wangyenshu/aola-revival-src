@@ -14,7 +14,10 @@ package mmo.scene.starland
 
    /**
     * REBUILT 奥拉广场 (room "starland"), bound to the July 2012 artwork of
-    * bigscene/starlandcopy.swf (symbol 225) by tools/swf_transplant.py.
+    * bigscene/starlandcopy.swf (symbol 225) by tools/swf_transplant.py. The
+    * January 2013 config names that art (starlandcopy) 流星购物街, the street
+    * of the shops, whose own 2013 scene (scene/starshopping) is lost: the
+    * same scene is installed as scene/starshopping too.
     *
     * Arrival points come from the surviving January 2013 neighbours, which
     * name the keys they send players with: restaurant "restostar", happyark
@@ -69,7 +72,8 @@ package mmo.scene.starland
          if (shop != null)
          {
             tips.addTips(shop, "道具店");
-            addEntrances(shop, "toolshopcopy");
+            // The newbie quest buys its balls from 米娜 in the 道具店 copy; afterwards the 道具店.
+            addEntrances(shop, newbieDone() ? "toolshop" : "toolshopcopy", "fromstarshopping");
             shop.alpha = 0;
          }
          for each (var e:Array in EXITS)
@@ -81,6 +85,17 @@ package mmo.scene.starland
          var house:Sprite = hotspot(84, 258, 150, 70);
          tips.addTips(house, "小屋");
          addEntranceAction(house, goHome);
+      }
+
+      private static function newbieDone():Boolean
+      {
+         try
+         {
+            var ts:Object = ServiceContainer.getService("TaskService");
+            return ts != null && ts.isUserTaskFinish(150);
+         }
+         catch (e:Error) {}
+         return false;
       }
 
       private function hotspot(x:Number, y:Number, w:Number, h:Number):Sprite

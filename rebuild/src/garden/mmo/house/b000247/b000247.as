@@ -67,6 +67,9 @@ package mmo.house.b000247
             addChild(layer);
          }
          drawObstruction(Sprite(getChildByName("obstruction")));
+         hud = new Sprite();
+         Sprite(getChildByName("topground")).addChild(hud);
+         // A second visit finds the picture loaded and puts it at once: everything it needs is made above.
          loadPicture(Sprite(getChildByName("background")));
          // The 植树盆 and its tree (its foot in the pot; the whole of it takes the click).
          pot = new Sprite();
@@ -80,8 +83,6 @@ package mmo.house.b000247
          treeHolder.mouseEnabled = treeHolder.mouseChildren = false;
          pot.addChild(treeHolder);
          Sprite(getChildByName("foreground")).addChild(pot);
-         hud = new Sprite();
-         Sprite(getChildByName("topground")).addChild(hud);
       }
 
       /** The tutorial's picture of the garden, without its labels and close button. */
@@ -97,7 +98,6 @@ package mmo.house.b000247
             while (mc.numChildren > 1) mc.removeChildAt(mc.numChildren - 1);
             mc.mouseEnabled = mc.mouseChildren = false;
             into.addChild(mc);
-            nameplates();
          };
          if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
          else ResScheduler.getResource("house/houseteachmovie/houseteachgarden", put, cls, function(e:* = null):void { RLog.log("garden: no picture"); });
@@ -127,13 +127,16 @@ package mmo.house.b000247
             if (control != null) control.hide();
          }
          catch (e:Error) {}
+         nameplates();
+         taskIconOverPicture(true);
          var fg:Sprite = Sprite(getChildByName("foreground"));
          // Things of the garden: walk there, then act.
          spot(fg, 735, 95, 155, 140, 800, 266, "我的家", function():void { if (loader != null) loader.loadSubHouse(-1, "default"); });
          spot(fg, 62, 168, 80, 70, 160, 286, "亚比仓库", function():void { panel("PetWareHouse"); });
          spot(fg, 0, 0, 0, 0, 548, 262, "植树盆", openPot, pot);
          spot(fg, 600, 336, 140, 92, 680, 400, "离开花园", leaveHome);
-         spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", notYet);
+         // The era 亚比孵化器 panel (pet/pethatchegg; the server's PetEggExtension, eggs.ts).
+         spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", function():void { if (isMine()) panel("PetHatchEgg"); else notYet(); });
          spot(fg, 248, 198, 76, 94, 285, 300, "经验分配器", notYet);
          spot(fg, 128, 66, 116, 104, 200, 270, "我的荣誉", notYet);
          spot(fg, 330, 20, 110, 172, 390, 270, "进入动物园", notYet);
@@ -169,8 +172,26 @@ package mmo.house.b000247
       {
          SocketClient.instance.removeEventListener("revival_garden", onGarden);
          PlantPanel.closeIfOpen();
+         taskIconOverPicture(false);
          if (control != null) control.show();
          super.onLeaveRoom();
+      }
+
+      /**
+       * The picture shows the 任务 button where the game's own one (taskpanelnew,
+       * "taskIcon" at 912, 8) stands a little off: in the garden the live
+       * button is laid exactly over the drawn one.
+       */
+      private static function taskIconOverPicture(over:Boolean):void
+      {
+         try
+         {
+            var icon:DisplayObject = LayerManager.getBaseControl().getChildByName("taskIcon");
+            if (icon == null) return;
+            icon.x = over ? 879 : 912;
+            icon.y = over ? -2 : 8;
+         }
+         catch (e:Error) {}
       }
 
       private function owner():String

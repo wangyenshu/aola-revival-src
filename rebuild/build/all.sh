@@ -99,6 +99,11 @@ build pet mmo/pet/dataservice/DocPetData.as petdata.swf "pet/petdataservice.swf%
 export GEN="$HERE/../gen/petdict"
 build pet mmo/pet/petdictionarydata/DocPetDict.as petdict.swf "pet/petdictionarydata.swf%3F130124"
 unset GEN
+# What panels ask about a 亚比 or skill (names, evolution, egg pictures): rebuilt
+# pet/petskillmesservice on the revival's tables (rebuild/gen/petmes, tools/gen_petmes.py).
+export GEN="$HERE/../gen/petmes"
+build petskillmes mmo/pet/petskillmessage/DocPetSkillMes.as petmes.swf "pet/petskillmesservice.swf%3F130124"
+unset GEN
 # The following 亚比: rebuilt pet/petfollow (PetClient2 54_8 / 54_9, user variable "p").
 build petfollow mmo/petfollow/DocPetFollow.as petfollow.swf "pet/petfollow.swf%3F121213"
 build petpackage mmo/pet/petpackage/DocPetPackage.as petpackage-code.swf ""
@@ -207,6 +212,9 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art bigscene/starlandcopy.swf)" \
   --code "$OUT/starland-code.swf" --bind 0=mmo.scene.starland.Docstarland --bind 225=mmo.scene.starland.Starland \
   --note "REBUILT scene/starland: rebuilt code (aola-revival) on the July 2012 art of bigscene/starlandcopy.swf" \
   --out "$W/scene/starland.swf%3F130124"
+# 流星购物街 (starshopping): the January 2013 scene is lost (the live one is of
+# 2026); the config gives the July 2012 art (starlandcopy) that name.
+cp "$W/scene/starland.swf%3F130124" "$W/scene/starshopping.swf%3F130124"
 
 # 道具店: the later scene's own code (2016 copy, decompiled), compiled against
 # the 2013 interfaces without its one later-only call, on that copy's art.
@@ -215,6 +223,24 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/toolshop.swf)" \
   --code "$OUT/toolshop-code.swf" --bind 0=mmo.scene.toolshop.DocToolshop --bind 203=mmo.scene.toolshop.Toolshop \
   --note "LATER scene/toolshop: its code compiled against the 2013 interfaces (aola-revival), on its own art" \
   --out "$W/scene/toolshop.swf%3F121203"
+
+# 生态园: the 2020 scene's code on the 2013 interfaces, its game spots opening
+# (its classes are renamed: the art keeps the 2020 classes of the same names,
+# and the player uses the first definition of a name)
+# the 生态园 games of the January 2013 config (gamePvZ, gameCatchAnimal, gameSeaDefend).
+build scenes/ecologicalpark mmo/scene/starland/DocEcologicalParkRevived.as ecologicalpark-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/ecologicalpark.swf)" \
+  --code "$OUT/ecologicalpark-code.swf" --bind 0=mmo.scene.starland.DocEcologicalParkRevived --bind 176=mmo.scene.starland.EcologicalParkRevived \
+  --note "LATER scene/ecologicalpark: its code rewritten for the 2013 interfaces (aola-revival), on its own art" \
+  --out "$W/scene/ecologicalpark.swf%3F121220"
+
+# 欢乐岛: the 2020 scene cut down to the 2013 engine (its own code needs later
+# services and could not be built), on its own art.
+build scenes/summerhotspring mmo/scene/hotspringscene/DocSummerHotSpringRevived.as summerhotspring-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/summerhotspring.swf)" \
+  --code "$OUT/summerhotspring-code.swf" --bind 0=mmo.scene.hotspringscene.DocSummerHotSpringRevived --bind 45=mmo.scene.hotspringscene.SummerHotSpringRevived \
+  --note "LATER scene/summerhotspring: its code cut down for the 2013 interfaces (aola-revival), on its own art" \
+  --out "$W/scene/summerhotspring.swf%3F130124"
 
 # 奇草树林 (云端王国's first room): the later scene's code on the 2013
 # interfaces and that copy's art, with the room's map button back (it opens

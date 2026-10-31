@@ -46,6 +46,7 @@ package mmo.play
    import mmo.play.bigscene.BigSceneBase;
    import mmo.play.scene.helper.cache.AutomaticCacheChecker;
    import mmo.play.activity.framework.util.LinkUtil;
+   import mmo.play.actthings.data.ActClientSender;
    import mmo.play.scene.helper.draganddrop.DragAndDropHelper;
    import mmo.interfaces.task.ext.TaskNpcPanelConfig;
    import mmo.play.task.ITaskInitiallerConfig;
@@ -78,6 +79,7 @@ package mmo.play
          var q18:AutomaticCacheChecker, q19:LinkUtil;
          var q20:DragAndDropHelper, q21:TaskNpcPanelConfig;
          var q22:ITaskInitiallerConfig, q23:NewBaseTaskInitialler, q24:TaskHelper, q25:TaskInitiallerConfig;
+         var q26:ActClientSender;
       }
    }
 }

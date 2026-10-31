@@ -34,6 +34,8 @@ package mmo.play.scene
       private var _defaultLocation:Point;
       private var _initPoints:Object = {};
       private var _entrances:Array = [];
+      /** Inside the walkTo of a walk-target click (onMoveBegin takes its end point). */
+      private var _ownWalk:Boolean = false;
       private var _walkTargets:Array = [];
       private var _pendingEntrance:Object;
       private var _pendingPoint:Point;
@@ -406,7 +408,12 @@ package mmo.play.scene
             _pendingPoint = new Point(int(c.x), int(c.y));
             me.addEventListener(MovableEvent.ARRIVED, onArrived);
             me.addEventListener(MovableEvent.MOVE_BEGIN, onMoveBegin);
-            if (me.walkTo(_pendingPoint.x, _pendingPoint.y) == null) onArrived(null);
+            // The walk this click starts may end short of the centre (a door
+            // drawn over the obstruction: the nearest walkable point instead).
+            _ownWalk = true;
+            var path:* = me.walkTo(_pendingPoint.x, _pendingPoint.y);
+            _ownWalk = false;
+            if (path == null) onArrived(null);
             return;
          }
       }
@@ -424,6 +431,11 @@ package mmo.play.scene
       private function onMoveBegin(e:MovableEvent):void
       {
          if (_pendingPoint == null) return;
+         if (_ownWalk)
+         {
+            _pendingPoint = new Point(int(e.params.x), int(e.params.y));
+            return;
+         }
          if (Math.abs(e.params.x - _pendingPoint.x) > 2 || Math.abs(e.params.y - _pendingPoint.y) > 2) cancelPending();
       }
 

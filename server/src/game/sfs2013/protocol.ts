@@ -78,7 +78,11 @@ export const EXT_NAMES: Record<number, string> = {
   45: "PMDailyCollectExtension", 46: "VipNickNameExtension", 47: "VipTowerExtension", 48: "PlantExtension",
   49: "PlantItemExtension", 50: "ConnectTestExtension", 52: "WisdomStarExtension", 53: "DonateExtension",
   54: "BalloonExtension", 55: "UserGameExtension", 56: "PlaneChessGameManager", 57: "PeriodicActiveExtension",
-  58: "MagicCubicExtension", 59: "WarTeamExtension", 60: "WTBeatBossExtension",
+  58: "MagicCubicExtension", 59: "WarTeamExtension", 60: "WTBeatBossExtension", 61: "HouseOutSideExtension",
+  62: "WarTeamTaskExtension", 63: "PiracyTowerExtension", 64: "MentalHallExtension", 65: "ZooExtension",
+  66: "StateExtension", 67: "HotSpringExtension", 68: "MSExtension", 69: "LabExtension", 70: "KOFExtension",
+  71: "FieldGameExtension", 72: "HbhBeatBossExtension", 73: "TeamTowerExtension", 74: "LuandouExtension",
+  75: "Sundries2ndExtension", 76: "GalaxyExtension", 99: "TrainingExtension",
 };
 
 export type VarType = "b" | "n" | "s" | "x";

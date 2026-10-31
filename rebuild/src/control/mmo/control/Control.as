@@ -2,6 +2,9 @@ package mmo.control
 {
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import flash.display.DisplayObject;
+   import mmo.common.ProgressFullSprite;
+   import flash.events.TimerEvent;
+   import flash.utils.Timer;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
    import flash.utils.getDefinitionByName;
@@ -72,7 +75,47 @@ package mmo.control
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
          ToolboxPanel.watchMoney();
+         watchSpinner();
          SceneManager.getInstance().loadDefaultScene();
+      }
+
+      /**
+       * The loading spinner (ProgressFullSprite: a dimmed screen and
+       * mmo.common.LoadingMovie) is for short waits on the server; scenes and
+       * scripts of later years wait behind it for replies the revival's
+       * server may never send, which left the game locked (发明港口). When it
+       * has stood for 20 s it is taken away.
+       */
+      private function watchSpinner():void
+      {
+         var seen:int = 0;
+         var t:Timer = new Timer(5000);
+         t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
+         {
+            var stage:DisplayObjectContainer = LayerManager.stage;
+            if (stage == null || findClass(stage, "mmo.common::LoadingMovie", 6) == null) { seen = 0; return; }
+            if (++seen < 4) return;
+            seen = 0;
+            RLog.log("control: a loading spinner stood for 20 s; closing it");
+            try { ProgressFullSprite.close(); } catch (err:Error) {}
+         });
+         t.start();
+      }
+
+      private static function findClass(c:DisplayObjectContainer, cls:String, depth:int):DisplayObject
+      {
+         for (var i:int = 0; i < c.numChildren; i++)
+         {
+            var o:DisplayObject = c.getChildAt(i);
+            if (!o.visible) continue;
+            if (getQualifiedClassName(o) == cls) return o;
+            if (depth > 0 && o is DisplayObjectContainer)
+            {
+               var f:DisplayObject = findClass(DisplayObjectContainer(o), cls, depth - 1);
+               if (f != null) return f;
+            }
+         }
+         return null;
       }
 
       private function onButton(name:String):void
@@ -200,7 +243,12 @@ package mmo.control
             try { loader = Object(svc).houseLoader; } catch (e:Error) {}
             if (loader == null)
             {
-               RNotice.show(LayerManager.getBaseTop(), "小屋还在修复中，敬请期待！");
+               // The loader is injected into HouseService; ask for it directly when it is not there yet.
+               ServiceContainer.instance.tryGetService("HouseLoader", function(l:IService, o2:Object):void
+               {
+                  try { Object(l).loadHouse(SocketClient.instance.myUserName); }
+                  catch (e2:Error) { RLog.error("control home", e2); }
+               });
                return;
             }
             loader.loadHouse(SocketClient.instance.myUserName);
@@ -335,7 +383,9 @@ package mmo.control
             for (var i:int = 0; i < d.numChildren; i++)
             {
                var o:DisplayObject = d.getChildAt(i);
-               if (o.name == name && (hidden || o.visible)) return o;
+               // "btnBuy_*": the first whose name starts with btnBuy_ (tests/e2e).
+               var hit:Boolean = name.charAt(name.length - 1) == "*" ? o.name.indexOf(name.substr(0, name.length - 1)) == 0 : o.name == name;
+               if (hit && (hidden || o.visible)) return o;
                if (o is DisplayObjectContainer && (hidden || o.visible)) queue.push(o);
             }
          }
@@ -358,6 +408,7 @@ package mmo.control
                   case "home": goHome(); return "ok";
                   case "scene": return sm.loadedSceneInfo ? sm.loadedSceneInfo.sceneName : "";
                   case "busy": return sm.isLoading ? "1" : "0";
+                  case "unloadgame": sm.unloadGame(); return "ok";
                   case "top":
                      // The names of what lies on the top layer (revivalComic, panels …).
                      var tl:DisplayObjectContainer = LayerManager.getBaseTop();
@@ -367,6 +418,14 @@ package mmo.control
                   case "layers": return describe(LayerManager.stage, int(arg) || 3);
                   case "pet": showPanel("NewPetPackage"); return "ok";
                   case "panel": showPanel(arg); return "ok";
+                  case "book":
+                     // Open a shop book of the era book list by its number (tests/e2e).
+                     ServiceContainer.instance.tryGetService("SellBookService", function(svc:IService, o:Object):void { Object(svc).showPage(arg); });
+                     return "ok";
+                  case "name":
+                     // The name of the first shown object matching "prefix*" (tests/e2e).
+                     var nm:DisplayObject = LayerManager.stage ? findNamed(LayerManager.stage, arg) : null;
+                     return nm ? nm.name : "none";
                   case "fight": PetClient2.instance.startPKWithRobot(int(arg)); return "ok";
                   case "give":
                      // Only answered by a server started with dev commands (web/?dev=1).

@@ -367,6 +367,9 @@ export function installTasks(world: World, deps: TaskDeps): void {
     const r = finishStep(rec, Number(ctx.params.ti), deps.now());
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
+    // Later scripts send it through ActClientSender.sendMessage, which waits (behind a loading
+    // spinner) for a reply of the same command.
+    ctx.reply({ ti: Number(ctx.params.ti), res: r.changes.length ? 1 : 0 }, "10-2");
   });
   world.xt("TaskExtension.10-4", async (ctx) => {
     const rec = await load(ctx);

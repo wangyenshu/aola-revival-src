@@ -36,6 +36,8 @@
 {"path": "aola.100bt.com/play/versiondata.swf%3F20140124", "size": 29314, "sha1": "18cc6721ebf078c8a77a78380b7d77eab51b8cd4", "origin": "capture"}
 {"path": "aola.100bt.com/play/versiondata.swf%3F20140221", "size": 33111, "sha1": "9b2fece4bd7c18b6b072e79b9754e3af31e6e6dc", "origin": "capture"}
 {"path": "aola.100bt.com/play/versiondata.swf%3F20140523", "size": 39490, "sha1": "6812ff805fff42b1ac92860a625dfd5ca1275690", "origin": "capture"}
+{"path": "aola.100bt.com/resource/image/site_aole.png", "size": 4553, "sha1": "42c93822b86d97ec881c813242970930d5e92a25", "origin": "capture", "src": "http://web.archive.org/web/20130131061111/http://aola.100bt.com/resource/image/site_aole.png", "added": "page: the January 2013 official site's pictures for the page around the game"}
+{"path": "aola.100bt.com/resource/image/slidebg.jpg", "size": 27779, "sha1": "12536ec4d243ec1d36a271e72a85b8a0175b1d52", "origin": "capture", "src": "http://web.archive.org/web/20130131061117/http://aola.100bt.com/resource/image/slidebg.jpg", "added": "page: the January 2013 official site's pictures for the page around the game"}
 {"path": "aola.100bt.com/shipin/img/1343327424744_.flv", "size": 21367808, "sha1": "242a37cea67e06cfcde3a02084afb1f108d93e13", "origin": "era", "lm": "2012-07-26T18:30:24Z", "src": "http://aola.100bt.com/shipin/img/1343327424744_.flv", "added": "百田大剧场: 奥拉星2周年"}
 {"path": "login.9aola.com/robots.txt", "size": 0, "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709", "origin": "later", "lm": "2013-03-07T04:15:36Z", "src": "robots.txt"}
 {"path": "login.9aola.com/start.xml", "size": 1033, "sha1": "9aed80cefc372226ac100381e3a0e12ffd07070a", "origin": "capture"}
@@ -69,6 +71,7 @@
 {"path": "web.9aola.com/js/site.js", "size": 3269, "sha1": "9f34e380d7304f8ece26f9a2030bf3fa3ae904be", "origin": "capture"}
 {"path": "web.9aola.com/nav.swf", "size": 35663, "sha1": "fed6af579e5de02cd4ea69f652488bbe35a98dbb", "origin": "capture"}
 {"path": "web.9aola.com/robots.txt", "size": 0, "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709", "origin": "later", "lm": "2013-03-07T04:15:36Z", "src": "robots.txt"}
+{"path": "www.100bt.com/resource/css/common/gamecommon/gamecommonsp.png", "size": 21801, "sha1": "bb7d6006bc7e4d4531de27bd94b1b108cf071429", "origin": "capture", "src": "http://web.archive.org/web/20130117045513/http://www.100bt.com/resource/css/common/gamecommon/gamecommonsp.png", "added": "page: the January 2013 official site's pictures for the page around the game"}
 {"path": "www.9aola.com/achievement/achievementservice.swf%3F121227", "size": 26362, "sha1": "c050d56bb737a692d03272dff48e632e84477b28", "origin": "later", "lm": "2024-10-10T14:03:26Z", "src": "achievement/achievementservice.swf"}
 {"path": "www.9aola.com/activityres/activity120830/hellboss.swf%3F1210", "size": 79022, "sha1": "8b7480baf10ef5c5f32571c1b1c10b6549d49732", "origin": "era", "lm": "2012-08-30T13:22:12Z", "src": "activityres/activity120830/hellboss.swf"}
 {"path": "www.9aola.com/activityres/activity120920/activity1_1.swf%3F1210", "size": 125988, "sha1": "01b3bc46164fc16fb333970c5f960b5dd8fa424e", "origin": "era", "lm": "2012-09-20T16:34:10Z", "src": "activityres/activity120920/activity1_1.swf"}
@@ -910,6 +913,7 @@
 {"path": "www.9aola.com/effect/hotspring_avatar5.swf%3F121213", "size": 18431, "sha1": "b14a9a31b5f3320f316a0f44022b7c078d596f41", "origin": "later", "lm": "2014-11-27T18:06:00Z", "src": "effect/hotspring_avatar5.swf"}
 {"path": "www.9aola.com/effect/hotspring_board.swf%3F121213", "size": 16648, "sha1": "9f194f59715dc1e8fcef59b1b18ee55215807257", "origin": "later", "lm": "2014-11-27T18:06:00Z", "src": "effect/hotspring_board.swf"}
 {"path": "www.9aola.com/exploretimer/exploretimerservice.swf%3F1210", "size": 1429, "sha1": "b64478aefc992dd059bf82ee5225e2ebfe9bd5ff", "origin": "era", "lm": "2011-03-17T07:42:30Z", "src": "exploretimer/exploretimerservice.swf"}
+{"path": "www.9aola.com/favicon.ico", "size": 9158, "sha1": "2004e507a365eba6b2a7804b472fd641e1fc2479", "origin": "capture", "src": "http://web.archive.org/web/20130115032127/http://9aola.com/favicon.ico", "added": "page: the January 2013 official site's pictures for the page around the game"}
 {"path": "www.9aola.com/fbservice/fbaixichoosepanel.swf%3F121206", "size": 75932, "sha1": "a8f4bfbbc7bb8eeb65348e91cb8af983a080fe17", "origin": "later", "lm": "2018-03-01T17:15:46Z", "src": "fbservice/fbaixichoosepanel.swf"}
 {"path": "www.9aola.com/fbservice/fbaixiend.swf%3F1210", "size": 150518, "sha1": "0f640a76e800ed41ef0df228ce41398ad46e922d", "origin": "era", "lm": "2012-04-19T04:21:38Z", "src": "fbservice/fbaixiend.swf"}
 {"path": "www.9aola.com/fbservice/fbaiximap.swf%3F1210", "size": 722513, "sha1": "697ff1ca686c84aa33717e800004c4d23ac0fa01", "origin": "era", "lm": "2012-04-19T04:21:38Z", "src": "fbservice/fbaiximap.swf"}

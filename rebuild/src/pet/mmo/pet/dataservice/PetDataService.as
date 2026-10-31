@@ -4,6 +4,7 @@ package mmo.pet.dataservice
    import mmo.interfaces.pet.follow.PetFollowEvent;
    import flash.events.EventDispatcher;
    import mmo.framework.comm.PetClient;
+   import mmo.framework.comm.PetEggClient;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.InitServiceEvent;
@@ -54,6 +55,13 @@ package mmo.pet.dataservice
          sc.addEventListener(String(PetClient.RSPN_NEW_PM), onNewPet);
          sc.addEventListener(String(PetClient.RSPN_SET_CURRENT_PM), onSetCurrentPet);
          sc.addEventListener(String(PetClient.RSPN_PM_LEVELUP), onLevelUp);
+         // The egg replies (PetEggExtension), passed on as the later module does:
+         // the 亚比孵化器 (pet/pethatchegg) listens here for 1-2.
+         relay(sc, PetEggClient.cmdGetHatchEggs, PetDataServiceEvent.ONGETHATCHEGGSS);
+         relay(sc, PetEggClient.cmdGetEggs, PetDataServiceEvent.ONGETEGGS);
+         relay(sc, PetEggClient.cmdMix, PetDataServiceEvent.ONCMDMIX);
+         relay(sc, PetEggClient.cmdCloneEgg, PetDataServiceEvent.ONCLONEEGG);
+         relay(sc, PetEggClient.cmdReEgg, PetDataServiceEvent.ONREEGG);
          CommonEventDispatcher.instance.addEventListener(PetFollowEvent.SET_FOLLOW, onSetFollow);
          CommonEventDispatcher.instance.addEventListener(PetFollowEvent.SET_UNFOLLOW, onUnFollow);
          // The following 亚比 at login: user variable "p" = "raceId,viewId,petId,…" ("0#0#0": none).
@@ -64,6 +72,11 @@ package mmo.pet.dataservice
          }
          catch (err:Error) {}
          PetClient.instance.loadPMMaster();
+      }
+
+      private function relay(sc:SocketClient, cmd:String, type:String):void
+      {
+         sc.addEventListener(cmd, function(e:SocketClientEvent):void { dispatchEvent(new PetDataServiceEvent(type, e.params)); });
       }
 
       private function onLoadMaster(e:SocketClientEvent):void

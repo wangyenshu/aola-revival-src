@@ -899,7 +899,7 @@ package mmo.petfightnew
                break;
             case 2414:
                addLines(p.desc ? String(p.desc) : "成功逃跑了！");
-               TweenLite.delayedCall(1.2, function():void { close({isEscape: true, isWin: false}); });
+               TweenLite.delayedCall(1.2, function():void { close({isEscape: true, isWin: false, raceId: int(p.raceId)}); });
                break;
             case 2415:
                catchPet(p);

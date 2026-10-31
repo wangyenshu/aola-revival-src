@@ -10,6 +10,8 @@ import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord } from "./house.ts";
 import { installShoot, type CardRow } from "./shoot.ts";
 import { installPlants, plantTree, type PlantRec } from "./plants.ts";
+import { installEggs, type HatchRec } from "./eggs.ts";
+import { installZoo } from "./zoo.ts";
 import { World, type XtContext } from "./server.ts";
 
 export interface UserRecord {
@@ -45,9 +47,15 @@ export interface UserRecord {
   /** 星币 (UserInfo.xingbi) and 晶豆 (a later currency; kept for the toolbox only). */
   xingbi?: number;
   jingdou?: number;
+  /** 蓝宝石 (member), set with the toolbox. */
+  vip?: boolean;
   /** The trees of the 家园 (plants.ts). */
   plants?: PlantRec[];
   nextPlantId?: number;
+  /** The eggs in the 亚比孵化器 of the 家园 (eggs.ts). */
+  hatch?: HatchRec;
+  /** 保卫战 progress per place (zoo.ts). */
+  td?: Record<string, string[]>;
 }
 
 /**
@@ -190,7 +198,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       return {
         id: rec.id,
         name: rec.name,
-        vars: { avatar: rec.avatar, c: rec.avatar, nn: rec.name, mtype: 0, p: follow ? followVar(follow) : NO_FOLLOW },
+        vars: { avatar: rec.avatar, c: rec.avatar, nn: rec.name, mtype: rec.vip ? 4 : 0, p: follow ? followVar(follow) : NO_FOLLOW },
       };
     },
   });
@@ -271,9 +279,11 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? "") }, "increaseScore");
   });
 
-  // MaterialClient.buyMaterial: {tp, mi, qt}. Replies {res} (1 ok, -1 not for sale, -2 too little 晶币,
-  // -3 real-money item, -4 already owned); on success pushes onScoreUpdated and onAmountUpdated
-  // (the original AmountUpdateService adds the item on the client).
+  // MaterialClient.buyMaterial: {tp, mi, qt, ed}. Replies {res} (1 ok, -1 not for sale, -2 too little 晶币,
+  // -4 already owned, -5 too little 星币, -6 for 蓝宝石 only); on success pushes onScoreUpdated (or
+  // onXingBiUpdate) and onAmountUpdated (the original AmountUpdateService adds the item on the client).
+  // Goods of real money (rmb) cost their price in 星币, half for 蓝宝石 (the "蓝宝石价" the era pages
+  // print); the 星币 come from the toolbox (RECONSTRUCTED: the 2013 payment server is lost).
   world.xt("MaterialExtension.buyMaterial", async (ctx) => {
     const tp = String(ctx.params.tp ?? "0");
     const mi = String(ctx.params.mi ?? "0");
@@ -292,10 +302,20 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       ctx.reply({ amount: `9_${mi}_0_1_${tree.id}` }, "onAmountUpdated");
       return ctx.reply({ res: 1, tp: 9, mi: Number(mi), qt: 1, score: rec.score });
     }
-    const [price, buyback, rmb, maxQ] = row;
+    const [price, buyback, rmb, maxQ, vipOnly] = row;
     const unit = price > 0 ? price : buyback * 2;
-    if (unit <= 0 && rmb > 0) return fail(-3);
+    if (vipOnly && !rec.vip) return fail(-6);
     if ((owned[mi] ?? 0) + qt > Math.max(1, maxQ)) return fail(-4);
+    if (unit <= 0 && rmb > 0) {
+      const coins = (rec.vip ? Math.ceil(rmb / 2) : rmb) * qt;
+      if ((rec.xingbi ?? 0) < coins) return fail(-5);
+      rec.xingbi = (rec.xingbi ?? 0) - coins;
+      owned[mi] = (owned[mi] ?? 0) + qt;
+      await save(rec);
+      ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
+      ctx.reply({ amount: `${tp}_${mi}_0_${qt}` }, "onAmountUpdated");
+      return ctx.reply({ res: 1, tp: Number(tp), mi: Number(mi), qt, xingbi: rec.xingbi });
+    }
     const cost = unit * qt;
     if (rec.score! < cost) return fail(-2);
     rec.score! -= cost;
@@ -393,7 +413,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     }
     if (add(p.xingbi)) {
       rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + add(p.xingbi));
+      ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
       said.push(`星币 +${add(p.xingbi)}`);
+    }
+    if (p.vip != null) {
+      // 蓝宝石 (MemberTypes.Member, 4): the user variable "mtype" others see, MemberManager on the client.
+      rec.vip = !!p.vip;
+      world.setUserVars(ctx.session, { mtype: rec.vip ? 4 : 0 });
+      said.push(rec.vip ? "你成为了蓝宝石！" : "你不再是蓝宝石了");
     }
     if (add(p.jingdou)) {
       rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + add(p.jingdou));
@@ -425,7 +452,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       }
     }
     await save(rec);
-    ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, msg: said.join("\n") }, "revival_toolbox");
+    ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, vip: !!rec.vip, msg: said.join("\n") }, "revival_toolbox");
   });
 
   // ---------------------------------------------------------------- pets
@@ -449,6 +476,19 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     save: (o) => save(o as UserRecord),
     now: () => emu.clock.now().getTime(),
   });
+
+  installEggs(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    now: () => emu.clock.now().getTime(),
+    hatchPet: async (o, race, level) => {
+      const pet = newPet(o as UserRecord, await tables(), race, level, today());
+      ((o as UserRecord).storage ??= []).push(pet);
+      return pet.id;
+    },
+  });
+
+  installZoo(world, { me, save: (o) => save(o as UserRecord) });
 
   installShoot(world, {
     me,

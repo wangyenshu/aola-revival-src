@@ -179,6 +179,12 @@ export interface Battle {
   over: boolean;
   /** Run once when the player wins (an NPC challenge's prize); its messages go out with the win. */
   onWin?: (o: PetOwner) => Msg[];
+  /**
+   * The number the client asked to fight (a task 亚比's variant * 10000 + species): the
+   * end of the battle reports it as raceId, which the quest scripts compare with the
+   * one they asked for (PetFightEvent.raceId != this.petId: not their fight).
+   */
+  asked?: number;
 }
 
 export type Msg = [cmd: string, body: Record<string, unknown>];
@@ -704,7 +710,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ pms: (await deps.wild())[room] ?? [] });
   });
 
-  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"]) => {
+  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"], asked?: number) => {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     for (const p of o.pets ?? []) normalisePet(p, t);
@@ -726,6 +732,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const canCatch = catchable && Number.isFinite(Number(speciesOf(t, race)!.c[0]));
     const b = engine.start(nextBattle++, ctx.player.room?.name ?? "", o, active, wildPet, canCatch);
     b.onWin = onWin;
+    b.asked = asked;
     battles.set(o.id, b);
     engine.bag = o.pets;
     engine.ownerRef = o;
@@ -751,7 +758,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const o = await deps.load(ctx);
       const top = Math.max(5, ...(o.pets ?? []).map((p) => p.level));
       const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
-      return begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin);
+      return begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id);
     }
     const entry = ((await deps.wild())[ctx.player.room?.name ?? ""] ?? []).find((w) => w.raceId === id);
     const rng = deps.rng ?? Math.random;
@@ -845,7 +852,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       out.push(...r.msgs);
       if (r.evolvedTo && o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
       if (b.onWin) out.push(...b.onWin(o));
-      out.push(["2403", { isWin: true, raceId: b.wild.pet.race, evolveFrom: r.evolvedTo ? before : 0, desc: `战斗胜利！${nameOf(t, before)}获得了经验。`, pmmList: e.views(b) }]);
+      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, evolveFrom: r.evolvedTo ? before : 0, desc: `战斗胜利！${nameOf(t, before)}获得了经验。`, pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -856,7 +863,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
         return out;
       }
       b.over = true;
-      out.push(["2403", { isWin: false, raceId: b.wild.pet.race, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
+      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -918,7 +925,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
   turn("1404", (ctx, b, _e, o) => {
     b.over = true;
     battles.delete(o.id);
-    ctx.reply({ reqSId: 0, isEscape: true, desc: "成功逃跑了！" }, "2414");
+    ctx.reply({ reqSId: 0, isEscape: true, raceId: b.asked ?? b.wild.pet.race, desc: "成功逃跑了！" }, "2414");
     return "end";
   });
 

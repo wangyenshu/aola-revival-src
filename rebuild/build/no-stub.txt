@@ -33,3 +33,4 @@ init/robotmanager
 rmbshoppingmallservice/rmbshoppingmallservice
 game/gamemanager
 pet/petwarehouse
+pet/petskillmesservice

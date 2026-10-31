@@ -69,7 +69,7 @@ const hook = (cmd, arg) =>
     )
     .catch((e) => "error: " + e.message);
 
-await page.goto(`http://127.0.0.1:${port}/index.html`);
+await page.goto(`http://127.0.0.1:${port}/index.html?bare=1`);
 await page.waitForTimeout(38000);
 await page.mouse.click(500, 520);
 await page.waitForTimeout(8000);

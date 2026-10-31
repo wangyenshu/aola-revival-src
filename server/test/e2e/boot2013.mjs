@@ -34,6 +34,8 @@ const { values: a } = parseArgs({
     // A module whose default export runs after the timed actions:
     // export default async (h) => { await h.until(() => h.revival("scene"), "maintown1"); ... }
     scenario: { type: "string", default: "" },
+    // Keep the page's 2012 site decoration (the walk-throughs click by page position, so they run without it).
+    decorated: { type: "boolean", default: false },
   },
 });
 const out = path.resolve(a.out);
@@ -77,7 +79,9 @@ if (roots.length) {
 }
 
 const t0 = Date.now();
-await page.goto(pageUrl + (a.query ? (pageUrl.includes("?") ? "&" : "?") + a.query : ""));
+// bare=1: the game alone at (20, 16), without the site's decoration (web/index.html).
+const query = [a.query, a.decorated ? "" : "bare=1"].filter(Boolean).join("&");
+await page.goto(pageUrl + (query ? (pageUrl.includes("?") ? "&" : "?") + query : ""));
 const events = [
   ...a.shots.split(",").filter(Boolean).map((s) => ({ t: Number(s), kind: "shot" })),
   ...a.actions.split(";").filter(Boolean).map((x) => {

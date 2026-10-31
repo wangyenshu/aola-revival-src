@@ -9,6 +9,7 @@ package mmo.revival.book
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
+   import mmo.common.member.MemberManager;
    import mmo.common.user.UserInfo;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -28,6 +29,11 @@ package mmo.revival.book
     * (MaterialExtension "buyMaterial" {tp, mi, qt}) and waits for the reply
     * {res, tp, mi, qt}; the server also pushes onAmountUpdated (the original
     * AmountUpdateService adds the item) and onScoreUpdated (晶币).
+    *
+    * Goods of real money (rmb, priced in 星币 on the era pages, "原价" and
+    * the half "蓝宝石价") are bought with 星币 (UserInfo.xingbi, which the
+    * revival's 工具箱 adds): buyMaterial with ed = true, the server takes
+    * the 星币 and pushes onXingBiUpdate.
     */
    public class BuyFlow
    {
@@ -59,19 +65,28 @@ package mmo.revival.book
          }
          // Clothes carry only a buy-back value; config.xml's buyback percent 0.5 makes the price twice that.
          var unit:int = material.price > 0 ? material.price : material.sale * 2;
-         if (unit <= 0 && material.rmb > 0)
+         var member:Boolean = isMember();
+         var starCoins:Boolean = unit <= 0 && material.rmb > 0;
+         if (starCoins) unit = member ? Math.ceil(material.rmb / 2) : material.rmb;
+         if (material.vip && !member)
          {
-            message(material.name + "是要用真钱买的商品，复刻版里买不到哦。");
+            message("只有蓝宝石才能购买" + material.name + "哦！（工具箱里可以成为蓝宝石）");
             if (done != null) done(false);
             return;
          }
          var price:int = unit * info.quantity;
-         confirm(material, info, price, service, function(ok:Boolean):void
+         confirm(material, info, price, service, starCoins, member, function(ok:Boolean):void
          {
             if (!ok) { if (done != null) done(false); return; }
-            if (UserInfo.score >= 0 && UserInfo.score < price)
+            if (!starCoins && UserInfo.score >= 0 && UserInfo.score < price)
             {
                message("你的晶币不够哦！");
+               if (done != null) done(false);
+               return;
+            }
+            if (starCoins && UserInfo.xingbi < price)
+            {
+               message("你的星币不够哦！（工具箱里可以增加星币）");
                if (done != null) done(false);
                return;
             }
@@ -79,17 +94,27 @@ package mmo.revival.book
             {
                SocketClient.instance.removeEventListener(MaterialClient.cmdBuyMaterial, onReply);
                var res:int = int(e.params.res);
-               if (res == 1) message("购买成功！" + material.name + "已经放进你的" + (info.type == 0 ? "衣橱" : "背包") + "。");
+               if (e.params.xingbi != undefined) UserInfo.xingbi = int(e.params.xingbi);
+               if (res == 1) message("购买成功！" + material.name + "已经放进你的" + (info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包") + "。");
                else if (res == -2) message("你的晶币不够哦！");
+               else if (res == -5) message("你的星币不够哦！（工具箱里可以增加星币）");
+               else if (res == -6) message("只有蓝宝石才能购买哦！");
+               else if (res == -4) message("你已经有" + material.name + "了！");
                else message("没有买成，请再试一次。");
                if (done != null) done(res == 1);
             };
             SocketClient.instance.addEventListener(MaterialClient.cmdBuyMaterial, onReply);
-            MaterialClient.getInstance().buyMaterial(info.type, info.id, info.realQuantity);
+            MaterialClient.getInstance().buyMaterial(info.type, info.id, info.realQuantity, starCoins);
          });
       }
 
-      private static function confirm(m:Material, info:BuyMaterialInfo, price:int, service:IMaterialService, answer:Function):void
+      private static function isMember():Boolean
+      {
+         try { return MemberManager.instance.isMember(); } catch (e:Error) {}
+         return false;
+      }
+
+      private static function confirm(m:Material, info:BuyMaterialInfo, price:int, service:IMaterialService, starCoins:Boolean, member:Boolean, answer:Function):void
       {
          var box:Sprite = panel(360, 210);
          var title:TextField = text(16, 0x1A5FA8, true);
@@ -121,12 +146,12 @@ package mmo.revival.book
          name.y = 66;
          box.addChild(name);
          var cost:TextField = text(14, 0xC77700, true);
-         cost.text = price > 0 ? "价格：" + price + " 晶币" : "免费";
+         cost.text = price <= 0 ? "免费" : starCoins ? "价格：" + price + " 星币" + (member ? "（蓝宝石价）" : "") : "价格：" + price + " 晶币";
          cost.x = 150;
          cost.y = 96;
          box.addChild(cost);
          var have:TextField = text(12, 0x666666, false);
-         have.text = "我的晶币：" + (UserInfo.score < 0 ? "…" : String(UserInfo.score));
+         have.text = starCoins ? "我的星币：" + UserInfo.xingbi : "我的晶币：" + (UserInfo.score < 0 ? "…" : String(UserInfo.score));
          have.x = 150;
          have.y = 122;
          box.addChild(have);

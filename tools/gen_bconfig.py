@@ -8,7 +8,8 @@ ConfigEmbed, binary "bconfig"), naming for each catalog its page files
 catalog/book of that list, but builds its page list from the era page files
 that are in mirror/ (uploaded by 25 Jan 2013): every page class each such
 file defines (e.g. mmo.dress.Clothes51_1), newest file first as the live
-list orders them; cover pages (file 1) are kept from the live list. Pages
+list orders them; cover pages (file 1) are kept from the live list (with
+--game, only when game/ has the cover's file). Pages
 whose file is not an era file are left out, so later clothes are not sold.
 
   tools/gen_bconfig.py --bconfig tools/data/live-bconfig.xml --mirror mirror \\
@@ -105,7 +106,9 @@ def main(argv=None) -> None:
                 have = {n for n, _ in era}
                 era += [p for p in era_pages(a.game, f, t, later) if p[0] not in have]
             era_files = {n for n, _ in era}
-            covers = [p for p in live if p[0] == 1 and 1 not in era_files]
+            # The cover (file 1) from the live list, when game/ has its file at all.
+            have_cover = not a.game or glob.glob(glob.escape(os.path.join(a.game, HOST, *f.split("/"))) + "1.swf*")
+            covers = [p for p in live if p[0] == 1 and 1 not in era_files and have_cover]
             pages = covers + sorted(era, key=lambda p: (-p[0], p[1]))
             if era and not from_mirror:
                 # A book only of pages taken later: in the live list's order (scenes open

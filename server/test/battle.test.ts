@@ -210,5 +210,7 @@ test("a story quest's task 亚比 (variant * 10000 + species): at the player's l
   for (let i = 0; i < 40 && !out.some(([c]) => c === "2403"); i++) out = await call("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 });
   const end = out.find(([c]) => c === "2403")!;
   assert.equal(end[1].isWin, true);
+  // The script waiting for this fight compares PetFightEvent.raceId with the number it asked for.
+  assert.equal(end[1].raceId, 10043);
   assert.deepEqual(out.filter(([c]) => c === "10-1").map(([, b]) => (b as { t: { ti: number } }).t.ti), [62, 63]);
 });

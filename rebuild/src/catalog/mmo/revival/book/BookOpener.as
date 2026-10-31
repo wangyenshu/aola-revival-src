@@ -1,5 +1,6 @@
 package mmo.revival.book
 {
+   import mmo.common.member.MemberManager;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.catalog.BuyMaterialInfo;
    import mmo.interfaces.catalog.IBuyMaterial;
@@ -17,6 +18,12 @@ package mmo.revival.book
     */
    public class BookOpener
    {
+      private static function member():Boolean
+      {
+         try { return MemberManager.instance.isMember(); } catch (e:Error) {}
+         return false;
+      }
+
       public static function open(no:String, pageIndex:int, catalog:Boolean):BookView
       {
          var r:BConfigReader = BConfigReader.instence;
@@ -37,6 +44,11 @@ package mmo.revival.book
             if (buy)
             {
                if (busy) return true;
+               if (name.indexOf("btnMBuy_") == 0 && !member())
+               {
+                  BuyFlow.message("这件商品只有蓝宝石才能购买哦！（工具箱里可以成为蓝宝石）");
+                  return true;
+               }
                var parts:Array = name.substr(name.indexOf("_") + 1).split("_");
                var info:BuyMaterialInfo = new BuyMaterialInfo(int(parts[0]), int(parts[1]), 1, parts.length > 2 ? int(parts[2]) : 1);
                busy = true;

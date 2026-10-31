@@ -28,6 +28,18 @@
     if (!navigator.serviceWorker.controller) {
       await new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }));
     }
+    // The page's 2012 pictures come from the mirror too (index.html).
+    document.documentElement.classList.add("site");
+    fetch(upgrade("http://www.9aola.com/favicon.ico"))
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((b) => {
+        if (!b) return;
+        const l = document.createElement("link");
+        l.rel = "icon";
+        l.href = URL.createObjectURL(b);
+        document.head.appendChild(l);
+      })
+      .catch(() => {});
 
     let socketProxy;
     if (cfg.mode === "inpage") {

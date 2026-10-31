@@ -1,6 +1,8 @@
 package mmo.revival.book
 {
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
+   import flash.geom.Rectangle;
    import flash.display.GradientType;
    import flash.display.MovieClip;
    import flash.display.Sprite;
@@ -113,7 +115,7 @@ package mmo.revival.book
          var money:Sprite = new Sprite();
          money.graphics.lineStyle(2, 0xFFFFFF);
          money.graphics.beginFill(0xF6B21B);
-         money.graphics.drawRoundRect(0, 0, 150, 30, 26, 26);
+         money.graphics.drawRoundRect(0, 0, 230, 30, 26, 26);
          money.graphics.endFill();
          money.x = 24;
          money.y = 517;
@@ -177,6 +179,9 @@ package mmo.revival.book
          pageText.x = (420 - pageText.width) / 2;
          var info:PageInfo = book.page[index] as PageInfo;
          var my:int = ++token;
+         // The last page's "lost" must not stay on while this one loads.
+         loading.text = "正在打开这一页……";
+         loading.x = (960 - loading.width) / 2;
          loading.visible = true;
          var show:Function = function(d:*):void
          {
@@ -200,7 +205,7 @@ package mmo.revival.book
          if (ApplicationDomain.currentDomain.hasDefinition(info.className)) show(null);
          else ResScheduler.getResource(info.fileName, show, info.className, function(e:*):void
          {
-            if (my == token) { loading.text = "这一页丢失了"; loading.visible = true; }
+            if (my == token) { loading.text = "这一页丢失了"; loading.x = (960 - loading.width) / 2; loading.visible = true; }
          });
       }
 
@@ -213,11 +218,42 @@ package mmo.revival.book
             if (page.parent) page.parent.removeChild(page);
          }
          page = d;
-         var b:Object = page.getBounds(page);
-         page.x = Math.round((960 - b.width) / 2 - b.left);
-         page.y = Math.round((520 - b.height) / 2 - b.top);
+         // The pages are drawn in stage coordinates (the original BookService
+         // puts them at 0, 0 of a full-screen container): those stay there,
+         // even with a piece far off the stage (tool55: a cloud left over from
+         // an animation); a page drawn about another origin is centred.
+         var b:Rectangle = page.getBounds(page);
+         if (inStage(b) || (page is DisplayObjectContainer && mostlyInStage(DisplayObjectContainer(page))))
+         {
+            page.x = 0;
+            page.y = 0;
+         }
+         else
+         {
+            page.x = Math.round((960 - b.width) / 2 - b.left);
+            page.y = Math.round((520 - b.height) / 2 - b.top);
+         }
          holder.addChild(page);
          page.addEventListener(MouseEvent.CLICK, onClick, true);
+      }
+
+      private static function inStage(b:Rectangle):Boolean
+      {
+         return b.left >= -40 && b.top >= -40 && b.right <= 1000 && b.bottom <= 600;
+      }
+
+      /** Most of a page's pieces have their middle on the stage. */
+      private static function mostlyInStage(p:DisplayObjectContainer):Boolean
+      {
+         var on:int = 0;
+         for (var i:int = 0; i < p.numChildren; i++)
+         {
+            var cb:Rectangle = p.getChildAt(i).getBounds(p);
+            var cx:Number = cb.x + cb.width / 2;
+            var cy:Number = cb.y + cb.height / 2;
+            if (cx >= 0 && cx <= 960 && cy >= 0 && cy <= 560) on++;
+         }
+         return p.numChildren > 0 && on * 2 > p.numChildren;
       }
 
       private function onClick(e:MouseEvent):void
@@ -241,7 +277,7 @@ package mmo.revival.book
 
       public function showMoney():void
       {
-         moneyText.text = "晶币  " + (UserInfo.score < 0 ? "…" : String(UserInfo.score));
+         moneyText.text = "晶币  " + (UserInfo.score < 0 ? "…" : String(UserInfo.score)) + "    星币  " + UserInfo.xingbi;
       }
 
       public function close():void

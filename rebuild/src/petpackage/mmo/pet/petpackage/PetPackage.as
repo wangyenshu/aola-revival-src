@@ -29,6 +29,7 @@ package mmo.pet.petpackage
    import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
+   import mmo.revival.RUI;
 
    /**
     * REBUILT pet/petpackage (ServiceConfig "NewPetPackage",
@@ -44,6 +45,7 @@ package mmo.pet.petpackage
       private var data:IPetDataService;
       private var selected:int = -1;
       private var page:String = "skill";
+      private var skillButton:Sprite;
       private var pageText:TextField;
       private var titleText:TextField;
 
@@ -117,6 +119,15 @@ package mmo.pet.petpackage
          pageText.width = 350;
          pageText.height = 210;
          panel.addChild(pageText);
+         // 更换技能: which learnt skills to carry (SkillPanel).
+         skillButton = RUI.smallButton("更换技能", function():void
+         {
+            var p:PetBriefInfo = pets[selected] as PetBriefInfo;
+            if (p != null) SkillPanel.show(p.id, p.nickname || p.name, null);
+         }, 84, 24, "btnChangeSkill");
+         skillButton.x = pageText.x + 250;
+         skillButton.y = titleText.y;
+         panel.addChild(skillButton);
       }
 
       private static function text(fmt:TextFormat):TextField
@@ -272,9 +283,11 @@ package mmo.pet.petpackage
          var d:PetDetailedInfo = data ? data.getPetDetailedInfoById(p.id) : null;
          titleText.htmlText = "<font face='SimSun'>" + (p.nickname || p.name) + "    <font color='#E8641B'>Lv." + p.level + "</font></font>";
          var s:String = "";
+         if (skillButton) skillButton.visible = page == "skill";
          if (page == "skill")
          {
             for each (var sk:SkillInfo in p.skills || []) s += "◆ " + sk.name + "    PP " + sk.canUseTimes + "/" + sk.maxUseTimes + "\n";
+            s += "\n<font color='#7A8EA8'>升级时会学会新技能，点「更换技能」挑选带在身上的四个。</font>\n";
          }
          else if (page == "ability")
          {

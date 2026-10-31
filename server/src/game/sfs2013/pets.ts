@@ -395,7 +395,13 @@ export function installPets(world: World, deps: PetDeps): void {
     const carried = new Set(p.skills.map((s) => s.id));
     const ids = [...new Set([...(p.learned ?? []), ...carried])];
     ctx.reply(
-      { id: p.id, skills: ids.map((id) => ({ ...skillOf(t, id), pp: `${p.skills.find((s) => s.id === id)?.pp ?? skillOf(t, id).max}/${skillOf(t, id).max}`, used: carried.has(id) })) },
+      {
+        id: p.id,
+        skills: ids.map((id) => {
+          const d = t.pm.skills[String(id)];
+          return { ...skillOf(t, id), pp: `${p.skills.find((s) => s.id === id)?.pp ?? skillOf(t, id).max}/${skillOf(t, id).max}`, used: carried.has(id), power: d?.p ?? 0, kind: d?.k ?? 0, desc: d?.d ?? "" };
+        }),
+      },
       "2231",
     );
   });

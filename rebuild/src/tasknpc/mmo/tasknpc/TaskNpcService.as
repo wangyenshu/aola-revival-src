@@ -159,8 +159,8 @@ package mmo.tasknpc
          var list:Array = (SceneNpcData.SCENES[info.sceneName] as Array) || [];
          for each (var row:Array in list)
          {
-            // Task NPCs come with their tasks.
-            if (row[4] != 0 && taskTalksOf(row[0], info.sceneName).length == 0) continue;
+            // Task NPCs come with their tasks; the hosts of their rooms are always there.
+            if (row[4] != 0 && !isResident(row[0], info.sceneName) && taskTalksOf(row[0], info.sceneName).length == 0) continue;
             addNpcToScene(row[0], row[1], -1, row[2], row[3]);
          }
          TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_INITED_NPC, {sceneName: info.sceneName}));
@@ -173,12 +173,25 @@ package mmo.tasknpc
          if (info == null || SceneManager.getInstance().isLoading) return;
          for each (var row:Array in (SceneNpcData.SCENES[info.sceneName] as Array) || [])
          {
-            if (row[4] == 0) continue;
+            if (row[4] == 0 || isResident(row[0], info.sceneName)) continue;
             var has:Boolean = taskTalksOf(row[0], info.sceneName).length > 0;
             if (has && npcs[row[0]] == null) addNpcToScene(row[0], row[1], -1, row[2], row[3]);
             else if (!has && npcs[row[0]] != null && taskTalks[row[0]] == null) removeNpcFromScene(row[0]);
          }
          for (var k:String in npcs) Npc(npcs[k]).setTaskMark(hasTaskTalk(int(k)));
+      }
+
+      /**
+       * NPCs the later scene table marks as task NPCs that were the hosts of
+       * their rooms in 2012 and stood there whatever the tasks: 贝鲁特博士 (11)
+       * in the 亚比研究中心 (his era default talk is in ERA_TALK / NpcDefaultTalk).
+       */
+      private static const RESIDENTS:Object = {"yabistudy": [11], "yabistudycopy": [11]};
+
+      private static function isResident(npcId:int, scene:String):Boolean
+      {
+         var a:Array = RESIDENTS[scene] as Array;
+         return a != null && a.indexOf(npcId) >= 0;
       }
 
       public function addNpcToScene(npcId:int, viewId:int, taskId:int, x:int, y:int):void

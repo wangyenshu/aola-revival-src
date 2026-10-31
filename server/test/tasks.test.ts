@@ -74,12 +74,14 @@ test("finishing 135 starts 140, finishing 140 starts 150, 150 pays 晶币 and HE
   assert.ok(taskList(rec).every((e) => e.s.split(",")[1] === "1"));
 });
 
-test("clientStep pushes onTaskUpdate (10-1) and the new 晶币", async () => {
+test("clientStep pushes onTaskUpdate (10-1) and the new 晶币, then answers 10-2", async () => {
   const owner: TaskOwner = { score: 0, robot: { name: "HELLO", exp: 0, follow: true }, tasks: { 150: { st: 0, ex: 0, ad: 1, fd: 0 }, 152: { st: 0, ex: 0, ad: 1, fd: 0 } } };
   const { call } = harness(owner);
   const out = await call("TaskExtension.10-2", { ti: 152, ty: 11 });
-  assert.deepEqual(out.map(([c]) => c), ["10-1", "10-1", "onScoreUpdated"]);
+  // The last reply is for the later ActClientSender, which locks the screen until it comes.
+  assert.deepEqual(out.map(([c]) => c), ["10-1", "10-1", "onScoreUpdated", "10-2"]);
   assert.deepEqual(out[2][1], { score: 2000 });
+  assert.equal(out[3][1].ti, 152);
 });
 
 test("the HELLO is added once", async () => {

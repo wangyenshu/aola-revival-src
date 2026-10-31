@@ -27,6 +27,8 @@ import xml.etree.ElementTree as ET
 # flames behind it, and of the three captions with their bars and pictures.
 RES_SPRITE = "154"
 RES_DEPTHS = {"179", "193", "300", "302", "303", "305", "306", "349", "351", "352", "383"} | {str(d) for d in range(163, 178, 2)}
+# ... and the shine that sweeps over the title (depth 293, sprite 153) and the burst it opens with (209, sprite 149).
+RES_DEPTHS |= {"209", "293"}
 # YunYing (the frame): the links to 奥比岛, 奥拉星's site, 龙斗士, 奥雅之光, 奥奇传说 and 百田.
 START_HIDE = {"btnaobi", "btnaola", "btnlds", "btnaoya", "btnaoqi", "btnbt"}
 

@@ -107,7 +107,7 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
   `all.sh` does. `rebuild/gen` holds sources generated once from the
   decompiled 2013 libraries (`tools/gen_stubs.py` for the stand-ins,
   `tools/gen_npc_data.py`, `gen_tasks.py`, `gen_pets.py`, `gen_bconfig.py`,
-  `gen_wildpets.py` for data); `rebuild/static` holds the `config.xml` overlay
+  `gen_wildpets.py`, `gen_petmes.py` for data); `rebuild/static` holds the `config.xml` overlay
   (`tools/config_overlay.py`) and the 亚比, skill and item tables the emulator
   reads (`tools/gen_pmdata.py`, `gen_pets.py`, `gen_materials.py`,
   `gen_wildpets.py`). They are committed so that building needs no decompiler.
@@ -119,7 +119,9 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
   plays the story quests 1214 and 1219 (`work/e2e-story/`), `npm run e2e:music`
   listens to the scene music and the music switch (`work/e2e-music/`),
   `npm run e2e:garden` plants a tree in the 家园, goes into the 小屋 and plays a
-  film of the 百田大剧场 (`work/e2e-garden/`).
+  film of the 百田大剧场 (`work/e2e-garden/`). The walk-throughs open the page
+  with `?bare=1` (the game alone at 20, 16, as they click by page position);
+  `--decorated` keeps the page's 2012 site look.
   The scenarios `storysmoke.mjs` (every start conversation), `stepsmoke.mjs`
   (the conversation of each step, and the errors the scripts throw) and
   `storyplay.mjs` (quests played through, `QUESTS=1742,1750`) look at the
@@ -167,10 +169,13 @@ player card with the wardrobe, the pet bag and the following 亚比, the
 water, feed and pick in its 植树盆) with 我的家, the home with furniture and
 storage, the 百田大剧场 (the 奥拉星 films that survive), the start screen
 without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星币,
-晶豆, experience, any 亚比 by number; not of 2013), gathering in scenes, the wild and rare 亚比 the
+晶豆, experience, any 亚比 by number, 蓝宝石; not of 2013), the 收费 goods
+bought with 星币, the 亚比孵化器, 更换技能 in the 背包, the 生态园 games
+(动物保卫战, 动物捕捉, 海底保卫战; later copies of the games), 欢乐岛,
+gathering in scenes, the wild and rare 亚比 the
 November 2012 map lists for each place, battles, and the mini games (their
 entrance panels, the games' own SWFs, 晶币 for the score). Known gaps: the
-HELLO's panel, bosses and arenas, friends, daily tasks and most activities
+HELLO's panel, the zoo, bosses and arenas, friends, daily tasks and most activities
 are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every
 missing system, what survives of it, the server commands it needs, and the
 milestone order.

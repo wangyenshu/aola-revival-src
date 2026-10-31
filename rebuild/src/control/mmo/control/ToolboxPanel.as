@@ -4,6 +4,7 @@ package mmo.control
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.text.TextField;
+   import mmo.common.member.MemberManager;
    import mmo.common.user.UserInfo;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -16,7 +17,7 @@ package mmo.control
 
    /**
     * The revival's 工具箱 (not of 2013): add 晶币, 星币, 晶豆 and 亚比 experience
-    * (to the first 亚比 of the bag), and get any 亚比 by its number at a chosen
+    * (to the first 亚比 of the bag), become 蓝宝石 or not, and get any 亚比 by its number at a chosen
     * level (to the bag, or to the 亚比仓库 when the bag is full), for testing
     * fights and for players who want them. Server: SundriesExtension.revival_toolbox.
     */
@@ -32,6 +33,8 @@ package mmo.control
       private var petName:TextField;
       private var raceIn:TextField;
       private var levelIn:TextField;
+      private var vipButton:Sprite;
+      private var vip:Boolean;
 
       public static function toggle():void
       {
@@ -44,14 +47,27 @@ package mmo.control
          LayerManager.getBaseTop().addChild(current);
       }
 
-      /** Keeps UserInfo.xingbi as the server has it (asked once at start, then from every toolbox reply). */
+      /**
+       * Keeps UserInfo.xingbi and the 蓝宝石 state as the server has them
+       * (asked once at start, then from every toolbox reply). The 2013
+       * client set up MemberManager from the lost login; here it is
+       * MemberManager.init(open, privileges, services, member type 4 or 0,
+       * vip level, vip score, annual, fop, hbm).
+       */
       public static function watchMoney():void
       {
          SocketClient.instance.addEventListener("revival_toolbox", function(e:SocketClientEvent):void
          {
             UserInfo.xingbi = int(e.params.xingbi);
+            setMember(e.params.vip == true);
          });
          SocketClient.instance.sendXtMessage("SundriesExtension", "revival_toolbox", {});
+      }
+
+      public static function setMember(v:Boolean):void
+      {
+         try { MemberManager.instance.init(true, "", [], v ? 4 : 0, v ? 1 : 0, 0, false, false, false); }
+         catch (err:Error) { RLog.error("toolbox member", err); }
       }
 
       public function ToolboxPanel()
@@ -72,6 +88,10 @@ package mmo.control
          row("晶豆", "jingdou", "1000", 168);
          row("亚比经验", "exp", "10000", 206, "给背包里第一只亚比");
 
+         vipButton = RUI.button("成为蓝宝石", function():void { send({vip: !vip}); }, 104, 24, 0x6CC0F5, 0x2E86D6, "toolboxVip");
+         vipButton.x = W - 128;
+         vipButton.y = 58;
+         box.addChild(vipButton);
          box.addChild(RUI.well(16, 260, W - 32, 82));
          var t:TextField = RUI.text(14, RUI.BLUE, true);
          t.text = "领取亚比    编号";
@@ -172,7 +192,17 @@ package mmo.control
       {
          var p:Object = e.params;
          UserInfo.xingbi = int(p.xingbi);
-         totals.text = "现在有    晶币 " + int(p.score) + "    星币 " + int(p.xingbi) + "    晶豆 " + int(p.jingdou);
+         totals.text = "晶币 " + int(p.score) + "   星币 " + int(p.xingbi) + "   晶豆 " + int(p.jingdou) + (p.vip == true ? "   蓝宝石" : "");
+         if (vip != (p.vip == true))
+         {
+            vip = p.vip == true;
+            var at:int = box.getChildIndex(vipButton);
+            box.removeChild(vipButton);
+            vipButton = RUI.button(vip ? "取消蓝宝石" : "成为蓝宝石", function():void { send({vip: !vip}); }, 104, 24, 0x6CC0F5, 0x2E86D6, "toolboxVip");
+            vipButton.x = W - 128;
+            vipButton.y = 58;
+            box.addChildAt(vipButton, at);
+         }
          if (p.msg) said.text = String(p.msg);
       }
 
