@@ -84,20 +84,25 @@ package mmo.control
        * The loading spinner (ProgressFullSprite: a dimmed screen and
        * mmo.common.LoadingMovie) is for short waits on the server; scenes and
        * scripts of later years wait behind it for replies the revival's
-       * server may never send, which left the game locked (发明港口). When it
-       * has stood for 20 s it is taken away.
+       * server may never send, which left the game locked (发明港口). The
+       * emulator answers at once, so a spinner that has stood for 5 s waits
+       * for nothing: it is taken away (it was 20 s, which players took for a
+       * frozen game). The scene is logged; the emulator logs each request it
+       * has no answer for ("sfs2013: unhandled xt …").
        */
       private function watchSpinner():void
       {
          var seen:int = 0;
-         var t:Timer = new Timer(5000);
+         var t:Timer = new Timer(1000);
          t.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
          {
             var stage:DisplayObjectContainer = LayerManager.stage;
             if (stage == null || findClass(stage, "mmo.common::LoadingMovie", 6) == null) { seen = 0; return; }
-            if (++seen < 4) return;
+            if (++seen < 5) return;
             seen = 0;
-            RLog.log("control: a loading spinner stood for 20 s; closing it");
+            var where:String = "";
+            try { where = SceneManager.getInstance().loadedSceneInfo.sceneName; } catch (e0:Error) {}
+            RLog.log("control: a loading spinner stood for 5 s in " + where + "; closing it");
             try { ProgressFullSprite.close(); } catch (err:Error) {}
          });
          t.start();
@@ -126,6 +131,8 @@ package mmo.control
             case "map":
                // In 黑星堡垒 (changeToSpaceTimeMode) the map button is its way out.
                if (spaceTimeExit != null) spaceTimeExit();
+               // In a 副本 the bar's map button is the 副本's map (its FBButtonManager listens on it).
+               else if (fbMode && _fbMap == null) break;
                else openMap();
                break;
             case "phrase":
@@ -410,6 +417,18 @@ package mmo.control
                switch (cmd)
                {
                   case "goto": sm.loadScene(arg); return "ok";
+                  case "joinfb":
+                     // Enter a 副本 as its choose panel does (tests/e2e): "fbaixi:level:room".
+                     var jf:Array = String(arg).split(":");
+                     var jid:int = ["fbaixi", "fbsuolide", "fbsiwude", "fbyishuzhidu"].indexOf(jf[0]);
+                     var loader:Object = ServiceContainer.getService("FBLoaderService");
+                     if (loader == null || jid < 0) return "none";
+                     loader.joinFb(jid, jf[0], int(jf[1]), {sceneNum: int(jf[2]) || 1});
+                     return "ok";
+                  case "loadfb":
+                     // A 副本 room as its doors load it (tests/e2e): "fbaixi4" in 副本 fbaixi, team key my name.
+                     sm.loadFB(arg, String(arg).replace(/\d+$/, ""), "", SocketClient.instance.myUserName);
+                     return "ok";
                   case "map": openMap(); return "ok";
                   case "home": goHome(); return "ok";
                   case "scene": return sm.loadedSceneInfo ? sm.loadedSceneInfo.sceneName : "";
@@ -426,13 +445,27 @@ package mmo.control
                   case "panel": showPanel(arg); return "ok";
                   case "book":
                      // Open a shop book of the era book list by its number (tests/e2e).
-                     ServiceContainer.instance.tryGetService("SellBookService", function(svc:IService, o:Object):void { Object(svc).showPage(arg); });
+                     ServiceContainer.instance.tryGetService("SellBookService", function(svc:IService, o:Object):void { Object(svc).showPage(arg.split(":")[0], int(arg.split(":")[1])); });
                      return "ok";
                   case "name":
                      // The name of the first shown object matching "prefix*" (tests/e2e).
                      var nm:DisplayObject = LayerManager.stage ? findNamed(LayerManager.stage, arg) : null;
                      return nm ? nm.name : "none";
                   case "fight": PetClient2.instance.startPKWithRobot(int(arg)); return "ok";
+                  case "xt":
+                     // A raw extension command "Extension.cmd k=v k=v" (tests/e2e: the 工具箱's revival_toolbox …); numbers stay numbers.
+                     var xp:Array = String(arg).split(" ");
+                     var xh:Array = String(xp.shift()).split(".");
+                     var xo:Object = {};
+                     for each (var kv:String in xp)
+                     {
+                        var eq:int = kv.indexOf("=");
+                        if (eq <= 0) continue;
+                        var xv:String = kv.substr(eq + 1);
+                        xo[kv.substr(0, eq)] = isNaN(Number(xv)) ? xv : Number(xv);
+                     }
+                     SocketClient.instance.sendXtMessage(xh[0], xh[1], xo);
+                     return "ok";
                   case "give":
                      // Only answered by a server started with dev commands (web/?dev=1).
                      // "id" gives 5 of item id; "type:id" 5 of another kind (12:10001, a 小狗 幼仔).
@@ -574,7 +607,12 @@ package mmo.control
                         var data:Object = ServiceContainer.getService("PetDataService");
                         var list:Array = data ? data.getMyPets() : [];
                         if (arg == "back") Object(svc).setBackPackage();
-                        else if (list.length > 0) Object(svc).setFollow(list[0].id, list[0].raceId);
+                        else
+                        {
+                           var pick:Object = list.length > 0 ? list[0] : null;
+                           for each (var lp:Object in list) if (int(arg) > 0 && lp.raceId == int(arg)) pick = lp;
+                           if (pick != null) Object(svc).setFollow(pick.id, pick.raceId);
+                        }
                      });
                      return "ok";
                }
@@ -663,7 +701,7 @@ package mmo.control
 
       public function get fbLeaveButton():InteractiveObject
       {
-         return _fbLeave;
+         return _fbLeave ? _fbLeave : (bar ? bar.leaveButton : null);
       }
 
       public function get fbMapButton():InteractiveObject

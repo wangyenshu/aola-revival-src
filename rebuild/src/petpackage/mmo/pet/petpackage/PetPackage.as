@@ -97,14 +97,14 @@ package mmo.pet.petpackage
                try { IShowPanel(svc).showPanel(); } catch (e:Error) { RLog.error("petpackage warehouse", e); }
             });
          });
-         button(panel.mcRide, notReady("坐骑"));
+         button(panel.mcRide, toggleRide);
          button(panel.mcSetPri, setFirst);
          button(panel.mcFollow, toggleFollow);
          button(panel.btnHealth, healAll);
          // The art's two-frame tabs and switches (frame 1 plain, 2 chosen) would play
          // on and blink: the lost logic held them still, as here.
          for each (var n:String in ["btnInfo", "btnItem", "btnCloth", "btnCard"]) frame(panel[n], n == "btnInfo" ? 2 : 1);
-         frame(panel.mcRide, 3);
+         frame(panel.mcRide, 1);
          frame(panel.mcSetPri, 1);
          frame(panel.mcFollow, 1);
          // The page under the 技能 / 能力 / 信息 tabs, and the name above them.
@@ -288,7 +288,6 @@ package mmo.pet.petpackage
          if (page == "skill")
          {
             for each (var sk:SkillInfo in p.skills || []) s += "◆ " + sk.name + "    PP " + sk.canUseTimes + "/" + sk.maxUseTimes + "\n";
-            s += "\n<font color='#7A8EA8'>升级时会学会新技能，点「更换技能」挑选带在身上的四个。</font>\n";
          }
          else if (page == "ability")
          {
@@ -335,6 +334,20 @@ package mmo.pet.petpackage
             if (f == null) return;
             if (back) f.setBackPackage();
             else f.setFollow(p.id, p.raceId);
+         });
+      }
+
+      /** mcRide (坐骑): the rebuilt pet/petride (RideService, PetExtension 54_12 to ride, 54_20 to get off). */
+      private function toggleRide():void
+      {
+         var p:PetBriefInfo = pets[selected] as PetBriefInfo;
+         if (p == null) return;
+         ServiceContainer.instance.tryGetService("RideService", function(svc:IService, o:Object):void
+         {
+            var r:Object = svc;
+            if (r == null) return;
+            if (int(r.getMyRidePetId) == p.id) r.unRide(p);
+            else r.ride(p);
          });
       }
 

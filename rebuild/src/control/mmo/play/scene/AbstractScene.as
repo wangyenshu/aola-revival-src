@@ -16,6 +16,30 @@ package mmo.play.scene
          return getChildByName("background") as Sprite;
       }
 
+      /** The later engine's: a room drawn anew (倒立金字塔's coffin room opens) puts a new background in place of the old. */
+      public function switchBackground(layer:Sprite):void
+      {
+         if (layer == null) return;
+         var old:DisplayObject = backGround;
+         var at:int = old != null && old.parent == this ? getChildIndex(old) : 0;
+         if (old != null && old.parent == this) removeChild(old);
+         layer.name = "background";
+         addChildAt(layer, at);
+      }
+
+      private var _needValidateLeave:Boolean = true;
+
+      /** The later engine's flag (asking before leaving a room); kept, not used. */
+      public function get needValidateLeave():Boolean
+      {
+         return _needValidateLeave;
+      }
+
+      public function set needValidateLeave(v:Boolean):void
+      {
+         _needValidateLeave = v;
+      }
+
       public function get foreGround():Sprite
       {
          return getChildByName("foreground") as Sprite;

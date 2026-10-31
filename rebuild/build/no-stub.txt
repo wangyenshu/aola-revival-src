@@ -42,3 +42,6 @@ bumpbilliards/bumpbilliards
 fortunemanager/fortunemanager
 pet/peteggservice
 spacetime/spacetimeservice
+fbservice/fbservice
+fbteam/fbteamservice
+pet/petride

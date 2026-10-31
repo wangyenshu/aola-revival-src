@@ -58,7 +58,7 @@ package mmo.pet.petpackage
          box.y = (560 - H) / 2 - 10;
          addChild(box);
          var t:TextField = RUI.text(13, RUI.BLUE, true);
-         t.text = petName + " 学会的技能（最多带四个，点一下选上或取下）";
+         t.text = petName + " 学会的技能";
          t.x = 24;
          t.y = 56;
          box.addChild(t);

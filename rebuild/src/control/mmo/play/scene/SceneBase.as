@@ -58,6 +58,12 @@ package mmo.play.scene
          _initPoints[key] = point;
       }
 
+      /** REVIVAL: an entrance added from outside the scene (ScenePatches). */
+      revival function addEntranceFor(area:DisplayObject, sceneName:String, locationKey:String = "default"):void
+      {
+         addEntrances(area, sceneName, locationKey);
+      }
+
       protected function addEntrances(area:DisplayObject, sceneName:String, locationKey:String = "default", button:DisplayObject = null, face:String = "ld"):void
       {
          if (area == null)
@@ -331,6 +337,16 @@ package mmo.play.scene
          _sceneHeight = Math.max(height, 560);
          arrangeLayers();
          if (obStruction) obStruction.alpha = 0;
+         // Some rooms carry a second layer named obstruction above the others (幻影冰宫's
+         // fbaixi1): drawn in its red over the room and catching its clicks. Hidden too.
+         for (var oi:int = 0; oi < numChildren; oi++)
+         {
+            var extra:DisplayObject = getChildAt(oi);
+            if (extra.name != "obstruction" || extra == obStruction) continue;
+            extra.alpha = 0;
+            if (extra is InteractiveObject) InteractiveObject(extra).mouseEnabled = false;
+            if (extra is DisplayObjectContainer) DisplayObjectContainer(extra).mouseChildren = false;
+         }
          cacheSceneLayers();
          addEventListener(Event.ENTER_FRAME, onFrame);
          PlayerManager.getInstance().addEventListener(PlayerManagerEvent.ENTER_ROOM, onPlayerEnter);

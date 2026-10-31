@@ -23,3 +23,8 @@ test("a 守护者 win brings the egg of its line", async () => {
   assert.equal(eggOfLine({ species }, 1320), 1319); // 伊泽 -> 小泽亚比蛋
   assert.equal(eggOfLine({ species }, 536), 0); // 震天石魔: no egg
 });
+
+test("终极麦斗王's team: its last 亚比 gives the 麦斗猪蛋", async () => {
+  const { BOSS_EGGS } = await import("../src/game/sfs2013/battle.ts");
+  assert.equal(BOSS_EGGS[11516], 520);
+});

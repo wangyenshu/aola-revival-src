@@ -37,6 +37,11 @@ import xml.etree.ElementTree as ET
 
 HOST = "www.9aola.com"
 
+# Pages brought to the front of their book (behind its covers): the 家具店's
+# 迷幻星域故事书 tells of the 迷幻星域 room, which the 家具商品册 sells on
+# jiaju30 (1/173), the eighteenth page in the live list's order (REVIVAL choice).
+FEATURED = {"catalog201003": [(30, 1)]}
+
 
 def swf_body(b: bytes) -> bytes:
     if b[:3] == b"FWS":
@@ -114,6 +119,11 @@ def main(argv=None) -> None:
                 # A book only of pages taken later: in the live list's order (scenes open
                 # its pages by index), pages it no longer lists after them.
                 pages = [p for p in live if p in pages] + [p for p in pages if p not in live]
+            # A page the shop's own scene points to, brought forward behind the covers.
+            for fp in FEATURED.get(el.get("no", ""), []):
+                if fp in pages:
+                    pages.remove(fp)
+                    pages.insert(len([p for p in pages if p[0] == 1]), fp)
             if not pages:
                 g.remove(el)
                 dropped += 1
@@ -123,33 +133,60 @@ def main(argv=None) -> None:
     # 奥拉周刊: WeeklyService opened the issue config.xml names (<weekly>) as a
     # catalog of this list, and the library shows the back issues. The live
     # list no longer has the weeklies, so each issue with page files in
-    # mirror/ or game/ becomes one: weekly/weeklyN/aolaweeklyN_<k>.swf with
-    # page classes mmo.weekly.weeklyN._NPage<k>_1, or (the first issues)
-    # weekly/aolaweeklyN_<k>.swf with mmo.weekly._NPage<k>_1, as config.xml's
-    # weekly1 has it; one page per file, in file order (tools/weeklies.py
-    # takes the back issues from the live server). Its numbers also go to
-    # rebuild/gen/weekly for WeeklyService.
+    # mirror/ or game/ becomes one, from whichever of its forms holds the
+    # most pages (tools/weeklies.py takes them from the live server):
+    #   weekly/aolaweeklyN.swf, the whole issue in one file (issues 1–22),
+    #     pages mmo.weekly._NPage_<p> ("p" entries alone, as the era CatalogInfo reads them);
+    #   weekly/weeklyN/aolaweeklyN_<k>.swf, pages mmo.weekly.weeklyN._NPage<k>_<p>
+    #     (or mmo.weekly._NPage<k>_<p>: issues 50, 51);
+    #   weekly/aolaweeklyN_<k>.swf, pages mmo.weekly._NPage<k>_<p>, as config.xml's weekly1.
+    # Every page of every file (a file may hold several: issues 5–8, 21–49);
+    # but in issues 1–4 file 1 is the whole issue again, so one page a file
+    # there. Its numbers also go to rebuild/gen/weekly for WeeklyService.
     issues = []
     cats = root.find("catalogs")
     roots = [a.mirror] + ([a.game] if a.game else [])
     numbers = set()
     for r in roots:
         for d in glob.glob(os.path.join(r, HOST, "weekly", "weekly[0-9]*")):
-            numbers.add(int(re.sub(r"\D", "", os.path.basename(d))))
-        for f in glob.glob(os.path.join(r, HOST, "weekly", "aolaweekly[0-9]*_[0-9]*.swf*")):
-            numbers.add(int(re.match(r"aolaweekly(\d+)_", os.path.basename(f)).group(1)))
+            if os.path.isdir(d):
+                numbers.add(int(re.sub(r"\D", "", os.path.basename(d))))
+        for f in glob.glob(os.path.join(r, HOST, "weekly", "aolaweekly[0-9]*.swf*")):
+            numbers.add(int(re.match(r"aolaweekly(\d+)", os.path.basename(f)).group(1)))
+
+    def whole_pages(n: int) -> list[int]:
+        pat = re.compile(rf"mmo\.weekly\._{n}Page_(\d+)".encode())
+        for r in roots:
+            for f in glob.glob(glob.escape(os.path.join(r, HOST, "weekly", f"aolaweekly{n}")) + ".swf*"):
+                try:
+                    return sorted({int(p) for p in pat.findall(swf_body(open(f, "rb").read()))})
+                except Exception:
+                    continue
+        return []
+
     for n in sorted(numbers):
-        for f, t in ((f"weekly/weekly{n}/aolaweekly{n}_", f"mmo.weekly.weekly{n}._{n}Page"), (f"weekly/aolaweekly{n}_", f"mmo.weekly._{n}Page")):
-            first: dict[int, int] = {}
+        options = []
+        whole = whole_pages(n)
+        if whole:
+            options.append((len(whole), f"weekly/aolaweekly{n}", f"mmo.weekly._{n}Page", ";".join(map(str, whole))))
+        for f, t in ((f"weekly/weekly{n}/aolaweekly{n}_", f"mmo.weekly.weekly{n}._{n}Page"),
+                     (f"weekly/weekly{n}/aolaweekly{n}_", f"mmo.weekly._{n}Page"),
+                     (f"weekly/aolaweekly{n}_", f"mmo.weekly._{n}Page")):
+            pages: set[tuple[int, int]] = set()
             for r in roots:
-                for k, m in era_pages(r, f, t):
+                pages.update(era_pages(r, f, t))
+            if n <= 4:
+                first: dict[int, int] = {}
+                for k, m in pages:
                     first[k] = min(m, first.get(k, m))
-            if first:
-                break
-        if not first or cats is None:
+                pages = set(first.items())
+            if pages:
+                options.append((len(pages), f, t, ";".join(f"{k},{m}" for k, m in sorted(pages))))
+        if not options or cats is None:
             continue
-        ET.SubElement(cats, "catalog", {"no": f"weekly{n}", "n": f"奥拉周刊第{n}期", "f": f, "t": t,
-                                        "p": ";".join(f"{k},{first[k]}" for k in sorted(first))})
+        # The most pages; on a tie the paged files (listed after the whole issue).
+        best = max(enumerate(options), key=lambda io: (io[1][0], io[0]))[1]
+        ET.SubElement(cats, "catalog", {"no": f"weekly{n}", "n": f"奥拉周刊第{n}期", "f": best[1], "t": best[2], "p": best[3]})
         issues.append(n)
         kept += 1
     wpkg = os.path.join(a.out, "..", "weekly", "mmo", "weekly")

@@ -57,6 +57,7 @@ package mmo.scene.starland
          addInitLocation("fromtoolshop", new Point(760, 360));
          addInitLocation("fromclothesshop", new Point(650, 300));
          addInitLocation("fromplantpark", new Point(280, 300));
+         addInitLocation("fromfurnitureshop", new Point(215, 380));
       }
 
       override protected function onJoinRoom():void
@@ -120,9 +121,11 @@ package mmo.scene.starland
                }, this);
             });
          }
+         // The HOUSE door under the 家具店 sign: into the 家具店 (it was taken for
+         // the way home; 回家 on the bar leads home).
          var house:Sprite = hotspot(84, 258, 150, 70);
-         tips.addTips(house, "小屋");
-         addEntranceAction(house, goHome);
+         tips.addTips(house, "家具店");
+         addEntrances(house, "furnitureshop", "fromstarshopping");
       }
 
       private static function findNamed(d:DisplayObject, name:String):DisplayObject
@@ -163,13 +166,5 @@ package mmo.scene.starland
          return s;
       }
 
-      /** The HOUSE door: into my home (HouseService.houseLoader, as the 2013 arrow guide does). */
-      private function goHome():void
-      {
-         ServiceContainer.instance.tryGetService("HouseService", function(svc:IService, o:Object):void
-         {
-            Object(svc).houseLoader.loadHouse(SocketClient.instance.myUserName);
-         });
-      }
    }
 }

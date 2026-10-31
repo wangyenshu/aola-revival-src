@@ -61,7 +61,8 @@ package mmo.revival.book
             }
             if (name.indexOf("btnjumppage_") == 0)
             {
-               view.go(int(name.split("_")[1]) - 1);
+               // The era BookManagerBase.JumpPage: pageIndex = n, counted from 0 (the cover is _0).
+               view.go(int(name.split("_")[1]));
                return true;
             }
             return false;

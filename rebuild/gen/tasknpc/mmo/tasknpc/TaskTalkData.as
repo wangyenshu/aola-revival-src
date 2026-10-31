@@ -237,6 +237,11 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["11_1414_yabistudy"] = <config><context npcId="11" str="烧焦的亚比蛋？让我来看看赤火斗士一族的资料。"><choice str="博士请看。" action="1414_description"/></context></config>;
+         talk["11_1415_helpguy"] = <config><context npcId="11" str="原来你是蓝宝骑士！蓝宝石的力量能唤醒赤火斗士的蛋，快回火山去吧！"><choice str="我这就去！" action="1415_gofire"/></context></config>;
+         talk["11_1415_laterbe"] = <config><context npcId="11" str="没关系，等你成为蓝宝骑士以后，再来找我吧。"><choice str="好的。"/></context></config>;
+         talk["11_1415_lieguy"] = <config><context npcId="11" str="可是你还不是蓝宝骑士呢……只有蓝宝石的力量才能唤醒这个亚比蛋。"><choice str="我要成为蓝宝骑士！" action="1415_bemember"/><choice str="以后再说吧。" action="1415_notbemember"/></context></config>;
+         talk["11_1415_yabistudy"] = <config><context npcId="11" str="这是赤火斗士一族的亚比蛋，被大火烧焦了。只有拥有强大力量的人才能唤醒它。你有这样的力量吗？"><choice str="我有！" action="1415_havepow"/></context></config>;
          talk["11_1474_yabistudy"] = <config name="11_1474_yabistudy">
 					<context npcId="11" iconId="4" str="（听了我们的述说后）这事情可难办了，之前也没有遇到过这样的事情，不知道能不能成功唤醒贝壳……">
 						<choice str="拜托啦，我们就指望你了。">
@@ -363,6 +368,8 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["11_1656_yabistudy"] = <config><context npcId="11" str="这是修普森曼的蛋！它需要纯白之翼的信念才能孵化。"><choice str="什么是纯白之翼的信念？" taskId="1656"/></context></config>;
+         talk["11_1657_yabistudy"] = <config><context npcId="11" str="只有蓝宝骑士才能传承修普森曼的信念，让它的蛋孵化。"><choice str="我能做到吗？" action="isMember1657"/></context></config>;
          talk["11_702_yabistudy"] = <config>
 				  <context npcId="11" str="#username#，一看到你来找我，我就知道又有什么特别麻烦的事情啦。">
 					<choice str="还真是特别麻烦，不是你解决不了呢。">
@@ -1946,6 +1953,10 @@ package mmo.tasknpc
 						<choice type='0' str="嗯，好的。" action="1401_ShowMovie"/>
 					</context>
 				</config>;
+         talk["1_1413_crossfail"] = <config><context npcId="1" str="主人，艾尔利克被火焰卷走了，地上只留下一个烧焦的亚比蛋……我们去亚比研究所找贝鲁特博士问问吧！"><choice str="好，我们走！" taskId="1413"/></context></config>;
+         talk["1_1417_canegg"] = <config><context npcId="1" str="主人，就是这个烧焦的亚比蛋！用蓝宝石的力量试着唤醒它吧！"><choice str="好！" action="1417_dohavepow"/></context></config>;
+         talk["1_1417_eggback"] = <config><context npcId="1" str="亚比蛋恢复了生机！赤火剑的力量也回来了，快让艾尔利克学会它吧！"><choice str="好的！" action="1417_skillpanel"/></context></config>;
+         talk["1_1417_notegg"] = <config><context npcId="1" str="这个亚比蛋被烧焦了……只有蓝宝骑士的力量才能唤醒它。"><choice str="我知道了。"/></context></config>;
          talk["1_1423_afterinteraction"] = <config>
 					<context npcId='1' str="主人，我们已经搜集齐露珠了，快看看露水对黑化的巨翅金鹏有没有效果吧。">
 						<choice type='0' str="好，我们现在就去小小鸟森林。" taskId="1423"/>
@@ -2757,6 +2768,9 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         talk["1_1655_isvip"] = <config><context npcId="1" str="修普森曼化成了一个亚比蛋！主人是蓝宝骑士，蓝宝石的光芒一定能守护它。"><choice str="我们要守护它！" action="movie1655_2"/></context></config>;
+         talk["1_1655_notvip"] = <config><context npcId="1" str="修普森曼化成了一个亚比蛋……只有蓝宝骑士的力量才能守护它。"><choice str="我们先看看吧。" action="movie1655_2"/></context></config>;
+         talk["1_1658_overtalk"] = <config><context npcId="1" str="纯白之翼的信念传承下来了！修普森曼的蛋会跟着主人回家的！"><choice str="太好了！" taskId="1658"/></context></config>;
          talk["1_16902_talk"] = <config>
 					<context npcId="1" str="主人，快使用&lt;font color='#FF6600'&gt;&lt;b&gt;光能射线&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;切断蔓藤吧！">
 						<choice type="0" str="好办法！" action="169_DoCut"/>
@@ -7920,6 +7934,9 @@ package mmo.tasknpc
 						<choice type='0' str="让我想想办法，一定要打败你！"/>
 					</context>
 				</config>;
+         talk["343_1412_fightfail"] = <config><context npcId="343" str="哼，你的意志还不够坚定。"><choice str="再来一次！" action="1412_fightnpc"/><choice str="我会变得更强的。"/></context></config>;
+         talk["343_1412_volcano"] = <config><context npcId="343" str="我是赤火斗士艾尔利克！火山的火焰只认可拥有坚定意志的人。想证明自己，就和我较量一下吧！"><choice str="来吧！" action="1412_fightnpc"/><choice str="我再准备一下。"/></context></config>;
+         talk["343_1413_volcano"] = <config><context npcId="343" str="你赢了，你的意志很坚定……等等，火山在震动！小心那股火焰！"><choice str="什么？！" action="1413_crossfire"/></context></config>;
          talk["349_1431_mantenxiagu1"] = <config>
 					<context action="1431gotofight">
 				   </context>
@@ -9254,6 +9271,13 @@ package mmo.tasknpc
 						<choice str="我还不想见识。"/>
 					</context>
 				</config>;
+         talk["403_1653_talk1"] = <config><context npcId="403" str="黑暗的力量正在侵蚀我的翅膀……在把纯白之翼的力量交给你之前，我要先看看你的实力。"><choice str="我准备好了！" taskId="1653"/></context></config>;
+         talk["403_1654_aquarium"] = <config><context npcId="403" str="让我看看你的信念有多坚定！"><choice str="开始吧！" action="fight1654"/><choice str="我再准备一下。"/></context></config>;
+         talk["403_1654_fightlose"] = <config><context npcId="403" str="你的信念还不够坚定。"><choice str="再来！" action="fight1654"/><choice str="下次再来。"/></context></config>;
+         talk["403_1655_aquarium"] = <config><context npcId="403" str="你果然有坚定的信念……啊！黑暗的力量又来了！"><choice str="小心！" action="movie1655_1"/></context></config>;
+         talk["403_1655_talk2"] = <config><context npcId="403" str="请把我的蛋带到贝鲁特博士那里……"><choice str="放心吧！" taskId="1655"/></context></config>;
+         talk["403_1657_isMember"] = <config><context npcId="403" str="蓝宝骑士，我把纯白之翼的信念托付给你了！回到水族馆，带走我的蛋吧。"><choice str="我一定不会辜负你！" action="1657ok"/></context></config>;
+         talk["403_1657_notMember"] = <config><context npcId="403" str="成为蓝宝骑士，才能把我带回家……"><choice str="我要成为蓝宝骑士！" action="tobebluemember"/><choice str="我先完成任务吧。" action="1657ok"/></context></config>;
          talk["417_1712_suolide4"] = <config>
 					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
 				</config>;
@@ -24998,6 +25022,7 @@ package mmo.tasknpc
 							<choice type='0' str="现在没空哦！一会再来找你。"/>
 						</context>
 					</config>;
+         starts["343_1411_volcano"] = <config><context npcId="343" str="我是火山的守护者，赤火斗士艾尔利克。听说有个勇敢的奥拉星人来了？"><choice str="就是我！" starterId="1411" action="task1411_start"/><choice str="我只是路过。"/></context></config>;
          starts["352_1434_starsea1"] = <config>
 					<context iconId="2" str="星云海洋里有许多许多的古老传说和珍贵宝物，想不想来星云海洋进行一次寻宝冒险呢？">
 						<choice str="寻宝冒险？听起来很有意思，可以试一试。" starterId="1434"/>
@@ -25090,6 +25115,7 @@ package mmo.tasknpc
 						</choice>
 					</context>
 				</config>;
+         starts["403_1652_aquarium"] = <config><context npcId="403" str="我是纯白之翼的守护者修普森曼……黑暗的力量正在逼近，你愿意帮助我吗？"><choice str="我愿意帮助你！" starterId="1652"/><choice str="下次吧。"/></context></config>;
          starts["417_1711_suolide4"] = <config>
 					<context npcId="417" iconId="1" str="我和木羊羊是最好的朋友。"/>
 				</config>;

@@ -53,6 +53,18 @@ songs `dancesong/song1–5`, two game entrance panels, the 欢乐弹珠机
 `spacetimepanel`, and the 幻龙星系 quests' scripts (`taskext/task3022` … `task3346`,
 2015 uploads) with their 137 resources and NPC pictures (`tools/story_files.py`):
 193 lines in `index.jsonl` and 28 in `_later/index.jsonl`.
+A fifth run (also 31 October) indexed the files of update 9: the 奥拉周刊 issues
+whole in one file (`weekly/aolaweekly1–20, 22.swf`, 43 MB, uploaded 2010–11),
+the pictures of 2011–12 event bosses `dailyactivity/dailyboss10112` … `11259` and
+友人契约书's egg film, the skill films `petlearning/petlearning192` and `230`, and
+for the 四大副本 the later choose and buy-times panels and 拉贝尔幻影's battle sprite
+`fightassets/pet999`: 33 lines in `index.jsonl` and 3 in `_later/index.jsonl`.
+A sixth run (also 31 October) indexed the files of update 10: the battle pictures
+and 亚比蛋 pictures of 亚比 1–1426 the archive lacked, 斑比向前冲
+(`game/ninja/ninjarush`, 2017) and 酷跑星世界 (`game/parkour/`, 2014–15, with its
+maps, roles and films), the 家具店's 迷幻星域故事书 (`bookfriendclub/seestory`,
+2011), the bubbles of 时空隧道 (`library_res/common_res_bubble`) and an entrance
+panel: 1 line in `index.jsonl` and 67 in `_later/index.jsonl`.
 
 ## How the files were found and dated
 

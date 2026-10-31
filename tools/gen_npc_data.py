@@ -22,7 +22,8 @@ needs. Both go to rebuild/gen/ (committed, so building needs no decompiler):
       --extra tools/data/scene-npcs-2012.json
 
 --extra adds task NPCs the later table no longer places (the 幻龙星系 quests' NPCs whose
-start talks name a room: 飞灵 776 in 魔法羽林 …), at RECONSTRUCTED spots (see its _doc).
+start talks name a room: 飞灵 776 in 魔法羽林 …), at RECONSTRUCTED spots (see its _doc), and
+NPCs of 2013 rooms whose only artwork is a later upload (a fifth value 0: always shown).
 """
 from __future__ import annotations
 
@@ -116,9 +117,9 @@ def main(argv=None) -> None:
     if a.extra:
         for sc, lst in json.load(open(a.extra, encoding="utf-8"))["scenes"].items():
             have = {d.get("npcId") for d in scenes.get(sc, [])}
-            for npc, view, x, y in lst:
+            for npc, view, x, y, *kind in lst:
                 if npc not in have and npc in art:
-                    scenes.setdefault(sc, []).append({"npcId": npc, "viewId": view, "x": x, "y": y, "type": 2})
+                    scenes.setdefault(sc, []).append({"npcId": npc, "viewId": view, "x": x, "y": y, "type": kind[0] if kind else 2})
     pkg = os.path.join(a.out, "mmo", "tasknpc")
     os.makedirs(pkg, exist_ok=True)
     rows = ",\n".join(

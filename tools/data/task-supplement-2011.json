@@ -1,0 +1,192 @@
+{
+ "_doc": [
+  "修普森曼 and 艾尔利克 (红白格斗神宠, VIP quests of 2011, withdrawn on 11 November 2011: the 蓝宝石 book page",
+  "catalog/bluelatestnews45), which the January 2013 client no longer offered: the user asked for them back. The later",
+  "task/taskdefines keeps only their panel rows (TaskPanelResDefine); their scripts (taskext/task1411, task1416,",
+  "task1652) and panels (taskpanel/tp1411, tp1416, tp1652) are era files in game/. RECONSTRUCTED: the steps (the later",
+  "panel table's), the starters (after the newbie quest 150; 1416 starts by itself after 1411), the scene table rows",
+  "(from where the scripts act) and every conversation (written to the keys and actions the scripts open and send;",
+  "the 2011 texts are lost). The rewards are the server's (server/src/game/sfs2013/tasks.ts QUEST_REWARDS)."
+ ],
+ "defines": {
+  "1411": [
+   0,
+   "1412,1413,1414,1415"
+  ],
+  "1412": [
+   11,
+   ""
+  ],
+  "1413": [
+   11,
+   ""
+  ],
+  "1414": [
+   11,
+   ""
+  ],
+  "1415": [
+   11,
+   ""
+  ],
+  "1416": [
+   0,
+   "1417"
+  ],
+  "1417": [
+   11,
+   ""
+  ],
+  "1652": [
+   0,
+   "1653,1654,1655,1656,1657,1658"
+  ],
+  "1653": [
+   11,
+   ""
+  ],
+  "1654": [
+   11,
+   ""
+  ],
+  "1655": [
+   11,
+   ""
+  ],
+  "1656": [
+   11,
+   ""
+  ],
+  "1657": [
+   11,
+   ""
+  ],
+  "1658": [
+   11,
+   ""
+  ]
+ },
+ "starters": {
+  "1411": {
+   "type": 11,
+   "ext": "150",
+   "pre": [
+    150
+   ],
+   "online": 1,
+   "name": "赤火斗士的意志",
+   "line": 1,
+   "area": 23
+  },
+  "1416": {
+   "type": 12,
+   "ext": "1411",
+   "pre": [
+    1411
+   ],
+   "online": 1,
+   "name": "赤火剑的力量",
+   "line": 1,
+   "area": 23
+  },
+  "1652": {
+   "type": 11,
+   "ext": "150",
+   "pre": [
+    150
+   ],
+   "online": 1,
+   "name": "纯白之翼的信念",
+   "line": 1,
+   "area": 23
+  }
+ },
+ "te": [
+  {
+   "scene": "volcano",
+   "file": "taskext/task1411",
+   "cls": "mmo.task1411.Task1411Service",
+   "taskIds": [
+    1412,
+    1413
+   ],
+   "starterIds": [
+    1411
+   ]
+  },
+  {
+   "scene": "yabistudy",
+   "file": "taskext/task1411",
+   "cls": "mmo.task1411.Task1411Service",
+   "taskIds": [
+    1414,
+    1415
+   ],
+   "starterIds": []
+  },
+  {
+   "scene": "volcano",
+   "file": "taskext/task1416",
+   "cls": "mmo.task1416.Task1416Service",
+   "taskIds": [
+    1417
+   ],
+   "starterIds": []
+  },
+  {
+   "scene": "aquarium",
+   "file": "taskext/task1652",
+   "cls": "mmo.task1652.Task1652Service",
+   "taskIds": [
+    1653,
+    1654,
+    1655,
+    1657,
+    1658
+   ],
+   "starterIds": [
+    1652
+   ]
+  },
+  {
+   "scene": "yabistudy",
+   "file": "taskext/task1652",
+   "cls": "mmo.task1652.Task1652Service",
+   "taskIds": [
+    1656,
+    1657
+   ],
+   "starterIds": []
+  }
+ ],
+ "talk": {
+  "343_1412_volcano": "<config><context npcId=\"343\" str=\"我是赤火斗士艾尔利克！火山的火焰只认可拥有坚定意志的人。想证明自己，就和我较量一下吧！\"><choice str=\"来吧！\" action=\"1412_fightnpc\"/><choice str=\"我再准备一下。\"/></context></config>",
+  "343_1412_fightfail": "<config><context npcId=\"343\" str=\"哼，你的意志还不够坚定。\"><choice str=\"再来一次！\" action=\"1412_fightnpc\"/><choice str=\"我会变得更强的。\"/></context></config>",
+  "343_1413_volcano": "<config><context npcId=\"343\" str=\"你赢了，你的意志很坚定……等等，火山在震动！小心那股火焰！\"><choice str=\"什么？！\" action=\"1413_crossfire\"/></context></config>",
+  "1_1413_crossfail": "<config><context npcId=\"1\" str=\"主人，艾尔利克被火焰卷走了，地上只留下一个烧焦的亚比蛋……我们去亚比研究所找贝鲁特博士问问吧！\"><choice str=\"好，我们走！\" taskId=\"1413\"/></context></config>",
+  "11_1414_yabistudy": "<config><context npcId=\"11\" str=\"烧焦的亚比蛋？让我来看看赤火斗士一族的资料。\"><choice str=\"博士请看。\" action=\"1414_description\"/></context></config>",
+  "11_1415_yabistudy": "<config><context npcId=\"11\" str=\"这是赤火斗士一族的亚比蛋，被大火烧焦了。只有拥有强大力量的人才能唤醒它。你有这样的力量吗？\"><choice str=\"我有！\" action=\"1415_havepow\"/></context></config>",
+  "11_1415_helpguy": "<config><context npcId=\"11\" str=\"原来你是蓝宝骑士！蓝宝石的力量能唤醒赤火斗士的蛋，快回火山去吧！\"><choice str=\"我这就去！\" action=\"1415_gofire\"/></context></config>",
+  "11_1415_lieguy": "<config><context npcId=\"11\" str=\"可是你还不是蓝宝骑士呢……只有蓝宝石的力量才能唤醒这个亚比蛋。\"><choice str=\"我要成为蓝宝骑士！\" action=\"1415_bemember\"/><choice str=\"以后再说吧。\" action=\"1415_notbemember\"/></context></config>",
+  "11_1415_laterbe": "<config><context npcId=\"11\" str=\"没关系，等你成为蓝宝骑士以后，再来找我吧。\"><choice str=\"好的。\"/></context></config>",
+  "1_1417_canegg": "<config><context npcId=\"1\" str=\"主人，就是这个烧焦的亚比蛋！用蓝宝石的力量试着唤醒它吧！\"><choice str=\"好！\" action=\"1417_dohavepow\"/></context></config>",
+  "1_1417_notegg": "<config><context npcId=\"1\" str=\"这个亚比蛋被烧焦了……只有蓝宝骑士的力量才能唤醒它。\"><choice str=\"我知道了。\"/></context></config>",
+  "1_1417_eggback": "<config><context npcId=\"1\" str=\"亚比蛋恢复了生机！赤火剑的力量也回来了，快让艾尔利克学会它吧！\"><choice str=\"好的！\" action=\"1417_skillpanel\"/></context></config>",
+  "403_1653_talk1": "<config><context npcId=\"403\" str=\"黑暗的力量正在侵蚀我的翅膀……在把纯白之翼的力量交给你之前，我要先看看你的实力。\"><choice str=\"我准备好了！\" taskId=\"1653\"/></context></config>",
+  "403_1654_aquarium": "<config><context npcId=\"403\" str=\"让我看看你的信念有多坚定！\"><choice str=\"开始吧！\" action=\"fight1654\"/><choice str=\"我再准备一下。\"/></context></config>",
+  "403_1654_fightlose": "<config><context npcId=\"403\" str=\"你的信念还不够坚定。\"><choice str=\"再来！\" action=\"fight1654\"/><choice str=\"下次再来。\"/></context></config>",
+  "403_1655_aquarium": "<config><context npcId=\"403\" str=\"你果然有坚定的信念……啊！黑暗的力量又来了！\"><choice str=\"小心！\" action=\"movie1655_1\"/></context></config>",
+  "1_1655_isvip": "<config><context npcId=\"1\" str=\"修普森曼化成了一个亚比蛋！主人是蓝宝骑士，蓝宝石的光芒一定能守护它。\"><choice str=\"我们要守护它！\" action=\"movie1655_2\"/></context></config>",
+  "1_1655_notvip": "<config><context npcId=\"1\" str=\"修普森曼化成了一个亚比蛋……只有蓝宝骑士的力量才能守护它。\"><choice str=\"我们先看看吧。\" action=\"movie1655_2\"/></context></config>",
+  "403_1655_talk2": "<config><context npcId=\"403\" str=\"请把我的蛋带到贝鲁特博士那里……\"><choice str=\"放心吧！\" taskId=\"1655\"/></context></config>",
+  "11_1656_yabistudy": "<config><context npcId=\"11\" str=\"这是修普森曼的蛋！它需要纯白之翼的信念才能孵化。\"><choice str=\"什么是纯白之翼的信念？\" taskId=\"1656\"/></context></config>",
+  "11_1657_yabistudy": "<config><context npcId=\"11\" str=\"只有蓝宝骑士才能传承修普森曼的信念，让它的蛋孵化。\"><choice str=\"我能做到吗？\" action=\"isMember1657\"/></context></config>",
+  "403_1657_isMember": "<config><context npcId=\"403\" str=\"蓝宝骑士，我把纯白之翼的信念托付给你了！回到水族馆，带走我的蛋吧。\"><choice str=\"我一定不会辜负你！\" action=\"1657ok\"/></context></config>",
+  "403_1657_notMember": "<config><context npcId=\"403\" str=\"成为蓝宝骑士，才能把我带回家……\"><choice str=\"我要成为蓝宝骑士！\" action=\"tobebluemember\"/><choice str=\"我先完成任务吧。\" action=\"1657ok\"/></context></config>",
+  "1_1658_overtalk": "<config><context npcId=\"1\" str=\"纯白之翼的信念传承下来了！修普森曼的蛋会跟着主人回家的！\"><choice str=\"太好了！\" taskId=\"1658\"/></context></config>"
+ },
+ "start": {
+  "343_1411_volcano": "<config><context npcId=\"343\" str=\"我是火山的守护者，赤火斗士艾尔利克。听说有个勇敢的奥拉星人来了？\"><choice str=\"就是我！\" starterId=\"1411\" action=\"task1411_start\"/><choice str=\"我只是路过。\"/></context></config>",
+  "403_1652_aquarium": "<config><context npcId=\"403\" str=\"我是纯白之翼的守护者修普森曼……黑暗的力量正在逼近，你愿意帮助我吗？\"><choice str=\"我愿意帮助你！\" starterId=\"1652\"/><choice str=\"下次吧。\"/></context></config>"
+ }
+}

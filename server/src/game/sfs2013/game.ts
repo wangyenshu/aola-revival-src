@@ -5,13 +5,15 @@
 import type { Emulator } from "../../core/emulator.ts";
 import { installPets, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
 import { installBattles, gainExp, type WildEntry } from "./battle.ts";
-import { installTasks, registerTaskTables, stepsByItems, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
+import { installTasks, registerTaskTables, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
 import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord } from "./house.ts";
 import { installShoot, type CardRow } from "./shoot.ts";
 import { installPlants, plantTree, type PlantRec } from "./plants.ts";
 import { installEggs, type HatchRec } from "./eggs.ts";
 import { installZoo, type ZooRec } from "./zoo.ts";
+import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.ts";
+import { installMiniGames } from "./minigames.ts";
 import { World, type XtContext } from "./server.ts";
 
 export interface UserRecord {
@@ -58,6 +60,8 @@ export interface UserRecord {
   td?: Record<string, string[]>;
   /** The 动物园 (zoo.ts). */
   zoo?: ZooRec;
+  /** 酷跑星世界 (parkour.ts). */
+  parkour?: ParkourRec;
   /** 黑星堡垒: the highest floor reached and whether it was passed (VipTowerExtension). */
   vipTower?: { fl: number; ps: boolean };
   /** 欢乐岛 today: seconds used, seconds bought (增加时长 bought n times), 双倍经验. */
@@ -244,7 +248,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     }
     rec.avatar = [...worn].join(";");
     await save(rec);
-    world.setUserVars(ctx.session, { avatar: rec.avatar, c: rec.avatar });
+    world.setUserVars(ctx.session, { avatar: wornWithRide(rec), c: wornWithRide(rec) });
     ctx.reply({ res: "true", cid: ctx.params.cid });
   });
 
@@ -537,7 +541,94 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   installBattles(world, { load: me, save: (o) => save(o as UserRecord), tables, wild, today, now: () => emu.clock.now().getTime() });
 
   const taskTables = json<TaskTables>("revival/tasks.json", { defines: {}, starters: {} }).then(registerTaskTables);
-  installTasks(world, { load: me, save: (o) => save(o as UserRecord), now: () => emu.clock.now().getTime(), ready: taskTables, dev: opts.dev });
+  // A new 亚比 for the player: into the bag (2201 tells the client), or the 亚比仓库 when it is full.
+  const givePetTo = async (rec: UserRecord, race: number, level: number): Promise<[string, Record<string, unknown>][]> => {
+    const t = await tables();
+    if (!speciesOf(t, race)) return [];
+    const pet = newPet(rec, t, race, level, today());
+    if ((rec.pets ??= []).length < 6) {
+      rec.pets.push(pet);
+      return [["2201", { pm: detailOf(pet, rec, t) }]];
+    }
+    (rec.storage ??= []).push(pet);
+    return [];
+  };
+  installTasks(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    now: () => emu.clock.now().getTime(),
+    ready: taskTables,
+    dev: opts.dev,
+    onFinish: async (o, task) => {
+      const rw = QUEST_REWARDS[task];
+      if (!rw) return [];
+      const rec = o as UserRecord;
+      const out: [string, Record<string, unknown>][] = [];
+      if (rw.score) {
+        rec.score = (rec.score ?? 0) + rw.score;
+        out.push(["onScoreUpdated", { score: rec.score }]);
+      }
+      if (rw.petExp && rec.pets?.[0]) gainExp(await tables(), rec.pets[0], rw.petExp);
+      for (const [type, ids] of Object.entries(rw.items ?? {})) {
+        const bag = ((rec.items ??= {})[type] ??= {});
+        for (const [id, n] of Object.entries(ids)) {
+          bag[id] = (bag[id] ?? 0) + n;
+          out.push(["onAmountUpdated", { amount: `${type}_${id}_0_${n}` }]);
+        }
+      }
+      if (rw.vipPet && rec.vip) out.push(...(await givePetTo(rec, rw.vipPet, 1)));
+      return out;
+    },
+  });
+
+  // 坐骑 (the rebuilt pet/petride; PetClient2): 54_12 {pmId, cId} ride, 54_20 {} get off, 54_11 {pmId}
+  // train. The 34 亚比 of the 2013 PetRideInfosMap (race: [ride clothes, speed, level]); only a 蓝宝骑士
+  // rides. The ride clothes join the worn ones in the "avatar" user variable while riding (not saved:
+  // a new login walks).
+  const RIDE: Record<number, [number, number, number]> = {
+    30: [10049, 1.2, 36], 45: [10047, 1.3, 36], 105: [10048, 1.2, 40], 141: [10051, 1.2, 36], 278: [10052, 1.5, 40], 138: [10050, 1.2, 36],
+    198: [10053, 1.3, 36], 300: [10054, 1.2, 36], 189: [10055, 1.2, 40], 299: [10056, 1.3, 40], 153: [10057, 1.2, 40], 24: [10058, 1.2, 32],
+    90: [10059, 1.3, 40], 481: [10060, 1.3, 40], 506: [10061, 1.5, 1], 290: [10062, 1.6, 40], 493: [10063, 1.3, 40], 391: [10064, 1.3, 40],
+    388: [10065, 1.4, 40], 75: [10066, 1.25, 40], 215: [10067, 1.3, 40], 111: [10068, 1.3, 40], 624: [10069, 1.3, 40], 653: [10070, 1.4, 40],
+    654: [10071, 1.3, 36], 741: [10072, 1.3, 40], 775: [10073, 1.3, 40], 794: [10074, 1.5, 40], 180: [10075, 1.3, 40], 838: [10076, 1.4, 40],
+    1082: [10077, 1.4, 40], 1126: [10078, 1.4, 40], 1240: [10079, 1.3, 40], 1356: [10080, 1.3, 40],
+  };
+  const riding = new Map<string, { pmId: number; cloth: number }>();
+  const wornWithRide = (rec: UserRecord) => {
+    const r = riding.get(rec.name);
+    return r ? `${rec.avatar};${r.cloth}` : (rec.avatar ?? "");
+  };
+  world.xt("PetExtension.54_12", async (ctx) => {
+    const rec = await me(ctx);
+    const pet = (rec.pets ?? []).find((p) => p.id === (Number(ctx.params.pmId) | 0));
+    const ride = pet ? RIDE[pet.race] : undefined;
+    if (!pet || !ride) return ctx.reply({ succ: false, msg: "这只亚比还不能骑乘哦！" }, "54_12");
+    if (!rec.vip) return ctx.reply({ succ: false, msg: "只有蓝宝骑士才能骑乘亚比哦！" }, "54_12");
+    if (pet.level < ride[2]) return ctx.reply({ succ: false, msg: `要到${ride[2]}级才能骑乘哦！` }, "54_12");
+    riding.set(rec.name, { pmId: pet.id, cloth: ride[0] });
+    world.setUserVars(ctx.session, { avatar: wornWithRide(rec), c: wornWithRide(rec) });
+    ctx.reply({ succ: true, pmId: pet.id, cId: ride[0], sp: ride[1] }, "54_12");
+  });
+  world.xt("PetExtension.54_20", async (ctx) => {
+    const rec = await me(ctx);
+    riding.delete(rec.name);
+    world.setUserVars(ctx.session, { avatar: rec.avatar, c: rec.avatar });
+    ctx.reply({ succ: true }, "54_20");
+  });
+  world.xt("PetExtension.54_11", async (ctx) => ctx.reply({ succ: true, pmId: Number(ctx.params.pmId) | 0 }, "54_11"));
+
+  // 纯白之翼的信念 (taskext/task1652): when its reward panel closes, a 蓝宝骑士 asks for 修普 (190),
+  // once: SundriesExtension 70_52 {} -> 70_52 {bn} (the client then shows the 修普 egg).
+  world.xt("SundriesExtension.70_52", async (ctx) => {
+    const rec = await me(ctx);
+    const r = rec as UserRecord & { gifts?: string[] };
+    if (!rec.vip || rec.tasks?.["1652"]?.st !== 1 || (r.gifts ?? []).includes("1652")) return ctx.reply({}, "70_52");
+    (r.gifts ??= []).push("1652");
+    const msgs = await givePetTo(rec, 190, 1);
+    await save(rec);
+    for (const [cmd, body] of msgs) ctx.reply(body, cmd);
+    ctx.reply({ bn: 1 }, "70_52");
+  });
 
   installHouse(world, {
     me,
@@ -576,6 +667,22 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       return t.species[String(race)].n;
     },
   });
+
+  // 酷跑星世界 (game/parkour, HolidayExtension ActKuPaoStarWorld_*): its 金币 are the 晶币; the
+  // list of the best runs is kept for everyone under parkour/board.
+  installParkour(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    today,
+    now: () => emu.clock.now().getTime(),
+    board: {
+      get: async () => (await emu.store.get<ParkourRankRow[]>("parkour/board")) ?? [],
+      set: (rows) => emu.store.set("parkour/board", rows),
+    },
+  });
+
+  // 斑比向前冲 (game/ninja/ninjarush; UserGameExtension 89_bb1 / 89_bb2): minigames.ts.
+  installMiniGames(world, { load: me, save: (o) => save(o as UserRecord) });
 
   // 黑星堡垒 (viparena, VipArenaClient, VipTowerExtension): the floors one has reached and passed
   // (VipArenaLevelManager). Floor n is reached on entering its first room (viparena1, 4, 7) and
@@ -715,10 +822,18 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // A mini game started again (70_7 {GameName}) and the later SocketClient's
   // clientDebug: counted on the server only.
   world.xt("SundriesExtension.70_7", () => {});
+  // Later games' open and buy counters (酷跑星世界: SundriesClient.logOpen 70_72, logBuy 70_67).
+  world.xt("SundriesExtension.70_72", () => {});
+  world.xt("SundriesExtension.70_67", () => {});
   world.xt("SurveyExtension.clientDebug", () => {});
   // 舞动全星's 冠军榜 (game/dance, 70_5 {} -> {rank: [{sId, dd, un, score}]}): the 2013 server's
   // list is lost; an empty list stops the panel waiting.
   world.xt("SundriesExtension.70_5", (ctx) => ctx.reply({ rank: [] }));
+  // 家具店's 安娜 asks whether the 我的荣誉 present is waiting (70_14 {} -> {showup}); the
+  // present is given in the 家园's 我的荣誉, so none here. Statistics (HolidayExtension 74_1
+  // logEvent {eventId}) are counted on the server only.
+  world.xt("SundriesExtension.70_14", (ctx) => ctx.reply({ showup: false }));
+  world.xt("HolidayExtension.74_1", () => {});
 
   // 欢乐弹珠机 (bumpbilliards/bumpbilliards, the 2015 copy; UserGameExtension): 89_2 {} when a game
   // starts, 89_1 {num: 欢乐弹珠 used, lvl} at its end -> {gf: "type:id:num;…"}, the prize of the slot

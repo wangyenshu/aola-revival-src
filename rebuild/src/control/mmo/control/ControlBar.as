@@ -75,6 +75,8 @@ package mmo.control
          var mall:BarButton = new BarButton("btn_mall", BarIcons.make("mall"), null, 0, 0, click);
          mall.scaleX = mall.scaleY = 1.15;
          addButton(mall, 938, 512);
+         // 副本 mode: the way out (IControl.fbLeaveButton; the 四大副本's FBButtonManager listens on it), where 回家 is.
+         addButton(new BarButton("btn_fbleave", BarIcons.make("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
          // The revival's 工具箱 (not of 2013), under the task icon.
          addButton(new BarButton("btn_toolbox", BarIcons.make("toolbox"), "工具箱", 0, 20, click), 936, 114);
          buildChat();
@@ -369,6 +371,11 @@ package mmo.control
          return popup;
       }
 
+      public function get leaveButton():InteractiveObject
+      {
+         return buttons["btn_fbleave"] as InteractiveObject;
+      }
+
       public function get mapButton():InteractiveObject
       {
          return _map;
@@ -379,12 +386,17 @@ package mmo.control
          return buttons["btn_" + n];
       }
 
+      /** In a 副本: map, 背包, 物品 and 离开 (the 2013 bar's fb mode). */
+      private static const FB_BUTTONS:Array = ["btnMap", "btn_pet", "btn_items", "btn_fbleave"];
+
       public function setMode(mode:String):void
       {
          closePopup();
          for (var k:String in buttons)
          {
-            if (k != "btnMap") buttons[k].visible = (mode == "common");
+            if (k == "btnMap") continue;
+            if (mode == "fb") buttons[k].visible = FB_BUTTONS.indexOf(k) >= 0;
+            else buttons[k].visible = (mode == "common") && k != "btn_fbleave";
          }
          if (chat) chat.visible = mode != "spacetime";
       }

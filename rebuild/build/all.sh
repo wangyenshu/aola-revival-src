@@ -124,7 +124,12 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petpackage.swf)" --code "$OU
 # pet/loginpetfightnew (the battle screen, after the official screenshots of
 # 2011–12; backgrounds in rebuild/gen/petfight).
 export GEN="$HERE/../gen/wildpet"
-build wildpet mmo/wildpet/DocWildPet.as wildpet.swf "pet/wildpetservice.swf%3F130124"
+build wildpet mmo/wildpet/DocWildPet.as wildpet.swf ""
+# On the 2013 file's art: its FightIcon (the cursor 时空隧道 asks it for).
+python3 "$TOOLS/swf_transplant.py" --art "$(art pet/wildpetservice.swf)" --code "$OUT/wildpet.swf" --drop-art-abc \
+  --bind 0=mmo.wildpet.DocWildPet --bind 4=mmo.wildpet.WildPetArtStub \
+  --note "REBUILT pet/wildpetservice (aola-revival) with the 2013 file's FightIcon" \
+  --out "$W/pet/wildpetservice.swf%3F130124"
 export GEN="$HERE/../gen/petfight"
 build petfight mmo/petfightnew/DocLoginPetFight.as petfight.swf "pet/loginpetfightnew.swf%3F1210"
 unset GEN
@@ -273,6 +278,21 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/temple1.swf)" \
   --note "LATER scene/temple1: its code on the 2013 engine, the film played once (aola-revival), on its own art" \
   --out "$W/scene/temple1.swf%3F1210"
 
+# 主题公园 and 亚比研究中心 (their January 2013 scenes lost, the live ones 2024–25 redrawings):
+# rebuilt scenes on the oldest art that survives, the 2012 park (scene/memory/memory2) and
+# the newbie quest's copy of the centre (scene/yabistudycopy, April 2014; its own timeline
+# classes kept).
+build scenes/themepark mmo/scene/themepark/DocThemeparkRevived.as themepark-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/memory/memory2.swf)" --code "$OUT/themepark-code.swf" --drop-art-abc \
+  --bind 0=mmo.scene.themepark.DocThemeparkRevived --bind 9=mmo.scene.themepark.ThemeparkRevived \
+  --note "REBUILT scene/themepark (aola-revival) on the 2012 主题公园 (scene/memory/memory2)" \
+  --out "$W/scene/themepark.swf%3F130124"
+build scenes/yabistudy mmo/scene/yabi/DocYabistudyRevived.as yabistudy-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/yabistudycopy.swf)" --code "$OUT/yabistudy-code.swf" \
+  --bind 0=mmo.scene.yabi.DocYabistudyRevived --bind 187=mmo.scene.yabi.YabistudyRevived \
+  --note "REBUILT scene/yabistudy (aola-revival) on scene/yabistudycopy (April 2014)" \
+  --out "$W/scene/yabistudy.swf%3F130124"
+
 # 欢乐岛: the 2020 scene cut down to the 2013 engine (its own code needs later
 # services and could not be built), on its own art.
 # 火山口 (where 烈焰鸟 sleeps): the later scene/feier4's code cut down, on its own art.
@@ -292,6 +312,32 @@ build peteggservice mmo/pet/peteggservice/DocPetEggService.as peteggservice.swf 
 
 # 时空隧道 (spacetime/spacetimeservice, lost): the later service's code on the 2013 interfaces.
 build spacetime mmo/spacetime/DocClass.as spacetime.swf "spacetime/spacetimeservice.swf%3F121213"
+
+# 坐骑: pet/petride (RideService, lost; the copy under its URL is of 2021) rebuilt.
+build petride mmo/pet/petride/DocPetRide.as petride.swf "pet/petride.swf%3F121227"
+
+# The 四大副本 (奥拉战记): the later fbservice and fbteam modules (2025 copies; the
+# 2013 ones are lost) on the 2013 interfaces, and the later choose panel (2016)
+# with its 扫荡 hidden, on its own art.
+build fbservice mmo/fbservice/DocClass.as fbservice.swf "fbservice/fbservice.swf%3F121220"
+build fbteam mmo/fbteam/DocClass.as fbteam.swf "fbteam/fbteamservice.swf%3F121220"
+build fbchoosepanel mmo/fbpanels/fbchoose/DocFbChoose.as fbchoosepanel-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art fbservice/fbchoosepanel.swf)" --code "$OUT/fbchoosepanel-code.swf" --drop-art-abc --bind 274=mmo.fbpanels.fbchoose.NoTimesLeft \
+  --note "LATER fbservice/fbchoosepanel (2016) on the 2013 libraries (aola-revival): 扫荡 hidden, daily entries RECONSTRUCTED" \
+  --out "$W/fbservice/fbchoosepanel.swf%3F1210"
+
+# 酷跑星世界 (game/parkour, a 2015 mini game; 星光游乐场's btnParkour): its code
+# compiled against the 2013 libraries, with small revival copies of the later
+# helpers it imports in its own source tree (BtEventDispatcher, ResourceObject,
+# Parse, BitUtil, MaterialResultDialogHelper, ShowMovieOrCartoonHelper,
+# MyXingBiHandler, TimeText_Helper) and the later loader calls (ResScheduler.getRes,
+# SimpleCustomLoader.loadSingleRes) made 2013 ones, on its own art. Its panels,
+# maps and avatars (parkourpanel*, field/*, avatar/*) hold art classes only and
+# load as they are. The server side: server/src/game/sfs2013/parkour.ts.
+build parkour mmo/game/parkour/DocParkourCompile.as parkour-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art game/parkour/parkour.swf)" --code "$OUT/parkour-code.swf" --drop-art-abc \
+  --note "LATER game/parkour (2015) on the 2013 libraries (aola-revival): the later helpers it uses RECONSTRUCTED in its own code" \
+  --out "$W/game/parkour/parkour.swf%3F1210"
 
 # 财富小管家 (fortunemanager/fortunemanager, lost): the 晶币 bank of 奥拉广场, rebuilt.
 build fortunemanager mmo/fortunemanager/DocFortuneManager.as fortunemanager.swf "fortunemanager/fortunemanager.swf%3F130117"

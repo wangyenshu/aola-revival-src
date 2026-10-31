@@ -51,6 +51,8 @@ package mmo.wildpet
       private static const CHASE_MS:int = 15000;
 
       private var raceId:int;
+      /** Set for a 副本's 亚比 (fb_3): fought by PetClient2.fightInCopy(id), 54_17. */
+      public var copyId:int;
       private var levelText:String;
       private var title:Sprite;
       private var chaseUntil:int;
@@ -199,7 +201,8 @@ package mmo.wildpet
             setStrategy(null);
             stop();
             CommonEventDispatcher.instance.addEventListener(PetFightEvent.ENTER_FIGHT_FAIL, onFail);
-            PetClient2.instance.startPKWithRobot(raceId);
+            if (copyId > 0) PetClient2.instance.fightInCopy(copyId);
+            else PetClient2.instance.startPKWithRobot(raceId);
          }
          else if (!me.isMoving())
          {

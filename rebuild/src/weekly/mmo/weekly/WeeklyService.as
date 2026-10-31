@@ -15,9 +15,10 @@ package mmo.weekly
     * REBUILT baseservice/weekly (ServiceConfig "WeeklyService"): the 奥拉周刊.
     * The January 2013 module is lost; the copy under its URL is of July 2013.
     * As that one does, showLastestWeekly opens the issue config.xml names
-    * (<weekly>, weekly127 in January 2013) as a catalog book
+    * (<weekly>, weekly127 in January 2013: the files of weekly/weekly128, the
+    * era catalogs counting one behind from issue 11) as a catalog book
     * (IBookService.showCatalog / showCatalogAt), except during the first
-    * newbie tasks (135, 140, 150). Issue 127 was not archived; then the
+    * newbie tasks (135, 140, 150). Where an issue was not archived, the
     * newest earlier issue with surviving pages is opened (WeeklyIssues, from
     * tools/gen_bconfig.py), with a word about it.
     */
@@ -43,6 +44,9 @@ package mmo.weekly
          catch (e:Error) {}
          var wanted:String = ConfigReader.instance.xmlDocument ? String(ConfigReader.instance.xmlDocument.weekly) : "";
          var n:int = int(wanted.replace(/\D/g, ""));
+         // The era catalogs count from issue 11 one behind: config.xml's weekly127 is the files of
+         // weekly/weekly128 (the era library shows a catalog above 10 as n + 1).
+         if (n > 10) n += 1;
          var have:int = 0;
          for each (var i:int in WeeklyIssues.ISSUES) if (i <= n || n == 0) have = Math.max(have, i);
          if (have == 0)

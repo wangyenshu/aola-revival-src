@@ -76,8 +76,16 @@ package mmo.wildpet
          info = null;
       }
 
+      /** A 副本 room: its service places the room's own 亚比 (fb_3, generatePetsAtCurrentScene); the room's wild ones are not asked for. */
+      private static function inFB():Boolean
+      {
+         var si:SceneInfo = SceneManager.getInstance().loadedSceneInfo;
+         return si != null && si.isFB;
+      }
+
       private function onAppearTime(e:TimerEvent):void
       {
+         if (inFB()) return;
          // Every scene asks: the server knows which have wild 亚比.
          var points:Array = pointsOf(sceneName());
          if (points == null || points.length == 0) return;
@@ -128,7 +136,7 @@ package mmo.wildpet
 
       private function onAgainTime(e:TimerEvent):void
       {
-         if (info != null && infoScene == sceneName()) place();
+         if (info != null && infoScene == sceneName() && !inFB()) place();
       }
 
       // ---------------------------------------------------------------- IWildPet
@@ -179,11 +187,12 @@ package mmo.wildpet
          RLog.log("wildpet: " + chosen.length + " 亚比 in " + sceneName());
       }
 
-      private function newPet(at:Point, i:int, raceId:int, level:String):void
+      private function newPet(at:Point, i:int, raceId:int, level:String, copyId:int = 0):void
       {
          var si:SceneInfo = SceneManager.getInstance().loadedSceneInfo;
          if (si == null || si.scene == null) return;
          var pet:WildPetAvatar = new WildPetAvatar("wildpet" + i, raceId, level);
+         pet.copyId = copyId;
          pet.x = at.x;
          pet.y = at.y;
          pet.visible = shown;
@@ -197,7 +206,10 @@ package mmo.wildpet
          dispose();
          for each (var o:Object in list || [])
          {
-            if (o.point is Point) newPet(Point(o.point), pets.length, int(o.raceId), String(o.lv));
+            // A 副本's 亚比 carry the id the server gave them (fb_3): their battle is IPetFight.fightInCopy(id), 54_17 (the later CopyPetAvatar).
+            var copyId:int = 0;
+            try { copyId = int(o.id); } catch (e:Error) {}
+            if (o.point is Point) newPet(Point(o.point), pets.length, int(o.raceId), String(o.lv), copyId);
          }
       }
 

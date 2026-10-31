@@ -2,6 +2,8 @@ package mmo.dailyactivity
 {
    import flash.display.DisplayObject;
    import flash.display.MovieClip;
+   import flash.events.TimerEvent;
+   import flash.utils.Timer;
    import flash.display.Sprite;
    import flash.events.EventDispatcher;
    import flash.events.MouseEvent;
@@ -9,6 +11,8 @@ package mmo.dailyactivity
    import flash.geom.Rectangle;
    import flash.system.ApplicationDomain;
    import flash.utils.getDefinitionByName;
+   import mmo.common.ModalDialogEvent;
+   import mmo.common.dialog.NewDialog;
    import mmo.common.eventdispatcher.CommonEventDispatcher;
    import mmo.common.utils.tips.TipsManager;
    import mmo.interfaces.DailyActivity.BossTimeHelper;
@@ -56,7 +60,7 @@ package mmo.dailyactivity
    public class DailyActivityService extends EventDispatcher implements IDailyActivity
    {
       /**
-       * scene, name, file (dailyactivity/dailyboss<file>), class, x, y, kind (wake, still, film),
+       * scene, name, file (dailyactivity/dailyboss<file>), class, x, y, kind (wake, still, film, book, panel, ask),
        * film class, npc, talk key, talk set (std, team, pig, feier, start, one), forms "race:level,…".
        */
       private static const BOSSES:Array = [
@@ -74,7 +78,7 @@ package mmo.dailyactivity
          ["leiming4", "魂斗鱼", 10472, "Boss10472", 273, 175, "still", null, 223, "leiming4Teamboss", "team", "10472:100"],
          ["yishuzhidu1", "浮云尊者", 104751, "Boss104751", 285, 295, "still", null, 399, "yishuzhidu1Teamboss", "team", "10475:100"],
          ["yishuzhidu1", "浮云尊者", 104752, "Boss104752", 569, 298, "still", null, 399, "yishuzhidu1Teamboss", "team", "20475:100"],
-         ["fairytalestar1", "童心", 30682, "Boss10682", 0, 0, "still", null, 462, "themepark30682", "std", "30682:88,10682:100"],
+         ["fairytalestar1", "童心", 30682, "Boss10682", 0, 0, "book", null, 462, "themepark30682", "std", "30682:88,10682:100"],
          ["haikustar2", "神龟", 10715, "Boss10715", 0, 0, "still", null, 513, "boss10715", "std", "10715:80,20715:100"],
          ["fightspace2", "终极麦斗王", 14523, "BossInteraction.PigBoss", 187, 272, "still", null, 278, "courageDoorBoss", "pig", "14523:100,11514:80,11516:80"],
          ["bingxuestar4", "暴雪山神", 10757, "Boss10757", 0, 0, "film", "BossMovie10757", 538, "boss10757", "std", "10757:80,20757:100"],
@@ -84,7 +88,25 @@ package mmo.dailyactivity
          ["mysticocean5", "伊泽和迦娜", 11320, "Boss11320", 0, 0, "still", null, 842, "hello_before_OceanBoss", "one", "11320:100,11322:100"],
          ["feier4", "烈焰鸟", 30278, "Feier4boss", 640, 454, "wake", null, 80, "feier4boss", "feier", "30278:80"],
          ["choicetemple", "神武月", 10105, "Boss10105", 0, 0, "film", "BossInteraction.BossMovie10105", 127, "boss10105", "start", "10105:80,20105:100"],
-         ["choicetemple", "战无炎", 10111, "Boss10111", 0, 0, "film", "BossInteraction.BossMovie10111", 303, "boss10111", "start", "10111:90"]
+         ["choicetemple", "战无炎", 10111, "Boss10111", 0, 0, "film", "BossInteraction.BossMovie10111", 303, "boss10111", "start", "10111:90"],
+         // The bosses of the 2011–12 events (the later dailyactivity BossConfig, the boss pictures of
+         // their weeks; research notes in docs/PLAN.md). 友人契约书 (mysticearth2, from October 2012)
+         // was still there in January 2013; the others came back in 2013 only through 绝版乐园's panel
+         // and stand where their events put them.
+         ["mysticearth2", "友人契约书", 11259, "Boss11259", 0, 0, "panel", "activityres/activity121018/friendcontract|mmo.activity121018.friendcontract.FriendContractPanel", 821, null, "one", "11259:100"],
+         ["themepark", "猪猪超人", 10884, "Boss10884", 547, 139, "still", null, 635, "boss10886", "one", "10884:100"],
+         ["themepark", "满月巨灵", 10639, "Boss10639", 299, 328, "film", "BossMovie10639", 435, "themeparkMoonboss", "std", "10639:100"],
+         ["themepark", "赤魔导士", 10796, "Boss10796", 0, 0, "still", null, 563, "boss10796", "std", "10796:80,20796:100"],
+         ["themepark", "赤影飞狐", 10771, "Boss10771", 0, 0, "film", "BossMovie10771", 546, "boss10771", "std", "10771:80,20771:100"],
+         ["dreamhouse", "年兽", 10493, "Boss10493", 480, 320, "film", "BossMovie10493", 242, "dreamhouseTeamboss", "std", "10493:100"],
+         ["aolatree", "时间之神", 10112, "Boss10112", 640, 454, "film", "Boss10112Movie", 342, "boss10112", "std", "10112:80,20112:100"],
+         ["aolatree", "极速威锋", 10633, "Boss10633", 0, 0, "film", "BossMovie10633", 433, "themeparkTeamboss", "team", "10633:100"],
+         ["aolatree", "天之巨灵", 10665, "Boss10665", 568, 110, "film", "BossMovie10665", 460, "themepark10665", "std", "10665:100"],
+         ["hell", "影刃", 10195, "ShadowBoss", 741, 248, "still", null, 156, "shadowboss", "std", "10195:80,20195:100"],
+         ["hell", "鬼王", 11190, "Boss11190", 254, 238, "ask", null, 0, null, "one", "11190:100"],
+         ["diamondisland4", "天女若希", 10819, "Boss10819", 0, 0, "still", null, 586, "boss12619", "std", "10819:80,20819:100"],
+         // 翡冷翠 (2012; its room, picture and talks are lost): in the 奥拉神树's square, dressed as its 亚比 (RECONSTRUCTED).
+         ["aolatree", "翡冷翠", 10995, "Boss10995", 300, 400, "ask", null, 0, null, "one", "10995:100"]
       ];
 
       private var shown:Array = [];
@@ -138,7 +160,16 @@ package mmo.dailyactivity
          clear();
          var info:* = SceneManager.getInstance().loadedSceneInfo;
          if (info == null || info.scene == null || info.inHouse) return;
-         for each (var b:Object in bossesOf(String(info.sceneName))) place(b, info.scene.container);
+         for each (var b:Object in bossesOf(String(info.sceneName)))
+         {
+            // The book of 黑夜童心 lies on the table: over the scene, as the later module put it (foreGround).
+            if (b.kind == "book")
+            {
+               hideSceneItem(b, info.scene.container);
+               place(b, info.scene.foreGround);
+            }
+            else place(b, info.scene.container);
+         }
       }
 
       private function place(b:Object, into:Sprite):void
@@ -160,15 +191,20 @@ package mmo.dailyactivity
             {
                // The picture is lost: the boss dressed as its 亚比.
                view = new BossAvatar(b, int(b.forms[0].race) % 10000, null);
-               view.x = 480;
-               view.y = 300;
+               view.x = int(b.x) != 0 ? int(b.x) : 480;
+               view.y = int(b.y) != 0 ? int(b.y) : 300;
             }
             else
             {
                var at:Point = whereOf(b, view);
                view.x = at.x;
                view.y = at.y;
-               if (view is MovieClip && b.kind == "wake") MovieClip(view).gotoAndStop(1);
+               if (view is MovieClip && (b.kind == "wake" || b.kind == "panel")) MovieClip(view).gotoAndStop(1);
+               // 天女若希 (the 2016 picture): awake, without its sleeping part.
+               if (b.cls == "Boss10819")
+               {
+                  try { MovieClip(Object(view).mc).gotoAndStop(2); Object(view).p.visible = false; } catch (e3:Error) {}
+               }
             }
             view.name = "guardian_" + b.part;
             view.buttonMode = true;
@@ -212,6 +248,20 @@ package mmo.dailyactivity
             int(pt.y) + (d == ArrowType.ARROW_DOWN ? 110 : d == ArrowType.ARROW_UP ? -30 : 60));
       }
 
+      /**
+       * 黑夜童心 (Boss10682Strategy of the later module): the scene's own book
+       * on the table (bossitem, a button that does nothing) is moved out of
+       * the way and the boss's picture, the same book, stands in its place;
+       * a click opens it (mcbook.mc plays to its end) and 童心 comes out.
+       */
+      private static function hideSceneItem(b:Object, into:Sprite):void
+      {
+         var item:DisplayObject = into.getChildByName("bossitem");
+         if (item == null) return;
+         item.y -= 2000000;
+         b.item = item;
+      }
+
       private function onUnload(e:SceneManagerEvent):void
       {
          clear();
@@ -228,6 +278,7 @@ package mmo.dailyactivity
                ClickAndHitHelper.instance.remove(v);
                if (v.parent) v.parent.removeChild(v);
                if (v is BossAvatar) BossAvatar(v).dispose();
+               if (b.item != null) DisplayObject(b.item).y += 2000000;
             }
             catch (e:Error) {}
          }
@@ -258,6 +309,44 @@ package mmo.dailyactivity
             view.gotoAndStop(2);
             return;
          }
+         if (b.kind == "panel")
+         {
+            // 友人契约书: the first click plays its own animation, then its panel opens (as the
+            // later BossInteraction did); the panel's 开始挑战 fights it (fightWithBoss).
+            if (!b.awake && view != null && view.totalFrames > 1)
+            {
+               b.awake = true;
+               view.addFrameScript(view.totalFrames - 1, function():void { view.stop(); openPanel(b); });
+               view.gotoAndPlay(2);
+               return;
+            }
+            openPanel(b);
+            return;
+         }
+         if (b.kind == "ask")
+         {
+            // A boss whose talks are lost (鬼王): asked plainly.
+            var ask:* = NewDialog.getCofirmDialog("要挑战" + b.name + "吗？它可是很厉害的哦！");
+            ask.addEventListener(ModalDialogEvent.OK, function(ev:*):void { fight(); });
+            ask.show();
+            return;
+         }
+         if (b.kind == "book" && !b.awake && view != null)
+         {
+            var book:MovieClip = null;
+            try { book = MovieClip(MovieClip(view.getChildByName("mcbook")).getChildByName("mc")); } catch (e0:Error) {}
+            b.awake = true;
+            if (book != null && book.totalFrames > 1)
+            {
+               book.addFrameScript(book.totalFrames - 1, function():void
+               {
+                  book.stop();
+                  talk(b);
+               });
+               book.gotoAndPlay(2);
+               return;
+            }
+         }
          if (b.kind == "film" && !b.filmed && b.film != null)
          {
             b.filmed = true;
@@ -265,6 +354,21 @@ package mmo.dailyactivity
             return;
          }
          talk(b);
+      }
+
+      private function openPanel(b:Object):void
+      {
+         var parts:Array = String(b.film).split("|");
+         ResScheduler.getResource(String(parts[0]), function(... a):void
+         {
+            try
+            {
+               var C:Class = getDefinitionByName(String(parts[1])) as Class;
+               var panel:Object = new C();
+               panel.showPanel();
+            }
+            catch (err:Error) { RLog.error("guardian panel " + b.name, err); }
+         }, "", function(e:* = null):void { RLog.log("guardian: no panel " + parts[0]); });
       }
 
       private function playFilm(b:Object, then:Function):void
@@ -280,17 +384,33 @@ package mmo.dailyactivity
             }
          }
          catch (e:Error) {}
+         // 时间之神's film is a one-frame clip whose animation is its child mc.
+         if (mc != null && mc.totalFrames < 2 && mc.getChildByName("mc") is MovieClip && MovieClip(mc.getChildByName("mc")).totalFrames > 1)
+         {
+            var outer:MovieClip = mc;
+            mc = MovieClip(outer.getChildByName("mc"));
+            var holder:Sprite = new Sprite();
+            holder.addChild(outer);
+            playClip(holder, mc, then);
+            return;
+         }
          if (mc == null || mc.totalFrames < 2)
          {
             then();
             return;
          }
+         playClip(mc, mc, then);
+      }
+
+      /** Shows `shown` over the scene until `clip` reaches its last frame (or its skip button is pressed). */
+      private function playClip(shown:Sprite, mc:MovieClip, then:Function):void
+      {
          var layer:Sprite = new Sprite();
          layer.name = "guardianFilm";
          layer.graphics.beginFill(0x000000, 0.01);
          layer.graphics.drawRect(0, 0, 960, 560);
          layer.graphics.endFill();
-         layer.addChild(mc);
+         layer.addChild(shown);
          LayerManager.getBaseTop().addChild(layer);
          var done:Boolean = false;
          var end:Function = function(... a):void
@@ -315,10 +435,28 @@ package mmo.dailyactivity
          // No 亚比 of level 60 yet: the HELLO warns first (its 我想先试一试 opens the boss's talk).
          if (b.form == 0 && topLevel() < 60)
          {
-            ns.showNpcPanelFreely("hello_before_boss" + b.forms[0].race, 1);
+            ns.showNpcPanelFreely(helloOf(b), 1);
             return;
          }
          ns.showNpcPanelFreely(key, int(b.npc));
+      }
+
+      /** The bosses that have a HELLO warning of their own (FreeTalkData hello_before_boss<race>). */
+      private static const HELLOS:String = ",10090,10093,10096,10099,10102,10105,10108,10111,10112,10195,10317,10427,10469,10475,10493,10639,10665,"
+         + "10715,10796,12619,12702,12731,20087,20105,20418,20427,30278,30682,10112,10195,10493,10639,10665,";
+
+      /**
+       * The HELLO's warning before a boss: its own, or the one of its talk
+       * (神罗麦提 talks as boss12702), else the words they all share (暴雪山神
+       * has none of its own: the generic text answered 一直在路上……).
+       */
+      private static function helloOf(b:Object):String
+      {
+         var race:String = String(b.forms[0].race);
+         if (HELLOS.indexOf("," + race + ",") >= 0) return "hello_before_boss" + race;
+         var t:String = String(b.talk);
+         if (t.indexOf("boss") == 0 && HELLOS.indexOf("," + t.substr(4) + ",") >= 0) return "hello_before_" + t;
+         return "hello_before_boss30682";
       }
 
       private static function mainTalk(b:Object):String
@@ -375,6 +513,16 @@ package mmo.dailyactivity
          var b:Object = active;
          var last:Boolean = b.form >= b.forms.length - 1;
          var key:String;
+         if (e.isWin && !last && b.talks == "pig")
+         {
+            // 终极麦斗王 and his two pigs were one team (BossTimeHelper "14523#11514#11516"):
+            // the next comes on at once, without words in between.
+            b.form = b.form + 1;
+            var t:Timer = new Timer(1200, 1);
+            t.addEventListener(TimerEvent.TIMER, function(te:TimerEvent):void { if (active == b) fight(); });
+            t.start();
+            return;
+         }
          if (e.isWin)
          {
             key = after(b, last ? "final" : "next");
@@ -395,8 +543,11 @@ package mmo.dailyactivity
          var k:String = String(b.talk);
          switch (String(b.talks))
          {
-            case "team": return what == "lose" ? k + "slose" : k + "win";
-            case "pig": return what == "lose" ? "courageDoorBossLose" : "courageDoorBossWin";
+            // The later TeamBossInteraction: <talk>win on a loss, <talk>slose on a win.
+            case "team": return what == "lose" ? k + "win" : k + "slose";
+            // Named from the boss's side: courageDoorBossWin (he won: 不自量力的小奥拉…) after a
+            // loss, courageDoorBossLose (he lost: 感谢你，你让我脱离了念的控制…) after the last win.
+            case "pig": return what == "lose" ? "courageDoorBossWin" : "courageDoorBossLose";
             case "feier": return what == "lose" ? "feier4bossfailure" : "feier4bosssuccess";
             case "one": return null;
             case "start": return what == "final" ? k + "100" : what == "next" ? k + "Two" : k + "win";

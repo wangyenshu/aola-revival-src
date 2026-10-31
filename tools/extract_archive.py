@@ -14,7 +14,9 @@ against its recorded size and SHA-1.
 it reads the two indexes already in <archive folder>, downloads each file from
 its recorded URL and keeps it only if its SHA-1 matches the archived copy.
 Files the operator has since replaced are listed in _restore-mismatch.txt;
-copy those from the archive pieces instead.
+copy those from the archive pieces instead. Besides the two indexes of the
+CDN, _site/index.jsonl (live files outside /play/) and _wayback/index.jsonl
+(Wayback Machine captures) are read when they are there.
 """
 import argparse
 import glob
@@ -27,7 +29,11 @@ import urllib.request
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 
-ROOTS = (("index.jsonl", "aola.100bt.com/play"), ("_later/index.jsonl", "_later/aola.100bt.com/play"))
+ROOTS = (("index.jsonl", "aola.100bt.com/play"), ("_later/index.jsonl", "_later/aola.100bt.com/play"),
+         # Added 31 October 2026 (tools/archive_additions.py): live files outside /play/
+         # (paths from the host) and pictures from the Wayback Machine. Optional.
+         ("_site/index.jsonl", "_site"), ("_wayback/index.jsonl", "_wayback"))
+OPTIONAL = {"_site/index.jsonl", "_wayback/index.jsonl"}
 
 
 def extract(pieces, out):
@@ -58,7 +64,10 @@ def extract(pieces, out):
 
 def load_index(out, index):
     latest = {}
-    with open(os.path.join(out, *index.split("/")), encoding="utf-8") as fh:
+    p = os.path.join(out, *index.split("/"))
+    if index in OPTIONAL and not os.path.exists(p):
+        return []
+    with open(p, encoding="utf-8") as fh:
         for line in fh:
             rec = json.loads(line)
             latest[rec["path"]] = rec  # a retried download appends a newer line
@@ -144,7 +153,8 @@ def verify(out):
     for index, root in ROOTS:
         p = os.path.join(out, *index.split("/"))
         if not os.path.exists(p):
-            bad.append((index, "index missing"))
+            if index not in OPTIONAL:
+                bad.append((index, "index missing"))
             continue
         latest = {}
         with open(p, encoding="utf-8") as fh:

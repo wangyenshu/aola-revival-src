@@ -50,7 +50,8 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
 // Front end.
-for (const f of ["index.html", "config.js", "boot.js", "theatre.js", "saves.js"]) copyFileSync(path.join(root, "web", f), path.join(out, f));
+// robots.txt at the site's root: every crawler and AI robot is asked to stay out.
+for (const f of ["index.html", "config.js", "boot.js", "theatre.js", "saves.js", "robots.txt"]) copyFileSync(path.join(root, "web", f), path.join(out, f));
 await build({
   entryPoints: [path.join(root, "server/src/browser/entry.ts")],
   outfile: path.join(out, "emulator.js"),

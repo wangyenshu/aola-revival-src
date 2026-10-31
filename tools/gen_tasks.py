@@ -59,6 +59,9 @@ NEWBIE = {135, 140, 150}
 # 幻龙星系 of the January 2013 map.
 UNCOMMENT = re.compile(r'<!--(s\s+nm="(?:cloudstar|mysticearth|mysticocean|whitenight)\d+".*?</s)-->', re.S)
 STARTERS_2012 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "task-starters-2012.json")
+# Quests the later tables lost but for their panels (修普森曼 and 艾尔利克's of 2011): defines, starters,
+# scene table rows and conversations written by hand (RECONSTRUCTED; see its _doc).
+SUPPLEMENT_2011 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "task-supplement-2011.json")
 # Tasks 2298 and 2314 (run by the later NewBaseTaskInitialler) name their
 # talks through their config's TASK_NPC_PANEL_DATA: this._nodeKey[2298].
 NODE_TALK = re.compile(r'(?:this\.)?(npcTaskTalkConfig|npcStarterTalkConfig)\[this\._nodeKey\[("?\w+"?)\]\]\s*=\s*(<(?:config|dialog)\b.*?</(?:config|dialog)>);', re.S)
@@ -138,7 +141,12 @@ def load_tables(ffdec: str, game: str, config: str, work: str) -> dict:
     if os.path.isfile(STARTERS_2012):
         for k, st in json.load(open(STARTERS_2012, encoding="utf-8"))["starters"].items():
             starters.setdefault(int(k), {f: st[f] for f in ("type", "ext", "pre", "online", "name", "line", "area")})
-    te = []
+    supplement = json.load(open(SUPPLEMENT_2011, encoding="utf-8")) if os.path.isfile(SUPPLEMENT_2011) else {}
+    for k, d in supplement.get("defines", {}).items():
+        defines.setdefault(int(k), (int(d[0]), d[1]))
+    for k, st in supplement.get("starters", {}).items():
+        starters.setdefault(int(k), {f: st[f] for f in ("type", "ext", "pre", "online", "name", "line", "area")})
+    te = list(supplement.get("te", []))
     for s in tconfig.iter("s"):
         for e in s.iter("te"):
             te.append({"scene": s.get("nm"), "file": e.get("file"), "cls": e.get("cls"),
@@ -152,6 +160,10 @@ def load_tables(ffdec: str, game: str, config: str, work: str) -> dict:
             if n.endswith(".as"):
                 for kind, key, xml in TALK.findall(open(os.path.join(d, n), encoding="utf-8").read()):
                     (talk if kind == "npcTaskTalkConfig" else start)[key] = xml
+    for key, xml in supplement.get("talk", {}).items():
+        talk.setdefault(key, xml)
+    for key, xml in supplement.get("start", {}).items():
+        start.setdefault(key, xml)
     # The scripts uploaded after 2013 keep their quests' conversations
     # themselves (Task<id>NpcPanelConfig, given to the NPC service when the
     # script loads); the tasknpc module's tables come first.

@@ -27,6 +27,7 @@
 // columns of the client's tables (pmdata.ts).
 
 import { stepsByPetWin, type TaskOwner } from "./tasks.ts";
+import { FB_TIMES, betterGrade, ensureFbSpecies, fbByName, fbGrade, fbOfRoom, fbPay, fbRoomPets, fbSpecies, FBS, type FbRec } from "./fb.ts";
 import {
   catchLevel,
   evolutionAt,
@@ -187,6 +188,8 @@ export interface Battle {
    * one they asked for (PetFightEvent.raceId != this.petId: not their fight).
    */
   asked?: number;
+  /** A 副本 room's 亚比 id (fightInCopy): sent back with the end, where fbteam takes it off the room. */
+  copyId?: number;
 }
 
 export type Msg = [cmd: string, body: Record<string, unknown>];
@@ -692,7 +695,28 @@ export const GUARDIANS: [string, string][] = [
   // Bosses of the 2013 world beside that table (the rebuilt dailyactivity): 伊泽 and 迦娜 (mysticocean5),
   // 烈焰鸟 (feier4), 神武月 and 战无炎 (choicetemple); their levels are RECONSTRUCTED.
   ["11320,11322", "100,100"], ["30278", "80"], ["10105,20105", "80,100"], ["10111", "90"],
+  // The bosses of the 2011–12 events (dailyactivity, rows added in the revival; levels RECONSTRUCTED
+  // but 天女若希's second form, Lv100 in the later BossTimeHelper).
+  ["11259", "100"], ["10884", "100"], ["10639", "100"], ["10493", "100"], ["10112,20112", "80,100"], ["10195,20195", "80,100"],
+  ["10633", "100"], ["10665", "100"], ["10796,20796", "80,100"], ["10771,20771", "80,100"], ["11190", "100"], ["10819,20819", "80,100"],
+  ["10995", "100"],
 ];
+
+/**
+ * Boss ids whose species is not id % 10000 (PetAssetsMap: 时间之神 10112 / 20112 are 114, not 112 小时).
+ */
+const BOSS_SPECIES: Record<number, number> = { 10112: 114, 20112: 114 };
+
+/**
+ * A boss's 亚比蛋 where its own line has none: 终极麦斗王's team (14523, then 猪阿饼 11514 and 猪阿酱
+ * 11516, fought one after another) gives the 麦斗猪蛋 (520, the line of 麦斗队长 and 麦斗司令) when
+ * its last 亚比 is beaten (RECONSTRUCTED: 麦斗王 523 himself is 无法获得; the 图鉴 names 斗魂空间 as
+ * where the 麦斗 line is got).
+ */
+export const BOSS_EGGS: Record<number, number> = { 11516: 520 };
+
+/** 友人契约书's mark in 54_19's list once beaten (its panel shows the egg as got when "1257" is in it). */
+const BOSS_MARKS: Record<number, number> = { 11259: 1257 };
 
 /** A 守护者 form's level (its race at that index), else 20 + 5 per index as before. */
 export function guardianLevel(race: number, index: number): number {
@@ -759,7 +783,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ pms: (await deps.wild())[room] ?? [] });
   });
 
-  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"], asked?: number, onLose?: Battle["onLose"]) => {
+  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"], asked?: number, onLose?: Battle["onLose"], copyId?: number) => {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     for (const p of o.pets ?? []) normalisePet(p, t);
@@ -783,6 +807,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     b.onWin = onWin;
     b.onLose = onLose;
     b.asked = asked;
+    b.copyId = copyId;
     battles.set(o.id, b);
     engine.bag = o.pets;
     engine.ownerRef = o;
@@ -801,12 +826,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // 亚比 are lost: RECONSTRUCTED as the species at the level of the player's strongest 亚比 (at
   // least 5), two levels more for each further variant, not to be caught. A win counts for the
   // steps that ask for it (TaskDefine type 101, tasks.ts stepsByPetWin).
+  // Task 亚比 asked by plain species (taskext/task1411's 艾尔利克 230): fought as the others, not caught.
+  const TASK_PET_RACES = new Set([230]);
   world.xt("PetExtension.54_2", async (ctx) => {
     const asked = Number(ctx.params.level);
     const id = Number(ctx.params.raceId);
     const onWin: Battle["onWin"] = (o) =>
       stepsByPetWin(o as TaskOwner, id, deps.now?.() ?? Date.now()).changes.map((c): Msg => ["10-1", { t: c.t, ty: c.ty }]);
-    if (id >= 10000) {
+    if (id >= 10000 || TASK_PET_RACES.has(id)) {
       const o = await deps.load(ctx);
       const top = Math.max(5, ...(o.pets ?? []).map((p) => p.level));
       const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
@@ -897,7 +924,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const rec = towerOf(o);
     rec.cf = f;
     rec.mf = Math.max(rec.mf, f);
-    rec.en = Array.from({ length: n }, () => String(pool[Math.floor(rng() * pool.length)]));
+    const forced = (rec as { force?: string[] }).force;
+    rec.en = forced?.length ? forced : Array.from({ length: n }, () => String(pool[Math.floor(rng() * pool.length)]));
+    delete (rec as { force?: string[] }).force;
     rec.alive = rec.en.map(() => true);
     rec.chest = false;
   };
@@ -951,6 +980,13 @@ export function installBattles(world: World, deps: BattleDeps): void {
       }, undefined, () => [[`56_10${sfx}`, {}]]);
     });
     world.xt(`${ext}.56_10${sfx}`, async (ctx) => ctx.reply({}, `56_10${sfx}`));
+    // For testing (the probes): the 亚比 of the next floor made, "393,111".
+    world.xt(`${ext}.revival_tower${sfx}`, async (ctx) => {
+      const o = await deps.load(ctx);
+      (towerOf(o) as { force?: string[] }).force = String(ctx.params.en ?? "").split(",").filter(Boolean);
+      await deps.save(o);
+      ctx.reply({ ok: true }, `revival_tower${sfx}`);
+    });
     world.xt(`${ext}.56_11${sfx}`, async (ctx) => {
       const rec = towerOf(await deps.load(ctx));
       ctx.reply({ res: isBossFloor(rec.cf) && !rec.alive.some(Boolean) && !rec.chest ? 1 : 0 }, `56_11${sfx}`);
@@ -970,11 +1006,157 @@ export function installBattles(world: World, deps: BattleDeps): void {
     });
   }
 
+  // 四大副本 (fb.ts): FBExtension and the rooms' battles.
+  //   fb_1 joinFb {id, name, lv}  -> {succ} (false with task / score when it cannot: no entries left)
+  //   fb_2 leaveFb {}             -> {}
+  //   fb_3 getFbWildPet {}        -> {pms: [{raceId, id, lv}]} the room's 亚比 not yet beaten
+  //   54_17 fightInCopy {id}      -> the battle with the room's 亚比 of that id (wanderer or the script's fight)
+  //   fb_4 tryFinFb {}            -> {fin, bn: [{type, id, num}], gr, tm}: the run's rating by its time, its pay
+  //   fb_5 tryGetCase {}          -> {succ, bn}: a room's chest, once
+  //   fb_6 bestPraise {id}        -> {gr: "简单;困难;传奇"} best ratings ("#" none)
+  //   fb_7 resetScenePet {}       -> {}; fb_8 healHPAndPP {} -> {res}; fb_9 panel info {id} -> {g, lt, bt, gr}
+  const FB = "FBExtension";
+  const fbOf = (o: PetOwner): FbRec => {
+    const r = ((o as { fb?: FbRec }).fb ??= {});
+    if (r.day !== deps.today()) {
+      r.day = deps.today();
+      r.used = {};
+    }
+    return r;
+  };
+  const fbNow = () => deps.now?.() ?? Date.now();
+  world.xt(`${FB}.fb_9`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const r = fbOf(o);
+    const id = Number(ctx.params.id) | 0;
+    const best = r.best?.[id] ?? ["#", "#", "#"];
+    ctx.reply({ id, g: best.some((g) => g !== "#"), lt: Math.max(0, FB_TIMES - (r.used?.[id] ?? 0)), bt: 0, gr: best.join(";") }, "fb_9");
+  });
+  world.xt(`${FB}.fb_6`, async (ctx) => {
+    const r = fbOf(await deps.load(ctx));
+    const id = Number(ctx.params.id) | 0;
+    ctx.reply({ gr: (r.best?.[id] ?? ["#", "#", "#"]).join(";") }, "fb_6");
+  });
+  world.xt(`${FB}.fb_1`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const r = fbOf(o);
+    const id = Number(ctx.params.id) | 0;
+    const def = FBS[id] ?? fbByName(String(ctx.params.name ?? ""));
+    const used = r.used?.[id] ?? 0;
+    if (!def || used >= FB_TIMES) return ctx.reply({ succ: false, task: false, score: false }, "fb_1");
+    (r.used ??= {})[id] = used + 1;
+    r.cur = { id, name: def.name, lv: Math.max(0, Math.min(2, Number(ctx.params.lv) | 0)), start: fbNow(), dead: {}, chests: [] };
+    await deps.save(o);
+    ctx.reply({ succ: true }, "fb_1");
+  });
+  world.xt(`${FB}.fb_2`, async (ctx) => {
+    const o = await deps.load(ctx);
+    fbOf(o).cur = null;
+    await deps.save(o);
+    ctx.reply({}, "fb_2");
+  });
+  const fbHere = (o: PetOwner, ctx: XtContext) => {
+    const cur = fbOf(o).cur;
+    const room = ctx.player.room?.name ?? "";
+    const def = fbOfRoom(room);
+    if (!cur || !def || def.name !== cur.name) return null;
+    return { cur, room, def, pets: fbRoomPets(def, room, cur.lv) };
+  };
+  world.xt(`${FB}.fb_3`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const here = fbHere(o, ctx);
+    if (!here || !here.def.rooms[here.room]?.wild) return ctx.reply({ pms: [] }, "fb_3");
+    const dead = here.cur.dead[here.room] ?? [];
+    ctx.reply({ pms: here.pets.filter((p) => !dead.includes(p.id)).map((p) => ({ raceId: p.code, id: p.id, lv: p.lv })) }, "fb_3");
+  });
+  world.xt(`${FB}.fb_7`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const here = fbHere(o, ctx);
+    if (here) delete here.cur.dead[here.room];
+    await deps.save(o);
+    ctx.reply({}, "fb_7");
+  });
+  world.xt(`${FB}.fb_8`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const t = await deps.tables();
+    for (const p of o.pets ?? []) {
+      normalisePet(p, t);
+      p.hp = statsOf(p, t)[0];
+      for (const sk of p.skills) sk.pp = sk.max;
+    }
+    await deps.save(o);
+    ctx.reply({ res: true }, "fb_8");
+  });
+  world.xt(`${FB}.fb_5`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const here = fbHere(o, ctx);
+    if (!here || here.cur.chests.includes(here.room)) return ctx.reply({ succ: false, bn: [] }, "fb_5");
+    here.cur.chests.push(here.room);
+    const coins = 100 * (here.cur.lv + 1);
+    (o as { score?: number }).score = ((o as { score?: number }).score ?? 0) + coins;
+    const bag = (((o as { items?: Record<string, Record<string, number>> }).items ??= {})["2"] ??= {});
+    const candy = here.cur.lv > 0 ? 61 : 60; // 中级 / 高级体力糖
+    bag[String(candy)] = (bag[String(candy)] ?? 0) + 1;
+    await deps.save(o);
+    ctx.reply({ score: (o as { score?: number }).score }, "onScoreUpdated");
+    ctx.reply({ amount: `2_${candy}_0_1` }, "onAmountUpdated");
+    ctx.reply({ succ: true, bn: [{ type: 100, id: -1, num: coins }, { type: 2, id: candy, num: 1 }] }, "fb_5");
+  });
+  world.xt(`${FB}.fb_4`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const r = fbOf(o);
+    const cur = r.cur;
+    if (!cur) return ctx.reply({ fin: false, bn: [], gr: "", tm: 0 }, "fb_4");
+    const tm = Math.max(1, Math.round((fbNow() - cur.start) / 1000));
+    const gr = fbGrade(tm);
+    const best = ((r.best ??= {})[cur.id] ??= ["#", "#", "#"]);
+    best[cur.lv] = betterGrade(best[cur.lv], gr);
+    const coins = fbPay(cur.lv, gr);
+    (o as { score?: number }).score = ((o as { score?: number }).score ?? 0) + coins;
+    r.cur = null;
+    await deps.save(o);
+    ctx.reply({ score: (o as { score?: number }).score }, "onScoreUpdated");
+    ctx.reply({ fin: true, bn: [{ type: 100, id: -1, num: coins }], gr, tm }, "fb_4");
+  });
+  world.xt("PetExtension.54_17", async (ctx) => {
+    const o = await deps.load(ctx);
+    const here = fbHere(o, ctx);
+    const id = Number(ctx.params.id) | 0;
+    const pet = here?.pets.find((p) => p.id === id);
+    if (!here || !pet) return ctx.reply({ msg: "这里没有可以挑战的亚比。" }, "2303");
+    ensureFbSpecies((await deps.tables()).pm);
+    const room = here.room;
+    await begin(ctx, fbSpecies(pet.code), pet.lv, false, (owner) => {
+      const cur = fbOf(owner).cur;
+      if (cur) (cur.dead[room] ??= []).includes(id) || cur.dead[room].push(id);
+      return [];
+    }, pet.code, undefined, id);
+  });
+
   // fightWithBoss {raceId, index}: a 守护者 (dailyactivity/dailyactivityservice, rebuilt): one of the
   // forms of BossTimeHelper.bossTimeConfig, numbered variant * 10000 + species, at its level there;
   // no catching. The asked id comes back with the end of the fight, which the client checks.
   // A win brings the 守护者's 亚比蛋 (PetEggData: the egg of its line's first form, 88 沙麒麟亚比蛋
   // for 沙麒麟 90), into the eggs (type 5) the 家园's 亚比孵化器 hatches.
+  // A skill learnt from its film (petlearning/petlearning<race>: 赤火剑 for 艾尔利克): PetExtension2
+  // 54e_5 {pid, sid} -> 54e_5 {res}; the 亚比 knows the skill from then on (更换技能).
+  world.xt("PetExtension2.54e_5", async (ctx) => {
+    const o = await deps.load(ctx);
+    const pet = (o.pets ?? []).find((p) => p.id === (Number(ctx.params.pid) | 0));
+    const sid = Number(ctx.params.sid) | 0;
+    if (!pet || !sid) return ctx.reply({ res: false }, "54e_5");
+    pet.learned = [...new Set([...(pet.learned ?? []), sid])];
+    await deps.save(o);
+    ctx.reply({ res: true, pid: pet.id, sid }, "54e_5");
+  });
+
+  // 友人契约书's panel (activityres/activity121018/friendcontract): 54_19 {} -> {bo: "id,id"}, the
+  // bosses' marks the player has won (1257: 友人契约书 beaten, its egg film then not shown again).
+  world.xt("PetExtension.54_19", async (ctx) => {
+    const o = await deps.load(ctx);
+    ctx.reply({ bo: ((o as { bossMarks?: number[] }).bossMarks ?? []).join(",") }, "54_19");
+  });
+
   world.xt("PetExtension.54_16", async (ctx) => {
     // A pair asked for at once ("11320#11322", fightWithTeamBoss) fights its first here.
     const asked = Number(String(ctx.params.raceId ?? "0").split("#")[0]) | 0;
@@ -982,15 +1164,22 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const t = await deps.tables();
     // The species of a boss form: variant * 10000 + species, or for 终极麦斗王's 14523 / 11514 / 11516
     // (PetAssetsMap) variant * 1000 + species.
-    const species = speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000;
-    const egg = eggOfLine(t, species);
-    const onWin: Battle["onWin"] = egg
-      ? (o) => {
-          const eggs = (((o as { items?: Record<string, Record<string, number>> }).items ??= {})["5"] ??= {});
-          eggs[String(egg)] = (eggs[String(egg)] ?? 0) + 1;
-          return [["onAmountUpdated", { amount: `5_${egg}_0_1` }]];
-        }
-      : undefined;
+    const species = BOSS_SPECIES[asked] ?? (speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000);
+    const egg = BOSS_EGGS[asked] ?? (asked === 14523 || asked === 11514 ? 0 : eggOfLine(t, species));
+    const mark = BOSS_MARKS[asked];
+    const onWin: Battle["onWin"] =
+      egg || mark
+        ? (o) => {
+            if (mark) {
+              const marks = ((o as { bossMarks?: number[] }).bossMarks ??= []);
+              if (!marks.includes(mark)) marks.push(mark);
+            }
+            if (!egg) return [];
+            const eggs = (((o as { items?: Record<string, Record<string, number>> }).items ??= {})["5"] ??= {});
+            eggs[String(egg)] = (eggs[String(egg)] ?? 0) + 1;
+            return [["onAmountUpdated", { amount: `5_${egg}_0_1` }]];
+          }
+        : undefined;
     await begin(ctx, species, guardianLevel(asked, index), false, onWin, asked);
   });
 
@@ -1042,7 +1231,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       out.push(...r.msgs);
       if (r.evolvedTo && o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
       if (b.onWin) out.push(...b.onWin(o));
-      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, evolveFrom: r.evolvedTo ? before : 0, desc: `战斗胜利！${nameOf(t, before)}获得了经验。`, pmmList: e.views(b) }]);
+      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, desc: `战斗胜利！${nameOf(t, before)}获得了经验。`, pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -1054,7 +1243,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       }
       b.over = true;
       if (b.onLose) out.push(...b.onLose(o));
-      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
+      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }

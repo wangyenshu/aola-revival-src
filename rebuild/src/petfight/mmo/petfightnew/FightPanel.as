@@ -908,7 +908,7 @@ package mmo.petfightnew
                break;
             case 2414:
                addLines(p.desc ? String(p.desc) : "成功逃跑了！");
-               TweenLite.delayedCall(1.2, function():void { close({isEscape: true, isWin: false, raceId: int(p.raceId)}); });
+               TweenLite.delayedCall(1.2, function():void { close({isEscape: true, isWin: false, raceId: int(p.raceId), id: int(p.id)}); });
                break;
             case 2415:
                catchPet(p);
@@ -1234,7 +1234,7 @@ package mmo.petfightnew
          setCommands(false);
          var win:Boolean = p.isWin == true;
          sound(win ? "x7009" : "x7010");
-         var done:Function = function():void { close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), isEscape: false}); };
+         var done:Function = function():void { close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), id: int(p.id), isEscape: false}); };
          if (p.isCatched && caught)
          {
             showCaught(caught, done);

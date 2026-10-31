@@ -2,6 +2,8 @@ package mmo.pet.pethatchegg
 {
    import flash.display.Sprite;
    import mmo.interfaces.IShowPanel;
+   import mmo.pet.petcommon.PetHatchEggFinishMes;
+   import mmo.pet.petcommon.PetLevelStar;
    
    /**
     * ERA pet/pethatchegg (December 2010; the 家园's 亚比批量孵化器), rebuilt
@@ -17,6 +19,11 @@ package mmo.pet.pethatchegg
       public static var panel:PetHatchEggPanel;
       
       public static var isShow:Boolean = false;
+
+      // The art binds these symbols (the 天赋 window and its stars): compiled in
+      // only when named here. Without them the window stood open over the
+      // eggs, its stars playing, its close button dead.
+      private static const BOUND:Array = [PetHatchEggFinishMes, PetLevelStar];
       
       public function PetHatchEgg()
       {

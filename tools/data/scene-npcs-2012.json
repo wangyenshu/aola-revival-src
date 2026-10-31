@@ -3,7 +3,8 @@
   "Task NPCs of the 幻龙星系 quests (tools/data/task-starters-2012.json) that the later SceneNpcConfig",
   "no longer places although the quests' own start conversations name their rooms (776_3022_cloudstar2: 飞灵 in",
   "魔法羽林). [npcId, viewId, x, y]; the spots are RECONSTRUCTED (open ground near the middle of each room).",
-  "Shown as task NPCs: only while they have something to say."
+  "Shown as task NPCs: only while they have something to say.",
+  "A fifth value 0 shows the NPC always (a scene NPC): 安娜 (32) of the 家具店, in the later table at 825,300 but its tasknpc/npc32.swf only a later upload; the 家具店's own scripts talk to her (32_49_furnitureshop, 荣誉榜)."
  ],
  "scenes": {
   "cloudstar2": [
@@ -28,6 +29,15 @@
     1,
     450,
     380
+   ]
+  ],
+  "furnitureshop": [
+   [
+    32,
+    1,
+    825,
+    300,
+    0
    ]
   ]
  }

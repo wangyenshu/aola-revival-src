@@ -12,7 +12,7 @@ package mmo.wildpet
 
       private static function compileMe():void
       {
-         var a:WildPetService, b:WildPetAvatar, c:WildPetLocationMap;
+         var a:WildPetService, b:WildPetAvatar, c:WildPetLocationMap, d:FightIcon, e:WildPetArtStub;
       }
    }
 }

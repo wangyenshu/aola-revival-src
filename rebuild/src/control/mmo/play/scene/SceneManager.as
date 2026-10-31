@@ -7,6 +7,7 @@ package mmo.play.scene
    import flash.media.SoundMixer;
    import flash.events.EventDispatcher;
    import flash.geom.Point;
+   import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import mmo.config.ConfigReader;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -399,6 +400,12 @@ package mmo.play.scene
       {
          if (loadedSceneInfo == null) return;
          var old:SceneInfo = loadedSceneInfo;
+         // The panels and films left open go with the room left (the later
+         // engine's ClearSceneCommand): 怀特雪原's butterfly flies the player
+         // to 虚幻之春 in a film (GoScene, a modal dialog) whose last frame
+         // only loads the scene, and would otherwise stay over it, the
+         // screen darkened and nothing clickable.
+         try { ModalDialogManager.getInstance().clearAll(); } catch (e0:Error) { RLog.error("scene: closing panels", e0); }
          // A scene's own code failing as it is left (later homes hide a
          // service the 2013 client does not have) must not keep the player in it.
          // While UNLOAD_SCENE is told, loadedSceneInfo is still the room being
@@ -454,6 +461,7 @@ package mmo.play.scene
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.SCENE_INITED, {sceneName: info.sceneName}));
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.SCENE_OPENED, {sceneName: info.sceneName}));
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.TASK_SCENE_INITED, {sceneName: info.sceneName}));
+         ScenePatches.apply(info);
       }
 
       /** Listeners added for the scene's start while catching (catchSceneInited). */

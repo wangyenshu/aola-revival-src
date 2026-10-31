@@ -6,7 +6,10 @@ catalog book; the archive (docs/ARCHIVE.md) has the pages of only five issues
 (116, 117, 118, 121, 126), the ones the 2013 manifests named. The CDN still
 serves the pages of every issue from 1 (July 2010) on, at
 weekly/aolaweekly<n>_<k>.swf (the first issues) or
-weekly/weekly<n>/aolaweekly<n>_<k>.swf; most were uploaded again, unchanged,
+weekly/weekly<n>/aolaweekly<n>_<k>.swf, and issues 1–22 also whole in one file,
+weekly/aolaweekly<n>.swf (pages mmo.weekly._<n>Page_<p>: issues 1–17 put up
+again on 2 November 2011, 18–20 and 22 only in that form, in their weeks);
+most were uploaded again, unchanged,
 on 17 October 2024 (their own embedded dates are of their week). This asks
 the CDN for the pages of issues --first to --last (pages 1 to --max-pages,
 stopping after --gap missing in a row), downloads those game/ lacks, and
@@ -104,6 +107,10 @@ def main(argv=None) -> None:
             elif probes[(n, "a")].result()["status"] == 200:
                 forms[n] = f"weekly/aolaweekly{n}_"
     print(f"{len(forms)} issues on the CDN of {a.last - a.first + 1} asked")
+    # The whole issue in one file (issues 1–22), whatever else there is.
+    with concurrent.futures.ThreadPoolExecutor(a.workers) as ex:
+        whole = [h for h in ex.map(head, [f"weekly/aolaweekly{n}.swf" for n in range(a.first, a.last + 1)]) if h["status"] == 200]
+    print(f"{len(whole)} issues whole in one file")
 
     def pages_of(n: int) -> list[dict]:
         out, miss = [], 0
@@ -122,6 +129,7 @@ def main(argv=None) -> None:
     with concurrent.futures.ThreadPoolExecutor(a.workers) as ex:
         for got in ex.map(pages_of, sorted(forms)):
             found += got
+    found += whole
     todo = [h for h in found if f"{WWW}/{h['path']}" not in known]
     print(f"{len(found)} pages, {len(todo)} not in game/ ({sum(h['size'] for h in todo) / 1e6:.0f} MB)")
 

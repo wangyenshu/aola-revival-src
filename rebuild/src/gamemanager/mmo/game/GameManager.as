@@ -24,6 +24,17 @@ package mmo.game
    {
       private var isGameEntranceShowing:Boolean = false;
 
+      /**
+       * Games of the later GameTable (after the 2013 one's 61) whose buttons the
+       * later scene copies carry: their rooms (the revival's config.xml).
+       */
+      public static const LATER_GAMES:Object = {66: "gameNinjaRush"};
+
+      public static function sceneOf(id:int):String
+      {
+         return GameTable.getSceneNameByGameId(id) || LATER_GAMES[id];
+      }
+
       public function GameManager()
       {
          super();
@@ -63,7 +74,7 @@ package mmo.game
             NewDialog.showSucceedMessage("对不起，组队状态不能进行游戏!");
             return;
          }
-         var scene:String = GameTable.getSceneNameByGameId(id);
+         var scene:String = sceneOf(id);
          if (scene != null && scene != "") SceneManager.getInstance().loadGame(scene, true, ext);
       }
 
@@ -74,7 +85,7 @@ package mmo.game
 
       public function score2money(id:int, score:int, level:int = 1, drop:Boolean = true):void
       {
-         var scene:String = GameTable.getSceneNameByGameId(id);
+         var scene:String = sceneOf(id);
          if (scene != null && scene != "") SocketClient.instance.endGame(score, level, drop, scene);
       }
 

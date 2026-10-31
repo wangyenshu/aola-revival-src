@@ -115,6 +115,7 @@ export function stepsByItems(rec: ItemOwner, now: number): TaskResult & { taken:
     const r = finishStep(rec, Number(id), now);
     out.changes.push(...r.changes);
     if (r.score !== undefined) out.score = r.score;
+    if (r.finished) (out.finished ??= []).push(...r.finished);
   }
   return out;
 }
@@ -136,6 +137,7 @@ export function stepsByPetWin(rec: TaskOwner, pet: number, now: number): TaskRes
     const f = finishStep(rec, step, now);
     out.changes.push(...f.changes);
     if (f.score !== undefined) out.score = f.score;
+    if (f.finished) (out.finished ??= []).push(...f.finished);
   }
   return out;
 }
@@ -182,7 +184,21 @@ export interface TaskResult {
   changes: TaskChange[];
   score?: number;
   robotExp?: number;
+  /** Tasks this finished (for rewards beside the score: TaskDeps.onFinish). */
+  finished?: number[];
 }
+
+/**
+ * Rewards of the quests restored from the 2011 supplement (tools/data/task-supplement-2011.json),
+ * as their task panels show them (RECONSTRUCTED reading): 赤火斗士的意志 and 纯白之翼的信念 1500
+ * experience for the first 亚比, 500 晶币 and 30 流星碎片 (item 162); 赤火剑的力量 艾尔 (228) for a
+ * 蓝宝骑士 (the 2013 egg data has no 艾尔 egg). 纯白之翼's 修普 (190) is SundriesExtension 70_52.
+ */
+export const QUEST_REWARDS: Record<number, { score?: number; petExp?: number; items?: Record<string, Record<string, number>>; vipPet?: number }> = {
+  1411: { score: 500, petExp: 1500, items: { "2": { "162": 30 } } },
+  1416: { vipPet: 228 },
+  1652: { score: 500, petExp: 1500, items: { "2": { "162": 30 } } },
+};
 
 const parentOf = (step: number): number | undefined => {
   for (const [id, d] of Object.entries(TASK_DEFS)) if (d.steps.includes(step)) return Number(id);
@@ -237,6 +253,7 @@ export function finishStep(rec: TaskOwner, step: number, now: number): TaskResul
     return out;
   }
   b[parent] = { ...b[parent], st: 1, fd: now };
+  out.finished = [parent];
   if (def.bonus?.score) {
     rec.score = (rec.score ?? 0) + def.bonus.score;
     out.score = rec.score;
@@ -293,6 +310,8 @@ export interface TaskDeps {
   ready?: Promise<unknown>;
   /** Answer the test command revival_task (web/?dev=1). */
   dev?: boolean;
+  /** A task finished: rewards beside the score (QUEST_REWARDS), as replies [cmd, body]. */
+  onFinish?: (rec: TaskOwner, task: number) => Promise<[string, Record<string, unknown>][]>;
 }
 
 /**
@@ -365,8 +384,11 @@ export function installTasks(world: World, deps: TaskDeps): void {
   world.xt("TaskExtension.10-2", async (ctx) => {
     const rec = await load(ctx);
     const r = finishStep(rec, Number(ctx.params.ti), deps.now());
+    const extra: [string, Record<string, unknown>][] = [];
+    for (const t of r.finished ?? []) if (deps.onFinish) extra.push(...(await deps.onFinish(rec, t)));
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
+    for (const [cmd, body] of extra) ctx.reply(body, cmd);
     // Later scripts send it through ActClientSender.sendMessage, which waits (behind a loading
     // spinner) for a reply of the same command.
     ctx.reply({ ti: Number(ctx.params.ti), res: r.changes.length ? 1 : 0 }, "10-2");

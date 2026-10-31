@@ -22,6 +22,12 @@ package mmo.reader.config
          for each (var p:String in String(o.pages).split(";"))
          {
             var fp:Array = p.split(",");
+            // "p" alone (the era CatalogInfo): a page of one file f, class t + "_" + p (奥拉周刊 1–22, aolaweekly<n>.swf).
+            if (fp.length == 1 && p != "")
+            {
+               page.push(new PageInfo(file, classPrefix + "_" + p, 1, int(p)));
+               continue;
+            }
             if (fp.length < 2) continue;
             page.push(new PageInfo(file + fp[0], classPrefix + fp[0] + "_" + fp[1], int(fp[0]), int(fp[1])));
          }

@@ -1,6 +1,7 @@
 package mmo.scene.temple
 {
    import flash.display.MovieClip;
+   import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.MouseEvent;
    import flash.events.TimerEvent;
@@ -57,11 +58,39 @@ package mmo.scene.temple
       {
          super(470, 280);
          addInitLocation("fromtemple3", new Point(800, 250));
+         addInitLocation("fromtemple2", new Point(180, 330));
+         addInitLocation("fromtemple6", new Point(470, 230));
+      }
+
+      /**
+       * REVIVAL. The later copy has no way out but the pillars' film (to 日月之境)
+       * and the light (洪荒战场). In 2013 崩坏的上古神殿 led to its three
+       * neighbours, whose doors back to it survive (灵兽宫's et1 "fromtemple6",
+       * the hidden et1 of 日月之境 and 木石之境): the gate at the top to 灵兽宫,
+       * the left side to 日月之境, the right side to 木石之境 (RECONSTRUCTED spots).
+       */
+      private function addWays():void
+      {
+         var ways:Array = [["灵兽宫", "temple6", 400, 20, 160, 120], ["日月之境", "temple2", 0, 190, 80, 230], ["木石之境", "temple3", 880, 170, 80, 230]];
+         for each (var w:Array in ways)
+         {
+            var s:Sprite = new Sprite();
+            s.graphics.beginFill(0xFFFFFF, 1);
+            s.graphics.drawRect(0, 0, w[4], w[5]);
+            s.graphics.endFill();
+            s.x = w[2];
+            s.y = w[3];
+            s.name = "way_" + w[1];
+            background.addChild(s);
+            addEntrances(s, w[1], "fromtemple1");
+            TipsManager.getInstance().addTips(s, w[0]);
+         }
       }
 
       override protected function onJoinRoom():void
       {
          super.onJoinRoom();
+         addWays();
          for (var i:int = 1; i <= 6; i++)
          {
             var p:MovieClip = pillar(i);

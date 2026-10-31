@@ -1,6 +1,9 @@
 package mmo.play.player
 {
+   import flash.display.Bitmap;
+   import flash.display.BitmapData;
    import flash.display.DisplayObjectContainer;
+   import flash.geom.Matrix;
    import flash.events.EventDispatcher;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -35,6 +38,16 @@ package mmo.play.player
       {
          if (_instance == null) _instance = new PlayerManager();
          return _instance;
+      }
+
+      /** A picture of my player (the later engine's; 倒立金字塔's balance puts it on a scale). */
+      public function getPlayerBitmap():Bitmap
+      {
+         var me:PlayerBase = myPlayer;
+         var w:int = me ? Math.max(1, int(me.width * 1.3)) : 1, h:int = me ? Math.max(1, int(me.height + 50)) : 1;
+         var bd:BitmapData = new BitmapData(w, h, true, 0);
+         if (me) bd.draw(me, new Matrix(1, 0, 0, 1, me.width / 2, me.height));
+         return new Bitmap(bd);
       }
 
       public function get myPlayer():PlayerBase

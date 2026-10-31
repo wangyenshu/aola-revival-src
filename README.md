@@ -65,6 +65,14 @@ even when the repository is private; only GitHub Enterprise Cloud can make a
 Pages site private. Pages publishes at most 1 GB: `npm run build -- --exclude
 activityres,game` leaves out whole folders if the site grows past it.
 
+The site asks every crawler and AI robot to stay out: `dist/robots.txt`
+(`web/robots.txt`: `Disallow: /` for all robots, and by name for the AI and
+training crawlers that read only their own group) and a `noindex, nofollow,
+noai` robots meta tag in `index.html`. Robots read `robots.txt` only at the
+root of a host, so on a project site (`https://<user>.github.io/<repo>/`) it
+counts only if the `<user>.github.io` repository serves the same file at its
+root, or on a custom domain; the meta tag works on either.
+
 On an https page the browser would block the game's `http://` requests before
 the service worker sees them, so `boot.js` asks for the original hosts over
 https there (and tells Ruffle to do the same); the service worker answers
@@ -175,15 +183,26 @@ games and its 欢乐弹珠机, the 财富小管家 of 奥拉广场, 时空隧道
 films in battle, the 动物园
 (rebuilt on the later zoo's art: animals that grow, feed, 收获 and 变异 into
 亚比), the 家园's 经验分配器 and 我的荣誉, the 守护者 bosses of the areas
-(their own pictures that wake up, their talks, their 亚比蛋), 欢乐岛's hot
-spring, the 兜兜回收器, battle music,
+(their own pictures that wake up, their talks, their 亚比蛋; the bosses of the
+2011–12 events too: 友人契约书, 时间之神, 天之巨灵, 极速威锋, 满月巨灵, 猪猪超人,
+赤魔导士, 赤影飞狐, 年兽, 影刃, 鬼王, 天女若希, 翡冷翠), 欢乐岛's hot
+spring, the 兜兜回收器, battle music, the 四大副本 (幻影冰宫, 倒立金字塔,
+蚁族王朝, 恐龙博物馆: their doors, the choose panel of three modes, the rooms'
+scripts, 亚比 and bosses, chests and the rating), 坐骑 (a 蓝宝骑士 rides one of
+the 34 亚比 the 2013 data names), the 亚比 one could not get following as their
+picture, 修普森曼's and 艾尔利克's quests (纯白之翼的信念, 赤火斗士的意志,
+赤火剑的力量; withdrawn in November 2011, back on request), 主题公园 on the
+2012 park's art and 亚比研究中心 on the oldest art of it that survives (2014),
+灵兽宫 and the halls of 上古神殿, 斑比向前冲 and 酷跑星世界, the shops' lift
+(点我前往其他楼层), the 家具店 with 安娜 and the 迷幻星域 room and story book,
 黑星堡垒 (the era dungeon and its bosses), the 奥拉周刊 of every week from
 2010 on in the 图书馆, 欢乐岛, gathering in scenes, the wild and rare 亚比 the
 November 2012 map lists for each place, battles, and the mini games (their
 entrance panels, the games' own SWFs, 晶币 for the score). The 工具箱 also
-travels to any scene by name and exports and imports the browser's saves, and
-the bar's 物品 shows everything collected. Known gaps: the HELLO's panel, the
-2012 四大副本, friends, daily tasks and most activities
+travels to any scene by name or from a list of the places of the 2012 map
+and exports and imports the browser's saves, and
+the bar's 物品 shows everything collected. Known gaps: the HELLO's panel,
+friends, daily tasks and most activities
 are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every
 missing system, what survives of it, the server commands it needs, and the
 milestone order.

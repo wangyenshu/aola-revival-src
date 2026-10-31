@@ -50,6 +50,7 @@ package mmo.play
    import mmo.play.scene.helper.draganddrop.DragAndDropHelper;
    import mmo.interfaces.task.ext.TaskNpcPanelConfig;
    import mmo.interfaces.game.GameResultWrapper;
+   import mmo.play.player.sceneplayer.ScenePetAvatar;
    import mmo.play.task.ITaskInitiallerConfig;
    import mmo.play.task.NewBaseTaskInitialler;
    import mmo.play.task.TaskHelper;
@@ -78,7 +79,7 @@ package mmo.play
          var q12:DocGameBase, q13:SceneCommandStep, q14:ClickAndHitEvent, q15:ClickAndHitHelper;
          var q16:DefaultPlayerGenerator, q17:IPlayerGenerator;
          var q18:AutomaticCacheChecker, q19:LinkUtil;
-         var q20:DragAndDropHelper, q21:TaskNpcPanelConfig, q21b:GameResultWrapper;
+         var q20:DragAndDropHelper, q21:TaskNpcPanelConfig, q21b:GameResultWrapper, q21c:ScenePetAvatar;
          var q22:ITaskInitiallerConfig, q23:NewBaseTaskInitialler, q24:TaskHelper, q25:TaskInitiallerConfig;
          var q26:ActClientSender;
       }

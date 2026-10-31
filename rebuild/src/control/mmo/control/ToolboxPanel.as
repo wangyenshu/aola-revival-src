@@ -3,6 +3,7 @@ package mmo.control
    import flash.display.DisplayObject;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.events.KeyboardEvent;
    import flash.external.ExternalInterface;
    import flash.text.TextField;
    import mmo.config.ConfigReader;
@@ -17,7 +18,6 @@ package mmo.control
    import mmo.play.scene.SceneManager;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
-   import mmo.revival.RTextEntry;
 
    /**
     * The revival's 工具箱 (not of 2013): add 晶币, 星币, 晶豆 and 亚比 experience
@@ -135,10 +135,13 @@ package mmo.control
          sceneIn.x = 118;
          sceneIn.y = 360;
          box.addChild(sceneIn);
-         RTextEntry.attach(sceneIn, "传送到哪里？（地图名或中文名）", teleport);
-         box.addChild(place(RUI.button("传送", teleport, 70, 26, 0xFFC45A, 0xF07812, "toolboxGo"), 280, 358));
+         // Enter goes; Chinese names are picked (PlacePicker), not typed: the
+         // browser's text box (window.prompt) is not used here.
+         sceneIn.addEventListener(KeyboardEvent.KEY_DOWN, function(e:KeyboardEvent):void { if (e.keyCode == 13) teleport(); });
+         box.addChild(place(RUI.button("传送", teleport, 62, 26, 0xFFC45A, 0xF07812, "toolboxGo"), 276, 358));
+         box.addChild(place(RUI.button("选地图", openPicker, 74, 26, 0x6CC0F5, 0x2E86D6, "toolboxPick"), 346, 358));
          var hint:TextField = RUI.text(11, 0x557799, false);
-         hint.text = "地图名或中文名";
+         hint.text = "输入地图名（如 crossroad），或点「选地图」";
          hint.x = 30;
          hint.y = 390;
          box.addChild(hint);
@@ -227,6 +230,23 @@ package mmo.control
          }
          catch (e:Error) { RLog.error("toolbox scene", e); }
          return null;
+      }
+
+      private var picker:PlacePicker;
+
+      private function openPicker():void
+      {
+         if (picker != null && picker.parent != null) return;
+         picker = new PlacePicker(go, function():void { if (picker && picker.parent) picker.parent.removeChild(picker); });
+         picker.x = 16;
+         picker.y = 50;
+         box.addChild(picker);
+      }
+
+      private function go(name:String):void
+      {
+         close();
+         SceneManager.getInstance().loadScene(name);
       }
 
       private function teleport():void
