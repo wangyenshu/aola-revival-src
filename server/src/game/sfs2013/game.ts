@@ -62,6 +62,8 @@ export interface UserRecord {
   vipTower?: { fl: number; ps: boolean };
   /** 欢乐岛 today: seconds used, seconds bought (增加时长 bought n times), 双倍经验. */
   hotSpring?: { day: string; used: number; extra: number; adds: number; double: boolean };
+  /** 财富小管家's boxes: 晶币 put away (sc) on sd (ms) for d days. */
+  fortune?: ({ sc: number; sd: number; d: number } | null)[];
 }
 
 /**
@@ -266,6 +268,45 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ userId: rec.id, totalScore: rec.score });
   });
 
+  // 财富小管家 (fortunemanager/fortunemanager, rebuilt; the later client's ScoreManager commands):
+  //   getAccount {} -> {al: [{id, sc, sd, d}], now}; despositAccount {ai, sc, d} -> {b};
+  //   takeAwawyAccount {ai} -> {res: 晶币 back or -1, interest}.
+  // Five boxes, 1 to 7 days. Interest at the end: sc * d * d / 1000 (百田's guide of January 2012:
+  // 500,000 晶币 for 7 days earn 24,500); taken out sooner: sc * whole days * 0.001 (the later panel's
+  // figure), none in the first day. The limits (1000 to 1,000,000 a box) are RECONSTRUCTED.
+  const FORTUNE_DAY = 24 * 3600 * 1000;
+  world.xt("ScoreManager.getAccount", async (ctx) => {
+    const rec = await me(ctx);
+    const al = (rec.fortune ?? []).map((a, id) => (a ? { id, sc: a.sc, sd: a.sd, d: a.d } : null)).filter(Boolean);
+    ctx.reply({ al, now: emu.clock.now().getTime() });
+  });
+  world.xt("ScoreManager.despositAccount", async (ctx) => {
+    const rec = await me(ctx);
+    const ai = Number(ctx.params.ai) | 0;
+    const sc = Number(ctx.params.sc) | 0;
+    const d = Number(ctx.params.d) | 0;
+    const boxes = (rec.fortune ??= []);
+    if (ai < 0 || ai > 4 || boxes[ai] || d < 1 || d > 7 || sc < 1000 || sc > 1_000_000 || (rec.score ?? 0) < sc) return ctx.reply({ b: false });
+    rec.score = (rec.score ?? 0) - sc;
+    boxes[ai] = { sc, sd: emu.clock.now().getTime(), d };
+    await save(rec);
+    ctx.reply({ score: rec.score }, "onScoreUpdated");
+    ctx.reply({ b: true });
+  });
+  world.xt("ScoreManager.takeAwawyAccount", async (ctx) => {
+    const rec = await me(ctx);
+    const ai = Number(ctx.params.ai) | 0;
+    const a = rec.fortune?.[ai];
+    if (!a) return ctx.reply({ res: -1, interest: 0 });
+    const now = emu.clock.now().getTime();
+    const interest = now >= a.sd + a.d * FORTUNE_DAY ? Math.floor((a.sc * a.d * a.d) / 1000) : Math.floor(a.sc * Math.floor((now - a.sd) / FORTUNE_DAY) * 0.001);
+    rec.fortune![ai] = null;
+    rec.score = (rec.score ?? 0) + a.sc + interest;
+    await save(rec);
+    ctx.reply({ score: rec.score }, "onScoreUpdated");
+    ctx.reply({ res: a.sc + interest, interest });
+  });
+
   // Mini games: SocketClient.endGame -> ScoreManager.increaseScore {score (encrypted, Encrypt.encryptCode),
   // level, exitWay, gameName} -> increaseScore {scoreAdded, state, got}; the games show scoreAdded as
   // the 晶币 won and a tip for state -1/-2/-3. The 2013 rates are lost: RECONSTRUCTED as one 晶币 per
@@ -324,7 +365,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const row = (await table())[tp]?.[mi];
     const rec = await me(ctx);
     const owned = (rec.items![tp] ??= {});
-    const fail = (res: number) => ctx.reply({ res, tp: Number(tp), mi: Number(mi), qt });
+    // The 2015 欢乐弹珠机's buy panel reads result where the 2013 panels read res.
+    const fail = (res: number) => ctx.reply({ res, result: res, tp: Number(tp), mi: Number(mi), qt });
     if (!row) return fail(-1);
     if (tp === "9") {
       // A tree of the 种植手册: it goes into the 植树盆 of the 家园 (plants.ts).
@@ -356,7 +398,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     await save(rec);
     ctx.reply({ score: rec.score }, "onScoreUpdated");
     ctx.reply({ amount: `${tp}_${mi}_0_${qt}` }, "onAmountUpdated");
-    ctx.reply({ res: 1, tp: Number(tp), mi: Number(mi), qt, score: rec.score });
+    ctx.reply({ res: 1, result: 1, tp: Number(tp), mi: Number(mi), qt, score: rec.score });
   });
 
   // ---------------------------------------------------------------- gathering
@@ -670,6 +712,44 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // 70_12 {type}): the server only counted them; nothing comes back.
   world.xt("SundriesExtension.70_8", () => {});
   world.xt("SundriesExtension.70_12", () => {});
+  // A mini game started again (70_7 {GameName}) and the later SocketClient's
+  // clientDebug: counted on the server only.
+  world.xt("SundriesExtension.70_7", () => {});
+  world.xt("SurveyExtension.clientDebug", () => {});
+  // 舞动全星's 冠军榜 (game/dance, 70_5 {} -> {rank: [{sId, dd, un, score}]}): the 2013 server's
+  // list is lost; an empty list stops the panel waiting.
+  world.xt("SundriesExtension.70_5", (ctx) => ctx.reply({ rank: [] }));
+
+  // 欢乐弹珠机 (bumpbilliards/bumpbilliards, the 2015 copy; UserGameExtension): 89_2 {} when a game
+  // starts, 89_1 {num: 欢乐弹珠 used, lvl} at its end -> {gf: "type:id:num;…"}, the prize of the slot
+  // the points reached (lvl 1 for 7 points and more, 2 for 4–6, 3 for 1–3, 0 none). The balls (item
+  // 343) go then. The 2013 prize table is lost: RECONSTRUCTED after the 2015 rules panel (things for
+  // 1–3 points, better things or a 亚比蛋 for 4–6, rarer ones for 7 and more).
+  world.xt("UserGameExtension.89_2", () => {});
+  world.xt("UserGameExtension.89_1", async (ctx) => {
+    const rec = await me(ctx);
+    const items = ((rec.items ??= {})["2"] ??= {});
+    const used = Math.min(items["343"] ?? 0, Math.max(0, Number(ctx.params.num) | 0));
+    if (used > 0) {
+      items["343"] -= used;
+      if (items["343"] <= 0) delete items["343"];
+      ctx.reply({ amount: `2_343_0_${-used}` }, "onAmountUpdated");
+    }
+    const lvl = Number(ctx.params.lvl) | 0;
+    const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
+    const prize: [string, number, number][] =
+      lvl === 1 ? [pick([["5", 88, 1], ["2", 178, 1], ["2", 661, 1]] as [string, number, number][])]
+      : lvl === 2 ? [pick([["5", 13, 1], ["5", 37, 1], ["2", 120, 1], ["2", 61, 2]] as [string, number, number][])]
+      : lvl === 3 ? [pick([["2", 60, 2], ["2", 425, 2], ["2", 426, 2]] as [string, number, number][])]
+      : [["2", 30, 1]];
+    for (const [t, id, n] of prize) {
+      const owned = (rec.items![t] ??= {});
+      owned[id] = (owned[id] ?? 0) + n;
+      ctx.reply({ amount: `${t}_${id}_0_${n}` }, "onAmountUpdated");
+    }
+    await save(rec);
+    ctx.reply({ gf: prize.map(([t, id, n]) => `${t}:${id}:${n}`).join(";") });
+  });
 
   world.xt("UserExtension.getLifeDay", async (ctx) => {
     const rec = await me(ctx);

@@ -45,6 +45,14 @@ the zoo's `zooitem/zooitem1–10` and the later zoo house `furniture/b020000`
 pictures `dailyactivity/dailyboss<race>` (27 files, 16 of them uploaded in
 2011–12) and the classic battle music `music/fightBgMusic1.mp3`: 16 lines in
 `index.jsonl` and 12 in `_later/index.jsonl`.
+A fourth run (also 31 October) indexed the files of update 8: the 保卫战 games'
+pictures (`pvzres/`, `guardnutres/`, `seadefendres/`, 45 files of 2011), the
+small pictures `peticon/peticon<id>` of 12 亚比 one could not get, 舞动全星's
+songs `dancesong/song1–5`, two game entrance panels, the 欢乐弹珠机
+`bumpbilliards/bumpbilliards` (2015), 时空隧道's `spacetime/spacetimepet0–9` and
+`spacetimepanel`, and the 幻龙星系 quests' scripts (`taskext/task3022` … `task3346`,
+2015 uploads) with their 137 resources and NPC pictures (`tools/story_files.py`):
+193 lines in `index.jsonl` and 28 in `_later/index.jsonl`.
 
 ## How the files were found and dated
 

@@ -6,6 +6,10 @@ package mmo.control
    import flash.text.TextField;
    import mmo.common.DisplayUtil;
    import mmo.common.utils.tips.TipsManager;
+   import mmo.framework.comm.PetEggClient;
+   import mmo.framework.comm.SocketClient;
+   import mmo.framework.comm.SocketClientEvent;
+   import mmo.interfaces.material.Material;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.material.IMaterialFactory;
    import mmo.interfaces.material.IMaterialService;
@@ -19,7 +23,9 @@ package mmo.control
     * The revival's 物品 (not of 2013; the bar's 物品 button): everything the
     * player has collected, by kind (道具, 亚比蛋, 种植, 射击卡), with each
     * thing's picture (its material service's getView, as the era panels
-    * show them) and how many, its name and description in the tip.
+    * show them) and how many, its name and description in the tip. The 亚比蛋
+    * are asked of the server (PetEggClient.getEggs, "1=1"): the era egg
+    * material service keeps only the eggs got since logging in.
     */
    public class ItemsPanel extends Sprite
    {
@@ -39,6 +45,8 @@ package mmo.control
       private var kind:int = 0;
       private var page:int = 0;
       private var listening:Array = [];
+      /** The 亚比蛋 the server listed: [{id, qty}], null until it answers. */
+      private var eggs:Array;
 
       public static function toggle():void
       {
@@ -86,6 +94,23 @@ package mmo.control
          box.addChild(said);
          drawTabs();
          go(0);
+         SocketClient.instance.addEventListener(PetEggClient.cmdGetEggs, onEggs);
+         try { PetEggClient.instance.getEggs(); } catch (e:Error) { RLog.error("items eggs", e); }
+      }
+
+      private function onEggs(e:SocketClientEvent):void
+      {
+         var count:Object = {};
+         var order:Array = [];
+         for each (var o:Object in (e.params.es as Array) || [])
+         {
+            var ri:int = int(o.ri);
+            if (count[ri] == null) { count[ri] = 0; order.push(ri); }
+            count[ri]++;
+         }
+         eggs = [];
+         for each (var id:int in order) eggs.push({id: id, qty: count[id]});
+         if (int(KINDS[kind][1]) == 5) go(page);
       }
 
       private function drawTabs():void
@@ -127,8 +152,28 @@ package mmo.control
          while (grid.numChildren) grid.removeChildAt(0);
          var svc:IMaterialService = service();
          var list:Array = [];
-         try { if (svc) list = svc.getMyMaterials().filter(function(u:*, i:int, a:Array):Boolean { return u is UserMaterial && UserMaterial(u).quantity > 0; }); }
-         catch (e:Error) { RLog.error("items list", e); }
+         if (int(KINDS[kind][1]) == 5 && eggs != null)
+         {
+            for each (var eg:Object in eggs)
+            {
+               var em:Material = null;
+               try { em = svc ? svc.getMaterialById(eg.id) : null; } catch (e1:Error) {}
+               list.push({materialId: eg.id, quantity: eg.qty, material: em});
+            }
+         }
+         else
+         {
+            try
+            {
+               if (svc)
+               {
+                  for each (var u:* in svc.getMyMaterials())
+                     if (u is UserMaterial && UserMaterial(u).quantity > 0)
+                        list.push({materialId: UserMaterial(u).materialId, quantity: UserMaterial(u).quantity, material: UserMaterial(u).material});
+               }
+            }
+            catch (e:Error) { RLog.error("items list", e); }
+         }
          list.sortOn("materialId", Array.NUMERIC);
          var per:int = COLS * ROWS;
          var pages:int = Math.max(1, Math.ceil(list.length / per));
@@ -142,10 +187,11 @@ package mmo.control
             cell.y = int(i / COLS) * 84;
             grid.addChild(cell);
          }
-         said.text = list.length ? "共 " + list.length + " 种。把鼠标放在物品上可以看到它的说明。" : "这里还没有东西。";
+         said.text = list.length ? "共 " + list.length + " 种。把鼠标放在物品上可以看到它的说明。" : int(KINDS[kind][1]) == 5 && eggs == null ? "正在读取……" : "这里还没有东西。";
       }
 
-      private function cellFor(svc:IMaterialService, um:UserMaterial):Sprite
+      /** um: {materialId, quantity, material}. */
+      private function cellFor(svc:IMaterialService, um:Object):Sprite
       {
          var cell:Sprite = new Sprite();
          cell.name = "item_" + um.materialId;
@@ -204,6 +250,7 @@ package mmo.control
       public function close():void
       {
          stopListening();
+         SocketClient.instance.removeEventListener(PetEggClient.cmdGetEggs, onEggs);
          if (parent) parent.removeChild(this);
          if (current == this) current = null;
       }

@@ -3,6 +3,7 @@ package mmo.scene.starland
    import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.display.SimpleButton;
+   import flash.display.Sprite;
    import flash.events.MouseEvent;
    import flash.geom.Point;
    import mmo.common.dialog.NewDialog;
@@ -15,6 +16,8 @@ package mmo.scene.starland
    import mmo.play.scene.FaceDirectionTypes;
    import mmo.play.scene.SceneBase;
    import mmo.play.scene.SceneManager;
+   import mmo.loader.layer.LayerManager;
+   import mmo.revival.RUI;
 
    /**
     * LATER scene/ecologicalpark (生态园): the 2020 copy's code compiled
@@ -22,14 +25,18 @@ package mmo.scene.starland
     * lost). Its entrances are those of the 2013 map (十字大道, 蓝宝石要塞,
     * 奥拉运动场). Its three game spots open the 生态园's games of the
     * January 2013 config.xml (game rooms owned by ecologicalpark), through
-    * SceneManager.loadGame as the era scenes do: the 动物保卫战 board
-    * (pvzgame) gamePvZ, the 动物捕捉 spot (game) gameCatchAnimal, and the
-    * fishing spot (btngamecatchfish; 捕鱼达人 came later) the 海底保卫战,
-    * gameSeaDefend. The later code's activities (比巴卜, 卡牌, 职业 panels,
+    * SceneManager.loadGame as the era scenes do: the 保卫战 board (pvzgame)
+    * the three 保卫战 games (gamePvZ 动物保卫战, gameGuardNut 天空保卫战,
+    * gameSeaDefend 海底保卫战; the later scene arrows of all three point at
+    * that board, the panel it opened is lost and is drawn here), the 动物捕捉
+    * spot (game) gameCatchAnimal, and the fishing spot (btngamecatchfish;
+    * 捕鱼达人 came later) the 海底保卫战 too. The later code's activities (比巴卜, 卡牌, 职业 panels,
     * the zoo door of 2014's 动物公会) are left out.
     */
    public class EcologicalParkRevived extends SceneBase
    {
+      private static const DEFENCE:Array = [
+         ["gamePvZ", "动物保卫战"], ["gameGuardNut", "天空保卫战"], ["gameSeaDefend", "海底保卫战"]];
       private static const locationKey:String = "fromecologicalpark";
       public var background:MovieClip;
       public var foreground:MovieClip;
@@ -58,7 +65,7 @@ package mmo.scene.starland
          var e3:InteractiveObject = foreground.et3 as InteractiveObject;
          tips.addTips(e3, "奥拉运动场");
          addEntrances(e3, "gymnasium", locationKey, null, FaceDirectionTypes.FACERIGHTDOWN);
-         game(background.pvzgame, "动物保卫战", "gamePvZ");
+         game(background.pvzgame, "保卫战", "");
          game(background.game, "动物捕捉", "gameCatchAnimal");
          game(backGround.getChildByName("btngamecatchfish"), "海底保卫战", "gameSeaDefend");
       }
@@ -78,6 +85,11 @@ package mmo.scene.starland
                NewDialog.showFailMessage("组队状态不能进入游戏！");
                return;
             }
+            if (room == "")
+            {
+               chooseDefence();
+               return;
+            }
             if (room != "gameCatchAnimal")
             {
                SceneManager.getInstance().loadGame(room);
@@ -95,6 +107,37 @@ package mmo.scene.starland
             });
             CatchAnimalClient.instance.enterGame();
          });
+      }
+
+      /** The 保卫战 board's choice of the three games (drawn in the look of the rebuilt panels). */
+      private function chooseDefence():void
+      {
+         var top:Sprite = new Sprite();
+         top.name = "defenceChooser";
+         var close:Function = function():void { if (top.parent) top.parent.removeChild(top); };
+         top.addChild(RUI.dim(close));
+         var box:Sprite = RUI.panel(300, 270, "保卫战", close, "defenceClose");
+         box.x = (960 - 300) / 2;
+         box.y = (560 - 270) / 2 - 10;
+         top.addChild(box);
+         for (var i:int = 0; i < DEFENCE.length; i++)
+         {
+            var row:Array = DEFENCE[i];
+            var b:Sprite = RUI.button(row[1], pick(String(row[0]), close), 180, 40, 0xFFC45A, 0xF07812, "defence_" + row[0]);
+            b.x = (300 - 180) / 2;
+            b.y = 70 + i * 60;
+            box.addChild(b);
+         }
+         LayerManager.getBaseTop().addChild(top);
+      }
+
+      private function pick(room:String, close:Function):Function
+      {
+         return function():void
+         {
+            close();
+            SceneManager.getInstance().loadGame(room);
+         };
       }
    }
 }

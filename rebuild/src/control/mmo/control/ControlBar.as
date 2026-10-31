@@ -12,6 +12,8 @@ package mmo.control
    import flash.geom.Rectangle;
    import mmo.common.sound.SoundManager;
    import mmo.revival.RLog;
+   import mmo.revival.RUI;
+   import mmo.revival.RTextEntry;
    import flash.text.TextField;
    import flash.text.TextFieldType;
    import flash.text.TextFormat;
@@ -192,6 +194,7 @@ package mmo.control
             if (e.keyCode == Keyboard.ENTER) send();
          });
          input.addEventListener(KeyboardEvent.KEY_UP, function(e:KeyboardEvent):void { e.stopPropagation(); });
+         RTextEntry.attach(input, "说点什么吧：", function():void { send(); });
          chat.addChild(input);
          var enter:Sprite = smallButton("btnSend", 524, 538, 22, 19, function():void { send(); });
          var eg:Graphics = enter.graphics;

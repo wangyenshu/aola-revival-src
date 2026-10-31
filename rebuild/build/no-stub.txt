@@ -37,3 +37,8 @@ pet/petskillmesservice
 baseservice/notifyview
 dailyactivity/dailyactivityservice
 buyback/stuffbuyback
+baseservice/scenearrow
+bumpbilliards/bumpbilliards
+fortunemanager/fortunemanager
+pet/peteggservice
+spacetime/spacetimeservice

@@ -8,6 +8,8 @@
 //                                                                           shows each by viewSinglePM)
 //   1-4 hatchEggs {st, ids}     -> "1-4" {res}, then "1-2" {st: 2, …}       ids "ei,ei,…"
 //   1-6 stopHatch {st}          -> "1-6" {res}, then "1-2" {st: 4, …}       the eggs come back
+//   1=1 getEggs {}              -> "1=1" {es: [{ei, ri, st: 0}]}            every egg one has (the client's
+//                                  command name is "1=1"; the revival's 物品 lists the 亚比蛋 with it)
 //   PocketMonsterExtension 1223 recyclePm {id, loc: 4} -> "2223" {res, id, loc}
 //                                  放回仓库: a hatched 亚比 leaves the 孵化器
 //
@@ -79,9 +81,16 @@ export function installEggs<O extends EggOwner>(world: World, deps: EggDeps<O>):
     return { st: 3, pms: h.pets.map((id) => ({ id })) };
   };
 
+  world.xt(`${EGG_EXT}.1=1`, async (ctx) => {
+    const o = await deps.me(ctx);
+    ctx.reply({ es: eggList(o).map((e) => ({ ...e, st: 0 })) }, "1=1");
+  });
+
   world.xt(`${EGG_EXT}.1-2`, async (ctx) => {
     const o = await deps.me(ctx);
-    ctx.reply(await state(o), "1-2");
+    // os: the hatching kind asked (UserPetEgg.STATE_OFFLINE_HATCH 2, the 批量孵化器), which the
+    // egg service and the later panels check.
+    ctx.reply({ ...(await state(o)), os: Number(ctx.params.st ?? 2) | 0 || 2 }, "1-2");
   });
 
   world.xt(`${EGG_EXT}.1-4`, async (ctx) => {
@@ -109,7 +118,7 @@ export function installEggs<O extends EggOwner>(world: World, deps: EggDeps<O>):
     o.hatch = { eggs, end: deps.now() + HATCH_MS };
     await deps.save(o);
     ctx.reply({ res: 1 }, "1-4");
-    ctx.reply(await state(o), "1-2");
+    ctx.reply({ ...(await state(o)), os: 2 }, "1-2");
   });
 
   world.xt(`${EGG_EXT}.1-6`, async (ctx) => {
@@ -126,7 +135,7 @@ export function installEggs<O extends EggOwner>(world: World, deps: EggDeps<O>):
     delete o.hatch;
     await deps.save(o);
     ctx.reply({ res: 1 }, "1-6");
-    ctx.reply(await state(o), "1-2");
+    ctx.reply({ ...(await state(o)), os: 2 }, "1-2");
   });
 
   world.xt("PocketMonsterExtension.1223", async (ctx) => {

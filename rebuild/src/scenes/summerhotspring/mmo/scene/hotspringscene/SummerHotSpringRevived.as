@@ -3,8 +3,10 @@ package mmo.scene.hotspringscene
    import flash.display.DisplayObject;
    import flash.display.InteractiveObject;
    import flash.display.MovieClip;
+   import flash.display.DisplayObjectContainer;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.geom.Point;
    import flash.events.MouseEvent;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
@@ -29,7 +31,9 @@ package mmo.scene.hotspringscene
     * years (HotSpringSeason, BitmapMovieCacher, scene commands). This is its
     * code cut down to the 2013 engine, on its own art, with the hot spring
     * itself rebuilt after the later hotspring/hotspringservice and its
-    * HotSpringExtension commands:
+    * HotSpringExtension commands (in the water one may walk about the spring,
+    * the art's "pool", as the later service let one; clicks outside it are
+    * refused):
     *
     * 更衣室 offers the five costumes of December 2012 (effect/hotspring_avatar1–5,
     * mmo.hotspring.Avatar<n>: a crab, a sausage … floating in the water); in
@@ -66,6 +70,7 @@ package mmo.scene.hotspringscene
       private var doubled:Boolean;
       private var lastStep:int;
       private var wantedCostume:int;
+      private var pool:DisplayObject;
 
       public function SummerHotSpringRevived()
       {
@@ -212,6 +217,41 @@ package mmo.scene.hotspringscene
          }, null);
          showHud();
          addEventListener(Event.ENTER_FRAME, onTick);
+         pool = findNamed(this, "pool");
+         addEventListener(MouseEvent.MOUSE_DOWN, onSoakClick);
+      }
+
+      private static function findNamed(c:DisplayObjectContainer, name:String):DisplayObject
+      {
+         for (var i:int = 0; i < c.numChildren; i++)
+         {
+            var d:DisplayObject = c.getChildAt(i);
+            if (d.name == name) return d;
+            if (d is DisplayObjectContainer)
+            {
+               var f:DisplayObject = findNamed(DisplayObjectContainer(d), name);
+               if (f != null) return f;
+            }
+         }
+         return null;
+      }
+
+      /** In the water: walk where one clicks, as long as it is in the spring. */
+      private function onSoakClick(e:MouseEvent):void
+      {
+         if (!soaking) return;
+         var me:Player = PlayerManager.getInstance().myPlayer as Player;
+         if (me == null || me.parent == null) return;
+         var at:Point = me.parent.globalToLocal(new Point(e.stageX, e.stageY));
+         var inside:Boolean = pool != null
+            ? pool.hitTestPoint(e.stageX, e.stageY, true)
+            : Point.distance(at, new Point(JOIN_X, JOIN_Y)) < 160;
+         if (!inside)
+         {
+            RNotice.show(LayerManager.getBaseTop(), "泡温泉的时候只能在温泉里走动哦，点上面的「离开温泉」就可以出来。");
+            return;
+         }
+         me.moveTo(int(at.x), int(at.y));
       }
 
       private function showHud():void
@@ -300,6 +340,7 @@ package mmo.scene.hotspringscene
          if (!soaking) return;
          soaking = false;
          removeEventListener(Event.ENTER_FRAME, onTick);
+         removeEventListener(MouseEvent.MOUSE_DOWN, onSoakClick);
          var sec:int = Math.min(leftAtStart, elapsed);
          SocketClient.instance.sendXtMessage(EXT, "100_12", {exp: exp, sec: sec});
          if (hud != null && hud.parent) hud.parent.removeChild(hud);

@@ -1,0 +1,34 @@
+{
+ "_doc": [
+  "Task NPCs of the 幻龙星系 quests (tools/data/task-starters-2012.json) that the later SceneNpcConfig",
+  "no longer places although the quests' own start conversations name their rooms (776_3022_cloudstar2: 飞灵 in",
+  "魔法羽林). [npcId, viewId, x, y]; the spots are RECONSTRUCTED (open ground near the middle of each room).",
+  "Shown as task NPCs: only while they have something to say."
+ ],
+ "scenes": {
+  "cloudstar2": [
+   [
+    776,
+    1,
+    480,
+    380
+   ]
+  ],
+  "cloudstar3": [
+   [
+    780,
+    1,
+    520,
+    360
+   ]
+  ],
+  "cloudstar5": [
+   [
+    776,
+    1,
+    450,
+    380
+   ]
+  ]
+ }
+}

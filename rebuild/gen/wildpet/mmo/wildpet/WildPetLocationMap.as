@@ -42,6 +42,8 @@ package mmo.wildpet
          m["cloudstar2"] = [new Point(350,450), new Point(480,390), new Point(650,400), new Point(600,450)];
          m["cloudstar3"] = [new Point(200,280), new Point(400,370), new Point(550,350), new Point(650,400)];
          m["cloudstar4"] = [new Point(120,295), new Point(380,375), new Point(620,355), new Point(295,250)];
+         m["diamondisland2"] = [new Point(340,349), new Point(544,392), new Point(641,372), new Point(624,355), new Point(151,304)];
+         m["diamondisland4"] = [new Point(200,300), new Point(250,430), new Point(350,450), new Point(550,500), new Point(800,450)];
          m["ecologicalpark"] = [new Point(237,377), new Point(592,405), new Point(497,183), new Point(609,382)];
          m["employmenttown"] = [new Point(300,350), new Point(350,400), new Point(700,400), new Point(800,400)];
          m["fairytalestar1"] = [new Point(150,380), new Point(200,380), new Point(750,300), new Point(450,420), new Point(650,330)];
@@ -50,6 +52,10 @@ package mmo.wildpet
          m["feier2"] = [new Point(240,430), new Point(350,410), new Point(500,430), new Point(600,330), new Point(700,380)];
          m["feier3"] = [new Point(200,430), new Point(350,340), new Point(500,380), new Point(650,280), new Point(530,320)];
          m["feier4"] = [new Point(144,337), new Point(234,499), new Point(528,456), new Point(678,417), new Point(875,446)];
+         m["fightspace1"] = [new Point(617,352), new Point(759,239), new Point(397,491), new Point(753,307), new Point(709,172)];
+         m["fightspace2"] = [new Point(790,190), new Point(790,420), new Point(375,360), new Point(190,240), new Point(90,410)];
+         m["giantcordillera1"] = [new Point(751,316), new Point(394,402), new Point(494,523), new Point(722,247), new Point(892,348)];
+         m["giantcordillera5"] = [new Point(300,450), new Point(400,450), new Point(550,470), new Point(600,350), new Point(750,330)];
          m["gymnasium"] = [new Point(380,380), new Point(450,280)];
          m["haikustar1"] = [new Point(180,480), new Point(500,425), new Point(600,400), new Point(680,300), new Point(750,410)];
          m["haikustar3"] = [new Point(385,280), new Point(500,250), new Point(725,85), new Point(330,165), new Point(590,245)];
@@ -73,6 +79,8 @@ package mmo.wildpet
          m["leiming4"] = [new Point(270,400), new Point(420,430), new Point(560,400), new Point(690,380), new Point(760,260)];
          m["magicstar1"] = [new Point(300,330), new Point(395,360), new Point(515,345), new Point(610,335), new Point(610,288)];
          m["magicstar3"] = [new Point(325,315), new Point(325,465), new Point(405,465), new Point(300,380)];
+         m["mantenxiagu1"] = [new Point(214,370), new Point(503,447), new Point(711,430), new Point(530,475), new Point(762,339)];
+         m["mantenxiagu2"] = [new Point(300,360), new Point(450,340), new Point(700,400), new Point(730,200), new Point(600,90)];
          m["musicstar1"] = [new Point(310,450), new Point(660,415), new Point(750,430), new Point(190,460), new Point(390,350)];
          m["mysticearth1"] = [new Point(189,307), new Point(213,390), new Point(607,463), new Point(818,397)];
          m["mysticearth2"] = [new Point(312,367), new Point(455,390), new Point(558,255), new Point(343,248)];
@@ -90,6 +98,10 @@ package mmo.wildpet
          m["siwude4"] = [new Point(200,430), new Point(350,350), new Point(500,430), new Point(650,330), new Point(700,420)];
          m["siwude5"] = [new Point(420,380), new Point(600,350), new Point(750,330), new Point(630,130), new Point(410,180)];
          m["siwude6"] = [new Point(220,360), new Point(300,400), new Point(350,300), new Point(400,300), new Point(650,250)];
+         m["skycity4"] = [new Point(450,350), new Point(600,400), new Point(700,400), new Point(750,350)];
+         m["starsea1"] = [new Point(720,190), new Point(450,430), new Point(550,300), new Point(500,230)];
+         m["starsea2"] = [new Point(590,230), new Point(750,230), new Point(680,350), new Point(870,275), new Point(850,410)];
+         m["starsea3"] = [new Point(160,500), new Point(270,400), new Point(200,300), new Point(350,100), new Point(600,50)];
          m["suolide1"] = [new Point(200,250), new Point(300,350), new Point(350,420), new Point(600,400), new Point(450,250)];
          m["suolide2"] = [new Point(250,250), new Point(250,400), new Point(400,300), new Point(700,400), new Point(600,250)];
          m["suolide3"] = [new Point(200,400), new Point(250,480), new Point(450,320), new Point(580,280), new Point(630,320)];
@@ -112,6 +124,7 @@ package mmo.wildpet
          m["yishuzhidu3"] = [new Point(150,480), new Point(220,310), new Point(450,350), new Point(500,220), new Point(600,400)];
          m["yishuzhidu4"] = [new Point(300,430), new Point(420,400), new Point(550,360), new Point(680,380), new Point(800,380)];
          m["yishuzhidu5"] = [new Point(250,400), new Point(400,400), new Point(550,400), new Point(700,350), new Point(400,500)];
+         m["youanmingzhou1"] = [new Point(420,407), new Point(514,403), new Point(476,397), new Point(449,397), new Point(390,417)];
       }
    }
 }

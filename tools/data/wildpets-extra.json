@@ -1,0 +1,481 @@
+{
+ "_doc": [
+  "Wild 亚比 of rooms the generated table misses: the 2011-12 story rooms (风暴星系: 巨人山脉, 蔓藤峡谷, 星云海洋,",
+  "钻石岛, 斗魂空间, 虚无空间, 幽暗冥州) that tools/story_files.py added to the config overlay, and skycity4.",
+  "Applied last by tools/gen_wildpets.py --extra: an entry replaces the generated one of the same 亚比 in that room.",
+  "Sources per entry: the era 亚比图鉴 page CollectionPanelPart2 (Jan 2013), the PetDictionaryData 获得方式 text,",
+  "百田's April 2012 guides (aola.100bt.com/fenbu/*.html), the era rare-pet panels and the scenes' code.",
+  "Levels: only 星云宝地's 18 and 26 come from a 2012 source; the others are RECONSTRUCTED around them",
+  "(first forms 16-20, second forms 24-28, rares 22-26). Forms only the later dictionary names are left out."
+ ],
+ "rooms": {
+  "giantcordillera1": {
+   "pets": [
+    {
+     "raceId": 392,
+     "name": "小犀",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era pet/petdictionary CollectionPanelPart2 tips (Jan 2013 亚比图鉴, 风暴星系 page): 小犀 巨人山脉-巨人山脚",
+      "PetDictionaryData 获得方式/scene field: 可在巨人山脚捕捉获得 (giantcordillera1)",
+      "aola.100bt.com/fenbu/4692.html (2012-04-21: 小犀也能在【巨人山脚】抓到)"
+     ]
+    },
+    {
+     "raceId": 371,
+     "name": "伊尼",
+     "min": 20,
+     "max": 20,
+     "common": 0,
+     "rate": 5,
+     "levels": "scene code (20)",
+     "source": [
+      "scene giantcordillera1 LovePetBearAppearHandler: startFight(FIGHT_WITH_RARE__PET,{raceId:371,level:20}) every 5 min (not wired in the 2016 copy)",
+      "aola.100bt.com/fenbu/21607.html (2012-04-20: 巨人山脚 每隔五分钟可以遇到它)"
+     ],
+     "note": "its scene's own appearance code is lost (later copy): a rare of the room instead"
+    }
+   ]
+  },
+  "giantcordillera5": {
+   "pets": [
+    {
+     "raceId": 392,
+     "name": "小犀",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4692.html (2012-04-21: 小犀、犀牛小怪都可以在巨人山顶捕捉到)"
+     ]
+    },
+    {
+     "raceId": 393,
+     "name": "犀牛小怪",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4692.html (2012-04-21)",
+      "PetDictionaryData 获得方式/scene field: 由小犀进化得来或在巨人山顶捕捉获得"
+     ]
+    },
+    {
+     "raceId": 379,
+     "name": "托比",
+     "min": 22,
+     "max": 26,
+     "common": 0,
+     "rate": 5,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era sceneres/rarepetpanel/tuobi.swf (2012-06-21): 每天14:00-18:00挑战巨人山顶的小犀系列亚比就有机会遇见我",
+      "aola.100bt.com/fenbu/4695.html (2012-04-21)",
+      "arrow giantcordillera5_rp379; later ScarePetManager FightEndStrategy"
+     ]
+    }
+   ]
+  },
+  "mantenxiagu1": {
+   "pets": [
+    {
+     "raceId": 422,
+     "name": "小小鸟",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era pet/petdictionary CollectionPanelPart2 tips (Jan 2013 亚比图鉴, 风暴星系 page): 小小鸟 蔓藤峡谷-奇迹谷底",
+      "PetDictionaryData 获得方式/scene field: 可在奇迹谷底或在回忆之林捕捉获得",
+      "aola.100bt.com/fenbu/4722.html (2012-04-21)"
+     ]
+    },
+    {
+     "raceId": 423,
+     "name": "带刀小鸟",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4722.html (2012-04-21: 小小鸟、带刀小鸟都可以在蔓藤峡谷的【奇迹谷底】捕捉到)"
+     ]
+    },
+    {
+     "raceId": 437,
+     "name": "月鸟",
+     "min": 22,
+     "max": 26,
+     "common": 0,
+     "rate": 5,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era sceneres/rarepetpanel/moonbird.swf (2012-06-21): 挑战奇迹谷底的小小鸟系列亚比就有机会遇见我",
+      "aola.100bt.com/fenbu/4719.html (2012-04-21)",
+      "arrow mantenxiagu1_rp437; later ScarePetLocationsMap (312,404)"
+     ]
+    }
+   ]
+  },
+  "mantenxiagu2": {
+   "pets": [
+    {
+     "raceId": 422,
+     "name": "小小鸟",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "PetDictionaryData 获得方式/scene field: 可在奇迹谷底或在回忆之林捕捉获得"
+     ]
+    },
+    {
+     "raceId": 423,
+     "name": "带刀小鸟",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "PetDictionaryData 获得方式/scene field: 由小小鸟进化得来或在回忆之林捕捉获得 (scene mantenxiagu2)"
+     ]
+    }
+   ]
+  },
+  "starsea1": {
+   "pets": [
+    {
+     "raceId": 540,
+     "name": "绵绵鱼",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era pet/petdictionary CollectionPanelPart2 tips (Jan 2013 亚比图鉴, 风暴星系 page): 绵绵鱼 星云海洋-章鱼海湾",
+      "PetDictionaryData 获得方式/scene field: …或章鱼海湾捕捉获得",
+      "aola.100bt.com/fenbu/16720.html (2012-04-21)",
+      "later RareFishStrategy spawns 540/541 here"
+     ]
+    },
+    {
+     "raceId": 541,
+     "name": "星云鱼",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/16720.html (2012-04-21: 绵绵鱼跟星云鱼都可以在【章鱼海湾】捕捉)",
+      "PetDictionaryData 获得方式/scene field"
+     ]
+    },
+    {
+     "raceId": 537,
+     "name": "蓝小布",
+     "min": 22,
+     "max": 26,
+     "common": 0,
+     "rate": 5,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4842.html (2012-04-24: 在星云海洋的【章鱼海湾】与野生亚比战斗，就有机会遇见它)",
+      "arrow starsea1_rp537; later RareFishStrategy PET_ID 537, 14-18h"
+     ]
+    }
+   ],
+   "points": [
+    [
+     720,
+     190
+    ],
+    [
+     450,
+     430
+    ],
+    [
+     550,
+     300
+    ],
+    [
+     500,
+     230
+    ]
+   ],
+   "points_source": "later client ScarePetLocationsMap (the later WildPetLocationMap has no points for starsea1)"
+  },
+  "starsea2": {
+   "pets": [
+    {
+     "raceId": 552,
+     "name": "团团",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4794.html (2012-04-24: 团团、团团猫都可在星云海洋的【海洋密室】捕捉到)",
+      "PetDictionaryData 获得方式/scene field"
+     ]
+    },
+    {
+     "raceId": 553,
+     "name": "团团猫",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4794.html (2012-04-24)",
+      "PetDictionaryData 获得方式/scene field"
+     ]
+    }
+   ]
+  },
+  "starsea3": {
+   "pets": [
+    {
+     "raceId": 564,
+     "name": "笑脸球球",
+     "min": 18,
+     "max": 18,
+     "common": 1,
+     "rate": 0,
+     "levels": "guide (18)",
+     "source": [
+      "aola.100bt.com/fenbu/4797.html (2012-04-24: 笑脸球球（18级）…都可以在【星云宝地】找到)",
+      "PetDictionaryData 获得方式/scene field"
+     ]
+    },
+    {
+     "raceId": 565,
+     "name": "独角海狮",
+     "min": 26,
+     "max": 26,
+     "common": 1,
+     "rate": 0,
+     "levels": "guide (26)",
+     "source": [
+      "aola.100bt.com/fenbu/4797.html (2012-04-24: 独角海狮（26级）)",
+      "PetDictionaryData 获得方式/scene field"
+     ]
+    },
+    {
+     "raceId": 567,
+     "name": "小雨滴",
+     "min": 10,
+     "max": 10,
+     "common": 0,
+     "rate": 5,
+     "levels": "scene code (10)",
+     "source": [
+      "scene starsea3 StarSea3: startFight(FIGHT_WITH_RARE__PET,{raceId:567,level:10}) after task 喜欢雨的亚比",
+      "aola.100bt.com/fenbu/4812.html (2012-04-24)",
+      "PetDictionaryData 获得方式/scene field"
+     ],
+     "note": "its scene's own appearance code is lost (later copy): a rare of the room instead"
+    }
+   ]
+  },
+  "diamondisland2": {
+   "pets": [
+    {
+     "raceId": 312,
+     "name": "冰糖",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era pet/petdictionary CollectionPanelPart2 tips (Jan 2013 亚比图鉴, 风暴星系 page): 冰糖 钻石岛-钻石大街",
+      "PetDictionaryData 获得方式/scene field",
+      "aola.100bt.com/fenbu/4635.html (2012-04-20: 在【钻石大街】可以捕捉它的第一、二形态)"
+     ]
+    },
+    {
+     "raceId": 313,
+     "name": "冰块",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/4635.html (2012-04-20)",
+      "PetDictionaryData 获得方式/scene field"
+     ]
+    },
+    {
+     "raceId": 337,
+     "name": "小磁狗",
+     "min": 22,
+     "max": 26,
+     "common": 0,
+     "rate": 5,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era sceneres/rarepetpanel/xcigou.swf (2012-07-19): 每天14点-18点，挑战钻石大街的冰糖系列亚比就有机会遇见我",
+      "aola.100bt.com/fenbu/4656.html (2012-04-20: 4回合就要跑)",
+      "arrow diamondisland2_rp337; later ScarePetLocationsMap (450,450)"
+     ]
+    }
+   ]
+  },
+  "youanmingzhou1": {
+   "pets": [
+    {
+     "raceId": 347,
+     "name": "紫怨",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era pet/petdictionary CollectionPanelPart2 tips (Jan 2013 亚比图鉴, 风暴星系 page): 紫怨 幽暗冥州-幽冥前殿",
+      "PetDictionaryData 获得方式/scene field: 在幽冥前殿捕捉获得",
+      "aola.100bt.com/fenbu/4659.html (2012-04-20: 可以捕捉它的第一形态)"
+     ]
+    }
+   ]
+  },
+  "fightspace1": {
+   "pets": [
+    {
+     "raceId": 515,
+     "name": "酱酱",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era pet/petdictionary CollectionPanelPart2 tips (Jan 2013 亚比图鉴, 风暴星系 page): 酱酱 斗魂空间-斗魂平原",
+      "PetDictionaryData 获得方式/scene field: 可在斗魂平原捕捉获得"
+     ]
+    }
+   ]
+  },
+  "fightspace2": {
+   "pets": [
+    {
+     "raceId": 515,
+     "name": "酱酱",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "aola.100bt.com/fenbu/16439.html (2012-04-21: 去到【环宇核心】以后就会看到酱酱和猪阿酱)"
+     ]
+    },
+    {
+     "raceId": 516,
+     "name": "猪阿酱",
+     "min": 38,
+     "max": 42,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED (line evolves at 40)",
+     "source": [
+      "aola.100bt.com/fenbu/16439.html (2012-04-21)",
+      "PetDictionaryData 获得方式/scene field: 可在环宇核心捕捉获得"
+     ]
+    }
+   ]
+  },
+  "waterhole": {
+   "pets": [
+    {
+     "raceId": 362,
+     "name": "小鱼儿",
+     "min": 10,
+     "max": 10,
+     "common": 0,
+     "rate": 0,
+     "levels": "scene code (10)",
+     "source": [
+      "scene waterhole LittleFish: startFight(FIGHT_WITH_RARE__PET,{raceId:362,level:10}), once a day (PetExtension2 54e_3/54e_4)",
+      "news.4399.com/aolaxing/wenda/201104-01-91675.html (2011-04-01: 每天晚上7点…水帘洞)",
+      "aola.100bt.com/fenbu/4680.html (2012-04-20)"
+     ],
+     "note": "no wild ones: the level of the scene's own fight (startPKWithRobot)"
+    }
+   ]
+  },
+  "emptyspace1": {
+   "pets": [
+    {
+     "raceId": 510,
+     "name": "原子",
+     "min": 20,
+     "max": 24,
+     "common": 0,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "scene emptyspace1 EmptySpace1: OPEN letters -> SundriesExtension 70_6 -> startPKWithRobot(510) (server 54_2 takes the level from this entry)",
+      "era sceneres/rarepetpanel/atmoy.swf (2012-08-23)",
+      "aola.100bt.com/fenbu/8509.html (2012-04-21: 点击地上的O、P、E、N)"
+     ],
+     "note": "no wild ones: the level of the scene's own fight (startPKWithRobot)"
+    }
+   ]
+  },
+  "fightspace3": {
+   "pets": [
+    {
+     "raceId": 507,
+     "name": "小星猴",
+     "min": 22,
+     "max": 26,
+     "common": 0,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era sceneres/rarepetpanel/xxinghou.swf (2012-07-19): 每天19点-20点，去斗魂空间的禁闭之门，找齐生肖文字，打破梅卡的封印",
+      "aola.100bt.com/fenbu/4758.html (2012-04-21)",
+      "the 2016 scene copy lacks the letters code"
+     ],
+     "note": "no wild ones: the level of the scene's own fight (startPKWithRobot)"
+    }
+   ]
+  },
+  "skycity4": {
+   "pets": [
+    {
+     "raceId": 1160,
+     "name": "圈圈鱼",
+     "min": 15,
+     "max": 19,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED (gen formula)",
+     "source": [
+      "PetDictionaryData 获得方式/scene field: 可在海底世界场景捕捉获得 (not 风暴星系; story room of 2012-08)"
+     ]
+    }
+   ]
+  }
+ }
+}

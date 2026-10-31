@@ -17,6 +17,7 @@ package mmo.control
    import mmo.play.scene.SceneManager;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
+   import mmo.revival.RTextEntry;
 
    /**
     * The revival's 工具箱 (not of 2013): add 晶币, 星币, 晶豆 and 亚比 experience
@@ -134,6 +135,7 @@ package mmo.control
          sceneIn.x = 118;
          sceneIn.y = 360;
          box.addChild(sceneIn);
+         RTextEntry.attach(sceneIn, "传送到哪里？（地图名或中文名）", teleport);
          box.addChild(place(RUI.button("传送", teleport, 70, 26, 0xFFC45A, 0xF07812, "toolboxGo"), 280, 358));
          var hint:TextField = RUI.text(11, 0x557799, false);
          hint.text = "地图名或中文名";

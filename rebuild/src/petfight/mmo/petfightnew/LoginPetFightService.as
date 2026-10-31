@@ -7,6 +7,9 @@ package mmo.petfightnew
    import mmo.framework.comm.PetClient2;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
+   import mmo.interfaces.team.ITeamService;
+   import mmo.framework.comm.SpacetimeTClient;
+   import mmo.framework.comm.SpacetimeClient;
    import mmo.interfaces.InitServiceEvent;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.pet.data.IPetDataService;
@@ -204,9 +207,12 @@ package mmo.petfightnew
          PetClient2.instance.fightInCopy(id);
       }
 
+      /** 时空隧道: a group of the floor's 亚比 (SpacetimeClient.startPK, 56_5; in a team the team tunnel's). */
       public function fightWithTowerPet(id:int):void
       {
-         RLog.stub("LoginPetFightService.fightWithTowerPet");
+         var team:ITeamService = ServiceContainer.getService(ITeamService) as ITeamService;
+         if (team != null && team.getMyTeam() != null) SpacetimeTClient.instence.startPK(id);
+         else SpacetimeClient.instence.startPK(id);
       }
 
       public function fightInTrainingTower(a:int, b:int = 1, c:Array = null):void

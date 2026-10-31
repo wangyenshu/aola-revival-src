@@ -18,7 +18,11 @@ needs. Both go to rebuild/gen/ (committed, so building needs no decompiler):
 
   tools/gen_npc_data.py --later <gen_tasks.py --work dir>/tasknpc/scripts --game game \\
       --overlay rebuild/static/www.9aola.com/config.xml%3F201301241 \\
-      --talks rebuild/gen/tasknpc/mmo/tasknpc/TaskTalkData.as --out rebuild/gen/tasknpc
+      --talks rebuild/gen/tasknpc/mmo/tasknpc/TaskTalkData.as --out rebuild/gen/tasknpc \\
+      --extra tools/data/scene-npcs-2012.json
+
+--extra adds task NPCs the later table no longer places (the 幻龙星系 quests' NPCs whose
+start talks name a room: 飞灵 776 in 魔法羽林 …), at RECONSTRUCTED spots (see its _doc).
 """
 from __future__ import annotations
 
@@ -79,6 +83,7 @@ def main(argv=None) -> None:
     ap.add_argument("--overlay", required=True, help="the config.xml overlay (rebuild/static)")
     ap.add_argument("--talks", help="TaskTalkData.as of tools/gen_tasks.py: <npc>_<step>_<scene> conversations")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--extra", help="tools/data/scene-npcs-2012.json: task NPCs placed by hand")
     a = ap.parse_args(argv)
     talks_in = set()
     if a.talks:
@@ -108,6 +113,12 @@ def main(argv=None) -> None:
                      if d.get("npcId") not in era and d.get("npcId") in art and (d.get("npcId"), sc) in talks_in]
         if keep:
             scenes[sc] = keep
+    if a.extra:
+        for sc, lst in json.load(open(a.extra, encoding="utf-8"))["scenes"].items():
+            have = {d.get("npcId") for d in scenes.get(sc, [])}
+            for npc, view, x, y in lst:
+                if npc not in have and npc in art:
+                    scenes.setdefault(sc, []).append({"npcId": npc, "viewId": view, "x": x, "y": y, "type": 2})
     pkg = os.path.join(a.out, "mmo", "tasknpc")
     os.makedirs(pkg, exist_ok=True)
     rows = ",\n".join(

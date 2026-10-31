@@ -287,6 +287,44 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/summerhotspring.swf)" \
   --note "LATER scene/summerhotspring: its code cut down for the 2013 interfaces (aola-revival), on its own art" \
   --out "$W/scene/summerhotspring.swf%3F130124"
 
+# The eggs being hatched (pet/peteggservice, lost): panels read them through it.
+build peteggservice mmo/pet/peteggservice/DocPetEggService.as peteggservice.swf "pet/peteggservice.swf%3F1210"
+
+# 时空隧道 (spacetime/spacetimeservice, lost): the later service's code on the 2013 interfaces.
+build spacetime mmo/spacetime/DocClass.as spacetime.swf "spacetime/spacetimeservice.swf%3F121213"
+
+# 财富小管家 (fortunemanager/fortunemanager, lost): the 晶币 bank of 奥拉广场, rebuilt.
+build fortunemanager mmo/fortunemanager/DocFortuneManager.as fortunemanager.swf "fortunemanager/fortunemanager.swf%3F130117"
+
+# The scene arrows (baseservice/scenearrow, lost): the stand-in with the later
+# interface's removeArrowsByGroup, which 星光游乐场's game buttons call first.
+build scenearrow mmo/scenearrow/DocSceneArrow.as scenearrow.swf "baseservice/scenearrow.swf%3F130124"
+
+# Later copies of mini games that call SocketClient.startGame, which the 2013
+# library lacks (the call threw and no board was drawn): the call renamed to
+# hasEventListener, harmless (tools/abc_rename.py). Only games without a
+# startGame of their own; 星光游乐场's 亚比连连看, 鲁比跳跳 and 黄金矿工 among them.
+mkdir -p "$W/game"
+for g in carsurf flycat flygame flystone gamellk goldpitman lubigame makecake matchthree mycat penguin recyclegame shootgame slamdunk; do
+  f="$(art game/$g.swf)"
+  python3 "$TOOLS/abc_rename.py" --rename startGame=hasEventListener \
+    --note "LATER game/$g: SocketClient.startGame (later only) renamed hasEventListener (aola-revival, tools/abc_rename.py)" \
+    "$f" "$W/game/$(basename "$f")"
+done
+
+# The 家园's 亚比批量孵化器 (era pet/pethatchegg): its decompiled code with the
+# eggs' names under them and their pictures while they hatch, on its own art.
+build pethatchegg mmo/pet/pethatchegg/PetHatchEgg.as pethatchegg-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art pet/pethatchegg.swf)" --code "$OUT/pethatchegg-code.swf" --drop-art-abc \
+  --note "ERA pet/pethatchegg: its decompiled code with the eggs' names and pictures (aola-revival), on its own art" \
+  --out "$W/pet/pethatchegg.swf%3F1210"
+
+# The small pictures (_S) the peticon files of the 亚比 one could not get in
+# 2012 and 2013 lack (missing or an empty sprite): each file's own large picture,
+# scaled; the missing classes from a compiled template (tools/peticon_fill.py).
+build peticonfill mmo/pet/peticon777777_S.as peticonfill-template.swf ""
+python3 "$TOOLS/peticon_fill.py" --game "$GAME" --template "$OUT/peticonfill-template.swf" --out "$W"
+
 # 奇草树林 (云端王国's first room): the later scene's code on the 2013
 # interfaces and that copy's art, with the room's map button back (it opens
 # the era 云端王国 map, scene/cloudstarmap).

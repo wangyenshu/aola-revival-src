@@ -170,7 +170,9 @@ storage, the 百田大剧场 (the 奥拉星 films that survive), the start scree
 without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星币,
 晶豆, experience, any 亚比 by number, 蓝宝石; not of 2013), the 收费 goods
 bought with 星币, the 亚比孵化器, 更换技能 in the 背包, the 生态园 games
-(动物保卫战, 动物捕捉, 海底保卫战; later copies of the games), the 动物园
+(动物保卫战, 天空保卫战, 海底保卫战, 动物捕捉; later copies of the games), 星光游乐场's
+games and its 欢乐弹珠机, the 财富小管家 of 奥拉广场, 时空隧道's floors, the bosses'
+films in battle, the 动物园
 (rebuilt on the later zoo's art: animals that grow, feed, 收获 and 变异 into
 亚比), the 家园's 经验分配器 and 我的荣誉, the 守护者 bosses of the areas
 (their own pictures that wake up, their talks, their 亚比蛋), 欢乐岛's hot
@@ -181,7 +183,7 @@ November 2012 map lists for each place, battles, and the mini games (their
 entrance panels, the games' own SWFs, 晶币 for the score). The 工具箱 also
 travels to any scene by name and exports and imports the browser's saves, and
 the bar's 物品 shows everything collected. Known gaps: the HELLO's panel, the
-2012 四大副本, 时空隧道's floors, friends, daily tasks and most activities
+2012 四大副本, friends, daily tasks and most activities
 are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every
 missing system, what survives of it, the server commands it needs, and the
 milestone order.

@@ -16,9 +16,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import json
 import os
 import sys
+import time
+import urllib.error
 import urllib.request
 
 WWW = "www.9aola.com"
@@ -59,9 +62,18 @@ def main(argv=None) -> None:
         if p not in head:
             print(f"  {p}: not on the live CDN", file=sys.stderr)
             continue
-        req = urllib.request.Request(a.cdn + p, headers=UA)
-        with urllib.request.urlopen(req, timeout=60) as r:
-            data = r.read()
+        data = None
+        for attempt in range(4):
+            try:
+                req = urllib.request.Request(a.cdn + p, headers=UA)
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    data = r.read()
+                break
+            except (urllib.error.URLError, http.client.HTTPException, OSError) as e:
+                # The CDN's front sometimes answers 503 or cuts a transfer short for a moment.
+                if (isinstance(e, urllib.error.HTTPError) and e.code not in (502, 503, 504)) or attempt == 3:
+                    raise
+                time.sleep(3 * (attempt + 1))
         if len(data) != head[p]["size"]:
             print(f"  {p}: size {len(data)} is not the inventory's {head[p]['size']}; replaced since", file=sys.stderr)
         dest = os.path.join(a.game, *rel.split("/"))

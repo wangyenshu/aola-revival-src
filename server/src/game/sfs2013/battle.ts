@@ -179,6 +179,8 @@ export interface Battle {
   over: boolean;
   /** Run once when the player wins (an NPC challenge's prize); its messages go out with the win. */
   onWin?: (o: PetOwner) => Msg[];
+  /** Run once when the player loses or runs away (时空隧道: out of the tunnel); its messages go out first. */
+  onLose?: (o: PetOwner) => Msg[];
   /**
    * The number the client asked to fight (a task 亚比's variant * 10000 + species): the
    * end of the battle reports it as raceId, which the quest scripts compare with the
@@ -757,7 +759,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ pms: (await deps.wild())[room] ?? [] });
   });
 
-  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"], asked?: number) => {
+  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"], asked?: number, onLose?: Battle["onLose"]) => {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     for (const p of o.pets ?? []) normalisePet(p, t);
@@ -779,6 +781,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const canCatch = catchable && Number.isFinite(Number(speciesOf(t, race)!.c[0]));
     const b = engine.start(nextBattle++, ctx.player.room?.name ?? "", o, active, wildPet, canCatch);
     b.onWin = onWin;
+    b.onLose = onLose;
     b.asked = asked;
     battles.set(o.id, b);
     engine.bag = o.pets;
@@ -786,7 +789,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
     send(ctx, [
       // chp (not in the 2013 reply): the HP fraction from which balls work, for the 捕捉难度 hint.
       ["2303", { esc: true, sw: true, ch: canCatch, cd: catchStars(speciesOf(t, race)!.c[0]), chp: catchHpLimit(t, race), pmmList: engine.views(b) }],
-      ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room }],
+      // boss: the opponent's id as the fight was asked for (variant * 10000 + species for the
+      // bosses), by which the battle screen finds the boss's films (bossfightmovie/boss<id>).
+      ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race }],
     ]);
   };
 
@@ -853,6 +858,117 @@ export function installBattles(world: World, deps: BattleDeps): void {
       return [["onAmountUpdated", { amount: "2_343_0_1" }]];
     });
   });
+
+  // 时空隧道 (spacetime/spacetimeservice, the later service on the 2013 interfaces; TowerExtension,
+  // the 2013 SpacetimeClient; the team tunnel's TeamTowerExtension "_t" commands get the same answers):
+  //   56_1 getUserFloorInfo {}   -> {mf, cf, mtf, ctf}          floors reached, floor now (alone, in a team)
+  //   56_2 goToFloor {fl}         -> {ca, en: [{raceId: "id"}], cf} a floor already reached
+  //   56_6 continueFloor {}       -> the same, the floor now
+  //   56_3 nextFloor {}           -> {result (1, -2 the last floor), ca, en, cf}  through the opened door
+  //   56_5 startPK {enId}         -> {enId}, then the battle with that group of the floor
+  //   56_7 (after a win)          -> {bonus: [{id: -1, type: 100 (晶币), num}]}, shown when the battle ends
+  //   56_10 (after a loss)        -> {}: out of the tunnel (the service goes back to the room before)
+  //   56_11 checkCanGetCase {}    -> {res}; 56_4 openCase {} -> {res, bonus}: the BOSS厅's chest
+  // ca: the floor is a BOSS厅 (every tenth). The 2013 server's floors are lost: RECONSTRUCTED as up to
+  // four single 亚比 a floor from those the tunnel's pictures show (spacetime/spacetimepet<n>), at
+  // level 5 + 2 * floor (at most 100), one stronger 亚比 in a BOSS厅; TOWER_FLOORS floors.
+  const TOWER_FLOORS = 100;
+  type TowerRec = { mf: number; cf: number; en: string[]; alive: boolean[]; chest: boolean };
+  const towerOf = (o: PetOwner): TowerRec => (((o as { tower?: TowerRec }).tower ??= { mf: 1, cf: 1, en: [], alive: [], chest: false }));
+  const TOWER_POOL = [
+    2, 3, 5, 6, 8, 9, 102, 105, 108, 201, 203, 204, 207, 208, 301, 302, 303, 304, 305, 408, 503, 504, 509, 601, 608, 701, 704,
+    11, 12, 14, 15, 16, 17, 18, 111, 114, 218, 219, 317, 411, 414, 418, 512, 514, 516, 612, 615, 618, 619, 710, 711, 715,
+    20, 21, 23, 24, 27, 29, 123, 126, 129, 220, 221, 222, 223, 224, 225, 227, 322, 325, 328, 329, 424, 427, 522, 526, 620, 621, 622,
+    30, 31, 32, 33, 35, 36, 39, 132, 135, 138, 230, 232, 233, 238, 339, 430, 433, 436, 439, 533, 633, 639,
+    41, 42, 44, 45, 47, 48, 141, 144, 147, 240, 241, 242, 243, 249, 340, 343, 346, 349, 442, 445, 542, 545, 548, 641, 643, 644,
+    51, 54, 57, 59, 150, 153, 155, 156, 158, 159, 255, 258, 355, 358, 457, 551, 554, 557, 650, 653, 654, 655, 656,
+    60, 62, 63, 66, 67, 68, 69, 162, 165, 168, 261, 265, 266, 267, 268, 364, 366, 367, 368, 460, 463, 469, 566, 569, 662, 665,
+    71, 72, 75, 78, 171, 174, 177, 271, 278, 370, 371, 372, 373, 374, 375, 472, 475, 571, 574, 577, 672, 673, 678,
+    81, 84, 87, 180, 183, 185, 189, 284, 287, 382, 383, 484, 487, 580, 583, 682,
+    90, 93, 96, 99, 192, 195, 198, 293, 296, 299, 393, 394, 397, 398, 493, 499, 598, 697, 699,
+  ];
+  const isBossFloor = (f: number) => f % 10 === 0;
+  const towerLevel = (f: number) => Math.min(100, 5 + 2 * f + (isBossFloor(f) ? 5 : 0));
+  const towerFloor = async (o: PetOwner, f: number) => {
+    const t = await deps.tables();
+    const pool = TOWER_POOL.filter((r) => speciesOf(t, r));
+    const rng = deps.rng ?? Math.random;
+    const n = isBossFloor(f) ? 1 : 2 + Math.floor(rng() * 3);
+    const rec = towerOf(o);
+    rec.cf = f;
+    rec.mf = Math.max(rec.mf, f);
+    rec.en = Array.from({ length: n }, () => String(pool[Math.floor(rng() * pool.length)]));
+    rec.alive = rec.en.map(() => true);
+    rec.chest = false;
+  };
+  const floorReply = (rec: TowerRec) => ({ ca: isBossFloor(rec.cf), en: rec.en.map((r, i) => ({ raceId: rec.alive[i] ? r : "-1" })), cf: rec.cf });
+  for (const [ext, sfx] of [["TowerExtension", ""], ["TeamTowerExtension", "_t"]] as const) {
+    world.xt(`${ext}.56_1${sfx}`, async (ctx) => {
+      const rec = towerOf(await deps.load(ctx));
+      ctx.reply({ mf: rec.mf, cf: rec.cf, mtf: rec.mf, ctf: rec.cf }, `56_1${sfx}`);
+    });
+    world.xt(`${ext}.56_2${sfx}`, async (ctx) => {
+      const o = await deps.load(ctx);
+      const rec = towerOf(o);
+      const fl = Math.max(1, Math.min(rec.mf, Number(ctx.params.fl ?? ctx.params.floor ?? rec.cf) | 0 || rec.cf));
+      await towerFloor(o, fl);
+      await deps.save(o);
+      ctx.reply(floorReply(rec), `56_2${sfx}`);
+    });
+    world.xt(`${ext}.56_6${sfx}`, async (ctx) => {
+      const o = await deps.load(ctx);
+      const rec = towerOf(o);
+      if (!rec.en.length || !rec.alive.some(Boolean)) await towerFloor(o, rec.cf);
+      await deps.save(o);
+      ctx.reply(floorReply(rec), `56_6${sfx}`);
+    });
+    world.xt(`${ext}.56_3${sfx}`, async (ctx) => {
+      const o = await deps.load(ctx);
+      const rec = towerOf(o);
+      if (rec.alive.some(Boolean)) return ctx.reply({ result: 0 }, `56_3${sfx}`);
+      if (rec.cf >= TOWER_FLOORS) return ctx.reply({ result: -2 }, `56_3${sfx}`);
+      await towerFloor(o, rec.cf + 1);
+      await deps.save(o);
+      ctx.reply({ result: 1, ...floorReply(rec) }, `56_3${sfx}`);
+    });
+    world.xt(`${ext}.56_5${sfx}`, async (ctx) => {
+      const o = await deps.load(ctx);
+      const rec = towerOf(o);
+      const i = Number(ctx.params.enId) | 0;
+      const race = Number(rec.en[i]);
+      if (!race || !rec.alive[i]) return ctx.reply({ enId: -1 }, `56_5${sfx}`);
+      ctx.reply({ enId: i }, `56_5${sfx}`);
+      const f = rec.cf;
+      await begin(ctx, race, towerLevel(f), false, (owner) => {
+        const r = towerOf(owner);
+        r.alive[i] = false;
+        const coins = 10 + 2 * f;
+        (owner as { score?: number }).score = ((owner as { score?: number }).score ?? 0) + coins;
+        return [
+          [`56_7${sfx}`, { bonus: [{ id: -1, type: 100, num: coins }] }],
+          ["onScoreUpdated", { score: (owner as { score?: number }).score }],
+        ];
+      }, undefined, () => [[`56_10${sfx}`, {}]]);
+    });
+    world.xt(`${ext}.56_10${sfx}`, async (ctx) => ctx.reply({}, `56_10${sfx}`));
+    world.xt(`${ext}.56_11${sfx}`, async (ctx) => {
+      const rec = towerOf(await deps.load(ctx));
+      ctx.reply({ res: isBossFloor(rec.cf) && !rec.alive.some(Boolean) && !rec.chest ? 1 : 0 }, `56_11${sfx}`);
+    });
+    world.xt(`${ext}.56_4${sfx}`, async (ctx) => {
+      const o = await deps.load(ctx);
+      const rec = towerOf(o);
+      if (!isBossFloor(rec.cf) || rec.alive.some(Boolean) || rec.chest) return ctx.reply({ res: 0, bonus: [] }, `56_4${sfx}`);
+      rec.chest = true;
+      const items = ((o as { items?: Record<string, Record<string, number>> }).items ??= {});
+      const bag = (items["2"] ??= {});
+      const id = rec.cf >= 50 ? 61 : 60; // 高级 / 中级体力糖
+      bag[String(id)] = (bag[String(id)] ?? 0) + 2;
+      await deps.save(o);
+      ctx.reply({ amount: `2_${id}_0_2` }, "onAmountUpdated");
+      ctx.reply({ res: 1, bonus: [{ type: 2, id, num: 2 }] }, `56_4${sfx}`);
+    });
+  }
 
   // fightWithBoss {raceId, index}: a 守护者 (dailyactivity/dailyactivityservice, rebuilt): one of the
   // forms of BossTimeHelper.bossTimeConfig, numbered variant * 10000 + species, at its level there;
@@ -937,6 +1053,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
         return out;
       }
       b.over = true;
+      if (b.onLose) out.push(...b.onLose(o));
       out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
@@ -999,6 +1116,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
   turn("1404", (ctx, b, _e, o) => {
     b.over = true;
     battles.delete(o.id);
+    if (b.onLose) for (const [c, body] of b.onLose(o)) ctx.reply(body, c);
     ctx.reply({ reqSId: 0, isEscape: true, raceId: b.asked ?? b.wild.pet.race, desc: "成功逃跑了！" }, "2414");
     return "end";
   });

@@ -23,6 +23,12 @@ quests that can be played:
     tools/story_files.py);
   * its pre-tasks are such tasks too, or the newbie quest.
 
+The 幻龙星系 quests (云端王国, 大地迷城, 海洋幻境, 白夜山, new from August 2012 to
+January 2013) have their steps and panels in the later taskdefines but no
+starters, and their rows of the later scene table are commented out: those
+rows are read anyway (UNCOMMENT) and their starters come from
+tools/data/task-starters-2012.json (RECONSTRUCTED; see its _doc).
+
 Outputs (generated; commit them):
 
   rebuild/gen/taskdata/mmo/taskdefines/TaskData.as   defines, starters,
@@ -48,6 +54,11 @@ import xml.etree.ElementTree as ET
 
 WWW = "www.9aola.com"
 NEWBIE = {135, 140, 150}
+# Rooms whose rows the later tconfig keeps commented out (<!--s nm="cloudstar2">…</s-->, a block of
+# rooms at a time): the
+# 幻龙星系 of the January 2013 map.
+UNCOMMENT = re.compile(r'<!--(s\s+nm="(?:cloudstar|mysticearth|mysticocean|whitenight)\d+".*?</s)-->', re.S)
+STARTERS_2012 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "task-starters-2012.json")
 # Tasks 2298 and 2314 (run by the later NewBaseTaskInitialler) name their
 # talks through their config's TASK_NPC_PANEL_DATA: this._nodeKey[2298].
 NODE_TALK = re.compile(r'(?:this\.)?(npcTaskTalkConfig|npcStarterTalkConfig)\[this\._nodeKey\[("?\w+"?)\]\]\s*=\s*(<(?:config|dialog)\b.*?</(?:config|dialog)>);', re.S)
@@ -123,7 +134,10 @@ def load_tables(ffdec: str, game: str, config: str, work: str) -> dict:
         for n in ns:
             if "tconfig" in n:
                 tbin = os.path.join(d, n)
-    tconfig = ET.fromstring(open(tbin, encoding="utf-8").read())
+    tconfig = ET.fromstring(UNCOMMENT.sub(r"<\1>", open(tbin, encoding="utf-8").read()))
+    if os.path.isfile(STARTERS_2012):
+        for k, st in json.load(open(STARTERS_2012, encoding="utf-8"))["starters"].items():
+            starters.setdefault(int(k), {f: st[f] for f in ("type", "ext", "pre", "online", "name", "line", "area")})
     te = []
     for s in tconfig.iter("s"):
         for e in s.iter("te"):

@@ -532,6 +532,45 @@
 "rate": 5
 }
 ],
+"diamondisland2": [
+{
+"raceId": 312,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 313,
+"min": 24,
+"max": 28,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 337,
+"min": 22,
+"max": 26,
+"common": 0,
+"rate": 5
+}
+],
+"diamondisland4": [
+{
+"raceId": 313,
+"min": 18,
+"max": 22,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 314,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
 "ecologicalpark": [
 {
 "raceId": 1205,
@@ -547,6 +586,15 @@
 "min": 4,
 "max": 7,
 "common": 1,
+"rate": 0
+}
+],
+"emptyspace1": [
+{
+"raceId": 510,
+"min": 20,
+"max": 24,
+"common": 0,
 "rate": 0
 }
 ],
@@ -644,6 +692,86 @@
 "max": 38,
 "common": 1,
 "rate": 0
+}
+],
+"fightspace1": [
+{
+"raceId": 515,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
+"fightspace2": [
+{
+"raceId": 515,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 516,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+}
+],
+"fightspace3": [
+{
+"raceId": 507,
+"min": 22,
+"max": 26,
+"common": 0,
+"rate": 0
+}
+],
+"giantcordillera1": [
+{
+"raceId": 392,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 371,
+"min": 20,
+"max": 20,
+"common": 0,
+"rate": 5
+}
+],
+"giantcordillera5": [
+{
+"raceId": 392,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 393,
+"min": 24,
+"max": 28,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 394,
+"min": 38,
+"max": 42,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 379,
+"min": 22,
+"max": 26,
+"common": 0,
+"rate": 5
 }
 ],
 "gymnasium": [
@@ -1054,6 +1182,45 @@
 "raceId": 697,
 "min": 36,
 "max": 40,
+"common": 1,
+"rate": 0
+}
+],
+"mantenxiagu1": [
+{
+"raceId": 422,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 423,
+"min": 24,
+"max": 28,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 437,
+"min": 22,
+"max": 26,
+"common": 0,
+"rate": 5
+}
+],
+"mantenxiagu2": [
+{
+"raceId": 422,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 423,
+"min": 24,
+"max": 28,
 "common": 1,
 "rate": 0
 }
@@ -1538,6 +1705,77 @@
 "rate": 0
 }
 ],
+"skycity4": [
+{
+"raceId": 1160,
+"min": 15,
+"max": 19,
+"common": 1,
+"rate": 0
+}
+],
+"starsea1": [
+{
+"raceId": 540,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 541,
+"min": 24,
+"max": 28,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 537,
+"min": 22,
+"max": 26,
+"common": 0,
+"rate": 5
+}
+],
+"starsea2": [
+{
+"raceId": 552,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 553,
+"min": 24,
+"max": 28,
+"common": 1,
+"rate": 0
+}
+],
+"starsea3": [
+{
+"raceId": 564,
+"min": 18,
+"max": 18,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 565,
+"min": 26,
+"max": 26,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 567,
+"min": 10,
+"max": 10,
+"common": 0,
+"rate": 5
+}
+],
 "suolide1": [
 {
 "raceId": 19,
@@ -1665,6 +1903,15 @@
 "min": 18,
 "max": 22,
 "common": 1,
+"rate": 0
+}
+],
+"waterhole": [
+{
+"raceId": 362,
+"min": 10,
+"max": 10,
+"common": 0,
 "rate": 0
 }
 ],
@@ -1973,6 +2220,22 @@
 "raceId": 169,
 "min": 1,
 "max": 4,
+"common": 1,
+"rate": 0
+}
+],
+"youanmingzhou1": [
+{
+"raceId": 347,
+"min": 16,
+"max": 20,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 348,
+"min": 18,
+"max": 22,
 "common": 1,
 "rate": 0
 }

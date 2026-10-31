@@ -133,3 +133,24 @@ test("the 动物园 grows the animals put in it, feeds them, and 收获 gives th
   assert.deepEqual([info.lv, info.exp, info.n], [zooLevel(8).lv, 8, 0]);
   roll = 0;
 });
+
+test("物品 lists every egg (getEggs 1=1) and the 孵化器's replies name the hatching kind", async () => {
+  const owner: EggOwner = { items: { "5": { "88": 2, "13": 1 } } };
+  const call = harness(owner, (w) => installEggs(w, { me: async () => owner, save: async () => {}, now: () => 0, hatchPet: async () => 1 }));
+  const all = (await call("PetEggExtension.1=1"))[0];
+  assert.equal(all[0], "1=1");
+  assert.deepEqual(all[1].es.map((e: { ri: number }) => e.ri).sort(), [13, 88, 88]);
+  assert.equal((await call("PetEggExtension.1-2", { st: 2 }))[0][1].os, 2);
+});
+
+test("the 保卫战's 地狱模式 pays for the waves passed, and the games' own 道具 are listed", async () => {
+  const owner: ZooOwner = { score: 0, items: { "2": { "450": 3, "30": 9 } } };
+  const call = harness(owner, (w) => installZoo(w, { me: async () => owner, save: async () => {}, random: () => 0.1 }));
+  const data = (await call("ZooExtension.97_203", { place: 2 }))[0][1];
+  assert.deepEqual(data.items, [{ itemId: 450, num: 3 }]);
+  await call("ZooExtension.97_205", { place: 2 });
+  for (let i = 0; i < 4; i++) await call("ZooExtension.97_206");
+  const end = (await call("ZooExtension.97_207")).at(-1)![1];
+  assert.equal(end.scoreAdded, 40);
+  assert.equal(owner.score, 40);
+});

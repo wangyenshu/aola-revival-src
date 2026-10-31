@@ -147,7 +147,11 @@ package mmo.taskextmanager
                var C:Class = getDefinitionByName(x.cls) as Class;
                var svc:ITaskExtService = new C() as ITaskExtService;
                running[x.file].svc = svc;
-               svc.init();
+               // Its listeners for the scene's start hear it now (SceneManager.catchSceneInited).
+               var sm:SceneManager = SceneManager.getInstance();
+               sm.catchSceneInited();
+               try { svc.init(); }
+               finally { sm.releaseSceneInited(); }
                RLog.log("taskext: " + x.cls + " running");
             }
             catch (err:Error)

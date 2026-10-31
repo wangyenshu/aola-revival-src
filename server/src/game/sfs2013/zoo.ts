@@ -9,6 +9,7 @@
 //   97_204 EnterTDGameOneStep {zoneNum, step, place} -> {res}
 //   97_201 PassOneStep {isWin, zoneNum, step, place} -> {res, moneyState, prize: "", score}
 //   97_202 UseTDGameItem {itemId, place}         -> {res, itemId}, the item (type 2) goes through onAmountUpdated
+//   97_205 / 97_206 / 97_207 the 地狱模式: entered {place}, a wave passed, lost -> {scoreAdded, state}
 //   97_104 getGameItemGame {}                    -> {items: [{itemId, num}]}   捕捉 things, items 424–431
 //   97_100 enterGame / 97_101 leaveGame          -> {res: 1}
 //   97_102 useGameItem {itemId}                  -> {res, itemId}
@@ -48,6 +49,11 @@ import type { World, XtContext } from "./server.ts";
 export const ZOO_EXT = "ZooExtension";
 /** 晶币 for a won stage of a 保卫战 (RECONSTRUCTED). */
 export const TD_WIN_SCORE = 100;
+/** The 保卫战 games' own 道具 (items 431–453: the 动物保卫战's 431–434, 444, 445, the 天空保卫战's 450–453). */
+export const TD_ITEMS = [431, 469];
+/** 地狱模式: 晶币 a wave passed and at most a game (RECONSTRUCTED). */
+export const TD_ENDLESS_WAVE = 10;
+export const TD_ENDLESS_MAX = 300;
 /** Catching odds in percent when the game leaves them to the server (RECONSTRUCTED). */
 export const CATCH_RATE = 40;
 /** 能源石 and 普通糖果 (items 424, 425; CatchAnimalClient keeps itemId - 424) one gets for a game when one has none (RECONSTRUCTED). */
@@ -189,7 +195,40 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
   world.xt(`${ZOO_EXT}.97_203`, async (ctx) => {
     const o = await deps.me(ctx);
     const p = place(ctx);
-    ctx.reply({ place: Number(p), gameInfo: (o.td?.[p] ?? []).join(";"), items: [] }, "97_203");
+    // The games' own 道具 the player has (天空保卫战 reads them here: 450–453; the
+    // 动物保卫战 asks the item service), as {itemId, num}.
+    const mine = items(o);
+    const tools = Object.entries(mine)
+      .filter(([id, n]) => Number(id) >= TD_ITEMS[0] && Number(id) <= TD_ITEMS[1] && Number(n) > 0)
+      .map(([id, n]) => ({ itemId: Number(id), num: Number(n) }));
+    ctx.reply({ place: Number(p), gameInfo: (o.td?.[p] ?? []).join(";"), items: tools }, "97_203");
+  });
+
+  // 地狱模式 (the endless game of the three 保卫战): entered (97_205 {place}), a wave
+  // passed (97_206), lost at last (97_207 -> the stars it earned, GameResultWrapper's
+  // scoreAdded and state). RECONSTRUCTED: TD_ENDLESS_WAVE stars a wave, at most
+  // TD_ENDLESS_MAX a game.
+  const endless = new Map<string, number>();
+  const tdKey = (ctx: XtContext): string => String((ctx.player as { name?: string } | undefined)?.name ?? "");
+  world.xt(`${ZOO_EXT}.97_205`, async (ctx) => {
+    endless.set(tdKey(ctx), 0);
+    ctx.reply({ res: 1, place: Number(place(ctx)) }, "97_205");
+  });
+  world.xt(`${ZOO_EXT}.97_206`, async (ctx) => {
+    endless.set(tdKey(ctx), (endless.get(tdKey(ctx)) ?? 0) + 1);
+    ctx.reply({ res: 1, step: endless.get(tdKey(ctx)) }, "97_206");
+  });
+  world.xt(`${ZOO_EXT}.97_207`, async (ctx) => {
+    const o = await deps.me(ctx);
+    const waves = endless.get(tdKey(ctx)) ?? 0;
+    endless.delete(tdKey(ctx));
+    const add = Math.min(TD_ENDLESS_MAX, waves * TD_ENDLESS_WAVE);
+    if (add > 0) {
+      o.score = (o.score ?? 0) + add;
+      await deps.save(o);
+      ctx.reply({ score: o.score }, "onScoreUpdated");
+    }
+    ctx.reply({ res: 1, state: 1, scoreAdded: add, score: o.score ?? 0, step: waves }, "97_207");
   });
 
   world.xt(`${ZOO_EXT}.97_200`, async (ctx) => ctx.reply({ res: 1, place: Number(place(ctx)) }, "97_200"));

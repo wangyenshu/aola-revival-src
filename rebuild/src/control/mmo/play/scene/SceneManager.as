@@ -195,9 +195,10 @@ package mmo.play.scene
          loadScene(sceneName, String(locationKey));
       }
 
+      /** A temporary room (时空隧道's floors): an FB room named `name` (FBSceneInfo.fbName), as the later engine. */
       public function loadTempScene(sceneName:String, name:String, desc:String = "", b:String = "", locationKey:* = "default", face:String = "ld", ext:* = null):void
       {
-         loadScene(sceneName, String(locationKey));
+         loadFB(sceneName, name, desc, b, locationKey, face, ext);
       }
 
       public function getLastRoomName():String
@@ -254,7 +255,7 @@ package mmo.play.scene
       {
          if (busy) return;
          if (STAND_INS[sceneName] != null) sceneName = STAND_INS[sceneName];
-         if (sceneName == BattleZoneHub.SCENE)
+         if (sceneName == BattleZoneHub.SCENE || sceneName == "spacetimechallenge8") // (the later 时空隧道 scene's way out names a later room)
          {
             // The lost 战斗星域 hub: its rooms to choose from instead.
             BattleZoneHub.show();
@@ -453,6 +454,42 @@ package mmo.play.scene
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.SCENE_INITED, {sceneName: info.sceneName}));
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.SCENE_OPENED, {sceneName: info.sceneName}));
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.TASK_SCENE_INITED, {sceneName: info.sceneName}));
+      }
+
+      /** Listeners added for the scene's start while catching (catchSceneInited). */
+      private var caught:Array;
+
+      /**
+       * REVIVAL: a task script (TaskExtManager) starts once the scene is shown,
+       * after SCENE_INITED, yet many scripts (海枯之星, 六芒前殿 …) listen for
+       * SCENE_INITED in their init() to put their NPCs into the scene; the
+       * later engine started them during the scene's build. While a script
+       * starts, the listeners it adds for SCENE_INITED, SCENE_OPENED and
+       * TASK_SCENE_INITED are noted; releaseSceneInited calls just those, as if
+       * the scene had begun after them (no other listener hears it again).
+       */
+      public function catchSceneInited():void
+      {
+         caught = [];
+      }
+
+      public function releaseSceneInited():void
+      {
+         var list:Array = caught;
+         caught = null;
+         if (list == null || list.length == 0 || loadedSceneInfo == null || busy) return;
+         for each (var c:Array in list)
+         {
+            try { c[1](new SceneManagerEvent(c[0], {sceneName: loadedSceneInfo.sceneName})); }
+            catch (err:Error) { RLog.error("scene start for a late listener", err); }
+         }
+      }
+
+      override public function addEventListener(type:String, listener:Function, useCapture:Boolean = false, priority:int = 0, useWeakReference:Boolean = false):void
+      {
+         super.addEventListener(type, listener, useCapture, priority, useWeakReference);
+         if (caught != null && (type == SceneManagerEvent.SCENE_INITED || type == SceneManagerEvent.SCENE_OPENED || type == SceneManagerEvent.TASK_SCENE_INITED))
+            caught.push([type, listener]);
       }
 
       /** An error in one listener (a scene's or a module's) is logged, not passed up into the scene change. */

@@ -39,11 +39,13 @@ from __future__ import annotations
 import argparse
 import email.utils
 import hashlib
+import http.client
 import json
 import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -224,9 +226,18 @@ def main(argv=None) -> None:
         stem, ext = os.path.splitext(p)
         name = p + ("%3F1210" if ext == ".swf" else "")
         dest = os.path.join(a.game, WWW, *name.split("/"))
-        req = urllib.request.Request(CDN + p, headers=UA)
-        with urllib.request.urlopen(req, timeout=60) as r:
-            data = r.read()
+        data = None
+        for attempt in range(4):
+            try:
+                req = urllib.request.Request(CDN + p, headers=UA)
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    data = r.read()
+                break
+            except (urllib.error.URLError, http.client.HTTPException, OSError) as e:
+                # The CDN's front sometimes answers 503 or cuts a transfer short for a moment.
+                if (isinstance(e, urllib.error.HTTPError) and e.code not in (502, 503, 504)) or attempt == 3:
+                    raise
+                time.sleep(3 * (attempt + 1))
         if len(data) != head[p]["size"]:
             print(f"  {p}: size {len(data)} is not the inventory's {head[p]['size']}; the operator has replaced it since", file=sys.stderr)
         os.makedirs(os.path.dirname(dest), exist_ok=True)

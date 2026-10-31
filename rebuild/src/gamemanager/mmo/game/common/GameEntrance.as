@@ -1,6 +1,9 @@
 package mmo.game.common
 {
    import flash.display.MovieClip;
+   import mmo.revival.RLog;
+   import flash.utils.setTimeout;
+   import flash.utils.clearTimeout;
    import flash.display.SimpleButton;
    import flash.events.MouseEvent;
    import flash.system.ApplicationDomain;
@@ -37,16 +40,34 @@ package mmo.game.common
       {
          var res:String = GameMap.getGameEntranceRes(gameId);
          var cls:String = GameMap.getGameEntranceClass(gameId);
+         RLog.log("game entrance " + gameId + ": " + res + " " + cls);
          if (res == null || cls == null) return start();
          if (ApplicationDomain.currentDomain.hasDefinition(cls)) return show(cls);
          ProgressFullSprite.show();
+         // A panel file that never answers (seen with gameentrance15) must not keep
+         // the game from starting: after a while the game starts without it.
+         var done:Boolean = false;
+         var giveUp:uint = setTimeout(function():void
+         {
+            if (done) return;
+            done = true;
+            RLog.log("game entrance " + gameId + ": no panel, the game starts");
+            ProgressFullSprite.close();
+            start();
+         }, 8000);
          ResScheduler.getResource(res, function(r:*):void
          {
+            if (done) return;
+            done = true;
+            clearTimeout(giveUp);
             ProgressFullSprite.close();
             if (ApplicationDomain.currentDomain.hasDefinition(cls)) show(cls);
             else start();
          }, "", function(e:*):void
          {
+            if (done) return;
+            done = true;
+            clearTimeout(giveUp);
             ProgressFullSprite.close();
             start();
          });
@@ -54,6 +75,7 @@ package mmo.game.common
 
       private function start():void
       {
+         RLog.log("game entrance " + gameId + ": starting the game");
          gm.cancelGameKey();
          gm.loadGame(gameId, ext);
       }

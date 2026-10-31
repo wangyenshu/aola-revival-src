@@ -32,7 +32,14 @@ Written (百田's data, so into the rebuilt root and rebuild/gen, not git):
       --pmdata rebuilt/www.9aola.com/revival/pmdata.json --config mirror/www.9aola.com/config.xml%3F201301241 \\
       --locations livesrc/pet__wildpetservice/scripts/mmo/wildpet/WildPetLocationMap.as \\
       --backgrounds livesrc/pet__petfightnew/scripts/mmo/petfightnew/common/util/GetBackgroundUtil.as \\
-      --mirror mirror --gen rebuild/gen --json rebuilt/www.9aola.com/revival/wildpets.json
+      --mirror mirror --gen rebuild/gen --json rebuilt/www.9aola.com/revival/wildpets.json \\
+      --map tools/data/map-places-2012.json --extra tools/data/wildpets-extra.json
+
+  --config is the revival's config overlay (rebuild/static/www.9aola.com/config.xml%3F201301241),
+  which has the January 2013 rooms and the 2011-12 story rooms tools/story_files.py added.
+  --extra (tools/data/wildpets-extra.json) gives the 亚比 of rooms no surviving table covers
+  (风暴星系; researched, see its _doc): applied last, an entry replaces the generated one, a room
+  may bring its own walking points, and a room of scripted fights only is kept for their levels.
 """
 from __future__ import annotations
 
@@ -156,6 +163,7 @@ def main(argv=None) -> None:
     for a in ("dict", "pmdata", "config", "locations", "backgrounds", "mirror", "gen", "json"):
         ap.add_argument("--" + a, required=True)
     ap.add_argument("--map", help="the places of the November 2012 world map (tools/map_pets.py)")
+    ap.add_argument("--extra", help="tools/data/wildpets-extra.json: researched 亚比 of rooms the tables miss")
     a = ap.parse_args(argv)
     era_rooms = rooms(a.config)
     points = {k: v for k, v in locations(a.locations).items() if k in era_rooms}
@@ -188,9 +196,21 @@ def main(argv=None) -> None:
         added = from_map(json.load(open(a.map, encoding="utf-8")), wild, era_rooms, points, species, a.dict)
         print(f"November 2012 map: {added} 亚比 added to the scenes of their place")
 
+    keep: set[str] = set()
+    if a.extra:
+        extra = json.load(open(a.extra, encoding="utf-8"))["rooms"]
+        for room, d in extra.items():
+            for e in d.get("pets", []):
+                wild.setdefault(room, {})[str(e["raceId"])] = {k: int(e[k]) for k in ("raceId", "min", "max", "common", "rate")}
+            if d.get("points"):
+                points[room] = [(int(x), int(y)) for x, y in d["points"]]
+            keep.add(room)
+        print(f"extra: {sum(len(d.get('pets', [])) for d in extra.values())} 亚比 in {len(extra)} rooms")
+
     out = {s: sorted(v.values(), key=lambda x: (x["common"] == 0, x["raceId"])) for s, v in sorted(wild.items())}
-    # A scene of rares only would show nothing (the generator fills slots with common ones).
-    out = {s: v for s, v in out.items() if any(x["common"] for x in v)}
+    # A scene of rares only would show nothing (the generator fills slots with common ones);
+    # the extra table's are kept, for the levels of their scenes' own fights.
+    out = {s: v for s, v in out.items() if any(x["common"] for x in v) or s in keep}
     os.makedirs(os.path.dirname(a.json), exist_ok=True)
     json.dump(out, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
 

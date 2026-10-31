@@ -111,6 +111,10 @@ package mmo.petfightnew
       private var commandsOn:Boolean;
       private var forcedSwitch:Boolean;
       private var turn:int = 1;
+      /** The boss's films (BossFilmConfig) and those already played this fight. */
+      private var films:Array;
+      private var filmsPlayed:Object = {};
+      private var film:MovieClip;
       private var results:Array = [];
       private var caught:Object;
 
@@ -878,10 +882,15 @@ package mmo.petfightnew
          switch (c)
          {
             case 2401:
-               sound("x7011");
-               addLog("<font color='#FFE66A'>第1回合</font>");
-               setCommands(true);
-               later(0);
+               films = BossFilmConfig.get(int(p.boss));
+               var opening:String = filmOf(BossFilmConfig.OPENING) ? BossFilmConfig.OPENING : BossFilmConfig.REVIVE;
+               playFilm(opening, function():void
+               {
+                  sound("x7011");
+                  addLog("<font color='#FFE66A'>第1回合</font>");
+                  setCommands(true);
+                  later(0);
+               });
                break;
             case 2411:
                useSkill(p);
@@ -915,11 +924,14 @@ package mmo.petfightnew
             case 2402:
                takeViews(p.pmmList as Array);
                refresh(true);
-               turn++;
-               addLog("<font color='#FFE66A'>第" + turn + "回合</font>");
-               setCommands(hpOf(me) > 0);
-               if (current == "catch") showPage("catch");
-               later(0);
+               playFilm(hpFilm(), function():void
+               {
+                  turn++;
+                  addLog("<font color='#FFE66A'>第" + turn + "回合</font>");
+                  setCommands(hpOf(me) > 0);
+                  if (current == "catch") showPage("catch");
+                  later(0);
+               });
                break;
             case 2422:
                takeViews(p.pmmList as Array);
@@ -947,6 +959,73 @@ package mmo.petfightnew
             default:
                later(0);
          }
+      }
+
+      // ---------------------------------------------------------------- the bosses' films
+
+      private function filmOf(kind:String):String
+      {
+         return films != null && films[1][kind] != null ? String(films[1][kind]) : null;
+      }
+
+      /** The film the HP now call for (the boss under a quarter or a half, my 亚比 under a quarter), once each. */
+      private function hpFilm():String
+      {
+         if (films == null) return null;
+         var vsMax:int = Math.max(1, maxHpOf(vs));
+         var myMax:int = Math.max(1, maxHpOf(me));
+         if (hpOf(vs) > 0 && hpOf(vs) <= vsMax / 4 && filmOf(BossFilmConfig.QUARTER_HP) && !filmsPlayed[BossFilmConfig.QUARTER_HP])
+         {
+            filmsPlayed[BossFilmConfig.HALF_HP] = true;
+            return BossFilmConfig.QUARTER_HP;
+         }
+         if (hpOf(vs) > 0 && hpOf(vs) <= vsMax / 2 && filmOf(BossFilmConfig.HALF_HP) && !filmsPlayed[BossFilmConfig.HALF_HP]) return BossFilmConfig.HALF_HP;
+         if (hpOf(me) > 0 && hpOf(me) <= myMax / 4 && filmOf(BossFilmConfig.MY_QUARTER_HP) && !filmsPlayed[BossFilmConfig.MY_QUARTER_HP]) return BossFilmConfig.MY_QUARTER_HP;
+         return null;
+      }
+
+      /** Play one of the boss's films over the battle, then go on (at once when there is none). */
+      private function playFilm(kind:String, then:Function):void
+      {
+         var cls:String = kind ? filmOf(kind) : null;
+         if (cls == null || closed) { then(); return; }
+         filmsPlayed[kind] = true;
+         cls = "mmo.petfight.boss." + cls;
+         var done:Boolean = false;
+         var finish:Function = function():void
+         {
+            if (done) return;
+            done = true;
+            if (film != null)
+            {
+               film.stop();
+               if (film.parent) film.parent.removeChild(film);
+               film = null;
+            }
+            if (!closed) then();
+         };
+         TweenLite.delayedCall(25, finish);
+         var start:Function = function(...rest):void
+         {
+            if (done || closed) return;
+            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) { finish(); return; }
+            try
+            {
+               film = new (getDefinitionByName(cls) as Class)() as MovieClip;
+            }
+            catch (err:Error)
+            {
+               RLog.error("boss film " + cls, err);
+            }
+            if (film == null) { finish(); return; }
+            RLog.log("fight: boss film " + cls);
+            film.mouseEnabled = film.mouseChildren = false;
+            film.addFrameScript(film.totalFrames - 1, finish);
+            addChild(film);
+            film.gotoAndPlay(1);
+         };
+         if (ApplicationDomain.currentDomain.hasDefinition(cls)) start();
+         else ResScheduler.getResource("bossfightmovie/boss" + films[0], start, "", function(...rest):void { finish(); });
       }
 
       private function faintIfDown(slot:int):void

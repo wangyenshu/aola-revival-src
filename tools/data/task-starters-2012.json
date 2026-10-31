@@ -1,0 +1,236 @@
+{
+ "_doc": [
+  "Starters of the 幻龙星系 quests of the January 2013 client (云端王国, 大地迷城, 海洋幻境, 白夜山), which the",
+  "later task/taskdefines keeps with their steps and panels but without TaskStarter rows (and whose rows of the later",
+  "scene table tconfig are commented out; tools/gen_tasks.py reads those). The 18 first quests are the ones the era",
+  "galaxy panels name (scene/cloudstartaskfinishpanel, activityres/mysticearth|mysticocean/*taskpanel,",
+  "taskres/whitenight/whitenighttaskpanel of 2013-01-24); 3362 (whitenight3, resources of 2013-02-07, not in the",
+  "25 January manifest) came after and is left out. RECONSTRUCTED: the names (the planet and the quest's first room;",
+  "the panels draw the real titles as pictures), the pre-tasks (each planet a chain from the newbie quest 150, as the",
+  "other planets' first quests start), type 11 / online 1 / line 1 as the 2012 story quests have, and the areas",
+  "40-43 (unused by any other quest). 'opened' is the week the galaxy panel gives the quest's room."
+ ],
+ "starters": {
+  "3022": {
+   "type": 11,
+   "ext": "150",
+   "pre": [
+    150
+   ],
+   "online": 1,
+   "name": "云端王国·魔法羽林",
+   "line": 1,
+   "area": 40,
+   "room": "cloudstar2",
+   "opened": "2012-08-30"
+  },
+  "3049": {
+   "type": 11,
+   "ext": "3022",
+   "pre": [
+    3022
+   ],
+   "online": 1,
+   "name": "云端王国·星芒小镇",
+   "line": 1,
+   "area": 40,
+   "room": "cloudstar3",
+   "opened": "2012-09-06"
+  },
+  "3062": {
+   "type": 11,
+   "ext": "3049",
+   "pre": [
+    3049
+   ],
+   "online": 1,
+   "name": "云端王国·索尔石城",
+   "line": 1,
+   "area": 40,
+   "room": "cloudstar4",
+   "opened": "2012-09-13"
+  },
+  "3079": {
+   "type": 11,
+   "ext": "3062",
+   "pre": [
+    3062
+   ],
+   "online": 1,
+   "name": "云端王国·参天瀑布",
+   "line": 1,
+   "area": 40,
+   "room": "cloudstar5",
+   "opened": "2012-09-20"
+  },
+  "3091": {
+   "type": 11,
+   "ext": "3079",
+   "pre": [
+    3079
+   ],
+   "online": 1,
+   "name": "云端王国·天神圣殿",
+   "line": 1,
+   "area": 40,
+   "room": "cloudstar6",
+   "opened": "2012-09-27"
+  },
+  "3108": {
+   "type": 11,
+   "ext": "150",
+   "pre": [
+    150
+   ],
+   "online": 1,
+   "name": "大地迷城·迷城河畔",
+   "line": 1,
+   "area": 41,
+   "room": "mysticearth1",
+   "opened": "2012-10-11"
+  },
+  "3121": {
+   "type": 11,
+   "ext": "3108",
+   "pre": [
+    3108
+   ],
+   "online": 1,
+   "name": "大地迷城·雏菊平原",
+   "line": 1,
+   "area": 41,
+   "room": "mysticearth2",
+   "opened": "2012-10-18"
+  },
+  "3132": {
+   "type": 11,
+   "ext": "3121",
+   "pre": [
+    3121
+   ],
+   "online": 1,
+   "name": "大地迷城·伯爵城堡",
+   "line": 1,
+   "area": 41,
+   "room": "mysticearth3",
+   "opened": "2012-10-25"
+  },
+  "3148": {
+   "type": 11,
+   "ext": "3132",
+   "pre": [
+    3132
+   ],
+   "online": 1,
+   "name": "大地迷城·零时迷城",
+   "line": 1,
+   "area": 41,
+   "room": "mysticearth4",
+   "opened": "2012-11-01"
+  },
+  "3174": {
+   "type": 11,
+   "ext": "150",
+   "pre": [
+    150
+   ],
+   "online": 1,
+   "name": "海洋幻境·幻之结界",
+   "line": 1,
+   "area": 42,
+   "room": "mysticocean1",
+   "opened": "2012-11-08"
+  },
+  "3191": {
+   "type": 11,
+   "ext": "3174",
+   "pre": [
+    3174
+   ],
+   "online": 1,
+   "name": "海洋幻境·迦娜的梦境",
+   "line": 1,
+   "area": 42,
+   "room": "mysticocean2",
+   "opened": "2012-11-15"
+  },
+  "3208": {
+   "type": 11,
+   "ext": "3191",
+   "pre": [
+    3191
+   ],
+   "online": 1,
+   "name": "海洋幻境·外海之域",
+   "line": 1,
+   "area": 42,
+   "room": "mysticocean3",
+   "opened": "2012-11-22"
+  },
+  "3232": {
+   "type": 11,
+   "ext": "3208",
+   "pre": [
+    3208
+   ],
+   "online": 1,
+   "name": "海洋幻境·内海之域",
+   "line": 1,
+   "area": 42,
+   "room": "mysticocean4",
+   "opened": "2012-11-29"
+  },
+  "3252": {
+   "type": 11,
+   "ext": "3232",
+   "pre": [
+    3232
+   ],
+   "online": 1,
+   "name": "海洋幻境·海洋神域",
+   "line": 1,
+   "area": 42,
+   "room": "mysticocean5",
+   "opened": "2012-12-06"
+  },
+  "3307": {
+   "type": 11,
+   "ext": "150",
+   "pre": [
+    150
+   ],
+   "online": 1,
+   "name": "白夜山·白昼峡谷",
+   "line": 1,
+   "area": 43,
+   "room": "whitenight0",
+   "opened": "2013-01-03"
+  },
+  "3319": {
+   "type": 11,
+   "ext": "3307",
+   "pre": [
+    3307
+   ],
+   "online": 1,
+   "name": "白夜山·迷境花园",
+   "line": 1,
+   "area": 43,
+   "room": "whitenight1",
+   "opened": "2013-01-17"
+  },
+  "3346": {
+   "type": 11,
+   "ext": "3319",
+   "pre": [
+    3319
+   ],
+   "online": 1,
+   "name": "白夜山·魔箭城",
+   "line": 1,
+   "area": 43,
+   "room": "whitenight2",
+   "opened": "2013-01-24"
+  }
+ }
+}

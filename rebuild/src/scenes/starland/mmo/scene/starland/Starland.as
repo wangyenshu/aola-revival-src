@@ -97,6 +97,29 @@ package mmo.scene.starland
                SceneManager.getInstance().loadGame("gameRecycleGame");
             });
          }
+         // 财富小管家 (百田's guide of January 2012: the machine of 奥拉广场 that keeps
+         // 晶币 with interest): the red machine with the star of the 2012 art
+         // (overlap.asdasd), which nothing else claims.
+         // The machine itself takes no clicks: a hotspot over it.
+         var machine:DisplayObject = findNamed(this, "asdasd");
+         if (machine != null)
+         {
+            // On top of the scene's layers (the bench before it would take the clicks).
+            var r:flash.geom.Rectangle = machine.getBounds(this);
+            var bank:Sprite = hotspot(r.x, r.y, r.width, r.height);
+            addChild(bank);
+            bank.name = "fortuneMachine";
+            tips.addTips(bank, "财富小管家");
+            bank.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { e.stopPropagation(); });
+            bank.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+            {
+               e.stopImmediatePropagation();
+               ServiceContainer.instance.tryGetService("FortuneManagerService", function(svc:*, o:Object = null):void
+               {
+                  if (svc != null) svc.showPanel();
+               }, this);
+            });
+         }
          var house:Sprite = hotspot(84, 258, 150, 70);
          tips.addTips(house, "小屋");
          addEntranceAction(house, goHome);
