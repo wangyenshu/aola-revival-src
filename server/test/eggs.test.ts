@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { HATCH_MS, installEggs, type EggOwner } from "../src/game/sfs2013/eggs.ts";
-import { installZoo, TD_WIN_SCORE, type ZooOwner } from "../src/game/sfs2013/zoo.ts";
+import { installZoo, TD_WIN_SCORE, zooLevel, type ZooOwner } from "../src/game/sfs2013/zoo.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
 
 function harness<O>(owner: O, install: (w: World) => void) {
@@ -78,6 +78,58 @@ test("保卫战 stages are kept per place and pay 晶币; 动物捕捉 catches z
   assert.deepEqual(tools.map((t: { itemId: number }) => t.itemId), [424, 425]);
   const caught = (await call("ZooExtension.97_103", { raceId: 2, itemId: 425, rate: -1 })).at(-1)![1];
   assert.equal(caught.res, 1);
-  assert.deepEqual(owner.items!["12"], { "2": 1 });
+  assert.deepEqual(owner.items!["12"], { "10002": 1 });
   assert.equal(owner.items!["2"]["425"], 4);
+});
+
+test("the 动物园 grows the animals put in it, feeds them, and 收获 gives the zoo exp and a mature animal or its 亚比", async () => {
+  // A save from before baby animals took 10000 + race: its 小狗 moves over.
+  const owner: ZooOwner & { name: string; storage: number[] } = { name: "小奥拉", score: 5000, items: { "12": { "1": 2, "2": 1 } }, storage: [] };
+  const clock = { now: 0 };
+  let roll = 0.9;
+  const call = harness(owner, (w) =>
+    installZoo(w, {
+      me: async () => owner,
+      save: async () => {},
+      now: () => clock.now,
+      random: () => roll,
+      givePet: async (o, race) => {
+        (o as typeof owner).storage.push(race);
+        return "蝴蝶伊奴";
+      },
+    }),
+  );
+  const babys = (await call("ZooExtension.97_9")).at(-1)![1].babys;
+  assert.deepEqual(babys, [{ raceId: 1, type: 1, num: 2 }, { raceId: 2, type: 1, num: 1 }]);
+  const put = (await call("ZooExtension.97_5", { raceId: 1 })).at(-1)![1];
+  assert.equal(put.res, 1);
+  assert.equal(put.animal.left, 2 * 3600); // 小狗: 2 hours
+  assert.equal(owner.items!["12"]["10001"], 1);
+  const id = put.animal.id;
+  assert.equal((await call("ZooExtension.97_7", { id })).at(-1)![1].res, -2);
+  // 喂食: an hour off, not again within half an hour.
+  assert.equal((await call("ZooExtension.97_12", { id, itemId: 0 })).at(-1)![1].left, 3600);
+  assert.equal((await call("ZooExtension.97_12", { id, itemId: 0 })).at(-1)![1].res, -3);
+  // 初级加速饲料 (200 晶币) takes the last hour.
+  const fed = (await call("ZooExtension.97_12", { id, itemId: 5 })).at(-1)![1];
+  assert.equal(fed.mature, 1);
+  assert.equal(owner.score, 4800);
+  // No 变异 (25%) at this roll: the mature 卷毛狗.
+  const got = (await call("ZooExtension.97_7", { id })).at(-1)![1];
+  assert.deepEqual([got.res, got.petRace, got.exp], [1, 0, 4]);
+  assert.equal(owner.items!["12"]["20001"], 1);
+  assert.equal((await call("ZooExtension.97_10")).at(-1)![1].matrues[0].raceId, 1);
+  // A certain 变异 with the 一星变异饲料: the 亚比 1009 goes to the 仓库.
+  const second = (await call("ZooExtension.97_5", { raceId: 1 })).at(-1)![1].animal.id;
+  assert.equal((await call("ZooExtension.97_12", { id: second, itemId: 2 })).at(-1)![1].rate, 100);
+  clock.now += 2 * 3600 * 1000;
+  const evo = (await call("ZooExtension.97_7", { id: second })).at(-1)![1];
+  assert.deepEqual([evo.petRace, evo.petName], [1009, "蝴蝶伊奴"]);
+  assert.deepEqual(owner.storage, [1009]);
+  // Selling the mature animal: its price in 晶币.
+  const sold = (await call("ZooExtension.97_21", { raceId: 1, num: 1 })).at(-1)![1];
+  assert.deepEqual([sold.res, sold.got], [1, 500]);
+  const info = (await call("ZooExtension.97_1", {})).at(-1)![1];
+  assert.deepEqual([info.lv, info.exp, info.n], [zooLevel(8).lv, 8, 0]);
+  roll = 0;
 });

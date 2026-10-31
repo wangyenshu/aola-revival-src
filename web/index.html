@@ -8,8 +8,8 @@
   /*
    * The page around the game, after the official site of 2012-13
    * (aola.100bt.com, where the game sat in the middle of the home page,
-   * #game_flash 960 x 560): 百田's games along the top, the 奥拉星官方专区
-   * title, the game in a framed block, and the 奥拉星亚比 panel under it.
+   * #game_flash 960 x 560): 百田's games along the top, the game in a framed
+   * block, and the 奥拉星亚比 panel under it.
    * The pictures are the site's own (Wayback captures of January 2013, in
    * game/); the service worker answers their original addresses, so they
    * are put on once it runs (boot.js adds the class "site").
@@ -17,10 +17,8 @@
   html, body { margin: 0; }
   body { background: #eaf6fd linear-gradient(#c9e8fb, #eaf6fd 260px) no-repeat; color: #335; font: 12px/1.5 SimSun, "宋体", "Microsoft YaHei", sans-serif; }
   #wrap { width: 964px; margin: 0 auto; padding: 6px 0 24px; }
-  #games { height: 70px; margin: 0 auto 2px; width: 845px; }
+  #games { height: 70px; margin: 0 auto 10px; width: 845px; }
   html.site #games { background: url(//www.100bt.com/resource/css/common/gamecommon/gamecommonsp.png) 0 0 no-repeat; }
-  #brand { height: 62px; margin: 0 auto 8px; width: 530px; text-align: center; font: bold 22px/62px "Microsoft YaHei", sans-serif; color: #2b8fe0; }
-  html.site #brand { background: url(//aola.100bt.com/resource/image/site_aole.png) 0 0 no-repeat; color: transparent; }
   #frame { position: relative; width: 960px; border: 1px solid #b9dcf3; background: #fff; padding: 1px; border-radius: 6px; box-shadow: 0 2px 8px rgba(43, 143, 224, .25); }
   #stage { position: relative; width: 960px; min-height: 560px; background: #000; border-radius: 4px; overflow: hidden; }
   #pets { position: relative; width: 964px; height: 191px; margin-top: 12px; background: #d9f2fd; border-radius: 8px; }
@@ -35,7 +33,7 @@
   /* ?bare=1 (the automated walk-throughs): the game alone at (20, 16), as they click by page position. */
   html.bare body { background: #0d1a33; color: #cfe0ff; }
   html.bare #wrap { width: 960px; margin: 16px auto; padding: 0; }
-  html.bare #games, html.bare #brand, html.bare #foot, html.bare #news h2, html.bare #news ul { display: none; }
+  html.bare #games, html.bare #foot, html.bare #news h2, html.bare #news ul { display: none; }
   html.bare #frame { border: 0; padding: 0; border-radius: 0; box-shadow: none; }
   html.bare #stage { border-radius: 0; }
   html.bare #pets { background: none; height: auto; margin-top: 8px; }
@@ -47,14 +45,13 @@
 <body>
 <div id="wrap">
   <div id="games" title="百田的游戏"></div>
-  <div id="brand">奥拉星官方专区</div>
   <div id="frame"><div id="stage"></div></div>
   <div id="pets">
     <div id="news">
       <h2>奥拉星 · 2013年1月版的复刻</h2>
       <ul>
         <li>点「开始」进入游戏；存档留在这个浏览器里。</li>
-        <li>控制栏右上的「工具箱」可以增加晶币、星币、晶豆和亚比经验，领取亚比，成为蓝宝石。</li>
+        <li>右上的「工具箱」可以增加晶币、星币、晶豆和亚比经验，领取亚比，成为蓝宝石，传送到任何地图，导出和导入存档。</li>
         <li>「回家」先到家园：植树盆里可以种树，「我的家」是小屋。</li>
         <li>任务面板里有2010–12年的星际故事任务。</li>
       </ul>
@@ -66,6 +63,7 @@
 <script src="config.js"></script>
 <script src="emulator.js"></script>
 <script src="theatre.js"></script>
+<script src="saves.js"></script>
 <script src="boot.js"></script>
 </body>
 </html>

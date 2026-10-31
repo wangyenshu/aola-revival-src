@@ -676,6 +676,33 @@ const PM = "PocketMonsterExtension";
 
 /** PetFightTypes.FIGHT_IN_NPCCHALLENGE. */
 const FIGHT_IN_NPCCHALLENGE = 14;
+/**
+ * The 守护者 of BossTimeHelper.bossTimeConfig (2013 interfaces): each scene's boss forms as
+ * "race,race" (one after another; "#" a pair) with their levels; a form's index counts across
+ * the pair as the rebuilt dailyactivity does.
+ */
+export const GUARDIANS: [string, string][] = [
+  ["10317,20317", "80,100"], ["20087", "80"], ["20427", "60"], ["10090,20090", "60,80"], ["10093,20093", "60,80"],
+  ["20418", "100"], ["10099,20099", "60,80"], ["10102,10102,20102", "60,80,100"], ["10096,10096,20096", "60,80,100"],
+  ["10108,10108,20108", "60,80,100"], ["10469#10472", "100#100"], ["10475#20475", "100#100"], ["30682,10682", "88,100"],
+  ["10715,20715", "80,100"], ["14523#11514#11516", "100#80#80"], ["10757,20757", "80,100"], ["10840,20840", "80,100"],
+  ["10865,20865", "80,100"], ["11213,21213,31213", "60,80,100"],
+];
+
+/** A 守护者 form's level (its race at that index), else 20 + 5 per index as before. */
+export function guardianLevel(race: number, index: number): number {
+  for (const [races, levels] of GUARDIANS) {
+    const rs = races.split(/[#,]/).map(Number);
+    const ls = levels.split(/[#,]/).map(Number);
+    if (rs[index] === race) return ls[index] ?? ls[0];
+  }
+  return Math.min(100, 20 + 5 * index);
+}
+
+/** PetFightTypes.FIGHT_IN_MEMBER_ARENA: the bosses of 黑星堡垒. */
+export const FIGHT_IN_MEMBER_ARENA = 12;
+/** 黑星堡垒's bosses' levels by room: floor 1 (viparena2, 3), 2 (5, 6), 3 (7) (RECONSTRUCTED). */
+export const MEMBER_ARENA_LEVELS: Record<string, number> = { viparena2: 50, viparena3: 50, viparena5: 65, viparena6: 65, viparena7: 80 };
 /** The NPC's 亚比 per mode (新手训练, 小试身手, 勇士挑战). RECONSTRUCTED. */
 const NPC_LEVELS = [8, 18, 30];
 /**
@@ -773,6 +800,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // 已经发完啦" once given). The 2013 server and the NPCs' teams are lost: each NPC fights with one
   // 亚比 of an evolution line, the next stage for each harder mode, at NPC_LEVELS (RECONSTRUCTED).
   world.xt("PetExtension.54_22", async (ctx) => {
+    if (Number(ctx.params.type) === FIGHT_IN_MEMBER_ARENA) {
+      // 黑星堡垒 (viparena, PetFightTypes.FIGHT_IN_MEMBER_ARENA 12): {mi, rm}, a floor's boss
+      // numbered 70000 + species (70536 震天石魔 in viparena2). Its level by the room's floor,
+      // not to be caught (RECONSTRUCTED: the 2013 server's bosses are lost).
+      const mi = Number(ctx.params.mi) | 0;
+      const level = MEMBER_ARENA_LEVELS[String(ctx.params.rm ?? "")] ?? 60;
+      return begin(ctx, mi % 10000, level, false, undefined, mi);
+    }
     if (Number(ctx.params.type) !== FIGHT_IN_NPCCHALLENGE) return ctx.reply({ res: false });
     const npcId = Number(ctx.params.npcId) | 0;
     const lv = Math.max(1, Math.min(3, Number(ctx.params.lv) | 0));
@@ -799,9 +834,13 @@ export function installBattles(world: World, deps: BattleDeps): void {
     });
   });
 
-  // fightWithBoss {raceId, index}: no catching.
+  // fightWithBoss {raceId, index}: a 守护者 (dailyactivity/dailyactivityservice, rebuilt): one of the
+  // forms of BossTimeHelper.bossTimeConfig, numbered variant * 10000 + species, at its level there;
+  // no catching. The asked id comes back with the end of the fight, which the client checks.
   world.xt("PetExtension.54_16", async (ctx) => {
-    await begin(ctx, Number(ctx.params.raceId), 20 + 5 * Math.max(0, Number(ctx.params.index) || 0), false);
+    const asked = Number(ctx.params.raceId) | 0;
+    const index = Math.max(0, Number(ctx.params.index) | 0);
+    await begin(ctx, asked % 10000, guardianLevel(asked, index), false, undefined, asked);
   });
 
   /**

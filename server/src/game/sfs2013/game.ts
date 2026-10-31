@@ -11,7 +11,7 @@ import { installHouse, houseOf, usedUp, type HouseRecord } from "./house.ts";
 import { installShoot, type CardRow } from "./shoot.ts";
 import { installPlants, plantTree, type PlantRec } from "./plants.ts";
 import { installEggs, type HatchRec } from "./eggs.ts";
-import { installZoo } from "./zoo.ts";
+import { installZoo, type ZooRec } from "./zoo.ts";
 import { World, type XtContext } from "./server.ts";
 
 export interface UserRecord {
@@ -56,6 +56,10 @@ export interface UserRecord {
   hatch?: HatchRec;
   /** 保卫战 progress per place (zoo.ts). */
   td?: Record<string, string[]>;
+  /** The 动物园 (zoo.ts). */
+  zoo?: ZooRec;
+  /** 黑星堡垒: the highest floor reached and whether it was passed (VipTowerExtension). */
+  vipTower?: { fl: number; ps: boolean };
 }
 
 /**
@@ -113,7 +117,6 @@ const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
   "PlantItemExtension.81_2": { items: [] }, // PlantItemService
   "RobotExtension.2-6": { i: [] }, // RobotItemService
   "SundriesExtension.70-1": { b: [] }, // BadgeService
-  "VipTowerExtension.84_1": { fl: 0, ps: false }, // VipArenaLevelManager
 };
 
 const userKey = (name: string) => `user/${encodeURIComponent(name)}`;
@@ -488,7 +491,72 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     },
   });
 
-  installZoo(world, { me, save: (o) => save(o as UserRecord) });
+  installZoo(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    now: () => emu.clock.now().getTime(),
+    byName: (name) => userRecord(emu, name),
+    givePet: async (o, race) => {
+      const t = await tables();
+      if (!t.species[String(race)]) return undefined;
+      const pet = newPet(o as UserRecord, t, race, 1, today());
+      ((o as UserRecord).storage ??= []).push(pet);
+      return t.species[String(race)].n;
+    },
+  });
+
+  // 黑星堡垒 (viparena, VipArenaClient, VipTowerExtension): the floors one has reached and passed
+  // (VipArenaLevelManager). Floor n is reached on entering its first room (viparena1, 4, 7) and
+  // passed by beating its boss; the next one opens once the last is passed.
+  //   84_1 {} -> {fl, ps}   84_2 {fl} -> {res, fl}   84_3 {rm} -> {rm: "race:lv:cc#…"}   84_4 {fl} -> {res, fl}
+  // The rooms' roaming 亚比 (84_3) are lost with the 2013 server, and the era client places
+  // none (VipArenaPetLocationMap is empty): only the floors' bosses fight (54_22 type 12).
+  world.xt("VipTowerExtension.84_1", async (ctx) => {
+    const rec = await me(ctx);
+    ctx.reply({ fl: rec.vipTower?.fl ?? 0, ps: rec.vipTower?.ps ?? false });
+  });
+  world.xt("VipTowerExtension.84_2", async (ctx) => {
+    const rec = await me(ctx);
+    const fl = Math.max(1, Math.min(3, Number(ctx.params.fl) | 0));
+    const v = (rec.vipTower ??= { fl: 0, ps: false });
+    if (fl === v.fl + 1 && (v.fl === 0 || v.ps)) {
+      v.fl = fl;
+      v.ps = false;
+      await save(rec);
+    }
+    ctx.reply({ res: 1, fl: v.fl });
+  });
+  world.xt("VipTowerExtension.84_3", async (ctx) => ctx.reply({ rm: "" }));
+  world.xt("VipTowerExtension.84_4", async (ctx) => {
+    const rec = await me(ctx);
+    const fl = Number(ctx.params.fl) | 0;
+    const v = (rec.vipTower ??= { fl: 0, ps: false });
+    if (fl === v.fl && !v.ps) {
+      v.ps = true;
+      await save(rec);
+    }
+    ctx.reply({ res: 1, fl: v.fl });
+  });
+
+  // RobotClient.giveExp {pi, e}: the 家园's 经验分配器 hands experience the HELLO
+  // keeps (tasks reward it, RobotClient 2-12) to a 亚比 of the bag.
+  //   -> "2-13" {res, pi, e, exp} (res 1, -1 no such 亚比, -2 not that much), and the 亚比 replies
+  world.xt("RobotExtension.2-13", async (ctx) => {
+    const rec = await me(ctx);
+    const pi = Number(ctx.params.pi) | 0;
+    const want = Math.max(0, Number(ctx.params.e) | 0);
+    const pet = (rec.pets ?? []).find((p) => p.id === pi);
+    const have = rec.robot?.exp ?? 0;
+    if (!pet) return ctx.reply({ res: -1, pi, e: 0, exp: have }, "2-13");
+    if (want <= 0 || want > have || !rec.robot) return ctx.reply({ res: -2, pi, e: 0, exp: have }, "2-13");
+    const t = await tables();
+    rec.robot.exp = have - want;
+    const r = gainExp(t, pet, want);
+    for (const [cmd, body] of r.msgs) ctx.reply(body, cmd);
+    if (r.evolvedTo && rec.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+    await save(rec);
+    ctx.reply({ res: 1, pi, e: want, exp: rec.robot.exp, lv: pet.level }, "2-13");
+  });
 
   installShoot(world, {
     me,
@@ -499,15 +567,16 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // ---------------------------------------------------------------- test commands
 
   if (opts.dev) {
-    // revival_give {mi, qt}: items (type 2) for a test run, sent through onAmountUpdated.
+    // revival_give {mi, qt[, t]}: materials (type t, items 2 by default) for a test run, sent through onAmountUpdated.
     world.xt("PocketMonsterExtension.revival_give", async (ctx) => {
       const rec = await me(ctx);
       const mi = String(Number(ctx.params.mi));
       const qt = Math.max(1, Number(ctx.params.qt) || 1);
-      const items = (rec.items!["2"] ??= {});
+      const t = String(Number(ctx.params.t ?? 2) | 0 || 2);
+      const items = ((rec.items ??= {})[t] ??= {});
       items[mi] = (items[mi] ?? 0) + qt;
       await save(rec);
-      ctx.reply({ amount: `2_${mi}_0_${qt}` }, "onAmountUpdated");
+      ctx.reply({ amount: `${t}_${mi}_0_${qt}` }, "onAmountUpdated");
     });
   }
 

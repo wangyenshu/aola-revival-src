@@ -53,10 +53,16 @@ package mmo.sceneinit
          if (info != null) music.playSceneMusic(String(info.sceneName));
       }
 
+      /**
+       * The game's own room music, if config.xml gives it one. Not the
+       * scene's: a game that plays its own music stops the scene's when it
+       * starts (保卫战), and asking with the scene's name started it again
+       * under the game's.
+       */
       private function onInitGame(e:SceneManagerEvent):void
       {
-         var info:Object = SceneManager.getInstance().loadedSceneInfo;
-         if (info != null) music.playGameMusic(String(info.sceneName));
+         var name:String = e != null && e.params != null && e.params.sceneName ? String(e.params.sceneName) : null;
+         if (name != null) music.playGameMusic(name);
       }
    }
 }

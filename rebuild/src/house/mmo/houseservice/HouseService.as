@@ -125,9 +125,10 @@ package mmo.houseservice
          return _house;
       }
 
+      /** In the garden or the zoo (20000), which have their own buttons and no furniture to arrange. */
       private function get inGarden():Boolean
       {
-         try { return _houseLoader.houseInfo.isInGarden; } catch (err:Error) {}
+         try { return _houseLoader.houseInfo.isInGarden || _houseLoader.houseInfo.currentHouseId >= 20000; } catch (err:Error) {}
          return false;
       }
 
@@ -204,7 +205,7 @@ package mmo.houseservice
             {
                _menu.decorate();
                _menu.enabled = true;
-               // The garden has its own bar; the menu (装扮, 我的家具) is the rooms'.
+               // The garden and the zoo have their own buttons; the menu (装扮, 我的家具) is the rooms'.
                _menu.visiable = !inGarden;
                _menu.addEventListener(HouseMenuEvent.onEdit, onMenuEdit);
                _menu.addEventListener(HouseMenuEvent.onExitEdit, onMenuExitEdit);

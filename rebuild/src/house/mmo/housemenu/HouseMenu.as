@@ -30,6 +30,7 @@ package mmo.housemenu
 
       private var _editable:Boolean;
       private var editing:Boolean;
+      private var visitorCount:int;
 
       public function HouseMenu()
       {
@@ -39,6 +40,7 @@ package mmo.housemenu
       public function setUp(owner:String, visitors:int, editable:Boolean):void
       {
          _editable = editable;
+         visitorCount = visitors;
          if (mcVisitors) mcVisitors.stop();
          var amount:TextField = visitorTxtCount ? visitorTxtCount.getChildByName("amount") as TextField : null;
          if (amount) amount.text = String(visitors);
@@ -71,7 +73,10 @@ package mmo.housemenu
          if (btnSave) btnSave.visible = edit;
          if (btnCatalog) btnCatalog.visible = edit;
          if (btnEdit) btnEdit.visible = !edit && _editable;
-         if (mcVisitors) mcVisitors.visible = !edit;
+         // 足迹: the moving footprints (mcVisitors) stand over the button when
+         // someone has called since; with nobody, the button alone (both at
+         // once drew two footprints over each other).
+         if (mcVisitors) mcVisitors.visible = !edit && visitorCount > 0;
          if (btnVisitors) btnVisitors.visible = !edit;
          if (visitorTxtCount) visitorTxtCount.visible = !edit;
       }

@@ -99,6 +99,10 @@ build pet mmo/pet/dataservice/DocPetData.as petdata.swf "pet/petdataservice.swf%
 export GEN="$HERE/../gen/petdict"
 build pet mmo/pet/petdictionarydata/DocPetDict.as petdict.swf "pet/petdictionarydata.swf%3F130124"
 unset GEN
+# The notice strip: an empty Sprite (later homes hide and show it as a DisplayObject).
+build notifyview mmo/notifyview/DocNotifyView.as notifyview.swf "baseservice/notifyview.swf%3F130124"
+# The 守护者 (the areas' bosses of BossTimeHelper): rebuilt dailyactivity/dailyactivityservice.
+build dailyactivity mmo/dailyactivity/DocDailyActivity.as dailyactivity.swf "dailyactivity/dailyactivityservice.swf%3F130117"
 # What panels ask about a 亚比 or skill (names, evolution, egg pictures): rebuilt
 # pet/petskillmesservice on the revival's tables (rebuild/gen/petmes, tools/gen_petmes.py).
 export GEN="$HERE/../gen/petmes"
@@ -204,6 +208,13 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art house/housestorage.swf)" \
 java -jar "$FFDEC" -swf2swc "$OUT/swc/housecommon.swc" "$OUT/housecommon.swf" > /dev/null
 export EXTRA_SWC="$OUT/swc/play.swc $OUT/swc/housecommon.swc"
 build garden mmo/house/b000247/b000247_Doc.as garden.swf "furniture/b000247.swf%3F130117"
+# The 动物园 (house 20000, through the garden's tube): rebuilt furniture/b020000
+# (the January 2013 one is lost) on the art of the later copy (January 2021).
+build zoo mmo/house/b020000/DocZooRevived.as zoo-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art furniture/b020000.swf)" \
+  --code "$OUT/zoo-code.swf" --bind 0=mmo.house.b020000.DocZooRevived --bind 110=mmo.house.b020000.ZooRevived \
+  --note "REBUILT furniture/b020000: rebuilt code (aola-revival) on the art of the later b020000.swf" \
+  --out "$W/furniture/b020000.swf%3F1210"
 export EXTRA_SWC="$OUT/swc/play.swc"
 
 # 奥拉广场: rebuilt code on the July 2012 artwork (bigscene/starlandcopy).
@@ -233,6 +244,32 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/ecologicalpark.swf)" \
   --code "$OUT/ecologicalpark-code.swf" --bind 0=mmo.scene.starland.DocEcologicalParkRevived --bind 176=mmo.scene.starland.EcologicalParkRevived \
   --note "LATER scene/ecologicalpark: its code rewritten for the 2013 interfaces (aola-revival), on its own art" \
   --out "$W/scene/ecologicalpark.swf%3F121220"
+
+# 十字大道: the 2020 scene's code on the 2013 engine (its 升降机 rides), with
+# the 2013 doors (爱心协会 down the lift; not the later 卡牌达人馆), on its own art.
+build scenes/crossroad mmo/scene/starland/DocCrossroadRevived.as crossroad-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/crossroad.swf)" \
+  --code "$OUT/crossroad-code.swf" --bind 0=mmo.scene.starland.DocCrossroadRevived --bind 197=mmo.scene.starland.CrossroadRevived \
+  --note "LATER scene/crossroad: its code on the 2013 engine with the 2013 doors (aola-revival), on its own art" \
+  --out "$W/scene/crossroad.swf%3F130124"
+
+# 图书馆: the 2019 copy's art, its buttons answered on the 2013 engine, with
+# the shelf of 奥拉周刊 back issues (rebuild/gen/weekly from tools/gen_bconfig.py).
+export GEN="$HERE/../gen/weekly"
+build scenes/library mmo/scene/library/DocLibraryRevived.as library-code.swf ""
+unset GEN
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/library.swf)" \
+  --code "$OUT/library-code.swf" --bind 0=mmo.scene.library.DocLibraryRevived --bind 87=mmo.scene.library.LibraryRevived \
+  --note "LATER scene/library: its art with the 2013 engine's answers and the 往期周刊 shelf (aola-revival)" \
+  --out "$W/scene/library.swf%3F1210"
+
+# 崩坏的上古神殿: the 2019 scene's code on the 2013 engine, its 黑洞 film played
+# once (the later code's looping clip started it again in every scene after).
+build scenes/temple1 mmo/scene/temple/DocTemple1Revived.as temple1-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/temple1.swf)" \
+  --code "$OUT/temple1-code.swf" --bind 0=mmo.scene.temple.DocTemple1Revived --bind 116=mmo.scene.temple.Temple1Revived \
+  --note "LATER scene/temple1: its code on the 2013 engine, the film played once (aola-revival), on its own art" \
+  --out "$W/scene/temple1.swf%3F1210"
 
 # 欢乐岛: the 2020 scene cut down to the 2013 engine (its own code needs later
 # services and could not be built), on its own art.

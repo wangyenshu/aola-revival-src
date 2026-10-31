@@ -166,11 +166,23 @@ package mmo.play.scene
             isSuspend = false;
          }
          dispatchEvent(new SceneManagerEvent(SceneManagerEvent.UNLOAD_GAME, {gameInfo: info}));
+         var asked:String = returnRoom;
+         returnRoom = null;
          if (info != null && loadedSceneInfo != null)
          {
-            var back:String = loadedSceneInfo.sceneName;
+            // A home cannot be entered again by name: from a home (the 动物园's
+            // games) one comes back to the scene pushPreviousRoomName named, or outdoors.
+            var back:String = asked || (loadedSceneInfo.inHouse ? lastOutdoorScene : loadedSceneInfo.sceneName);
             setTimeout(function():void { loadScene(back, "default", true); }, 0);
          }
+      }
+
+      private var returnRoom:String;
+
+      /** The 2013 API: where leaving the next game goes (the 动物园's games: "ecologicalpark"). */
+      public function pushPreviousRoomName(name:String):void
+      {
+         returnRoom = name;
       }
 
       /** Instance (副本) scenes: entered like any scene, keyed by their scene name. */
@@ -209,10 +221,17 @@ package mmo.play.scene
          loadScene(DEFAULT_SCENE);
       }
 
-      public function loadPreviousScene():void
+      /**
+       * The 2013 signature: loadPreviousScene(locationKey, reload) (黑星堡垒's
+       * VipArenaService leaves with ("default", true)). From a 副本 or a home
+       * the previous room is the last outdoor one, where it was entered.
+       */
+      public function loadPreviousScene(locationKey:String = null, reload:Boolean = false):void
       {
-         var prev:String = getPreviousRoomName();
-         loadScene(prev ? prev : DEFAULT_SCENE, getLastRoomName() ? "from" + getLastRoomName() : "default");
+         var inside:Boolean = loadedSceneInfo != null && (loadedSceneInfo.isFB || loadedSceneInfo.inHouse);
+         var prev:String = inside ? lastOutdoorScene : getPreviousRoomName();
+         var key:String = locationKey || (getLastRoomName() ? "from" + getLastRoomName() : "default");
+         loadScene(prev ? prev : DEFAULT_SCENE, key, reload || inside);
       }
 
       /**
@@ -235,6 +254,12 @@ package mmo.play.scene
       {
          if (busy) return;
          if (STAND_INS[sceneName] != null) sceneName = STAND_INS[sceneName];
+         if (sceneName == BattleZoneHub.SCENE)
+         {
+            // The lost 战斗星域 hub: its rooms to choose from instead.
+            BattleZoneHub.show();
+            return;
+         }
          if (!reload && loadedSceneInfo != null && loadedSceneInfo.sceneName == sceneName && extInfo == null)
          {
             dispatchEvent(new SceneManagerEvent(SceneManagerEvent.ENTER_SCENE_SHOWTIPS, {sceneInfo: loadedSceneInfo}));
@@ -373,15 +398,19 @@ package mmo.play.scene
       {
          if (loadedSceneInfo == null) return;
          var old:SceneInfo = loadedSceneInfo;
+         // A scene's own code failing as it is left (later homes hide a
+         // service the 2013 client does not have) must not keep the player in it.
+         // While UNLOAD_SCENE is told, loadedSceneInfo is still the room being
+         // left (黑星堡垒's VipArenaService asks it whether it was a 副本).
+         safeDispatch(new SceneManagerEvent(SceneManagerEvent.UNLOAD_SCENE, {sceneName: old.sceneName}));
          loadedSceneInfo = null;
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.UNLOAD_SCENE, {sceneName: old.sceneName}));
-         PlayerManager.getInstance().clear();
+         try { PlayerManager.getInstance().clear(); } catch (e1:Error) { RLog.error("scene: players " + old.sceneName, e1); }
          if (old.scene)
          {
-            old.scene.leave();
+            try { old.scene.leave(); } catch (e2:Error) { RLog.error("scene: leaving " + old.sceneName, e2); }
             if (old.scene.parent) old.scene.parent.removeChild(old.scene);
          }
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.DISPOSED_SCENE, {sceneName: old.sceneName}));
+         safeDispatch(new SceneManagerEvent(SceneManagerEvent.DISPOSED_SCENE, {sceneName: old.sceneName}));
       }
 
       private function onJoinRoom(e:SocketClientEvent):void
@@ -397,7 +426,9 @@ package mmo.play.scene
          var loc:Point = scene.locationFor(info.locationKey);
          var room:Room = SocketClient.instance.activeRoom;
          loadedSceneInfo = info;
-         if (!info.inHouse)
+         // Homes and instance (副本) rooms are not where "back" leads: leaving
+         // a 副本 (loadPreviousScene) returns to the room it was entered from.
+         if (!info.inHouse && !info.isFB)
          {
             history.push(info.sceneName);
             if (history.length > 10) history.shift();
@@ -419,9 +450,15 @@ package mmo.play.scene
          }
          busy = false;
          RLog.log("scene: entered " + info.sceneName + " at " + loc.x + "," + loc.y);
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.SCENE_INITED, {sceneName: info.sceneName}));
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.SCENE_OPENED, {sceneName: info.sceneName}));
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.TASK_SCENE_INITED, {sceneName: info.sceneName}));
+         safeDispatch(new SceneManagerEvent(SceneManagerEvent.SCENE_INITED, {sceneName: info.sceneName}));
+         safeDispatch(new SceneManagerEvent(SceneManagerEvent.SCENE_OPENED, {sceneName: info.sceneName}));
+         safeDispatch(new SceneManagerEvent(SceneManagerEvent.TASK_SCENE_INITED, {sceneName: info.sceneName}));
+      }
+
+      /** An error in one listener (a scene's or a module's) is logged, not passed up into the scene change. */
+      private function safeDispatch(e:SceneManagerEvent):void
+      {
+         try { dispatchEvent(e); } catch (err:Error) { RLog.error("scene: " + e.type + " listener", err); }
       }
 
       /** The scene cannot be shown (usually its 2013 code needs a module that is lost). */

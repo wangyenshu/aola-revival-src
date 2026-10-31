@@ -334,7 +334,7 @@ package mmo.play.scene
          cacheSceneLayers();
          addEventListener(Event.ENTER_FRAME, onFrame);
          PlayerManager.getInstance().addEventListener(PlayerManagerEvent.ENTER_ROOM, onPlayerEnter);
-         onJoinRoom();
+         try { onJoinRoom(); } catch (e:Error) { RLog.error("scene: onJoinRoom", e); }
          _entered = true;
          follow();
       }
@@ -350,9 +350,9 @@ package mmo.play.scene
          {
             if (w.clickable is InteractiveObject) InteractiveObject(w.clickable).removeEventListener(MouseEvent.CLICK, onWalkTargetClick);
          }
-         onLeaveRoom();
+         try { onLeaveRoom(); } catch (e1:Error) { RLog.error("scene: onLeaveRoom", e1); }
          // The 2013 SceneBase had no dispose(): scenes that need one declare their own (homes: IDispose).
-         if (this is IDispose) IDispose(this).dispose();
+         try { if (this is IDispose) IDispose(this).dispose(); } catch (e2:Error) { RLog.error("scene: dispose", e2); }
       }
 
       /**

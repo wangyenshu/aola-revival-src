@@ -35,6 +35,7 @@ package mmo.control
             case "home": home(g); break;
             case "mall": mall(g); break;
             case "toolbox": toolbox(g); break;
+            case "items": items(g); break;
          }
          s.filters = [new DropShadowFilter(1.5, 90, 0x0B3F70, 0.45, 3, 3, 1)];
          return s;
@@ -254,6 +255,29 @@ package mmo.control
          g.beginFill(0xFFB12B);
          g.drawCircle(0, -20, 2.2);
          g.endFill();
+      }
+
+      /** The revival's 物品 (not of 2013): a satchel, in the bar's style. */
+      private static function items(g:Graphics):void
+      {
+         g.lineStyle(1.5, 0x8A4A00);
+         BarSkin.vgrad(g, 28, 22, [0xFFD06A, 0xE8781A], -8);
+         g.drawRoundRect(-14, -8, 28, 22, 10, 10);
+         g.endFill();
+         // the strap and the flap
+         g.lineStyle(2.5, 0xB55A00);
+         g.moveTo(-9, -8); g.curveTo(0, -20, 9, -8);
+         g.lineStyle(1.5, 0x8A4A00);
+         BarSkin.vgrad(g, 28, 11, [0xFFE7A8, 0xF7A93A], -8);
+         g.moveTo(-14, -3); g.curveTo(-14, -8, -9, -8); g.lineTo(9, -8); g.curveTo(14, -8, 14, -3);
+         g.lineTo(14, 1); g.lineTo(-14, 1); g.lineTo(-14, -3);
+         g.endFill();
+         g.lineStyle(1.2, 0x8A4A00);
+         g.beginFill(0x7FD0FF);
+         g.drawCircle(0, 2, 3.2);
+         g.endFill();
+         g.lineStyle();
+         BarSkin.shine(g, -6, -5, 10, 4, 0.6);
       }
 
       /** The revival's 工具箱 (not of 2013): a chest with a star, in the bar's style. */

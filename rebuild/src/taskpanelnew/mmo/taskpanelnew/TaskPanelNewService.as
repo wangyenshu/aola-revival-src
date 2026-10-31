@@ -51,17 +51,31 @@ package mmo.taskpanelnew
 
       public function init():void
       {
+         // One 任务 button: a later module asking for the service again
+         // (homes of 2015–2020 look it up) made a second one over the first.
+         var had:Sprite = LayerManager.getBaseControl().getChildByName("taskIcon") as Sprite;
+         if (had != null)
+         {
+            icon = had;
+            dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
+            return;
+         }
          icon = new Sprite();
          icon.name = "taskIcon";
          icon.x = 912;
          icon.y = 8;
          icon.buttonMode = true;
+         // The button's art (task/taskicon) is a picture here: its own click
+         // asks the lost TaskPanelFacade, which said 这个功能还在修复中.
+         icon.mouseChildren = false;
          LayerManager.getBaseControl().addChild(icon);
          var cls:String = "mmo.taskicon.TaskIcon";
          ResScheduler.getResource("task/taskicon", function(o:*):void
          {
             if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-            icon.addChildAt(new (getDefinitionByName(cls) as Class)() as DisplayObject, 0);
+            var art:Class = getDefinitionByName(cls) as Class;
+            for (var i:int = 0; i < icon.numChildren; i++) if (icon.getChildAt(i) is art) return;
+            icon.addChildAt(new art() as DisplayObject, 0);
          }, cls);
          icon.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
          {
@@ -227,11 +241,19 @@ package mmo.taskpanelnew
             put(area, cls, 280, 96, 560, 210);
             if (stepId > 0) put(area, stepCls, 290, 300, 560, 210);
          }, cls);
-         if (canStart) area.addChild(goButton(id));
+         // 前往 for a task being done too: to the scene of its current step
+         // (else of the task), as the later panel's 前往 does.
+         var where:String = canStart ? sceneOf(id) : "";
+         if (!canStart)
+         {
+            try { where = ts.getTaskSceneByTaskId(stepId) || ts.getTaskSceneByTaskId(id); } catch (e:Error) {}
+            if (!where) where = sceneOf(id);
+         }
+         if (where) area.addChild(goButton(id, where));
       }
 
       /** 前往: to the scene the task begins in, telling it which task brought the player (taskIdFromTP). */
-      private function goButton(id:int):Sprite
+      private function goButton(id:int, scene:String):Sprite
       {
          var b:Sprite = new Sprite();
          b.buttonMode = true;
@@ -255,7 +277,7 @@ package mmo.taskpanelnew
             panel = null;
             var ext:SceneExtInfo = new SceneExtInfo();
             ext.taskIdFromTP = id;
-            SceneManager.getInstance().loadScene(sceneOf(id), "default", true, false, "ld", ext);
+            SceneManager.getInstance().loadScene(scene, "default", true, false, "ld", ext);
          });
          return b;
       }

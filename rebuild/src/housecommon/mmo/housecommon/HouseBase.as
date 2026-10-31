@@ -29,7 +29,7 @@ package mmo.housecommon
     */
    public class HouseBase extends SceneBase implements IHouse
    {
-      /** HouseInfo.GARDENHOUSEID: the 家园 (rebuilt furniture/b000247). The zoo (20000+) is not rebuilt yet. */
+      /** HouseInfo.GARDENHOUSEID: the 家园 (rebuilt furniture/b000247). The zoo is house 20000 (rebuilt furniture/b020000). */
       public static const GARDEN_ID:int = 247;
 
       private static var _currentHouse:HouseBase;
@@ -116,14 +116,15 @@ package mmo.housecommon
 
       /**
        * A door to another room of the home (loader.loadSubHouse); the door
-       * to the garden comes out in front of 我的家 there. The zoo is not
-       * rebuilt yet, so its door leads back outside.
+       * to the garden comes out in front of 我的家 there, a door to a zoo
+       * (20000 and up) leads to the one zoo there is, 20000.
        */
       protected function addHouseEntrances(area:DisplayObject, houseId:int, locationKey:String = "default", button:DisplayObject = null):*
       {
          addEntranceAction(area, function():void
          {
-            if (houseId >= 20000 || _loader == null) leaveHome();
+            if (_loader == null) leaveHome();
+            else if (houseId >= 20000) _loader.loadSubHouse(20000, "fromGarden");
             else if (houseId == GARDEN_ID) _loader.loadSubHouse(GARDEN_ID, "fromHouse");
             else _loader.loadSubHouse(houseId, locationKey);
          }, button);

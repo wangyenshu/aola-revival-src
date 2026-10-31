@@ -7,6 +7,7 @@ package mmo.control
    import flash.utils.Timer;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
+   import mmo.common.utils.tips.TipsManager;
    import flash.utils.getDefinitionByName;
    import flash.utils.getQualifiedClassName;
    import flash.display.Sprite;
@@ -123,7 +124,9 @@ package mmo.control
          switch (name)
          {
             case "map":
-               openMap();
+               // In 黑星堡垒 (changeToSpaceTimeMode) the map button is its way out.
+               if (spaceTimeExit != null) spaceTimeExit();
+               else openMap();
                break;
             case "phrase":
                showPhrases();
@@ -175,6 +178,9 @@ package mmo.control
                break;
             case "toolbox":
                ToolboxPanel.toggle();
+               break;
+            case "items":
+               ItemsPanel.toggle();
                break;
             default:
                RNotice.show(LayerManager.getBaseTop(), "这个功能还在修复中哦！");
@@ -429,7 +435,10 @@ package mmo.control
                   case "fight": PetClient2.instance.startPKWithRobot(int(arg)); return "ok";
                   case "give":
                      // Only answered by a server started with dev commands (web/?dev=1).
-                     SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_give", {mi: int(arg), qt: 5});
+                     // "id" gives 5 of item id; "type:id" 5 of another kind (12:10001, a 小狗 幼仔).
+                     var gv:Array = String(arg).split(":");
+                     if (gv.length > 1) SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_give", {t: int(gv[0]), mi: int(gv[1]), qt: 5});
+                     else SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_give", {mi: int(arg), qt: 5});
                      return "ok";
                   case "wild":
                      // The wild 亚比 of the scene as wildpet<i>:<race>@x,y h<height>.
@@ -598,6 +607,8 @@ package mmo.control
       public function change2commonMode():Boolean
       {
          fbMode = false;
+         spaceTimeExit = null;
+         tipMap(null);
          if (bar) bar.setMode("common");
          return true;
       }
@@ -611,10 +622,28 @@ package mmo.control
          return true;
       }
 
+      private var spaceTimeExit:Function;
+
+      /**
+       * The 2013 API: the bar of 黑星堡垒 and 时空隧道, only the map button
+       * left, which then is the way out: callback runs, name ("离开黑星堡垒") is its tip.
+       */
       public function changeToSpaceTimeMode(callback:Function = null, name:String = null):Boolean
       {
+         spaceTimeExit = callback;
          if (bar) bar.setMode("spacetime");
+         tipMap(callback != null ? (name || "离开") : null);
          return true;
+      }
+
+      private function tipMap(tip:String):void
+      {
+         try
+         {
+            var m:InteractiveObject = bar ? bar.mapButton : null;
+            if (m != null) TipsManager.getInstance().addTips(m, tip || "地图");
+         }
+         catch (e:Error) {}
       }
 
       public function hide():void

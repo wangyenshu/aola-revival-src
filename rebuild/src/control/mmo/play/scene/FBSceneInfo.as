@@ -12,5 +12,10 @@ package mmo.play.scene
       {
          super(sceneName, roomName, swf);
       }
+
+      override public function get isFB():Boolean
+      {
+         return true;
+      }
    }
 }

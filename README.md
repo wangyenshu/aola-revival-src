@@ -131,8 +131,7 @@ python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
   `--url` tests a site served elsewhere, such as `npm run serve -- --base
   /aola/` or the published Pages site.
 - **Node server** (`npm start`): serves `dist/` and the roots over HTTP with a
-  WebSocket bridge and optional raw TCP game ports, for several players or the
-  native Ruffle client in `desktop/`.
+  WebSocket bridge and optional raw TCP game ports, for several players.
 
 ## What is rebuilt, and how faithful it is
 
@@ -171,11 +170,16 @@ storage, the 百田大剧场 (the 奥拉星 films that survive), the start scree
 without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星币,
 晶豆, experience, any 亚比 by number, 蓝宝石; not of 2013), the 收费 goods
 bought with 星币, the 亚比孵化器, 更换技能 in the 背包, the 生态园 games
-(动物保卫战, 动物捕捉, 海底保卫战; later copies of the games), 欢乐岛,
-gathering in scenes, the wild and rare 亚比 the
+(动物保卫战, 动物捕捉, 海底保卫战; later copies of the games), the 动物园
+(rebuilt on the later zoo's art: animals that grow, feed, 收获 and 变异 into
+亚比), the 家园's 经验分配器 and 我的荣誉, the 守护者 bosses of the areas,
+黑星堡垒 (the era dungeon and its bosses), the 奥拉周刊 of every week from
+2010 on in the 图书馆, 欢乐岛, gathering in scenes, the wild and rare 亚比 the
 November 2012 map lists for each place, battles, and the mini games (their
-entrance panels, the games' own SWFs, 晶币 for the score). Known gaps: the
-HELLO's panel, the zoo, bosses and arenas, friends, daily tasks and most activities
+entrance panels, the games' own SWFs, 晶币 for the score). The 工具箱 also
+travels to any scene by name and exports and imports the browser's saves, and
+the bar's 物品 shows everything collected. Known gaps: the HELLO's panel, the
+2012 四大副本, 时空隧道's floors, friends, daily tasks and most activities
 are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every
 missing system, what survives of it, the server commands it needs, and the
 milestone order.
@@ -186,10 +190,9 @@ milestone order.
 game/       the archived game files (see above) and FILES.jsonl
 rebuild/    AS3 sources (src/), generated sources (gen/), static data (static/), build scripts (build/)
 server/     emulator (TypeScript): 2013 protocol, in-page bundle, service worker, Node server, tests
-web/        front end: page, boot script, settings
+web/        front end: page, boot script, settings, the theatre and 存档 panels
 scripts/    build-static.mjs (dist/), serve.mjs (local static server)
 tools/      archive, dating, data generation and SWF tools (Python 3)
-tests/      Python tests and the URL-mapping fixtures shared by Python, TypeScript and Rust
+tests/      Python tests and the URL-mapping fixtures shared by Python and TypeScript
 docs/       PLAN.md (state and plan), ARCHIVE.md (the CDN archive)
-desktop/    AolaRuffle: patch turning MoleRuffle (native Ruffle) into an offline client
 ```

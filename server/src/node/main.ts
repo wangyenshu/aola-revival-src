@@ -4,7 +4,6 @@
 //   node server/src/node/main.ts [--mirror build/rebuilt,game] [--web dist] --game 8001 --date 2012-08-15
 //
 // Then point a runtime at it:
-//   Ruffle desktop fork   built-in redirect (desktop/README.md)
 //   browser               http://127.0.0.1:8080/  (service worker serves the mirror)
 //   Flash projector       hosts file: 127.0.0.1 aola.100bt.com, and --http 80
 

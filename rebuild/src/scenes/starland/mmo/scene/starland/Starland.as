@@ -7,7 +7,9 @@ package mmo.scene.starland
    import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.display.Sprite;
+   import flash.events.MouseEvent;
    import flash.geom.Point;
+   import mmo.play.scene.SceneManager;
    import mmo.common.utils.tips.TipsManager;
    import mmo.play.bigscene.BigSceneBase;
    import mmo.revival.RNotice;
@@ -82,9 +84,35 @@ package mmo.scene.starland
             tips.addTips(area, e[0]);
             addEntrances(area, e[1], e[2]);
          }
+         // 环保小卫士 (the recycling bin by the fountain, btnGame): the game room
+         // gameRecycleGame of the January 2013 config.xml (owner starshopping).
+         var bin:InteractiveObject = findNamed(this, "btnGame") as InteractiveObject;
+         if (bin != null)
+         {
+            tips.addTips(bin, "环保小卫士");
+            if (bin is Sprite) Sprite(bin).buttonMode = true;
+            bin.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+            {
+               e.stopImmediatePropagation();
+               SceneManager.getInstance().loadGame("gameRecycleGame");
+            });
+         }
          var house:Sprite = hotspot(84, 258, 150, 70);
          tips.addTips(house, "小屋");
          addEntranceAction(house, goHome);
+      }
+
+      private static function findNamed(d:DisplayObject, name:String):DisplayObject
+      {
+         if (d == null) return null;
+         if (d.name == name) return d;
+         var c:flash.display.DisplayObjectContainer = d as flash.display.DisplayObjectContainer;
+         for (var i:int = 0; c != null && i < c.numChildren; i++)
+         {
+            var f:DisplayObject = findNamed(c.getChildAt(i), name);
+            if (f != null) return f;
+         }
+         return null;
       }
 
       private static function newbieDone():Boolean

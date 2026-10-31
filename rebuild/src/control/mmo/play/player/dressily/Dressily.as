@@ -1,5 +1,7 @@
 package mmo.play.player.dressily
 {
+   import mmo.play.player.dressily.mstate.IMovingState;
+   import mmo.play.player.dressily.mstate.NormalMovingState;
    import flash.display.DisplayObject;
    import flash.display.Sprite;
    import flash.events.Event;
@@ -71,6 +73,11 @@ package mmo.play.player.dressily
          {
             dispatchEvent(new DressilyEvent(DressilyEvent.ACTION_BEGIN, {action: code}));
          }
+      }
+
+      public function getMovingState():IMovingState
+      {
+         return NormalMovingState.INSTANCE;
       }
 
       public function currentAction():String

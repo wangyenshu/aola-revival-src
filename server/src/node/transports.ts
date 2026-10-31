@@ -1,4 +1,4 @@
-// Node transports: raw TCP (Flash projector, Ruffle desktop), WebSocket
+// Node transports: raw TCP (Flash projector), WebSocket
 // (Ruffle web via socketProxy) and the port-843 policy server.
 
 import net from "node:net";

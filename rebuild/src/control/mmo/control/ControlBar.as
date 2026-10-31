@@ -36,7 +36,7 @@ package mmo.control
     */
    public class ControlBar extends Sprite
    {
-      /** Called with a button name: map phrase face action shoot card friend team squad pet home mall history toolbox. */
+      /** Called with a button name: map phrase face action shoot card friend team squad pet items home mall history toolbox. */
       public var onButton:Function;
       /** Called with the line typed into the chat box. */
       public var onSay:Function;
@@ -51,7 +51,8 @@ package mmo.control
       private var popup:DisplayObject;
 
       private static const LEFT:Array = [["phrase", "发言", 181], ["face", "表情", 232], ["action", "动作", 277], ["shoot", "射击", 320]];
-      private static const RIGHT:Array = [["card", "信息卡", 582], ["friend", "好友", 632], ["team", "组队", 681], ["squad", "战队", 732], ["pet", "背包", 786], ["home", "回家", 838]];
+      // 物品 (the revival's: every item one has) between 背包 and 回家, the others closer together for it.
+      private static const RIGHT:Array = [["card", "信息卡", 572], ["friend", "好友", 618], ["team", "组队", 664], ["squad", "战队", 710], ["pet", "背包", 756], ["items", "物品", 802], ["home", "回家", 847]];
       private static const ICON_Y:int = 526;
       private static const LABEL_DY:int = 15;
 

@@ -26,6 +26,12 @@ package mmo.play.scene
          this.swf = swf;
       }
 
+      /** An instance (副本) room, entered by SceneManager.loadFB (FBSceneInfo). */
+      public function get isFB():Boolean
+      {
+         return false;
+      }
+
       /** The 2013 name of roomName. */
       public function get serverRoom():String
       {

@@ -3,7 +3,9 @@ package mmo.control
    import flash.display.DisplayObject;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.external.ExternalInterface;
    import flash.text.TextField;
+   import mmo.config.ConfigReader;
    import mmo.common.member.MemberManager;
    import mmo.common.user.UserInfo;
    import mmo.framework.comm.SocketClient;
@@ -12,6 +14,7 @@ package mmo.control
    import mmo.interfaces.pet.data.IPetDictionaryDataService;
    import mmo.interfaces.pet.data.PetDictionaryDataItem;
    import mmo.loader.layer.LayerManager;
+   import mmo.play.scene.SceneManager;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
 
@@ -24,7 +27,7 @@ package mmo.control
    public class ToolboxPanel extends Sprite
    {
       private static const W:int = 470;
-      private static const H:int = 400;
+      private static const H:int = 492;
       private static var current:ToolboxPanel;
 
       private var box:Sprite;
@@ -33,6 +36,7 @@ package mmo.control
       private var petName:TextField;
       private var raceIn:TextField;
       private var levelIn:TextField;
+      private var sceneIn:TextField;
       private var vipButton:Sprite;
       private var vip:Boolean;
 
@@ -118,10 +122,36 @@ package mmo.control
          petName.y = 304;
          box.addChild(petName);
 
+         // 传送 to any place of config.xml, by its name (crossroad) or its
+         // Chinese name (十字大道); 存档: the saves of this browser to a file and back.
+         box.addChild(RUI.well(16, 350, W - 32, 84));
+         var tl:TextField = RUI.text(14, RUI.BLUE, true);
+         tl.text = "传送    地图";
+         tl.x = 30;
+         tl.y = 362;
+         box.addChild(tl);
+         sceneIn = RUI.input(150, "", null, 30, "toolboxScene");
+         sceneIn.x = 118;
+         sceneIn.y = 360;
+         box.addChild(sceneIn);
+         box.addChild(place(RUI.button("传送", teleport, 70, 26, 0xFFC45A, 0xF07812, "toolboxGo"), 280, 358));
+         var hint:TextField = RUI.text(11, 0x557799, false);
+         hint.text = "地图名或中文名，如 crossroad、十字大道";
+         hint.x = 30;
+         hint.y = 390;
+         box.addChild(hint);
+         var sl:TextField = RUI.text(14, RUI.BLUE, true);
+         sl.text = "存档";
+         sl.x = 30;
+         sl.y = 408;
+         box.addChild(sl);
+         box.addChild(place(RUI.button("导出存档", function():void { saves("aolaSaveExport"); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxExport"), 118, 405));
+         box.addChild(place(RUI.button("导入存档", function():void { saves("aolaSaveImport"); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxImport"), 216, 405));
+
          said = RUI.text(12, 0x8A3B00, true, W - 40);
          said.height = 40;
          said.x = 20;
-         said.y = 348;
+         said.y = 440;
          box.addChild(said);
 
          SocketClient.instance.addEventListener("revival_toolbox", onReply);
@@ -175,6 +205,56 @@ package mmo.control
          }
          catch (err:Error) {}
          petName.text = int(raceIn.text) <= 0 ? "输入亚比的编号（图鉴里的号码）" : n ? "No." + int(raceIn.text) + "  " + n : "No." + int(raceIn.text) + "  图鉴里没有这只亚比，仍可试试领取";
+      }
+
+      /** A place of config.xml by its name or its Chinese name (desc). */
+      private static function sceneFor(q:String):String
+      {
+         var cfg:ConfigReader = ConfigReader.instance;
+         if (cfg.getSceneSwf(q)) return q;
+         try
+         {
+            for each (var r:XML in cfg.xmlDocument..r)
+            {
+               if (String(r.@desc) == q && String(r.@nm) && cfg.getSceneSwf(String(r.@nm))) return String(r.@nm);
+            }
+            for each (var r2:XML in cfg.xmlDocument..r)
+            {
+               if (String(r2.@desc).indexOf(q) >= 0 && String(r2.@nm) && cfg.getSceneSwf(String(r2.@nm))) return String(r2.@nm);
+            }
+         }
+         catch (e:Error) { RLog.error("toolbox scene", e); }
+         return null;
+      }
+
+      private function teleport():void
+      {
+         var q:String = sceneIn.text.replace(/^\s+|\s+$/g, "");
+         if (!q) return;
+         var name:String = sceneFor(q);
+         if (name == null)
+         {
+            said.text = "找不到地图「" + q + "」";
+            return;
+         }
+         close();
+         SceneManager.getInstance().loadScene(name);
+      }
+
+      /** The page's 存档 panel (web/saves.js): export to a file, import from one. */
+      private function saves(fn:String):void
+      {
+         try
+         {
+            if (ExternalInterface.available)
+            {
+               ExternalInterface.call(fn);
+               close();
+               return;
+            }
+         }
+         catch (e:Error) { RLog.error("toolbox saves", e); }
+         said.text = "这个页面不能导出导入存档";
       }
 
       private function getPet():void

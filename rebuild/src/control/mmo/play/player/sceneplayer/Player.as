@@ -1,5 +1,7 @@
 package mmo.play.player.sceneplayer
 {
+   import mmo.play.player.dressily.mstate.IMovingState;
+   import mmo.play.player.dressily.mstate.NormalMovingState;
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.Graphics;
@@ -101,6 +103,11 @@ package mmo.play.player.sceneplayer
       final public function action(code:String):void
       {
          if (_dressily) _dressily.action(code);
+      }
+
+      final public function getMovingState():IMovingState
+      {
+         return NormalMovingState.INSTANCE;
       }
 
       final public function currentAction():String

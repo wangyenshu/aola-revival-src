@@ -2,15 +2,19 @@ package mmo.house.b000247
 {
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
+   import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
    import flash.geom.Point;
+   import flash.geom.Rectangle;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
    import flash.utils.getDefinitionByName;
+   import flash.utils.getQualifiedClassName;
    import mmo.common.utils.tips.TipsManager;
+   import mmo.framework.comm.PetEggClient;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
    import mmo.housecommon.HouseBase;
@@ -42,12 +46,16 @@ package mmo.house.b000247
     *
     * Working: 我的家 (the main house), 亚比仓库 (pet/petwarehouse), the 植树盆
     * (PlantPanel: the trees of PlantData, drawn from their June 2012
-    * pictures plant/y<id>; PlantExtension), 离开花园, 地图, 背包, 好友, 周刊.
-    * The others say they are not rebuilt yet.
+    * pictures plant/y<id>; PlantExtension), 亚比孵化器 (pet/pethatchegg),
+    * 经验分配器 (ExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
+    * 进入动物园 (the rebuilt zoo, furniture/b020000), 离开花园, 地图, 背包,
+    * 好友, 周刊. The others say they are not rebuilt yet.
     */
    public class b000247 extends HouseBase
    {
       private static const NOT_YET:String = "这个功能还在修复中哦！";
+      /** The 动物园 (rebuilt furniture/b020000). */
+      private static const ZOO_ID:int = 20000;
 
       private var pot:Sprite;
       private var treeHolder:Sprite;
@@ -59,6 +67,7 @@ package mmo.house.b000247
       {
          super(670, 380);
          addInitLocation("fromHouse", new Point(780, 262));
+         addInitLocation("fromZoo", new Point(390, 280));
          name = "garden";
          for each (var n:String in ["obstruction", "background", "overlap", "foreground", "topground"])
          {
@@ -136,10 +145,10 @@ package mmo.house.b000247
          spot(fg, 0, 0, 0, 0, 548, 262, "植树盆", openPot, pot);
          spot(fg, 600, 336, 140, 92, 680, 400, "离开花园", leaveHome);
          // The era 亚比孵化器 panel (pet/pethatchegg; the server's PetEggExtension, eggs.ts).
-         spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", function():void { if (isMine()) panel("PetHatchEgg"); else notYet(); });
-         spot(fg, 248, 198, 76, 94, 285, 300, "经验分配器", notYet);
-         spot(fg, 128, 66, 116, 104, 200, 270, "我的荣誉", notYet);
-         spot(fg, 330, 20, 110, 172, 390, 270, "进入动物园", notYet);
+         spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", function():void { if (isMine()) openHatcher(); else notYet(); });
+         spot(fg, 248, 198, 76, 94, 285, 300, "经验分配器", function():void { if (isMine()) ExpPanel.show(); else notYet(); });
+         spot(fg, 128, 66, 116, 104, 200, 270, "我的荣誉", function():void { if (isMine()) HonourWall.show(); else notYet(); });
+         spot(fg, 330, 20, 110, 172, 390, 270, "进入动物园", function():void { if (loader != null) loader.loadSubHouse(ZOO_ID, "fromGarden"); });
          spot(fg, 782, 288, 100, 84, 700, 335, "留言板", notYet);
          // The garden's bar (the control bar is put away here, as in 2012).
          button(28, 386, 70, 54, "地图", function():void
@@ -157,7 +166,7 @@ package mmo.house.b000247
             });
          });
          button(72, 8, 52, 50, "邮箱", notYet);
-         button(132, 8, 52, 50, "勋章", notYet);
+         button(132, 8, 52, 50, "勋章", function():void { if (isMine()) HonourWall.show(); else notYet(); });
          button(190, 8, 52, 50, "相册", notYet);
          button(770, 8, 52, 50, "图鉴", notYet);
          button(826, 8, 52, 50, "游戏", notYet);
@@ -173,6 +182,8 @@ package mmo.house.b000247
          SocketClient.instance.removeEventListener("revival_garden", onGarden);
          PlantPanel.closeIfOpen();
          taskIconOverPicture(false);
+         var hatcher:Sprite = hatcherOnScreen();
+         if (hatcher != null) hatcher.visible = false;
          if (control != null) control.show();
          super.onLeaveRoom();
       }
@@ -287,6 +298,63 @@ package mmo.house.b000247
          {
             try { IShowPanel(svc).showPanel(); } catch (e:Error) { RLog.error("garden " + service, e); }
          });
+      }
+
+      /**
+       * The era 亚比孵化器 panel (pet/pethatchegg) cannot close itself here:
+       * its drag strip lies over the close button, and closing disposes it
+       * through FloatPanelManager's PanelProxy, which disposes the panel,
+       * which asks FloatPanelManager to remove it, which disposes the proxy
+       * again, without end (the player stopped: the stack overflows). So the
+       * panel is never taken off the screen: a clear hotspot over its close
+       * button hides it, and 亚比孵化器 shows the same panel again and asks
+       * for the eggs anew (PetEggClient 1-2, which it listens for).
+       */
+      private static function openHatcher():void
+      {
+         var had:Sprite = hatcherOnScreen();
+         if (had != null)
+         {
+            had.visible = true;
+            LayerManager.getBaseTop().setChildIndex(had, LayerManager.getBaseTop().numChildren - 1);
+            PetEggClient.instance.getHatchEggs(2);
+            return;
+         }
+         ServiceContainer.instance.tryGetService("PetHatchEgg", function(svc:IService, o:Object):void
+         {
+            try { IShowPanel(svc).showPanel(); } catch (e:Error) { RLog.error("garden hatcher", e); return; }
+            var p:Sprite = hatcherOnScreen();
+            RLog.log("garden: 亚比孵化器 " + (p != null ? "open" : "not found"));
+            if (p == null) return;
+            var x:DisplayObject = p.getChildByName("btnClose");
+            if (x == null) return;
+            if (x is InteractiveObject) InteractiveObject(x).mouseEnabled = false;
+            var r:Rectangle = x.getBounds(p);
+            var hot:Sprite = new Sprite();
+            hot.name = "hatcherClose";
+            hot.buttonMode = true;
+            hot.graphics.beginFill(0xFFFFFF, 0);
+            hot.graphics.drawRect(r.x - 6, r.y - 6, r.width + 12, r.height + 12);
+            hot.graphics.endFill();
+            p.addChild(hot);
+            hot.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+            {
+               e.stopPropagation();
+               p.visible = false;
+               RLog.log("garden: 亚比孵化器 closed");
+            });
+         });
+      }
+
+      private static function hatcherOnScreen():Sprite
+      {
+         var top:DisplayObjectContainer = LayerManager.getBaseTop();
+         for (var i:int = 0; top && i < top.numChildren; i++)
+         {
+            var c:DisplayObject = top.getChildAt(i);
+            if (getQualifiedClassName(c) == "mmo.pet.pethatchegg::PetHatchEggPanel") return c as Sprite;
+         }
+         return null;
       }
 
       private static function notYet():void

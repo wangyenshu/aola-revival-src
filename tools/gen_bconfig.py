@@ -121,19 +121,35 @@ def main(argv=None) -> None:
             el.set("p", ";".join(f"{n},{p}" for n, p in pages))
             kept += 1
     # 奥拉周刊: WeeklyService opened the issue config.xml names (<weekly>) as a
-    # catalog of this list. The live list no longer has the weeklies, so each
-    # issue with era page files in mirror/ (weekly/weeklyN/aolaweeklyN_<k>.swf,
-    # page classes mmo.weekly.weeklyN._NPage<k>_<m>) becomes one, oldest page
-    # first. Its numbers also go to rebuild/gen/weekly for WeeklyService.
+    # catalog of this list, and the library shows the back issues. The live
+    # list no longer has the weeklies, so each issue with page files in
+    # mirror/ or game/ becomes one: weekly/weeklyN/aolaweeklyN_<k>.swf with
+    # page classes mmo.weekly.weeklyN._NPage<k>_1, or (the first issues)
+    # weekly/aolaweeklyN_<k>.swf with mmo.weekly._NPage<k>_1, as config.xml's
+    # weekly1 has it; one page per file, in file order (tools/weeklies.py
+    # takes the back issues from the live server). Its numbers also go to
+    # rebuild/gen/weekly for WeeklyService.
     issues = []
     cats = root.find("catalogs")
-    for d in sorted(glob.glob(os.path.join(a.mirror, HOST, "weekly", "weekly[0-9]*"))):
-        n = int(re.sub(r"\D", "", os.path.basename(d)))
-        pages = sorted(era_pages(a.mirror, f"weekly/weekly{n}/aolaweekly{n}_", f"mmo.weekly.weekly{n}._{n}Page"))
-        if not pages or cats is None:
+    roots = [a.mirror] + ([a.game] if a.game else [])
+    numbers = set()
+    for r in roots:
+        for d in glob.glob(os.path.join(r, HOST, "weekly", "weekly[0-9]*")):
+            numbers.add(int(re.sub(r"\D", "", os.path.basename(d))))
+        for f in glob.glob(os.path.join(r, HOST, "weekly", "aolaweekly[0-9]*_[0-9]*.swf*")):
+            numbers.add(int(re.match(r"aolaweekly(\d+)_", os.path.basename(f)).group(1)))
+    for n in sorted(numbers):
+        for f, t in ((f"weekly/weekly{n}/aolaweekly{n}_", f"mmo.weekly.weekly{n}._{n}Page"), (f"weekly/aolaweekly{n}_", f"mmo.weekly._{n}Page")):
+            first: dict[int, int] = {}
+            for r in roots:
+                for k, m in era_pages(r, f, t):
+                    first[k] = min(m, first.get(k, m))
+            if first:
+                break
+        if not first or cats is None:
             continue
-        ET.SubElement(cats, "catalog", {"no": f"weekly{n}", "n": f"奥拉周刊第{n}期", "f": f"weekly/weekly{n}/aolaweekly{n}_",
-                                        "t": f"mmo.weekly.weekly{n}._{n}Page", "p": ";".join(f"{k},{m}" for k, m in pages)})
+        ET.SubElement(cats, "catalog", {"no": f"weekly{n}", "n": f"奥拉周刊第{n}期", "f": f, "t": t,
+                                        "p": ";".join(f"{k},{first[k]}" for k in sorted(first))})
         issues.append(n)
         kept += 1
     wpkg = os.path.join(a.out, "..", "weekly", "mmo", "weekly")
