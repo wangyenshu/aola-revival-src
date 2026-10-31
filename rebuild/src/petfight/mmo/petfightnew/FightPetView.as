@@ -46,18 +46,29 @@ package mmo.petfightnew
          return raceId;
       }
 
-      /** Load the battle sprite; onReady() either way. */
+      /**
+       * Load the battle sprite; onReady() either way. The 亚比 one could not get
+       * in 2012 (迅猛龙 400 …) have no back view (_2) in their file: the front
+       * one (_1) mirrored stands in for it. The file is asked for without a
+       * class name, as ResScheduler stops with an error (and never calls back)
+       * when a named class is missing from it.
+       */
       public function load(onReady:Function):void
       {
-         var cls:String = "mmo.petfight.pet" + raceId + (front ? "_1" : "_2");
+         var base:String = "mmo.petfight.pet" + raceId;
+         var cls:String = base + (front ? "_1" : "_2");
          var make:Function = function(... a):void
          {
-            if (ApplicationDomain.currentDomain.hasDefinition(cls))
+            var dom:ApplicationDomain = ApplicationDomain.currentDomain;
+            var pick:String = dom.hasDefinition(cls) ? cls : dom.hasDefinition(base + "_1") ? base + "_1" : dom.hasDefinition(base + "_2") ? base + "_2" : null;
+            if (pick != null)
             {
-               var C:Class = getDefinitionByName(cls) as Class;
+               var C:Class = getDefinitionByName(pick) as Class;
                mc = new C() as MovieClip;
                if (mc != null)
                {
+                  // A sprite of the other side turned round: facing the other way.
+                  if (pick != cls) mc.scaleX = -1;
                   addChild(mc);
                   mc.gotoAndStop(1);
                   onReady();
@@ -67,7 +78,7 @@ package mmo.petfightnew
             useIcon(onReady);
          };
          if (ApplicationDomain.currentDomain.hasDefinition(cls)) make();
-         else ResScheduler.getResource("fightassets/pet" + raceId, make, cls, function(e:* = null):void
+         else ResScheduler.getResource("fightassets/pet" + raceId, make, "", function(e:* = null):void
          {
             RLog.log("fight: no battle sprite for 亚比 " + raceId);
             useIcon(onReady);
@@ -189,6 +200,8 @@ package mmo.petfightnew
             sx = -sx;
             sy = -sy;
          }
+         // Inside a mirrored sprite (a front view standing in for the back) left and right swap.
+         if (mc != null && mc.scaleX < 0) sx = -sx;
          TweenLite.to(inner, Math.max(1, frames), {x: inner.x + sx, y: inner.y + sy, useFrames: true});
       }
 

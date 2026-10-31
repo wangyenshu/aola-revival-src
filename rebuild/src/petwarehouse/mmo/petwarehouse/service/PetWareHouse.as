@@ -17,6 +17,7 @@ package mmo.petwarehouse.service
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RLog;
+   import mmo.revival.RPetIcon;
    import mmo.revival.RNotice;
    import mmo.revival.RUI;
 
@@ -212,8 +213,8 @@ package mmo.petwarehouse.service
          var put:Function = function(d:* = null):void
          {
             if (!ApplicationDomain.currentDomain.hasDefinition(cls) || into.stage == null && into.parent == null) return;
-            var C:Class = getDefinitionByName(cls) as Class;
-            var pic:DisplayObject = new C() as DisplayObject;
+            var pic:DisplayObject = RPetIcon.make(cls);
+            if (pic == null) return;
             var b:Object = pic.getBounds(pic);
             var k:Number = Math.min(1.2, fit / Math.max(1, b.width), fit / Math.max(1, b.height));
             pic.scaleX = pic.scaleY = k;

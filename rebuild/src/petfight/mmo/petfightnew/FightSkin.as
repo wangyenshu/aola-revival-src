@@ -15,6 +15,7 @@ package mmo.petfightnew
    import flash.text.TextFormatAlign;
    import flash.utils.getDefinitionByName;
    import mmo.loader.scheduler.ResScheduler;
+   import mmo.revival.RPetIcon;
 
    /**
     * REBUILT. Drawing helpers for the battle screen. The 2012 battle art was
@@ -186,8 +187,8 @@ package mmo.petfightnew
          var put:Function = function(... a):void
          {
             if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-            var C:Class = getDefinitionByName(cls) as Class;
-            var pic:DisplayObject = new C() as DisplayObject;
+            var pic:DisplayObject = RPetIcon.make(cls);
+            if (pic == null) return;
             var b:Object = pic.getBounds(pic);
             var k:Number = Math.min(1.3, size / Math.max(1, b.width), size / Math.max(1, b.height));
             pic.scaleX = pic.scaleY = k;

@@ -189,18 +189,32 @@ package mmo.house.b000247
       }
 
       /**
-       * The picture shows the 任务 button where the game's own one (taskpanelnew,
-       * "taskIcon" at 912, 8) stands a little off: in the garden the live
-       * button is laid exactly over the drawn one.
+       * The picture shows its own 任务 button where the game's one (taskpanelnew,
+       * "taskIcon" at 912, 8) stands a little off, and the two showed as two
+       * overlapping icons: in the garden the live button is hidden and a clear
+       * hotspot over the drawn one presses it.
        */
-      private static function taskIconOverPicture(over:Boolean):void
+      private function taskIconOverPicture(over:Boolean):void
       {
          try
          {
             var icon:DisplayObject = LayerManager.getBaseControl().getChildByName("taskIcon");
             if (icon == null) return;
-            icon.x = over ? 879 : 912;
-            icon.y = over ? -2 : 8;
+            icon.visible = !over;
+            if (!over) return;
+            var hot:Sprite = new Sprite();
+            hot.name = "gardenBtn_任务";
+            hot.buttonMode = true;
+            hot.graphics.beginFill(0xFFFFFF, 0);
+            hot.graphics.drawRect(878, 0, 82, 58);
+            hot.graphics.endFill();
+            hot.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { e.stopPropagation(); });
+            hot.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+            {
+               e.stopPropagation();
+               icon.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+            });
+            hud.addChild(hot);
          }
          catch (e:Error) {}
       }
@@ -334,7 +348,9 @@ package mmo.house.b000247
             hot.name = "hatcherClose";
             hot.buttonMode = true;
             hot.graphics.beginFill(0xFFFFFF, 0);
-            hot.graphics.drawRect(r.x - 6, r.y - 6, r.width + 12, r.height + 12);
+            // The X the panel draws stands some 40 px right of btnClose's own
+            // bounds as the player reports them: the hotspot takes both.
+            hot.graphics.drawRect(r.x - 6, r.y - 12, r.width + 62, r.height + 28);
             hot.graphics.endFill();
             p.addChild(hot);
             hot.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void

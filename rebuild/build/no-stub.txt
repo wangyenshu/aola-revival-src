@@ -36,3 +36,4 @@ pet/petwarehouse
 pet/petskillmesservice
 baseservice/notifyview
 dailyactivity/dailyactivityservice
+buyback/stuffbuyback

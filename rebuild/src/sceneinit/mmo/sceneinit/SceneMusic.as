@@ -13,13 +13,18 @@ package mmo.sceneinit
     * REBUILT after the later mmo.sceneinit.SceneMusic: the music of the scene
     * (config.xml mu, comma separated: one picked at random each time a piece
     * ends), kept playing across scenes that share it, stopped where a room
-    * has none, given back after a battle (whose start stops it) and when the
-    * player switches the music on again (SoundManager.switchMusic, the sound
-    * switch of the control bar).
+    * has none, given back after a battle and when the player switches the
+    * music on again (SoundManager.switchMusic, the sound switch of the
+    * control bar). A battle plays the battle music, looped (the battle module
+    * that played it in 2013 is lost; the later client's SoundManager keeps two,
+    * music/fightBgMusic0 and 1: 1 is the classic one, the older encoding of
+    * the two, 0 a 2019 piece).
     */
    public class SceneMusic
    {
       private var sceneName:String;
+      private var fighting:Boolean;
+      public static const FIGHT_MUSIC:String = "music/fightBgMusic1.mp3";
 
       public function SceneMusic()
       {
@@ -76,21 +81,34 @@ package mmo.sceneinit
 
       private function onSoundComplete(e:Event):void
       {
+         if (fighting) return;
          if (sceneName != null && !SoundManager.instance.isClose) playRandom(musicOf(sceneName) || "");
       }
 
       private function onSwitchOn(e:SoundManagerEvent):void
       {
-         if (sceneName != null) playSceneMusic(sceneName);
+         if (fighting) fightMusic();
+         else if (sceneName != null) playSceneMusic(sceneName);
       }
 
       private function onFightStart(e:Event):void
       {
+         fighting = true;
          SoundManager.instance.stopBackgroundMusic();
+         fightMusic();
+      }
+
+      private function fightMusic():void
+      {
+         if (SoundManager.instance.isClose) return;
+         RLog.log("music: " + FIGHT_MUSIC + " (battle)");
+         SoundManager.instance.playBackgroundMusic(FIGHT_MUSIC, 1, true);
       }
 
       private function onFightEnd(e:Event):void
       {
+         fighting = false;
+         SoundManager.instance.stopBackgroundMusic();
          var info:Object = SceneManager.getInstance().loadedSceneInfo;
          if (info != null) playSceneMusic(String(info.sceneName));
       }

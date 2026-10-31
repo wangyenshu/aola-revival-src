@@ -687,6 +687,9 @@ export const GUARDIANS: [string, string][] = [
   ["10108,10108,20108", "60,80,100"], ["10469#10472", "100#100"], ["10475#20475", "100#100"], ["30682,10682", "88,100"],
   ["10715,20715", "80,100"], ["14523#11514#11516", "100#80#80"], ["10757,20757", "80,100"], ["10840,20840", "80,100"],
   ["10865,20865", "80,100"], ["11213,21213,31213", "60,80,100"],
+  // Bosses of the 2013 world beside that table (the rebuilt dailyactivity): 伊泽 and 迦娜 (mysticocean5),
+  // 烈焰鸟 (feier4), 神武月 and 战无炎 (choicetemple); their levels are RECONSTRUCTED.
+  ["11320,11322", "100,100"], ["30278", "80"], ["10105,20105", "80,100"], ["10111", "90"],
 ];
 
 /** A 守护者 form's level (its race at that index), else 20 + 5 per index as before. */
@@ -697,6 +700,23 @@ export function guardianLevel(race: number, index: number): number {
     if (rs[index] === race) return ls[index] ?? ls[0];
   }
   return Math.min(100, 20 + 5 * index);
+}
+
+/** The 亚比蛋 of the 2013 PetEggData (materials type 5): egg N hatches race N, the first form of a line. */
+export const EGG_IDS = new Set([
+  13, 37, 64, 73, 79, 82, 85, 88, 91, 94, 97, 100, 103, 106, 109, 112, 127, 130, 178, 193, 253, 265, 267, 276, 282, 285, 297, 315,
+  337, 392, 409, 416, 425, 467, 470, 473, 482, 488, 515, 520, 602, 637, 663, 680, 705, 713, 755, 770, 786, 817, 839, 856, 858, 864,
+  873, 890, 947, 1143, 1160, 1184, 1188, 1211, 1226, 1237, 1239, 1256, 1258, 1260, 1264, 1266, 1275, 1277, 1292, 1311, 1319, 1321,
+  1337, 1340, 1393,
+]);
+
+/** The egg of a species' evolution line (its first form, when PetEggData has that egg), else 0. */
+export function eggOfLine(t: { species: Record<string, { next?: number }> }, race: number): number {
+  const prev = new Map<number, number>();
+  for (const [id, sp] of Object.entries(t.species)) if (sp.next) prev.set(sp.next, Number(id));
+  let r = race;
+  for (let i = 0; i < 6 && !EGG_IDS.has(r) && prev.has(r); i++) r = prev.get(r)!;
+  return EGG_IDS.has(r) ? r : 0;
 }
 
 /** PetFightTypes.FIGHT_IN_MEMBER_ARENA: the bosses of 黑星堡垒. */
@@ -837,10 +857,25 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // fightWithBoss {raceId, index}: a 守护者 (dailyactivity/dailyactivityservice, rebuilt): one of the
   // forms of BossTimeHelper.bossTimeConfig, numbered variant * 10000 + species, at its level there;
   // no catching. The asked id comes back with the end of the fight, which the client checks.
+  // A win brings the 守护者's 亚比蛋 (PetEggData: the egg of its line's first form, 88 沙麒麟亚比蛋
+  // for 沙麒麟 90), into the eggs (type 5) the 家园's 亚比孵化器 hatches.
   world.xt("PetExtension.54_16", async (ctx) => {
-    const asked = Number(ctx.params.raceId) | 0;
+    // A pair asked for at once ("11320#11322", fightWithTeamBoss) fights its first here.
+    const asked = Number(String(ctx.params.raceId ?? "0").split("#")[0]) | 0;
     const index = Math.max(0, Number(ctx.params.index) | 0);
-    await begin(ctx, asked % 10000, guardianLevel(asked, index), false, undefined, asked);
+    const t = await deps.tables();
+    // The species of a boss form: variant * 10000 + species, or for 终极麦斗王's 14523 / 11514 / 11516
+    // (PetAssetsMap) variant * 1000 + species.
+    const species = speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000;
+    const egg = eggOfLine(t, species);
+    const onWin: Battle["onWin"] = egg
+      ? (o) => {
+          const eggs = (((o as { items?: Record<string, Record<string, number>> }).items ??= {})["5"] ??= {});
+          eggs[String(egg)] = (eggs[String(egg)] ?? 0) + 1;
+          return [["onAmountUpdated", { amount: `5_${egg}_0_1` }]];
+        }
+      : undefined;
+    await begin(ctx, species, guardianLevel(asked, index), false, onWin, asked);
   });
 
   /**

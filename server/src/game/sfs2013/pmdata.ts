@@ -119,6 +119,16 @@ export function skillsAt(sp: PmSpecies, level: number): number[] {
   return ids.slice(-4);
 }
 
+/** Every skill of the learnset up to `level`, in the order learnt (what a 亚比 of that level knows). */
+export function allSkillsAt(sp: PmSpecies, level: number): number[] {
+  const ids: number[] = [];
+  for (const [lv, id] of sp.learn) {
+    if (lv > level) break;
+    if (!ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
 /** Skills learnt exactly when reaching `level`. */
 export function skillsLearntAt(sp: PmSpecies, level: number): number[] {
   return sp.learn.filter(([lv]) => lv === level && level > 0).map(([, id]) => id);

@@ -101,6 +101,8 @@ build pet mmo/pet/petdictionarydata/DocPetDict.as petdict.swf "pet/petdictionary
 unset GEN
 # The notice strip: an empty Sprite (later homes hide and show it as a DisplayObject).
 build notifyview mmo/notifyview/DocNotifyView.as notifyview.swf "baseservice/notifyview.swf%3F130124"
+# The 兜兜回收器 of 道具店, 服装店, 家具店: rebuilt buyback/stuffbuyback (service StuffBuyBack).
+build buyback mmo/buyback/stuff/DocStuffBuyBack.as stuffbuyback.swf "buyback/stuffbuyback.swf%3F1210"
 # The 守护者 (the areas' bosses of BossTimeHelper): rebuilt dailyactivity/dailyactivityservice.
 build dailyactivity mmo/dailyactivity/DocDailyActivity.as dailyactivity.swf "dailyactivity/dailyactivityservice.swf%3F130117"
 # What panels ask about a 亚比 or skill (names, evolution, egg pictures): rebuilt
@@ -273,6 +275,12 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/temple1.swf)" \
 
 # 欢乐岛: the 2020 scene cut down to the 2013 engine (its own code needs later
 # services and could not be built), on its own art.
+# 火山口 (where 烈焰鸟 sleeps): the later scene/feier4's code cut down, on its own art.
+build scenes/feier4 mmo/scene/feier/DocFeier4Revived.as feier4-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/feier4.swf)" \
+  --code "$OUT/feier4-code.swf" --bind 0=mmo.scene.feier.DocFeier4Revived --bind 67=mmo.scene.feier.Feier4Revived \
+  --note "LATER scene/feier4: its code cut down for the 2013 interfaces (aola-revival), on its own art" \
+  --out "$W/scene/feier4.swf%3F1210"
 build scenes/summerhotspring mmo/scene/hotspringscene/DocSummerHotSpringRevived.as summerhotspring-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art scene/summerhotspring.swf)" \
   --code "$OUT/summerhotspring-code.swf" --bind 0=mmo.scene.hotspringscene.DocSummerHotSpringRevived --bind 45=mmo.scene.hotspringscene.SummerHotSpringRevived \

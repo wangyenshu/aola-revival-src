@@ -28,6 +28,7 @@ package mmo.pet.petpackage
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RLog;
+   import mmo.revival.RPetIcon;
    import mmo.revival.RNotice;
    import mmo.revival.RUI;
 
@@ -205,8 +206,8 @@ package mmo.pet.petpackage
          var put:Function = function(d:*):void
          {
             if (!ApplicationDomain.currentDomain.hasDefinition(cls) || holder.parent == null) return;
-            var C:Class = getDefinitionByName(cls) as Class;
-            var pic:DisplayObject = new C() as DisplayObject;
+            var pic:DisplayObject = RPetIcon.make(cls);
+            if (pic == null) return;
             var b:Object = pic.getBounds(pic);
             var k:Number = Math.min(maxScale, fit / Math.max(1, b.width), fit / Math.max(1, b.height));
             pic.scaleX = pic.scaleY = k;

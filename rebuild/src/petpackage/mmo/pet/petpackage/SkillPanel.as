@@ -22,7 +22,9 @@ package mmo.pet.petpackage
    public class SkillPanel extends Sprite
    {
       private static const W:int = 520;
-      private static const H:int = 400;
+      private static const H:int = 420;
+      /** Skills on a page: five rows of two (a 亚比 of a high level knows twenty and more). */
+      private static const PER:int = 10;
       private static var current:SkillPanel;
 
       private var petId:int;
@@ -33,6 +35,8 @@ package mmo.pet.petpackage
       private var skills:Array = [];
       private var chosen:Array = [];
       private var onDone:Function;
+      private var page:int = 0;
+      private var pageText:TextField;
 
       public static function show(petId:int, petName:String, onDone:Function):void
       {
@@ -63,10 +67,21 @@ package mmo.pet.petpackage
          list.x = 26;
          list.y = 88;
          box.addChild(list);
-         said = RUI.text(12, 0x8A3B00, true, W - 40);
-         said.height = 36;
+         pageText = RUI.text(13, RUI.BLUE, true);
+         pageText.y = 324;
+         box.addChild(pageText);
+         var prev:Sprite = RUI.smallButton("◀", function():void { turn(-1); }, 34, 24, "skillPrev");
+         prev.x = W / 2 - 80;
+         prev.y = 322;
+         box.addChild(prev);
+         var next:Sprite = RUI.smallButton("▶", function():void { turn(1); }, 34, 24, "skillNext");
+         next.x = W / 2 + 46;
+         next.y = 322;
+         box.addChild(next);
+         said = RUI.text(12, 0x8A3B00, true, W - 150);
+         said.height = 40;
          said.x = 20;
-         said.y = 324;
+         said.y = 354;
          box.addChild(said);
          var ok:Sprite = RUI.button("确定", save, 80, 28, 0xFFC45A, 0xF07812, "skillOk");
          ok.x = W - 112;
@@ -83,15 +98,21 @@ package mmo.pet.petpackage
          skills = (e.params.skills as Array) || [];
          chosen = [];
          for each (var s:Object in skills) if (s.used == true) chosen.push(int(s.id));
+         page = 0;
          draw();
       }
 
       private function draw():void
       {
          while (list.numChildren) list.removeChildAt(0);
-         for (var i:int = 0; i < skills.length; i++)
+         var pages:int = Math.max(1, Math.ceil(skills.length / PER));
+         page = Math.max(0, Math.min(page, pages - 1));
+         pageText.text = (page + 1) + " / " + pages;
+         pageText.x = W / 2 - pageText.width / 2;
+         for (var k:int = 0; k < PER && page * PER + k < skills.length; k++)
          {
-            var s:Object = skills[i];
+            var i:int = k;
+            var s:Object = skills[page * PER + k];
             var on:Boolean = chosen.indexOf(int(s.id)) >= 0;
             var row:Sprite = new Sprite();
             row.name = "skill_" + int(s.id);
@@ -117,6 +138,12 @@ package mmo.pet.petpackage
             list.addChild(row);
          }
          said.text = skills.length ? "已选 " + chosen.length + " / 4" : "正在读取技能……";
+      }
+
+      private function turn(by:int):void
+      {
+         page += by;
+         draw();
       }
 
       private function toggle(id:int, desc:String):Function

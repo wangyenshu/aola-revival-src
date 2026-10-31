@@ -172,7 +172,9 @@ without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星�
 bought with 星币, the 亚比孵化器, 更换技能 in the 背包, the 生态园 games
 (动物保卫战, 动物捕捉, 海底保卫战; later copies of the games), the 动物园
 (rebuilt on the later zoo's art: animals that grow, feed, 收获 and 变异 into
-亚比), the 家园's 经验分配器 and 我的荣誉, the 守护者 bosses of the areas,
+亚比), the 家园's 经验分配器 and 我的荣誉, the 守护者 bosses of the areas
+(their own pictures that wake up, their talks, their 亚比蛋), 欢乐岛's hot
+spring, the 兜兜回收器, battle music,
 黑星堡垒 (the era dungeon and its bosses), the 奥拉周刊 of every week from
 2010 on in the 图书馆, 欢乐岛, gathering in scenes, the wild and rare 亚比 the
 November 2012 map lists for each place, battles, and the mini games (their

@@ -97,7 +97,7 @@
 
   window.aolaSaveExport = () => {
     if (!inPage()) return panel("导出存档", "这个页面的存档在服务器上，不在浏览器里。", []);
-    panel("导出存档", "把这个浏览器里的存档（所有角色、亚比、物品、家园）存成一个文件。", [
+    panel("导出存档", "把这个浏览器里的存档存成一个文件。", [
       [
         "保存文件",
         async (said) => {
@@ -111,7 +111,10 @@
             a.click();
             a.remove();
             setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-            said.textContent = `已保存（${Object.keys(data).length} 项）。`;
+            // One file holds every save: each role ("user/<name>") and the
+            // emulator's own counter ("meta/nextUserId").
+            const roles = Object.keys(data).filter((k) => k.startsWith("user/")).length;
+            said.textContent = roles > 1 ? `已保存（${roles} 个角色）。` : "已保存。";
           } catch (e) {
             said.textContent = "保存失败：" + e.message;
           }

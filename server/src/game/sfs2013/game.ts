@@ -60,6 +60,8 @@ export interface UserRecord {
   zoo?: ZooRec;
   /** 黑星堡垒: the highest floor reached and whether it was passed (VipTowerExtension). */
   vipTower?: { fl: number; ps: boolean };
+  /** 欢乐岛 today: seconds used, seconds bought (增加时长 bought n times), 双倍经验. */
+  hotSpring?: { day: string; used: number; extra: number; adds: number; double: boolean };
 }
 
 /**
@@ -118,6 +120,10 @@ const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
   "RobotExtension.2-6": { i: [] }, // RobotItemService
   "SundriesExtension.70-1": { b: [] }, // BadgeService
 };
+
+/** 欢乐岛: seconds of 冲浪 a day (HotSpringConfig.DefaultLeftTime) and experience every 3 seconds (RECONSTRUCTED). */
+export const HOT_SPRING_SECONDS = 900;
+export const HOT_SPRING_EXP = 20;
 
 const userKey = (name: string) => `user/${encodeURIComponent(name)}`;
 
@@ -280,6 +286,30 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     await save(rec);
     if (coins > 0) ctx.reply({ score: rec.score }, "onScoreUpdated");
     ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? "") }, "increaseScore");
+  });
+
+  // MaterialClient.buyBack (61_2) {tp, mi, qt}: the 兜兜回收器 buys things back for their buyback
+  // price in 晶币 (the 2013 material data's). Worn clothes and things without a buyback price stay.
+  //   -> 61_2 {result (1, -1 cannot, -2 not that many), tp, mi, qt, score (晶币 got)}, onAmountUpdated, onScoreUpdated
+  world.xt("MaterialExtension.61_2", async (ctx) => {
+    const tp = String(Number(ctx.params.tp ?? 0) | 0);
+    const mi = String(Number(ctx.params.mi ?? 0) | 0);
+    const qt = Math.max(1, Number(ctx.params.qt ?? 1) | 0);
+    const rec = await me(ctx);
+    const row = (await table())[tp]?.[mi];
+    const owned = ((rec.items ??= {})[tp] ??= {});
+    const fail = (result: number) => ctx.reply({ result, tp: Number(tp), mi: Number(mi), qt, score: 0 });
+    const worn = tp === "0" && String(rec.avatar ?? "").split(";").includes(mi);
+    if (!row || row[1] <= 0 || worn) return fail(-1);
+    if ((owned[mi] ?? 0) < qt) return fail(-2);
+    owned[mi] -= qt;
+    if (owned[mi] <= 0) delete owned[mi];
+    const got = row[1] * qt;
+    rec.score = Math.min(9_999_999, (rec.score ?? 0) + got);
+    await save(rec);
+    ctx.reply({ amount: `${tp}_${mi}_0_-${qt}` }, "onAmountUpdated");
+    ctx.reply({ score: rec.score }, "onScoreUpdated");
+    ctx.reply({ result: 1, tp: Number(tp), mi: Number(mi), qt, score: got });
   });
 
   // MaterialClient.buyMaterial: {tp, mi, qt, ed}. Replies {res} (1 ok, -1 not for sale, -2 too little 晶币,
@@ -536,6 +566,59 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       await save(rec);
     }
     ctx.reply({ res: 1, fl: v.fl });
+  });
+
+  // 欢乐岛 (scene summerhotspring, rebuilt; HotSpringExtension, ExtMap 67, the commands of the later
+  // HotSpringClient): after the 更衣室 one 冲浪s for 15 minutes a day (HotSpringConfig.DefaultLeftTime
+  // 900), gathering experience every 3 seconds, which goes to the HELLO's 经验分配器 on leaving.
+  //   100_10 {id} -> {res, lt, db}   100_5 -> {lt, db}   100_12 {exp, sec} -> {res, exp, robotExp, lt}
+  //   100_20 {id} (the revival's purchase: 1 增加时长 +5 min, 3 a day, 2 星币; 2 双倍经验, once, 11 星币,
+  //   HotSpringPropConfig's 星币 prices) -> {res (1, -1 used up, -5 星币), id, lt, db}
+  // The experience per 3 seconds is RECONSTRUCTED (HOT_SPRING_EXP; the 2020 module gives 1000).
+  const hotSpring = (rec: UserRecord) => {
+    const day = today();
+    if (rec.hotSpring?.day !== day) rec.hotSpring = { day, used: 0, extra: 0, adds: 0, double: false };
+    return rec.hotSpring!;
+  };
+  const left = (h: NonNullable<UserRecord["hotSpring"]>) => Math.max(0, HOT_SPRING_SECONDS + h.extra - h.used);
+  world.xt("HotSpringExtension.100_10", async (ctx) => {
+    const rec = await me(ctx);
+    const h = hotSpring(rec);
+    await save(rec);
+    ctx.reply({ res: left(h) > 0 ? 1 : 0, lt: left(h), db: h.double ? 1 : 0 });
+  });
+  world.xt("HotSpringExtension.100_5", async (ctx) => {
+    const rec = await me(ctx);
+    const h = hotSpring(rec);
+    ctx.reply({ lt: left(h), db: h.double ? 1 : 0 });
+  });
+  world.xt("HotSpringExtension.100_12", async (ctx) => {
+    const rec = await me(ctx);
+    const h = hotSpring(rec);
+    const sec = Math.max(0, Math.min(left(h), Number(ctx.params.sec) | 0));
+    const cap = Math.floor(sec / 3) * HOT_SPRING_EXP * (h.double ? 2 : 1);
+    const exp = Math.max(0, Math.min(cap, Number(ctx.params.exp) | 0));
+    h.used += sec;
+    if (exp > 0) (rec.robot ??= { name: "HELLO", exp: 0, follow: true, born: today() }).exp += exp;
+    await save(rec);
+    ctx.reply({ res: 1, exp, robotExp: rec.robot?.exp ?? 0, lt: left(h) });
+  });
+  world.xt("HotSpringExtension.100_20", async (ctx) => {
+    const rec = await me(ctx);
+    const h = hotSpring(rec);
+    const id = Number(ctx.params.id) | 0;
+    const reply = (res: number) => ctx.reply({ res, id, lt: left(h), db: h.double ? 1 : 0, xingbi: rec.xingbi ?? 0 });
+    const price = id === 1 ? 2 : id === 2 ? 11 : 0;
+    if (!price || (id === 1 && h.adds >= 3) || (id === 2 && h.double)) return reply(-1);
+    if ((rec.xingbi ?? 0) < price) return reply(-5);
+    rec.xingbi = (rec.xingbi ?? 0) - price;
+    if (id === 1) {
+      h.adds += 1;
+      h.extra += 300;
+    } else h.double = true;
+    await save(rec);
+    ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
+    reply(1);
   });
 
   // RobotClient.giveExp {pi, e}: the 家园's 经验分配器 hands experience the HELLO

@@ -20,7 +20,7 @@ package mmo.play.scene
       public static const SCENE:String = "spacetimechallenge";
       private static const ROOMS:Array = [
          ["spacetimechallenge2", "试炼平台"], ["spacetimechallenge3", "挑战平台"], ["outstandingyabiarena", "亚比精英赛场"],
-         ["spacetime", "时空隧道"], ["arenaexterior", "堡垒外沿（黑星堡垒）"]
+         ["spacetime", "时空隧道"], ["arenaexterior", "堡垒外沿"]
       ];
       private static var current:BattleZoneHub;
 

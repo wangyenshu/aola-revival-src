@@ -41,7 +41,10 @@ unchanged on 17 October 2024, those of 2010–2013 by their upload date or the
 date Flash wrote in them), the zoo animals' pictures `zoopeticon/peticon{small,middle,large}1–40`,
 the zoo's `zooitem/zooitem1–10` and the later zoo house `furniture/b020000`
 (`tools/add_later.py`): 184 lines in `index.jsonl` (77 MB) and 1,604 in
-`_later/index.jsonl` (168 MB).
+`_later/index.jsonl` (168 MB). A third (also 31 October) took the 守护者's scene
+pictures `dailyactivity/dailyboss<race>` (27 files, 16 of them uploaded in
+2011–12) and the classic battle music `music/fightBgMusic1.mp3`: 16 lines in
+`index.jsonl` and 12 in `_later/index.jsonl`.
 
 ## How the files were found and dated
 

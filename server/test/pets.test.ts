@@ -52,3 +52,13 @@ test("亚比仓库: a 亚比 got with a full bag goes to the 仓库; moving betw
   owner.pets = owner.pets!.slice(0, 1);
   assert.equal((await call("PocketMonsterExtension.1224", { id: owner.pets[0].id, loc: 1 }))[0][1].result, -3);
 });
+
+test("a 亚比 made at a high level knows every skill of its line up to it, and carries the last four", () => {
+  const learn: [number, number][] = [[1, 101], [5, 102], [10, 103], [20, 104], [30, 105], [40, 106], [99, 107]];
+  const skills: Record<string, { n: string; p: number; acc: number; pp: number; pri: number; t: number; k: number; d: string }> = {};
+  for (const [, id] of learn) skills[String(id)] = { n: "技" + id, p: 50, acc: 100, pp: 10, pri: 0, t: 0, k: 0, d: "" };
+  const t: PetTables = { ...tables, pm: { ...tables.pm, species: { ...tables.pm.species, "9": { ...tables.pm.species["1"], learn } }, skills } };
+  const p = makePet(t, 9, 50, "d", 1);
+  assert.deepEqual(p.learned, [101, 102, 103, 104, 105, 106]);
+  assert.deepEqual(p.skills.map((s) => s.id), [103, 104, 105, 106]);
+});

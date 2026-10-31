@@ -136,7 +136,7 @@ package mmo.control
          box.addChild(sceneIn);
          box.addChild(place(RUI.button("传送", teleport, 70, 26, 0xFFC45A, 0xF07812, "toolboxGo"), 280, 358));
          var hint:TextField = RUI.text(11, 0x557799, false);
-         hint.text = "地图名或中文名，如 crossroad、十字大道";
+         hint.text = "地图名或中文名";
          hint.x = 30;
          hint.y = 390;
          box.addChild(hint);

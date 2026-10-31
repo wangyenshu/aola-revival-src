@@ -16,6 +16,7 @@ import {
   calcStats,
   catchLevel,
   expNeed,
+  allSkillsAt,
   skillsAt,
   type PmData,
   type PmSpecies,
@@ -125,6 +126,13 @@ function randomNature(): string {
   return NATURE_NAMES[Math.floor(Math.random() * NATURE_NAMES.length)];
 }
 
+/** Every skill a 亚比 of this race knows at this level (its learnset so far; the carried ones otherwise). */
+export function learntFor(t: PetTables, race: number, level: number, carried: PetSkill[]): number[] {
+  const sp = speciesOf(t, race);
+  const all = sp && sp.learn.length ? allSkillsAt(sp, level) : [];
+  return [...new Set([...all, ...carried.map((s) => s.id)])];
+}
+
 export function makePet(t: PetTables, race: number, level: number, today: string, id = 0, character?: string): PetRecord {
   const skills = skillsFor(t, race, level);
   const p: PetRecord = {
@@ -135,7 +143,8 @@ export function makePet(t: PetTables, race: number, level: number, today: string
     hp: 0,
     character: character ?? randomNature(),
     skills,
-    learned: skills.map((s) => s.id),
+    // A 亚比 given at a high level (the 工具箱, a task) knows every skill of its line up to it.
+    learned: learntFor(t, race, level, skills),
     iv: randomIv(),
     ev: [0, 0, 0, 0, 0, 0],
     got: today,
@@ -393,6 +402,12 @@ export function installPets(world: World, deps: PetDeps): void {
     const p = list(o).find((x) => x.id === Number(ctx.params.id));
     if (!p) return ctx.reply({ id: Number(ctx.params.id), skills: [] }, "2231");
     const carried = new Set(p.skills.map((s) => s.id));
+    // Saves of 亚比 made at a high level before they learnt their whole line get it now.
+    const all = learntFor(t, p.race, p.level, p.skills);
+    if (all.some((id) => !(p.learned ?? []).includes(id))) {
+      p.learned = [...new Set([...(p.learned ?? []), ...all])];
+      await deps.save(o);
+    }
     const ids = [...new Set([...(p.learned ?? []), ...carried])];
     ctx.reply(
       {
