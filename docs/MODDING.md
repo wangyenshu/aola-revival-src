@@ -202,14 +202,27 @@ should not try to: those are 百田's.
 In the game, open **沙盒 → 模组**:
 
 - **导入模组** loads a `.swf` file from your computer.
-- **载入** loads one of the examples the site comes with. These are built by
-  `npm run build:swf` into `revival/mods/` beside the game files, and listed
-  in `revival/mods/index.json`.
+- **载入** loads one of the examples the site comes with, and **移除** to its
+  right removes it again. The examples are built by `npm run build:swf` into
+  `revival/mods/` beside the game files, and listed in
+  `revival/mods/index.json`.
 
-**开始** starts the mod that is loaded. One mod is loaded at a time;
-loading another forgets the first (its SWF is unloaded and stopped, its
-pending replies and conversations dropped). To load a new build of the
-same mod, import it again.
+The mods loaded are listed at the top, each with **开始** (start it) and
+**移除** (forget it: its SWF is unloaded and stopped, its pending replies and
+conversations dropped, and its room left if the player is in it).
+
+Up to 8 mods can be loaded at once. Each keeps its own rooms, saved data and
+music; the rooms of one are shown at a time, and starting another mod moves
+to its rooms. Two mods conflict when they use the same 亚比 number:
+
+- A mod that lists its 亚比 numbers in `info.yabi` is refused when it is
+  loaded if a mod already loaded uses one of them (the panel names that
+  mod).
+- Otherwise the second mod's `species` for that number is refused
+  (`done(false)`), and its 亚比 is missing.
+
+A mod with the `id` of one loaded replaces it: to load a new build of a mod,
+import it again.
 
 ## The API
 
@@ -229,7 +242,7 @@ The interface the mod's main class implements.
 
 | Member | |
 | --- | --- |
-| `get info():Object` | `{id, name, author, version, description}`. `id` (letters, digits, `_`, `-`; 1–32) is the key of the mod's saved data: keep it the same in every version. `name` is shown in the panel and at the top of its rooms |
+| `get info():Object` | `{id, name, author, version, description, yabi}`. `id` (letters, digits, `_`, `-`; 1–32) is the key of the mod's saved data: keep it the same in every version. `name` is shown in the panel and at the top of its rooms. `yabi` (optional): the 亚比 numbers the mod defines, so that a conflicting mod is found when it is loaded |
 | `start(game:IModGame):void` | called each time 开始 is pressed: define rooms and 亚比, then `game.enter(...)` |
 
 ### `IModGame`
@@ -442,12 +455,14 @@ The runtime has the following parts:
   SWF signature (FWS, CWS or ZWS) are loaded. The SWF goes into an
   application domain of its own, under the game's: the mod sees the game's
   classes, and the game sees the mod only through `IMod`. A newer build of a
-  mod therefore replaces the old one without a reload. `ModRun` implements
-  `IModGame`.
+  mod therefore replaces the old one without a reload, and several mods'
+  classes do not mix. `ModRun` keeps the mods loaded and which one's room is
+  shown; each mod has a `ModGame`, which implements `IModGame`.
 - **Rooms.** They are shown by the 沙盒 room, `scene/sandboxroom`
   (`rebuild/src/scenes/sandboxroom`, `SandboxRoom` implements `IModRoom`;
-  characters are `ModPerson`). When built, the room asks `ModRun` for its
-  definition. When shown, it hands itself to the room's `build` function.
+  characters are `ModPerson`). When built, the room asks `ModRun` for the
+  room to show and its mod. When shown, it hands itself to the room's
+  `build` function.
   Each player is in a server room of their own (`sandboxroom_<user>`).
 - **Conversations.** They use the rebuilt NPC panel
   (`task/tasknpc`, `NpcTalkPanel.showAs`). Its choices come back as task

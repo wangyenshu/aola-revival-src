@@ -62,9 +62,10 @@ package mmo.control
       private var box:Sprite;
       private var fightsPage:Sprite;
       private var modsPage:Sprite;
-      private var modInfo:TextField;
+      private var loadedRows:Sprite;
       private var exampleRows:Sprite;
-      private var startModBtn:Sprite;
+      /** Example file -> the id of the mod it loaded. */
+      private static var exampleIds:Object = {};
       private var nameIn:TextField;
       private var healBox:Sprite;
       private var heal:Boolean = true;
@@ -161,58 +162,90 @@ package mmo.control
 
       private function buildModsPage():void
       {
-         modInfo = RUI.text(13, RUI.BLUE, true, W - 60);
-         modInfo.wordWrap = true;
-         modInfo.multiline = true;
-         modInfo.width = W - 60;
-         modInfo.x = 26;
-         modInfo.y = 56;
-         modsPage.addChild(modInfo);
+         var have:TextField = RUI.text(13, RUI.BLUE, true);
+         have.text = "已载入的模组";
+         have.x = 26;
+         have.y = 50;
+         modsPage.addChild(have);
+         modsPage.addChild(RUI.well(14, 70, W - 28, 120));
+         loadedRows = new Sprite();
+         loadedRows.y = 76;
+         modsPage.addChild(loadedRows);
          var hint:TextField = RUI.text(11, 0x557799, false, W - 50);
          hint.wordWrap = true;
          hint.width = W - 50;
-         hint.text = "模组是用 ActionScript 3 写的 SWF 文件（说明见 docs/MODDING.md），里面的程序在游戏里运行：只导入你信任的模组。";
+         hint.text = "模组是用 ActionScript 3 写的 SWF 文件（说明见 docs/MODDING.md），里面的程序在游戏里运行：只导入你信任的模组。可以同时载入几个不冲突的模组。";
          hint.x = 26;
-         hint.y = 128;
+         hint.y = 194;
          modsPage.addChild(hint);
          var ex:TextField = RUI.text(13, RUI.BLUE, true);
          ex.text = "示例模组";
          ex.x = 26;
-         ex.y = 166;
+         ex.y = 224;
          modsPage.addChild(ex);
-         modsPage.addChild(RUI.well(14, 188, W - 28, 218));
+         modsPage.addChild(RUI.well(14, 244, W - 28, 168));
          exampleRows = new Sprite();
-         exampleRows.y = 196;
+         exampleRows.y = 250;
          modsPage.addChild(exampleRows);
          modsPage.addChild(place(RUI.button("导入模组", importMod, 110, 26, 0x6CC0F5, 0x2E86D6, "sandboxImportMod"), 18, 424));
-         startModBtn = RUI.button("开始", startMod, 110, 30, 0xFFC45A, 0xF07812, "sandboxStartMod");
-         modsPage.addChild(place(startModBtn, W - 128, 422));
       }
 
       private function drawMods():void
       {
-         var m:Object = ModRun.instance.loaded;
-         modInfo.text = m == null ? "还没有载入模组：导入一个模组文件（.swf），或载入下面的示例。"
-            : "模组「" + m.name + "」" + (m.version ? " " + m.version : "") + (m.author ? "  作者：" + m.author : "") + (m.description ? "\n" + m.description : "");
-         startModBtn.alpha = m == null ? 0.4 : 1;
+         // The mods loaded: each with 开始 and 移除.
+         while (loadedRows.numChildren > 0) loadedRows.removeChildAt(0);
+         var list:Array = ModRun.instance.mods;
+         if (list.length == 0)
+         {
+            var none:TextField = RUI.text(13, 0x557799, false, W - 70);
+            none.text = "还没有载入模组：导入一个模组文件（.swf），或载入下面的示例。";
+            none.x = 30;
+            none.y = 6;
+            loadedRows.addChild(none);
+         }
+         for (var k:int = 0; k < list.length && k < 4; k++)
+         {
+            var m:Object = list[k];
+            var mt:TextField = RUI.text(13, 0x335577, true, W - 230);
+            mt.wordWrap = true;
+            mt.width = W - 230;
+            mt.text = String(m.name) + (m.version ? " " + m.version : "") + (m.author ? "  作者：" + m.author : "");
+            mt.x = 30;
+            mt.y = k * 28 + 3;
+            loadedRows.addChild(mt);
+            loadedRows.addChild(place(RUI.button("开始", startModOf(m.id), 64, 26, 0xFFC45A, 0xF07812, "sandboxStart_" + k), W - 180, k * 28));
+            loadedRows.addChild(place(RUI.button("移除", removeModOf(m.id), 64, 26, 0xF5A08C, 0xD9452B, "sandboxRemove_" + k), W - 108, k * 28));
+         }
+         // The site's examples: each with 载入, and 移除 once loaded.
          while (exampleRows.numChildren > 0) exampleRows.removeChildAt(0);
          if (examples == null)
          {
             readExamples();
             return;
          }
-         for (var i:int = 0; i < examples.length && i < 6; i++)
+         for (var i:int = 0; i < examples.length && i < 4; i++)
          {
             var e:Object = examples[i];
-            var t:TextField = RUI.text(13, 0x335577, true, W - 170);
+            var t:TextField = RUI.text(13, 0x335577, true, W - 230);
             t.wordWrap = true;
-            t.width = W - 170;
+            t.width = W - 230;
             t.text = String(e.name || e.file) + (e.description ? "：" + String(e.description) : "");
             t.x = 30;
-            t.y = i * 34 + 2;
+            t.y = i * 40 + 2;
             exampleRows.addChild(t);
-            exampleRows.addChild(place(RUI.button("载入", loadExample(e), 70, 26, 0x8ED0FA, 0x3C96DC, "sandboxExample_" + i), W - 110, i * 34));
+            exampleRows.addChild(place(RUI.button("载入", loadExample(e), 64, 26, 0x8ED0FA, 0x3C96DC, "sandboxExample_" + i), W - 180, i * 40));
+            var id:String = exampleIds[String(e.file)];
+            var on:Boolean = id != null && isLoaded(id);
+            var rm:Sprite = RUI.button("移除", on ? removeModOf(id) : null, 64, 26, 0xF5A08C, 0xD9452B, "sandboxExampleRemove_" + i);
+            rm.alpha = on ? 1 : 0.4;
+            exampleRows.addChild(place(rm, W - 108, i * 40));
          }
+      }
+
+      private static function isLoaded(id:String):Boolean
+      {
+         for each (var m:Object in ModRun.instance.mods) if (m.id == id) return true;
+         return false;
       }
 
       /** The site's examples: revival/mods/index.json, [{file, name, description}]. */
@@ -238,7 +271,7 @@ package mmo.control
             said.text = "正在载入示例模组……";
             var ld:URLLoader = new URLLoader();
             ld.dataFormat = URLLoaderDataFormat.BINARY;
-            ld.addEventListener(Event.COMPLETE, function(ev:Event):void { gotMod(ld.data as ByteArray); });
+            ld.addEventListener(Event.COMPLETE, function(ev:Event):void { gotMod(ld.data as ByteArray, file); });
             ld.addEventListener(IOErrorEvent.IO_ERROR, function(ev:Event):void { said.text = "示例模组读取失败。"; });
             try { ld.load(VersManager.getVerURLRequest("revival/mods/" + file)); } catch (err:Error) { said.text = "示例模组读取失败。"; }
          };
@@ -267,25 +300,42 @@ package mmo.control
          }
       }
 
-      /** A mod's bytes read (a file or an example): loaded. */
-      public function gotMod(bytes:ByteArray):void
+      /** A mod's bytes read (a file, or the example of that file): loaded beside the others. */
+      public function gotMod(bytes:ByteArray, example:String = null):void
       {
          ModRun.instance.load(bytes, function(err:String, m:Object):void
          {
-            said.text = err != null ? err : "已载入模组「" + m.name + "」：点「开始」。";
+            if (err == null && example != null) exampleIds[example] = m.id;
+            said.text = err != null ? err : "已载入模组「" + m.name + "」：点它的「开始」。";
             if (parent != null) drawMods();
          });
       }
 
-      private function startMod():void
+      /** 开始 of a mod loaded. */
+      private function startModOf(id:String):Function
       {
-         if (ModRun.instance.loaded == null)
+         return function():void
          {
-            said.text = "先导入或载入一个模组。";
-            return;
-         }
-         close();
-         ModRun.instance.startMod();
+            if (!isLoaded(id)) return;
+            close();
+            ModRun.instance.startMod(id);
+         };
+      }
+
+      /** 移除 of a mod loaded (leaving its room if the player is in it). */
+      private function removeModOf(id:String):Function
+      {
+         return function():void
+         {
+            var name:String = id;
+            for each (var m:Object in ModRun.instance.mods) if (m.id == id) name = String(m.name);
+            if (!isLoaded(id)) return;
+            var inside:Boolean = ModRun.instance.currentRoom != null && ModRun.instance.loaded != null && ModRun.instance.loaded.id == id;
+            ModRun.instance.unload(id);
+            said.text = "已移除模组「" + name + "」。";
+            drawMods();
+            if (inside) close();
+         };
       }
 
       // ---------------------------------------------------------------- the 关卡 in the panel
@@ -439,7 +489,9 @@ package mmo.control
          for (var i:int = 0; i < healBox.numChildren; i++) if (healBox.getChildAt(i) is TextField) label = healBox.getChildAt(i) as TextField;
          if (label == null) return;
          label.text = heal ? "每场前恢复体力：是" : "每场前恢复体力：否";
+         // The button was made with no text: centred again now that it has some.
          label.x = (150 - label.width) / 2;
+         label.y = (24 - label.height) / 2;
       }
 
       // ---------------------------------------------------------------- files

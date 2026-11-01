@@ -29,8 +29,8 @@ package mmo.scene.sandbox
 
    /**
     * REVIVAL. The 沙盒 room (scene/sandboxroom, not of 2013): shows a room of
-    * the mod loaded (mmo.control.ModRun, docs/MODDING.md). Built, it asks the
-    * mod's run for the room's definition (background, walk mask, size, spawns)
+    * a mod loaded (mmo.control.ModRun, docs/MODDING.md). Built, it asks the
+    * mods' run for the room to show and its definition (background, walk mask, size, spawns)
     * and draws it; shown, it hands itself (IModRoom) to the room's build
     * function, which puts the NPCs, opponents, doors and pictures. Rooms are
     * 560 high and 960 to 2880 wide, scrolled as the wide rooms of the game.
@@ -82,6 +82,8 @@ package mmo.scene.sandbox
             var C:Object = getDefinitionByName("mmo.control.ModRun");
             run = C ? C.instance : null;
             shown = run ? run.roomToShow() : null;
+            // The mod whose room this is (several may be loaded): it gets the room, the fights, the talks.
+            if (shown != null && shown.game != null) run = shown.game;
          }
          catch (e:Error) { RLog.error("sandbox room", e); }
          if (shown == null)

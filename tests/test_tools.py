@@ -408,6 +408,26 @@ class AddLaterTest(unittest.TestCase):
             self.assertEqual([(r["path"], r["origin"], r["added"]) for r in got], [("www.9aola.com/skinview/a000104.swf%3F1210", "later", "形象卡")])
 
 
+class GameSourcesTest(unittest.TestCase):
+    """Every file of game/ can be downloaded again by tools/fetch_game.py (tools/data/game-sources.jsonl)."""
+
+    def test_every_file_listed(self):
+        files = ROOT / "game" / "FILES.jsonl"
+        if not files.exists():
+            self.skipTest("no game/ in this checkout")
+        listed = {}
+        for line in (ROOT / "tools" / "data" / "game-sources.jsonl").read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            listed[r["path"]] = r
+        missing = []
+        for line in files.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            s = listed.get(r["path"])
+            if s is None or s.get("sha1") != r.get("sha1") or not (s.get("urls") or s.get("derive")):
+                missing.append(r["path"])
+        self.assertEqual(missing[:5], [], f"{len(missing)} files of game/ have no source: run tools/game_sources.py build")
+
+
 class GenTasksTest(unittest.TestCase):
     """The conversations the later uploads of task scripts carry themselves."""
 

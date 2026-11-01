@@ -19,8 +19,9 @@ package
 
       public function get info():Object
       {
+         // yabi: the 亚比 numbers it defines, so a mod loaded beside it that uses one is refused.
          return {id: "bubblefrog", name: "新亚比：泡泡蛙", author: "aola-revival", version: "1.0",
-            description: "模组自己的亚比：图片、属性、种族值和技能。"};
+            description: "模组自己的亚比：图片、属性、种族值和技能。", yabi: [FROG]};
       }
 
       public function start(game:IModGame):void

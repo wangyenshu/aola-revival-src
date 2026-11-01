@@ -183,10 +183,12 @@ choices, play animations, set up fights, and can add new 亚比 with their own
 pictures, stats and skills. How to write one is in [MODDING.md](MODDING.md).
 
 1. Click 载入 next to one of the examples the site comes with, or 导入模组 to
-   choose a mod's `.swf` file (at most 16 MB). Its name, author and
-   description are shown.
-2. Click 开始. The 沙盒 panel closes and the mod begins, usually in a room
-   of its own.
+   choose a mod's `.swf` file (at most 16 MB). It is listed under 已载入的模组.
+   Several mods can be loaded at once (up to 8); two that use the same 亚比
+   number cannot, and the panel says which one is in the way.
+2. Click 开始 next to a mod. The 沙盒 panel closes and the mod begins,
+   usually in a room of its own. 移除 next to a mod (or next to an example's
+   载入) unloads it, and leaves its room if you are in it.
 3. In a mod's rooms, click the floor to walk, a door to walk to it and go
    through, a character to talk to it or fight it. 离开沙盒 (top left)
    returns to where you opened the 沙盒.

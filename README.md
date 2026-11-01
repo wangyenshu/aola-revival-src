@@ -53,9 +53,7 @@ Click 开始游戏. You play as 小奥拉, and the newbie quest starts.
 
 ## Getting the game files
 
-A copy of the code without `game/` (for example one made with
-`git archive -o aola-revival-src.tar.gz HEAD -- . ':(exclude)game'`) can
-download 百田's files again:
+A checkout without `game/` can download 百田's files again:
 
 ```bash
 python3 tools/fetch_game.py        # download game/ from 百田's CDN and the Wayback Machine
