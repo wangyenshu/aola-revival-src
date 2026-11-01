@@ -6,6 +6,7 @@ package mmo.petwarehouse.service
    import flash.display.Sprite;
    import flash.events.EventDispatcher;
    import flash.events.MouseEvent;
+   import flash.filters.GlowFilter;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
    import flash.utils.getDefinitionByName;
@@ -31,6 +32,10 @@ package mmo.petwarehouse.service
     * the rebuilt player card: the six of the bag on the left, the 仓库 on the
     * right; a click on a 亚比 moves it to the other side. Pictures: the
     * original peticon/peticon<id>.swf.
+    *
+    * 放生 (the revival's): the button, then a click on a 亚比 asks 是否放生该
+    * 亚比？ (是 / 否); 是 releases it for good (revival_release, server
+    * pets.ts), 否 does nothing. The last 亚比 of the bag stays.
     */
    public class PetWareHouse extends EventDispatcher implements IShowPanel
    {
@@ -47,6 +52,11 @@ package mmo.petwarehouse.service
       private var page:int;
       private var pages:int = 1;
       private var busy:Boolean;
+      /** 放生 chosen: the next click on a 亚比 asks to release it. */
+      private var releasing:Boolean;
+      private var releaseBtn:Sprite;
+      private var tip:TextField;
+      private var box:Sprite;
 
       public function PetWareHouse()
       {
@@ -59,6 +69,7 @@ package mmo.petwarehouse.service
          build();
          SocketClient.instance.addEventListener("2213", onList);
          SocketClient.instance.addEventListener("2224", onMoved);
+         SocketClient.instance.addEventListener("revival_release", onReleased);
          ask(0);
          ask(1);
       }
@@ -68,7 +79,7 @@ package mmo.petwarehouse.service
          root = new Sprite();
          root.name = "petWarehouse";
          root.addChild(RUI.dim(close));
-         var box:Sprite = RUI.panel(W, H, "亚比仓库", close, "warehouseClose");
+         box = RUI.panel(W, H, "亚比仓库", close, "warehouseClose");
          box.x = (960 - W) / 2;
          box.y = (560 - H) / 2 - 10;
          root.addChild(box);
@@ -107,11 +118,15 @@ package mmo.petwarehouse.service
          next.x = 228 + (W - 244) / 2 + 46;
          next.y = H - 48;
          box.addChild(next);
-         var tip:TextField = RUI.text(12, 0x557799, false);
-         tip.text = "点一下亚比，就能在背包和仓库之间放来放去";
+         tip = RUI.text(12, 0x557799, false);
          tip.x = 24;
          tip.y = H - 44;
          box.addChild(tip);
+         releaseBtn = RUI.button("放生", toggleRelease, 70, 26, 0xF5A08C, 0xD9452B, "warehouseRelease");
+         releaseBtn.x = W - 92;
+         releaseBtn.y = H - 49;
+         box.addChild(releaseBtn);
+         showMode();
          LayerManager.getBaseTop().addChild(root);
       }
 
@@ -189,9 +204,73 @@ package mmo.petwarehouse.service
          {
             e.stopPropagation();
             if (busy) return;
+            if (releasing)
+            {
+               askRelease(id);
+               return;
+            }
             busy = true;
             SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1224", {id: id, loc: to});
          };
+      }
+
+      private function toggleRelease():void
+      {
+         releasing = !releasing;
+         showMode();
+      }
+
+      private function showMode():void
+      {
+         tip.text = releasing ? "点一只亚比，把它放生" : "点一下亚比，就能在背包和仓库之间放来放去";
+         tip.textColor = releasing ? 0xD9452B : 0x557799;
+         releaseBtn.alpha = releasing ? 0.7 : 1;
+         releaseBtn.filters = releasing ? [new GlowFilter(0xFFD24A, 1, 8, 8, 3)] : [];
+      }
+
+      /** 是否放生该亚比？ 是: released; 否: the dialog closes and nothing happens. */
+      private function askRelease(id:int):void
+      {
+         releasing = false;
+         showMode();
+         var layer:Sprite = new Sprite();
+         layer.name = "releaseAsk";
+         var closeAsk:Function = function():void { if (layer.parent != null) layer.parent.removeChild(layer); };
+         layer.addChild(RUI.dim(null));
+         var d:Sprite = RUI.panel(300, 150, "放生", closeAsk, "releaseClose");
+         d.x = (960 - 300) / 2;
+         d.y = (560 - 150) / 2 - 10;
+         layer.addChild(d);
+         var q:TextField = RUI.text(15, RUI.BLUE, true);
+         q.text = "是否放生该亚比？";
+         q.x = (300 - q.width) / 2;
+         q.y = 58;
+         d.addChild(q);
+         var yes:Sprite = RUI.button("是", function():void
+         {
+            closeAsk();
+            busy = true;
+            SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_release", {id: id});
+         }, 80, 28, 0xF5A08C, 0xD9452B, "releaseYes");
+         yes.x = 50;
+         yes.y = 100;
+         d.addChild(yes);
+         var no:Sprite = RUI.button("否", closeAsk, 80, 28, 0x8ED0FA, 0x3C96DC, "releaseNo");
+         no.x = 170;
+         no.y = 100;
+         d.addChild(no);
+         root.addChild(layer);
+      }
+
+      private function onReleased(e:SocketClientEvent):void
+      {
+         busy = false;
+         var r:int = int(e.params.result);
+         if (r == -3) RNotice.show(LayerManager.getBaseTop(), "背包里至少要留一只亚比哦！");
+         if (r != 1) return;
+         ask(0);
+         ask(1);
+         try { PetClient.instance.viewAllPM(); } catch (err:Error) { RLog.error("warehouse refresh", err); }
       }
 
       private function onMoved(e:SocketClientEvent):void
@@ -231,9 +310,11 @@ package mmo.petwarehouse.service
       {
          SocketClient.instance.removeEventListener("2213", onList);
          SocketClient.instance.removeEventListener("2224", onMoved);
+         SocketClient.instance.removeEventListener("revival_release", onReleased);
          if (root != null && root.parent != null) root.parent.removeChild(root);
          root = null;
          busy = false;
+         releasing = false;
       }
    }
 }

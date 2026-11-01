@@ -42,7 +42,7 @@ To keep or move a save, use 存档 in the 工具箱:
 | Chat box | Type and send a message. The button beside it shows the recent chat. |
 | 信息卡 | Your player card with the wardrobe: click clothes to put them on or take them off. |
 | 好友, 组队, 战队 | Not available (they need other players). |
-| 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, the 亚比仓库. |
+| 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, the 亚比仓库. In the 仓库 a click moves a 亚比 between the bag and the 仓库; 放生 (added by the revival), then a click on a 亚比, asks 是否放生该亚比？: 是 releases it for good, 否 does nothing. The last 亚比 of the bag cannot be released. |
 | 物品 | Everything collected: 道具, 亚比蛋, 种植, 射击卡. |
 | 回家 | Your 家园 (garden); 我的家 there leads into the 小屋. |
 | 商城 (cart) | The 收费 catalogs (服装, 道具, 家具, 亚比蛋), bought with 星币. |

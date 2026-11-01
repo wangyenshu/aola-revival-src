@@ -364,6 +364,25 @@ export function installPets(world: World, deps: PetDeps): void {
     answer(1);
   });
 
+  // 放生 (the revival's, from the 亚比仓库): revival_release {id} -> revival_release {result, id}
+  //   result 1 released (gone for good), -1 no such 亚比, -3 the last 亚比 of the bag stays
+  world.xt(`${EXT}.revival_release`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const id = Number(ctx.params.id);
+    const answer = (result: number) => ctx.reply({ result, id }, "revival_release");
+    const bag = list(o);
+    const store = (o.storage ??= []);
+    const inBag = bag.findIndex((p) => p.id === id);
+    const inStore = store.findIndex((p) => p.id === id);
+    if (inBag < 0 && inStore < 0) return answer(-1);
+    if (inBag >= 0 && bag.length <= 1) return answer(-3);
+    if (inBag >= 0) bag.splice(inBag, 1);
+    else store.splice(inStore, 1);
+    if (o.followPet === id) o.followPet = 0;
+    await deps.save(o);
+    answer(1);
+  });
+
   // viewSinglePM {id} -> {pm: PetDetailedInfo}
   world.xt(`${EXT}.1211`, async (ctx) => {
     const { o, t } = await loadAll(ctx);

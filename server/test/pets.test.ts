@@ -53,6 +53,23 @@ test("亚比仓库: a 亚比 got with a full bag goes to the 仓库; moving betw
   assert.equal((await call("PocketMonsterExtension.1224", { id: owner.pets[0].id, loc: 1 }))[0][1].result, -3);
 });
 
+test("放生: a 亚比 of the bag or the 仓库 is gone; the last of the bag stays", async () => {
+  const { owner, call } = harness();
+  await call("PocketMonsterExtension.1201", { raceId: 43, level: 20 });
+  const stored = owner.storage![0].id;
+  owner.followPet = 2;
+  const r = async (id: number) => (await call("PocketMonsterExtension.revival_release", { id }))[0];
+  assert.deepEqual(await r(stored), ["revival_release", { result: 1, id: stored }]);
+  assert.equal(owner.storage!.length, 0);
+  assert.equal((await r(2))[1].result, 1);
+  assert.deepEqual(owner.pets!.map((p) => p.id), [1, 3, 4, 5, 6]);
+  assert.equal(owner.followPet, 0);
+  assert.equal((await r(99))[1].result, -1);
+  owner.pets = owner.pets!.slice(0, 1);
+  assert.equal((await r(owner.pets[0].id))[1].result, -3);
+  assert.equal(owner.pets.length, 1);
+});
+
 test("a 亚比 made at a high level knows every skill of its line up to it, and carries the last four", () => {
   const learn: [number, number][] = [[1, 101], [5, 102], [10, 103], [20, 104], [30, 105], [40, 106], [99, 107]];
   const skills: Record<string, { n: string; p: number; acc: number; pp: number; pri: number; t: number; k: number; d: string }> = {};

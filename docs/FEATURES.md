@@ -841,7 +841,7 @@ Also available outside the table: 斑比向前冲 (2017, in 奥拉运动场) and
 - Catching with 亚比球 (the 2013 balls and their rules).
 - Experience, levels, effort points, learning skills, evolution.
 - The 亚比 bag: details, healing, 更换技能 (choose four of the learnt skills).
-- The 亚比仓库 (from the bag and from the 家园).
+- The 亚比仓库 (from the bag and from the 家园), with 放生 (added by the revival).
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
   picture where none exists).
 - Riding (坐骑): one of the 34 亚比 of the 2013 ride list, for 蓝宝骑士.
