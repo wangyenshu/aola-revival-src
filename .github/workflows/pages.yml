@@ -1,12 +1,14 @@
-# Build the rebuilt SWF modules and the static site from this repository
-# alone (the game files are in game/; only build tools are downloaded) and
-# publish it with GitHub Pages. Repository settings → Pages → Source:
-# "GitHub Actions".
+# Build the rebuilt SWF modules and the static site and publish it with GitHub
+# Pages. Repository settings → Pages → Source: "GitHub Actions". Run by hand
+# only: Actions → this workflow → "Run workflow".
+#
+# The game files come from game/ when the repository has it. When it does not,
+# tools/fetch_game.py downloads them first (百田's CDN and the Wayback Machine,
+# about 1.4 GB, an hour or more) and they are kept in the Actions cache for the
+# next runs; a file that cannot be had as listed gives a warning, not a failure.
 name: Build and publish
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +25,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Is game/ in the repository?
+        id: game
+        run: |
+          if [ -d game ]; then
+            echo "game/ is in the repository: nothing is downloaded"
+            echo "fetch=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "no game/: the game files are downloaded"
+            echo "fetch=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Restore the downloaded game files
+        id: game-cache
+        if: steps.game.outputs.fetch == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: game
+          key: game-${{ hashFiles('tools/data/game-sources.jsonl') }}
+          restore-keys: game-
+      - name: Download the game files
+        id: fetch
+        if: steps.game.outputs.fetch == 'true'
+        timeout-minutes: 300
+        run: |
+          # FFmpeg makes the theatre's films from the downloaded ones.
+          command -v ffmpeg > /dev/null || { sudo apt-get update -q && sudo apt-get install -y -q ffmpeg; }
+          python3 tools/fetch_game.py || echo "::warning::Some game files could not be downloaded as listed: see the summary above (work/fetch-game-report.json)."
+      - name: Keep the downloaded game files for the next runs
+        if: steps.fetch.outcome == 'success' && steps.game-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: game
+          key: game-${{ hashFiles('tools/data/game-sources.jsonl') }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
