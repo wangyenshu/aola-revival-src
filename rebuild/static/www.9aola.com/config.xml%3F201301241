@@ -694,6 +694,7 @@
       <r desc="海灵灵大作战" game="1" ms="" nm="gameHungryMonster" owner="mysticocean5" rm="gameHungryMonster" swf="game/hungrymonster"/>
       <r desc="圣诞礼物盒" game="1" ms="" nm="gameGoldPitman" owner="themepark" rm="gameGoldPitman" swf="game/goldpitman"/>
       <r desc="斑比向前冲" game="1" ms="" nm="gameNinjaRush" owner="gymnasium" rm="gameNinjaRush" swf="game/ninja/ninjarush"/>
+      <r desc="极限轰炸" game="1" ms="" nm="gameLimitBomb" owner="maintown2" rm="gameLimitBomb" swf="game/limitbomb"/>
       <r desc="酷跑星世界" game="1" ms="" nm="gameParkour" owner="amusementpark" rm="gameParkour" swf="game/parkour/parkour"/>
       <r desc="对决无双" game="1" ms="" nm="gameMatchThree4Activity" owner="themepark" rm="gameMatchThree4Activity" swf="game/matchthree4activity"/>
       <!-- 2012 story quests (tools/story_files.py): rooms of the live config.xml -->

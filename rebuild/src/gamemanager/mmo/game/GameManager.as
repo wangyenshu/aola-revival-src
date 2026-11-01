@@ -28,7 +28,7 @@ package mmo.game
        * Games of the later GameTable (after the 2013 one's 61) whose buttons the
        * later scene copies carry: their rooms (the revival's config.xml).
        */
-      public static const LATER_GAMES:Object = {66: "gameNinjaRush"};
+      public static const LATER_GAMES:Object = {64: "gameLimitBomb", 66: "gameNinjaRush"};
 
       public static function sceneOf(id:int):String
       {

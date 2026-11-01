@@ -13,7 +13,7 @@ import { installPlants, plantTree, type PlantRec } from "./plants.ts";
 import { installEggs, type HatchRec } from "./eggs.ts";
 import { installZoo, type ZooRec } from "./zoo.ts";
 import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.ts";
-import { installMiniGames } from "./minigames.ts";
+import { installMiniGames, type LimitBombRec, type LimitBombRow } from "./minigames.ts";
 import { installPlanetActs } from "./planetacts.ts";
 import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
@@ -52,7 +52,7 @@ export interface UserRecord {
   gameCoins?: { day: string; n: number };
   /** Fights asked for today with a 亚比 that comes out once a day only so often (70_6): race -> times. */
   dailyFights?: { day: string; n: Record<string, number> };
-  /** 星币 (UserInfo.xingbi) and 晶豆 (a later currency; kept for the toolbox only). */
+  /** 星币 (UserInfo.xingbi) and 晶豆 (a later currency: 极限轰炸 pays it; the toolbox shows it). */
   xingbi?: number;
   jingdou?: number;
   /** 蓝宝石 (member), set with the toolbox. */
@@ -68,6 +68,8 @@ export interface UserRecord {
   zoo?: ZooRec;
   /** 酷跑星世界 (parkour.ts). */
   parkour?: ParkourRec;
+  /** 极限轰炸 (minigames.ts). */
+  limitBomb?: LimitBombRec;
   /** 黑星堡垒: the highest floor reached and whether it was passed (VipTowerExtension). */
   vipTower?: { fl: number; ps: boolean };
   /** 欢乐岛 today: seconds used, seconds bought (增加时长 bought n times), 双倍经验. */
@@ -714,8 +716,18 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     },
   });
 
-  // 斑比向前冲 (game/ninja/ninjarush; UserGameExtension 89_bb1 / 89_bb2): minigames.ts.
-  installMiniGames(world, { load: me, save: (o) => save(o as UserRecord) });
+  // 斑比向前冲 (game/ninja/ninjarush; UserGameExtension 89_bb1 / 89_bb2) and 极限轰炸 (game/limitbomb;
+  // 89_18 … 89_23, its 排行榜 kept for everyone under limitbomb/board): minigames.ts.
+  installMiniGames(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    now: () => emu.clock.now().getTime(),
+    pets: tables,
+    board: {
+      get: async () => (await emu.store.get<LimitBombRow[]>("limitbomb/board")) ?? [],
+      set: (rows) => emu.store.set("limitbomb/board", rows),
+    },
+  });
   // The activities of the 2012 story planets (摩么卡, 亚伦, 巨锁石灵, 达黑黑, 白京京, 卡索, 阿莫, 波波嘟, 独角兽): planetacts.ts.
   installPlanetActs(world, {
     load: me,

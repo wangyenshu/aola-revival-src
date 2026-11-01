@@ -153,6 +153,11 @@ package mmo.play.scene
                   // which the 2013 one lacks; the revival's GameManager knows its room.
                   takeOver(info, "btnNinjaRush", function():void { showGame(66); });
                   break;
+               case "maintown2":
+                  // 极限轰炸 (June 2013): the later 指挥中心 asks the later GameTable's GAME_LIMITBOMB
+                  // (64), which the 2013 one lacks; the revival's GameManager knows its room.
+                  takeOver(info, "btnlimitbomb", function():void { showGame(64); });
+                  break;
                case "maintown1":
                   // 异星传送枢纽: the later scene's door at the teleporter leads to 星际圈 (interstellar),
                   // a later room the 2013 config does not have; the hub sends one to the planets, as

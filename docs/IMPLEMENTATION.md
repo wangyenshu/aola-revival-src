@@ -160,7 +160,7 @@ extension name and command (`PetExtension.54_16`).
 | `tasks.ts` | quest progress, steps the server finishes itself, rewards |
 | `house.ts`, `plants.ts`, `zoo.ts`, `eggs.ts` | the 小屋, the 植树盆, the 动物园 and 生态园 games, the 亚比孵化器 |
 | `shoot.ts` | 射击 cards and effects |
-| `minigames.ts`, `parkour.ts` | mini game scores, 斑比向前冲, 酷跑星世界 |
+| `minigames.ts`, `parkour.ts` | mini game scores, 斑比向前冲, 极限轰炸, 酷跑星世界 |
 | `fb.ts` | the 四大副本 |
 | `gyms.ts` | the 道馆 |
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |

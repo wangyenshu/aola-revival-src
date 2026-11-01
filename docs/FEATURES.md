@@ -826,11 +826,16 @@ upload or a later copy. Not every game was played to its end in testing.
 | 海灵灵大作战 | `gameHungryMonster` | `game/hungrymonster` | 后期文件 |
 | 圣诞礼物盒 | `gameGoldPitman` | `game/goldpitman` | 后期文件 |
 | 斑比向前冲 | `gameNinjaRush` | `game/ninja/ninjarush` | 后期文件 |
+| 极限轰炸 | `gameLimitBomb` | `game/limitbomb` | 后期文件 |
 | 酷跑星世界 | `gameParkour` | `game/parkour/parkour` | 后期文件 |
 | 对决无双 | `gameMatchThree4Activity` | `game/matchthree4activity` | 后期文件 |
 
-Also available outside the table: 斑比向前冲 (2017, in 奥拉运动场) and
-酷跑星世界 (2014–15, in 星光游乐场), both later games, and the 欢乐弹珠机.
+Also available outside the table: 斑比向前冲 (2017, in 奥拉运动场), 极限轰炸
+(June 2013, its 2017 copy, at the fighter in 指挥中心) and 酷跑星世界 (2014–15,
+in 星光游乐场), all later games, and the 欢乐弹珠机. 极限轰炸's 排行榜 and 军衔奖励
+work; a 军衔奖励 row gives its 经验 and 晶币 but not the third thing it shows
+(items and clothes of June 2013 the January 2013 client does not know), and a
+run pays 晶豆, as its end panel says.
 
 ## Other systems
 

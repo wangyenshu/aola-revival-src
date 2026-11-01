@@ -14,9 +14,10 @@ package mmo.task135
     * 紧急情况，司令官麦哲伦命你急速前往指挥中心"); 麦哲伦's line about the 奥拉之辉
     * and its two answers are those of the walkthrough's screenshot, the rest
     * of the words are RECONSTRUCTED. Era films: task150res_newbiefightstart
-    * (the VS before the fight), task138res_groupfight (the 达斯特 driven
-    * off), task136res_openbook0–2 (the story of the 奥拉之辉),
-    * task146res_heroinfo (the three heroes), task138res_haludainfo (哈鲁达).
+    * (the VS before the fight), task136res_openbook0–2 (the story of the
+    * 奥拉之辉), task146res_heroinfo (the three heroes), task138res_haludainfo
+    * (哈鲁达). Not used: task138res_groupfight, where 哈鲁达's 达鲁 knocks the
+    * player's three 亚比 out (a defeat of the 2011 story, not the win here).
     *
     *   136  anywhere: HELLO sends the new player to the 指挥中心 (maintown2);
     *        there 麦哲伦 tells of the attack
@@ -169,7 +170,8 @@ package mmo.task135
          fighting = false;
          if (r.isWin)
          {
-            RComic.play("taskres/task138res_groupfight", "mmo.task138.GroupFightMc", function():void { finish(138); });
+            // Won: the 达斯特 are driven off (HELLO says so in the 机械废墟, step 139).
+            finish(138);
             return;
          }
          // The 亚比 get their strength back for another go.

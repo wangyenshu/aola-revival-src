@@ -197,7 +197,7 @@ picked up without running `npm run build`. Only changes to `web/` and
 | `pets.test.ts`, `battle.test.ts`, `guardians.test.ts` | 亚比, battles, catching, experience, bosses |
 | `tasks.test.ts` | quest progress and server-finished steps |
 | `house.test.ts`, `plants.test.ts`, `eggs.test.ts` | the 小屋, trees, eggs |
-| `shoot.test.ts`, `parkour.test.ts`, `fb.test.ts`, `gyms.test.ts` | 射击, 酷跑星世界, the 四大副本, the 道馆 |
+| `shoot.test.ts`, `parkour.test.ts`, `minigames.test.ts`, `fb.test.ts`, `gyms.test.ts` | 射击, 酷跑星世界, 极限轰炸, the 四大副本, the 道馆 |
 | `planetacts.test.ts`, `areafuncs.test.ts`, `yabistudy.test.ts` | the planets' activities, the functions of the places, 亚比融合 and 天赋启迪 |
 | `sandbox.test.ts`, `mods.test.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
 | `tests/test_tools.py` | URL mapping, the archive and game-root tools, `swfinfo`, `add_later`, `gen_tasks` |

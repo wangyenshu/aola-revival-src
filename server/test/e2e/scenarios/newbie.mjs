@@ -120,7 +120,10 @@ export default async function newbie(h) {
   for (let tries = 0; tries < 3; tries++) {
     await fight("dada");
     const next = await h.until(
-      async () => ((await h.hook("top")).includes("revivalComic") ? "comic" : /再试一次/.test(await talk()) ? "again" : ""),
+      async () => {
+        const t = await talk();
+        return /达斯特被打退/.test(t) ? "won" : /再试一次/.test(t) ? "again" : "";
+      },
       undefined,
       40,
     );
@@ -128,7 +131,6 @@ export default async function newbie(h) {
     if (next !== "again") break;
     await say(/再试一次/, [0], "138again");
   }
-  await comic("groupfight");
   // 139: back to 麦哲伦; the story of the 奥拉之辉, then off to 贝鲁特.
   await step(139);
   await say(/回指挥中心向司令官/, [0], "139go");
