@@ -1,6 +1,7 @@
 package mmo.sceneinit
 {
    import flash.events.Event;
+   import flash.utils.getDefinitionByName;
    import mmo.common.sound.SoundManager;
    import mmo.common.sound.SoundManagerEvent;
    import mmo.config.ConfigReader;
@@ -59,6 +60,13 @@ package mmo.sceneinit
 
       private static function musicOf(name:String):String
       {
+         // The 沙盒 room plays the music its 关卡 pack names for the room shown (docs/SANDBOX.md).
+         if (name == "sandboxroom")
+         {
+            try { return String(getDefinitionByName("mmo.control.SandboxRun")["music"] || ""); }
+            catch (e0:Error) {}
+            return "";
+         }
          try { return ConfigReader.instance.getSceneMusic(name); }
          catch (e:Error) {}
          return null;

@@ -6,6 +6,7 @@ package mmo.play.scene
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
+   import flash.geom.Point;
    import flash.geom.Rectangle;
    import flash.text.TextField;
    import flash.text.TextFormat;
@@ -32,7 +33,9 @@ package mmo.play.scene
     * floors to go to.
     *
     * 体育馆's 斑比向前冲 (a later game, its button in the later scene).
-    * 日月之境 and 木石之境: their way back to 崩坏的上古神殿.
+    * 日月之境 and 木石之境: their way back to 崩坏的上古神殿. 艺术馆: its door
+    * to 博物馆大厅, moved off the room in the later copy. 古代遗迹, 龙族圣殿 and
+    * 亚比训练室: doors their later copies lost (spot, ARRIVALS).
     *
     * NPC menus (the 功能 the 30 Nov 2012 world map lists for places): the
     * revival's NPC service has no per-NPC menus, while the later scenes still
@@ -149,6 +152,28 @@ package mmo.play.scene
                   // 亚比成长计划 (activityres/activity121108/yabilevelup, November 2012): the 2020
                   // scene has no way to it; a sign on the beach opens its main panel (RECONSTRUCTED).
                   growSign(info);
+                  break;
+               case "yishuzhidu2":
+                  // 艺术馆: the later copy (2018) moved its door to 博物馆大厅 (et2) above the
+                  // room, off the stage; it goes back to the top of the passage between the
+                  // pillars at the back, where the room's walkable floor leads.
+                  bringBack(info, "et2", 55);
+                  break;
+               case "msevenstar1":
+                  // 古代遗迹 (a copy of August 2013) lost its way to 黑暗星穴, which still sends
+                  // players back as from3to1 and takes them in as from1to3: the cave on the left.
+                  spot(info, new Rectangle(40, 160, 170, 150), "msevenstar3", "from1to3", "黑暗星穴");
+                  break;
+               case "msevenstar2":
+                  // 龙族圣殿 (a copy of 2020) has no way out: down the carpet on the left to 古代遗迹
+                  // (above the corner the control bar's 小精灵 covers).
+                  spot(info, new Rectangle(0, 395, 150, 75), "msevenstar1", "from2to1", "古代遗迹");
+                  break;
+               case "yabitrain":
+                  // 亚比训练室 (a later copy) has no way out: the stairs down to 亚比研究中心 and,
+                  // on the right, 实战特训场 (whose 2011 scene leads back here as fromactualcombat).
+                  spot(info, new Rectangle(395, 395, 170, 90), "yabistudy", "fromyabitrain", "亚比研究中心");
+                  spot(info, new Rectangle(880, 235, 80, 100), "actualcombat", "default", "实战特训场");
                   break;
                case "aolatree":
                   for each (var hn:String in ["threeHerosBtn", "btnHistoryComic"]) takeOver(info, hn, showHistoryComic);
@@ -353,6 +378,62 @@ package mmo.play.scene
          if (scene == null || et == null) return;
          scene.revival::addEntranceFor(et, to, key);
          try { TipsManager.getInstance().addTips(et as InteractiveObject, tip); } catch (e:Error) {}
+      }
+
+      /**
+       * Arrival points (scene coordinates) that later copies of rooms lost, by room and by
+       * the key their neighbours send players with (RECONSTRUCTED: near the door they use).
+       */
+      private static const ARRIVALS:Object = {
+         msevenstar1: {from3to1: [120, 430], from2to1: [740, 390]},
+         yabitrain: {fromyabistudy: [480, 380], fromactualcombat: [890, 300]}
+      };
+
+      public static function arrival(sceneName:String, key:String):Point
+      {
+         var room:Object = ARRIVALS[sceneName];
+         var p:Array = room && key ? room[key] as Array : null;
+         return p ? new Point(p[0], p[1]) : null;
+      }
+
+      /**
+       * A door drawn over a later copy's art where its 2013 door was: invisible but for a
+       * faint light under the pointer (as the 副本 doors of FbEntrances), walked to and gone through.
+       */
+      private static function spot(info:SceneInfo, r:Rectangle, to:String, key:String, tip:String):void
+      {
+         var scene:SceneBase = info.scene as SceneBase;
+         if (scene == null) return;
+         var face:Sprite = new Sprite();
+         face.name = "revivalDoor_" + to;
+         var paint:Function = function(alpha:Number):void
+         {
+            face.graphics.clear();
+            face.graphics.beginFill(0xFFFFCC, alpha);
+            face.graphics.drawRoundRect(r.x, r.y, r.width, r.height, 40, 40);
+            face.graphics.endFill();
+         };
+         paint(0.001);
+         face.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void { paint(0.18); });
+         face.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void { paint(0.001); });
+         var area:Sprite = new Sprite();
+         area.graphics.beginFill(0, 0);
+         area.graphics.drawRect(r.x, r.y, r.width, r.height);
+         area.graphics.endFill();
+         scene.addChild(area);
+         scene.addChild(face);
+         scene.revival::addEntranceFor(area, to, key, face);
+         try { TipsManager.getInstance().addTips(face, tip); } catch (e:Error) {}
+      }
+
+      /** A door a later copy moved above the room: back down so that its top is at y `top`. */
+      private static function bringBack(info:SceneInfo, name:String, top:Number):void
+      {
+         var et:DisplayObject = find(info.scene, name, 3);
+         if (et == null || et.parent == null) return;
+         var r:Rectangle = et.getBounds(et.parent);
+         if (r.bottom > 0) return;
+         et.y += top - r.top;
       }
 
       /** A hotspot that opens something instead of being walked into (a door of the later scene). */

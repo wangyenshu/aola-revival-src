@@ -276,6 +276,8 @@ package mmo.play.scene
             return;
          }
          var room:String = cfg.getSceneRoom(sceneName) || sceneName;
+         // REVIVAL: the 沙盒 room shows each player's own 关卡: a server room of one's own.
+         if (sceneName == "sandboxroom") room += "_" + SocketClient.instance.myUserName;
          var info:SceneInfo;
          if (_nextFB != null)
          {
@@ -431,7 +433,8 @@ package mmo.play.scene
          while (layer.numChildren > 0) layer.removeChildAt(0);
          layer.addChild(scene);
          var size:Object = ConfigReader.instance.getBigScene(info.sceneName);
-         var loc:Point = scene.locationFor(info.locationKey);
+         // Arrival points a later copy of the room lost (ScenePatches.ARRIVALS).
+         var loc:Point = ScenePatches.arrival(info.sceneName, info.locationKey) || scene.locationFor(info.locationKey);
          var room:Room = SocketClient.instance.activeRoom;
          loadedSceneInfo = info;
          // Homes and instance (副本) rooms are not where "back" leads: leaving

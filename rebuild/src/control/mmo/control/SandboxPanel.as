@@ -25,14 +25,21 @@ package mmo.control
    import mmo.revival.RUI;
 
    /**
-    * The revival's 沙盒 (not of 2013; under the 工具箱): a 关卡 the player sets
-    * up, up to MAX opponents fought one after another, each any 亚比 by its
-    * number at a level up to 999, its stats (体力, 攻击, 防御, 特攻, 特防, 速度)
-    * in percent of what it has at that level; the bag's 亚比 may be healed
-    * before each fight. A win brings nothing (no experience). The 关卡 is
-    * exported to a file and imported from one (FileReference), to keep and
-    * to share; the last one set up is remembered (SharedObject). Server:
-    * SundriesExtension.revival_sandbox (sandbox.ts); the file format is in
+    * The revival's 沙盒 (not of 2013; under the 工具箱), two pages:
+    *
+    * 对手关卡: a 关卡 the player sets up, up to MAX opponents fought one after
+    * another, each any 亚比 by its number at a level up to 999, its stats
+    * (体力, 攻击, 防御, 特攻, 特防, 速度) in percent of what it has at that level;
+    * the bag's 亚比 may be healed before each fight. Exported to a file and
+    * imported from one (FileReference); the last one is remembered
+    * (SharedObject).
+    *
+    * 地图关卡: a 关卡 pack (format version 2, made with the editor beside the
+    * game): its 关卡 listed, each started in its rooms (SandboxRun, the 沙盒
+    * room).
+    *
+    * A win brings nothing (no experience). Server:
+    * SundriesExtension.revival_sandbox (sandbox.ts); the formats are in
     * docs/SANDBOX.md.
     */
    public class SandboxPanel extends Sprite
@@ -40,15 +47,21 @@ package mmo.control
       public static const FORMAT:String = "aola-revival-level";
       private static const MAX:int = 10;
       private static const W:int = 600;
-      private static const H:int = 500;
+      private static const H:int = 528;
+      private static const LEVELS_A_PAGE:int = 9;
       private static const STATS:Array = [["hp", "体力"], ["at", "攻击"], ["de", "防御"], ["sa", "特攻"], ["sd", "特防"], ["sp", "速度"]];
       private static var current:SandboxPanel;
 
-      /** The 关卡 being fought: {lv (its JSON), name, i, n, race}. */
-      private static var run:Object;
-      private static var watching:Boolean;
+      /** The 关卡 pack imported (version 2), kept while the game runs. */
+      private static var pack:Object;
+      private static var lastPage:String = "fights";
 
       private var box:Sprite;
+      private var fightsPage:Sprite;
+      private var packPage:Sprite;
+      private var packInfo:TextField;
+      private var levelRows:Sprite;
+      private var levelPage:int;
       private var nameIn:TextField;
       private var healBox:Sprite;
       private var heal:Boolean = true;
@@ -71,28 +84,35 @@ package mmo.control
       public function SandboxPanel()
       {
          super();
-         watch();
          addChild(RUI.dim(close));
          box = RUI.panel(W, H, "沙盒", close, "sandboxClose");
          box.x = (960 - W) / 2;
-         box.y = (560 - H) / 2 - 10;
+         box.y = Math.max(2, (560 - H) / 2 - 8);
          addChild(box);
+         box.addChild(place(RUI.button("对手关卡", function():void { showPage("fights"); }, 100, 24, 0x8ED0FA, 0x3C96DC, "sandboxTabFights"), 18, 48));
+         box.addChild(place(RUI.button("地图关卡", function():void { showPage("pack"); }, 100, 24, 0x8ED0FA, 0x3C96DC, "sandboxTabPack"), 124, 48));
+         fightsPage = new Sprite();
+         fightsPage.y = 26;
+         box.addChild(fightsPage);
+         packPage = new Sprite();
+         packPage.y = 26;
+         box.addChild(packPage);
 
          var t:TextField = RUI.text(14, RUI.BLUE, true);
          t.text = "关卡";
          t.x = 26;
          t.y = 58;
-         box.addChild(t);
+         fightsPage.addChild(t);
          nameIn = RUI.input(200, "我的关卡", null, 30, "sandboxName");
          nameIn.x = 70;
          nameIn.y = 56;
-         box.addChild(nameIn);
+         fightsPage.addChild(nameIn);
          healBox = RUI.button("", toggleHeal, 150, 24, 0x8ED0FA, 0x3C96DC, "sandboxHeal");
          healBox.x = W - 176;
          healBox.y = 55;
-         box.addChild(healBox);
+         fightsPage.addChild(healBox);
 
-         box.addChild(RUI.well(14, 90, W - 28, 326));
+         fightsPage.addChild(RUI.well(14, 90, W - 28, 326));
          var heads:Array = [["编号", 24], ["亚比", 78], ["等级", 166]];
          for (var s:int = 0; s < STATS.length; s++) heads.push([STATS[s][1] + "%", 214 + s * 54]);
          for each (var h:Array in heads)
@@ -101,27 +121,100 @@ package mmo.control
             ht.text = h[0];
             ht.x = h[1];
             ht.y = 96;
-            box.addChild(ht);
+            fightsPage.addChild(ht);
          }
          rows = new Sprite();
          rows.x = 0;
          rows.y = 116;
-         box.addChild(rows);
+         fightsPage.addChild(rows);
 
          var bx:int = 18;
          for each (var b:Array in [["添加对手", addEnemy, 88, "sandboxAdd"], ["清空", clearAll, 60, "sandboxClear"], ["导出关卡", exportLevel, 88, "sandboxExport"], ["导入关卡", importLevel, 88, "sandboxImport"]])
          {
-            box.addChild(place(RUI.button(b[0], b[1], b[2], 26, 0x6CC0F5, 0x2E86D6, b[3]), bx, 424));
+            fightsPage.addChild(place(RUI.button(b[0], b[1], b[2], 26, 0x6CC0F5, 0x2E86D6, b[3]), bx, 424));
             bx += int(b[2]) + 8;
          }
-         box.addChild(place(RUI.button("开始挑战", start, 110, 30, 0xFFC45A, 0xF07812, "sandboxStart"), W - 128, 422));
+         fightsPage.addChild(place(RUI.button("开始挑战", start, 110, 30, 0xFFC45A, 0xF07812, "sandboxStart"), W - 128, 422));
          said = RUI.text(12, 0x8A3B00, true, W - 40);
          said.height = 36;
          said.x = 20;
-         said.y = 458;
+         said.y = 486;
          box.addChild(said);
 
+         buildPackPage();
          if (!load(remembered())) load({name: "我的关卡", heal: true, enemies: [{race: 1, level: 120}]});
+         showPage(pack != null ? lastPage : "fights");
+      }
+
+      private function showPage(which:String):void
+      {
+         lastPage = which;
+         fightsPage.visible = which == "fights";
+         packPage.visible = which == "pack";
+         if (which == "pack") drawPack();
+      }
+
+      // ---------------------------------------------------------------- 地图关卡 (packs)
+
+      private function buildPackPage():void
+      {
+         packInfo = RUI.text(13, RUI.BLUE, true, W - 60);
+         packInfo.height = 22;
+         packInfo.x = 26;
+         packInfo.y = 56;
+         packPage.addChild(packInfo);
+         var hint:TextField = RUI.text(11, 0x557799, false, W - 50);
+         hint.text = "关卡包用网站上的关卡编辑器（editor/）制作：图片、房间、门和对手都在一个文件里。";
+         hint.x = 26;
+         hint.y = 76;
+         packPage.addChild(hint);
+         packPage.addChild(RUI.well(14, 96, W - 28, 310));
+         levelRows = new Sprite();
+         levelRows.y = 106;
+         packPage.addChild(levelRows);
+         packPage.addChild(place(RUI.button("导入关卡包", importLevel, 110, 26, 0x6CC0F5, 0x2E86D6, "sandboxImportPack"), 18, 424));
+         packPage.addChild(place(RUI.smallButton("上一页", function():void { levelPage--; drawPack(); }, 70, 26, "sandboxLevelsPrev"), W - 168, 424));
+         packPage.addChild(place(RUI.smallButton("下一页", function():void { levelPage++; drawPack(); }, 70, 26, "sandboxLevelsNext"), W - 90, 424));
+      }
+
+      private function drawPack():void
+      {
+         while (levelRows.numChildren > 0) levelRows.removeChildAt(0);
+         if (pack == null)
+         {
+            packInfo.text = "还没有关卡包：点「导入关卡包」。";
+            return;
+         }
+         var levels:Array = pack.levels as Array;
+         var pages:int = Math.max(1, Math.ceil(levels.length / LEVELS_A_PAGE));
+         levelPage = Math.max(0, Math.min(pages - 1, levelPage));
+         packInfo.text = "关卡包「" + String(pack.name || "未命名") + "」" + (pack.author ? "  作者：" + String(pack.author).substr(0, 30) : "") + "  共" + levels.length + "关" + (pages > 1 ? "（第" + (levelPage + 1) + "/" + pages + "页）" : "");
+         for (var i:int = 0; i < LEVELS_A_PAGE && levelPage * LEVELS_A_PAGE + i < levels.length; i++)
+         {
+            var n:int = levelPage * LEVELS_A_PAGE + i;
+            var l:Object = levels[n];
+            var t:TextField = RUI.text(13, 0x335577, true);
+            t.text = (n + 1) + ". " + String(l.name || l.id).substr(0, 30) + "    " + (l.rooms is Array ? l.rooms.length : 0) + "个房间";
+            t.x = 30;
+            t.y = i * 32 + 4;
+            levelRows.addChild(t);
+            levelRows.addChild(place(RUI.button("开始", startLevel(String(l.id)), 70, 26, 0xFFC45A, 0xF07812, "sandboxLevel_" + n), W - 110, i * 32));
+         }
+      }
+
+      private function startLevel(id:String):Function
+      {
+         return function():void
+         {
+            var why:String = SandboxRun.check(pack);
+            if (why != null)
+            {
+               said.text = why;
+               return;
+            }
+            close();
+            SandboxRun.start(pack, id);
+         };
       }
 
       // ---------------------------------------------------------------- the 关卡 in the panel
@@ -303,7 +396,14 @@ package mmo.control
          try
          {
             file = new FileReference();
-            file.addEventListener(Event.SELECT, function(e:Event):void { file.load(); });
+            file.addEventListener(Event.SELECT, function(e:Event):void
+            {
+               // A pack is at most 16 MB (docs/SANDBOX.md).
+               var big:Boolean = false;
+               try { big = file.size > 16000000; } catch (se:Error) {}
+               if (big) said.text = "文件太大了（关卡包最多16 MB）。";
+               else file.load();
+            });
             file.addEventListener(Event.COMPLETE, function(e:Event):void
             {
                try
@@ -311,9 +411,26 @@ package mmo.control
                   var data:ByteArray = file.data;
                   data.position = 0;
                   var lv:Object = RJson.decode(data.readUTFBytes(data.length));
+                  if (lv != null && lv.levels is Array)
+                  {
+                     // A 关卡 pack (version 2): its 关卡 on the 地图关卡 page.
+                     var why:String = SandboxRun.check(lv);
+                     if (why != null)
+                     {
+                        said.text = why;
+                        return;
+                     }
+                     pack = lv;
+                     SandboxRun.reset();
+                     levelPage = 0;
+                     showPage("pack");
+                     said.text = "已导入关卡包「" + String(lv.name || "未命名") + "」（" + lv.levels.length + "关）。";
+                     return;
+                  }
                   if (lv == null || (lv.format != null && lv.format != FORMAT) || !(lv.enemies is Array)) throw new Error("not a level");
                   load(lv);
                   remember(level());
+                  showPage("fights");
                   said.text = "已导入关卡「" + nameIn.text + "」（" + enemies.length + "个对手）。";
                }
                catch (err:Error)
@@ -370,59 +487,17 @@ package mmo.control
             said.text = "先添加对手。";
             return;
          }
+         if (SandboxRun.fighting) return;
          remember(lv);
-         run = {lv: RJson.encode(lv), name: lv.name, i: 0, n: enemies.length};
          close();
-         fight();
-      }
-
-      private static function watch():void
-      {
-         if (watching) return;
-         watching = true;
-         SocketClient.instance.addEventListener("revival_sandbox", function(e:SocketClientEvent):void
+         var name:String = String(lv.name);
+         var n:int = enemies.length;
+         SandboxRun.fight(lv, function(win:Boolean, at:int, refused:Boolean = false):void
          {
-            if (run == null) return;
-            if (e.params.res != 1)
-            {
-               // Not a 关卡 (its reason), or a start refused (msg "": the battle's 2303 said why).
-               run = null;
-               if (e.params.msg) NewDialog.showMessage(String(e.params.msg));
-               return;
-            }
-            run.race = int(e.params.race);
+            if (refused) return;
+            if (win) NewDialog.showSucceedMessage("恭喜你通过了关卡「" + name + "」！");
+            else NewDialog.showMessage("关卡「" + name + "」挑战失败（第" + (at + 1) + "个对手，共" + n + "个）。");
          });
-         CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_END, onFightEnd);
-      }
-
-      private static function fight():void
-      {
-         if (run == null) return;
-         SocketClient.instance.sendXtMessage("SundriesExtension", "revival_sandbox", {lv: run.lv, i: run.i});
-      }
-
-      private static function onFightEnd(e:PetFightEvent):void
-      {
-         if (run == null || (e.raceId != 0 && int(run.race) != 0 && e.raceId != int(run.race))) return;
-         var r:Object = run;
-         if (!e.isWin)
-         {
-            run = null;
-            NewDialog.showMessage("关卡「" + r.name + "」挑战失败（第" + (r.i + 1) + "个对手，共" + r.n + "个）。");
-            return;
-         }
-         if (r.i + 1 >= r.n)
-         {
-            run = null;
-            NewDialog.showSucceedMessage("恭喜你通过了关卡「" + r.name + "」！");
-            return;
-         }
-         r.i++;
-         r.race = 0;
-         // The next opponent once the battle screen has gone.
-         var t:Timer = new Timer(1500, 1);
-         t.addEventListener(TimerEvent.TIMER, function(te:TimerEvent):void { if (run == r) fight(); });
-         t.start();
       }
 
       private static function place(d:DisplayObject, x:Number, y:Number):DisplayObject

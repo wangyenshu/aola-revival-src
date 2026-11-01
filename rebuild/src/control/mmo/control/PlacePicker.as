@@ -98,6 +98,8 @@ package mmo.control
             {
                var nm:String = String(r.@nm), desc:String = String(r.@desc);
                if (!nm || !desc || !String(r.@swf) || String(r.@game) == "1" || listed[nm] || seen[nm]) continue;
+               // The 沙盒's room shows a 关卡 pack's rooms: it is entered from the 沙盒 panel.
+               if (nm == SandboxRun.ROOM) continue;
                // The config's placeholders of rooms never drawn (大场景1, xx之塔).
                if (/^大场景\d*$|xx/i.test(desc)) continue;
                seen[nm] = true;

@@ -32,6 +32,7 @@ package mmo.control
    import mmo.loader.SimpleCustomLoader;
    import mmo.loader.layer.LayerManager;
    import mmo.play.scene.SceneManager;
+   import mmo.play.scene.revival;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
    import mmo.revival.RLog;
@@ -588,6 +589,39 @@ package mmo.control
                         orows.push(orow);
                      }
                      return orows.join("\n");
+                  case "entrances":
+                     // The scene's entrances: target, where they are drawn, and whether my player
+                     // can walk to their middle (tests/e2e: a door drawn off the room is no door).
+                     var es:Object = sm.loadedSceneInfo ? sm.loadedSceneInfo.scene : null;
+                     var elist:Array = null;
+                     try { elist = es.revival::entranceList; } catch (ee:Error) { return "none"; }
+                     var eme:PlayerBase = PlayerManager.getInstance().myPlayer as PlayerBase;
+                     var eouts:Array = [];
+                     for each (var en:Object in elist)
+                     {
+                        var ea:DisplayObject = en.area as DisplayObject;
+                        if (ea == null) continue;
+                        var eb:Rectangle = ea.parent ? ea.getBounds(es.playerLayer) : null;
+                        var line:String = (ea.name || "?") + "->" + (en.action is Function ? "action" : en.scene + "/" + en.key);
+                        if (eb == null) { eouts.push(line + " off"); continue; }
+                        var ecx:Number = eb.x + eb.width / 2, ecy:Number = eb.y + eb.height / 2;
+                        line += " " + int(eb.x) + "," + int(eb.y) + " " + int(eb.width) + "x" + int(eb.height);
+                        var ehid:Boolean = false;
+                        for (var ep:DisplayObject = ea.parent; ep != null && ep != es; ep = ep.parent) if (!ep.visible) ehid = true;
+                        if (ehid) line += " hidden";
+                        if (eb.bottom < 0 || eb.y > int(es.getSceneHeight()) || eb.right < 0 || eb.x > int(es.getSceneWidth())) line += " OFFROOM";
+                        if (eme != null)
+                        {
+                           var epath:Array = es.findPath(eme.x, eme.y, ecx, ecy);
+                           var eend:Point = epath && epath.length ? epath[epath.length - 1] : (es.isBlocked(ecx, ecy) ? null : new Point(ecx, ecy));
+                           var ezone:Rectangle = eb.clone();
+                           ezone.inflate(30, 30);
+                           var near:Boolean = eend != null && ezone.containsPoint(eend);
+                           line += near ? " reach" : " UNREACHABLE" + (eend ? "(" + int(eend.x) + "," + int(eend.y) + ")" : "");
+                        }
+                        eouts.push(line);
+                     }
+                     return eouts.join(" | ");
                   case "clearmodal":
                      // Close every panel, film and game window left open (tests/e2e).
                      ModalDialogManager.getInstance().clearAll();

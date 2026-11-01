@@ -1,36 +1,119 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "aola-revival-level",
-  "title": "奥拉星 revival 沙盒 关卡 (format version 1)",
-  "description": "A 关卡 of the revival's 沙盒: opponents fought one after another. See docs/SANDBOX.md.",
-  "type": "object",
-  "required": ["enemies"],
-  "properties": {
-    "format": { "const": "aola-revival-level" },
-    "version": { "type": "integer", "minimum": 1 },
-    "name": { "type": "string", "maxLength": 30 },
-    "heal": { "type": "boolean", "default": true, "description": "The bag's 亚比 get their 体力 and PP back before each fight." },
-    "enemies": {
-      "type": "array",
-      "minItems": 1,
-      "maxItems": 10,
-      "items": {
-        "type": "object",
-        "required": ["race"],
-        "properties": {
-          "race": { "type": "integer", "minimum": 1, "description": "The 亚比's 图鉴 number; it must be one that can fight." },
-          "level": { "type": "integer", "minimum": 1, "maximum": 999, "default": 1 },
-          "hp": { "$ref": "#/$defs/pct", "description": "体力" },
-          "at": { "$ref": "#/$defs/pct", "description": "攻击" },
-          "de": { "$ref": "#/$defs/pct", "description": "防御" },
-          "sa": { "$ref": "#/$defs/pct", "description": "特攻" },
-          "sd": { "$ref": "#/$defs/pct", "description": "特防" },
-          "sp": { "$ref": "#/$defs/pct", "description": "速度" }
+  "title": "奥拉星 revival 沙盒 关卡",
+  "description": "A 关卡 file of the revival's 沙盒: version 1, a list of opponents fought one after another; version 2, a pack of pictures and 关卡 made of rooms joined by doors. See docs/SANDBOX.md.",
+  "oneOf": [{ "$ref": "#/$defs/v1" }, { "$ref": "#/$defs/v2" }],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,32}$" },
+    "pct": { "type": "number", "minimum": 1, "maximum": 10000, "default": 100, "description": "Percent of the stat the 亚比 has at its level." },
+    "point": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+    "rect": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4, "description": "x, y, width, height in room coordinates." },
+    "opponent": {
+      "type": "object",
+      "required": ["race"],
+      "properties": {
+        "race": { "type": "integer", "minimum": 1, "description": "The 亚比's 图鉴 number; it must be one that can fight." },
+        "level": { "type": "integer", "minimum": 1, "maximum": 999, "default": 1 },
+        "hp": { "$ref": "#/$defs/pct", "description": "体力" },
+        "at": { "$ref": "#/$defs/pct", "description": "攻击" },
+        "de": { "$ref": "#/$defs/pct", "description": "防御" },
+        "sa": { "$ref": "#/$defs/pct", "description": "特攻" },
+        "sd": { "$ref": "#/$defs/pct", "description": "特防" },
+        "sp": { "$ref": "#/$defs/pct", "description": "速度" }
+      }
+    },
+    "v1": {
+      "type": "object",
+      "required": ["enemies"],
+      "properties": {
+        "format": { "const": "aola-revival-level" },
+        "version": { "const": 1 },
+        "name": { "type": "string", "maxLength": 30 },
+        "heal": { "type": "boolean", "default": true, "description": "The bag's 亚比 get their 体力 and PP back before each fight." },
+        "enemies": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/$defs/opponent" } }
+      }
+    },
+    "v2": {
+      "type": "object",
+      "required": ["format", "version", "images", "levels"],
+      "properties": {
+        "format": { "const": "aola-revival-level" },
+        "version": { "const": 2 },
+        "name": { "type": "string", "maxLength": 30 },
+        "author": { "type": "string", "maxLength": 30 },
+        "images": {
+          "type": "object",
+          "maxProperties": 64,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "type": "string", "pattern": "^data:image/(png|jpeg);base64,[A-Za-z0-9+/=]+$", "description": "A PNG or JPG, at most 2880 × 560." }
+        },
+        "levels": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/level" } }
+      }
+    },
+    "level": {
+      "type": "object",
+      "required": ["id", "start", "rooms"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "maxLength": 30 },
+        "heal": { "type": "boolean", "default": true },
+        "start": { "$ref": "#/$defs/id", "description": "The room the 关卡 starts in." },
+        "next": { "$ref": "#/$defs/id", "description": "The 关卡 offered once this one is cleared." },
+        "rooms": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/room" } }
+      }
+    },
+    "room": {
+      "type": "object",
+      "required": ["id", "background"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "maxLength": 30 },
+        "background": { "$ref": "#/$defs/id", "description": "An image id: the room's picture and size." },
+        "mask": { "$ref": "#/$defs/id", "description": "An image id: black is wall, white or transparent is floor (alpha < 128 floor; else luminance < 128 wall)." },
+        "overlay": { "$ref": "#/$defs/id", "description": "An image id drawn over the players at 0, 0, scaled as the background is." },
+        "music": { "type": "string", "pattern": "^music/[A-Za-z0-9_./-]+\\.mp3$" },
+        "props": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": ["image", "at"],
+            "properties": { "image": { "$ref": "#/$defs/id" }, "at": { "$ref": "#/$defs/point" }, "front": { "type": "boolean", "default": false } }
+          }
+        },
+        "spawns": { "type": "object", "maxProperties": 16, "propertyNames": { "$ref": "#/$defs/id" }, "additionalProperties": { "$ref": "#/$defs/point" } },
+        "doors": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "required": ["rect", "to"],
+            "properties": {
+              "rect": { "$ref": "#/$defs/rect" },
+              "to": { "type": "string", "pattern": "^(#finish|#exit|[A-Za-z0-9_-]{1,32}(/[A-Za-z0-9_-]{1,32})?)$", "description": "room, level/room, #finish or #exit." },
+              "spawn": { "$ref": "#/$defs/id" },
+              "open": { "enum": ["always", "cleared"], "default": "always" },
+              "label": { "type": "string", "maxLength": 20 }
+            }
+          }
+        },
+        "enemies": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "required": ["id", "at", "team"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "at": { "$ref": "#/$defs/point" },
+              "name": { "type": "string", "maxLength": 20 },
+              "boss": { "type": "boolean", "default": false },
+              "team": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/$defs/opponent" } }
+            }
+          }
         }
       }
     }
-  },
-  "$defs": {
-    "pct": { "type": "number", "minimum": 1, "maximum": 10000, "default": 100, "description": "Percent of the stat the 亚比 has at its level." }
   }
 }

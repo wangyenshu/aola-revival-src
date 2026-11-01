@@ -18,61 +18,29 @@ every path that was asked.
 | `_meta/live-versiondata-2026-09-11.swf`, `live-config-2026-10-22.xml`, `start.xml`, `play.html` | Today's live manifest, config and page, for comparison later. |
 | `_meta/report-before-2014.md` | Files and sizes per folder. |
 
-## Additions of 31 October 2026
+## Additions
 
-The revival's curation tools took 581 more files from the live server into its
-`game/` after the archive was made (the 2012 story quests and their scenes,
-music and films, `tools/story_files.py`; the shop books' pages and the
-`plant/y000001–8` trees, `tools/add_later.py`; the theatre films,
-`tools/theatre.py`), each with its CDN path, upload date and SHA-1 in
-`game/FILES.jsonl`. `tools/archive_additions.py` wrote an index line for each
-(field `added`: the date and why it was taken): 247 files uploaded 2010–2013
-in `index.jsonl` (48 MB), 332 later uploads in `_later/index.jsonl` (49 MB),
-the two films in `_site/index.jsonl`, and 4 Wayback pictures in
-`_wayback/index.jsonl`. They are not in the transfer pieces: `python
+The revival's curation tools took more files from the live server into
+`game/` after the archive was made. Each has its CDN path, upload date and
+SHA-1 in `game/FILES.jsonl`, and `tools/archive_additions.py` wrote a line
+for each into the archive's indexes (field `added`: the date and the
+reason). Files of 2010–2013 go to `index.jsonl`, later uploads to
+`_later/index.jsonl`, the films to `_site/index.jsonl` and the Wayback
+pictures to `_wayback/index.jsonl`.
+
+| Run | Date | Files |
+| --- | --- | --- |
+| 1 | 31 Oct 2026 | the 2012 story quests' rooms, music, films and scripts (`tools/story_files.py`); shop book pages and the `plant/y000001–8` trees (`tools/add_later.py`); the theatre films (`tools/theatre.py`); 4 Wayback pictures. 247 lines in `index.jsonl` (48 MB), 332 in `_later` (49 MB) |
+| 2 | 31 Oct 2026 | the 奥拉周刊 from issue 1 (`tools/weeklies.py`: 1,660 pages of 113 issues), the zoo animals' pictures, `zooitem/zooitem1–10`, the later zoo house `furniture/b020000`. 184 lines (77 MB) and 1,604 (168 MB) |
+| 3 | 31 Oct 2026 | the 守护者's pictures `dailyactivity/dailyboss<race>` (27 files, 16 of 2011–12), `music/fightBgMusic1.mp3`. 16 and 12 lines |
+| 4 | 31 Oct 2026 | the 保卫战 games' pictures (`pvzres/`, `guardnutres/`, `seadefendres/`), small pictures of 12 亚比, 舞动全星's songs, two entrance panels, `bumpbilliards/bumpbilliards` (2015), 时空隧道's pictures and panel, the 幻龙星系 quests' scripts and resources. 193 and 28 lines |
+| 5 | 31 Oct 2026 | the 奥拉周刊 issues whole in one file (`weekly/aolaweekly1–20, 22.swf`), pictures of 2011–12 event bosses and 友人契约书's egg film, `petlearning/petlearning192` and `230`, the later 副本 choose panels, `fightassets/pet999`. 33 and 3 lines |
+| 6 | 31 Oct 2026 | battle and 亚比蛋 pictures of 亚比 1–1426 the archive lacked, 斑比向前冲 (2017), 酷跑星世界 (2014–15), `bookfriendclub/seestory` (2011), `library_res/common_res_bubble`, an entrance panel. 1 and 67 lines |
+| 7 | 1 Nov 2026 | 蓝羽灵者's picture and panel (10 January 2013), `stonebosspanel`, the planets' activities (`momekaevolution/*`, `activityres/yalunevolution*`, `bringupres/fishbringuppanel`, `rarepets/raredaheihei`), two 道馆 panels, `tasknpc/npc324` and `npc342`, `scene/aolatreefb` (2021). 7 and 7 lines |
+
+The added files are not in the transfer pieces. `python
 tools/extract_archive.py --out <archive folder> --from-cdn` downloads them
-(and anything else not yet there) and keeps each only if its SHA-1 matches;
-a sample of 15 matched on 31 October 2026.
-
-A second run (31 October 2026) indexed what `game/` took next: the 奥拉周刊
-of every week from issue 1 (`tools/weeklies.py`: 1660 pages of 113 issues,
-`weekly/aolaweekly<n>_<k>.swf` and `weekly/weekly<n>/…`; most re-uploaded
-unchanged on 17 October 2024, those of 2010–2013 by their upload date or the
-date Flash wrote in them), the zoo animals' pictures `zoopeticon/peticon{small,middle,large}1–40`,
-the zoo's `zooitem/zooitem1–10` and the later zoo house `furniture/b020000`
-(`tools/add_later.py`): 184 lines in `index.jsonl` (77 MB) and 1,604 in
-`_later/index.jsonl` (168 MB). A third (also 31 October) took the 守护者's scene
-pictures `dailyactivity/dailyboss<race>` (27 files, 16 of them uploaded in
-2011–12) and the classic battle music `music/fightBgMusic1.mp3`: 16 lines in
-`index.jsonl` and 12 in `_later/index.jsonl`.
-A fourth run (also 31 October) indexed the files of update 8: the 保卫战 games'
-pictures (`pvzres/`, `guardnutres/`, `seadefendres/`, 45 files of 2011), the
-small pictures `peticon/peticon<id>` of 12 亚比 one could not get, 舞动全星's
-songs `dancesong/song1–5`, two game entrance panels, the 欢乐弹珠机
-`bumpbilliards/bumpbilliards` (2015), 时空隧道's `spacetime/spacetimepet0–9` and
-`spacetimepanel`, and the 幻龙星系 quests' scripts (`taskext/task3022` … `task3346`,
-2015 uploads) with their 137 resources and NPC pictures (`tools/story_files.py`):
-193 lines in `index.jsonl` and 28 in `_later/index.jsonl`.
-A fifth run (also 31 October) indexed the files of update 9: the 奥拉周刊 issues
-whole in one file (`weekly/aolaweekly1–20, 22.swf`, 43 MB, uploaded 2010–11),
-the pictures of 2011–12 event bosses `dailyactivity/dailyboss10112` … `11259` and
-友人契约书's egg film, the skill films `petlearning/petlearning192` and `230`, and
-for the 四大副本 the later choose and buy-times panels and 拉贝尔幻影's battle sprite
-`fightassets/pet999`: 33 lines in `index.jsonl` and 3 in `_later/index.jsonl`.
-A sixth run (also 31 October) indexed the files of update 10: the battle pictures
-and 亚比蛋 pictures of 亚比 1–1426 the archive lacked, 斑比向前冲
-(`game/ninja/ninjarush`, 2017) and 酷跑星世界 (`game/parkour/`, 2014–15, with its
-maps, roles and films), the 家具店's 迷幻星域故事书 (`bookfriendclub/seestory`,
-2011), the bubbles of 时空隧道 (`library_res/common_res_bubble`) and an entrance
-panel: 1 line in `index.jsonl` and 67 in `_later/index.jsonl`.
-A seventh run (1 November) indexed the files of update 11: 蓝羽灵者's picture
-and panel `dailyactivity/dailyboss31394` (10 January 2013, not in the October
-inventory) and 岩波斗魂者's `stonebosspanel`, the planets' activities
-(`momekaevolution/*` and `activityres/yalunevolution*` for 摩么卡 and 亚伦,
-`bringupres/fishbringuppanel` for 波波嘟, `rarepets/raredaheihei`), two 道馆
-panels of November 2012, the talk pictures `tasknpc/npc324` and `npc342`, and
-the stylized 奥拉之树 `scene/aolatreefb` (2021): 7 lines in `index.jsonl` and 7
-in `_later/index.jsonl`.
+(and anything else missing) and keeps each only if its SHA-1 matches.
 
 ## How the files were found and dated
 
@@ -114,4 +82,4 @@ To unpack the transfer pieces on another computer and check every file:
 python tools/extract_archive.py --pieces <folder with archive-*.zip> --out <archive folder>
 ```
 
-These are 百田's files, kept for private preservation. Do not redistribute.
+These are 百田's files, kept for preservation. Do not redistribute them.

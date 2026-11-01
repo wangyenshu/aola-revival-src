@@ -1,0 +1,215 @@
+# Player guide
+
+This guide covers playing the revival: starting, the control bar, saves, and
+the two tools the revival adds to the game, the 工具箱 and the 沙盒. What the
+game contains is listed in [FEATURES.md](FEATURES.md).
+
+## Starting
+
+Open the site. The page starts a service worker and the server emulator and
+shows the original start screen; click 开始游戏. You play as 小奥拉 (奥拉号
+10001) and arrive in 奥拉广场, where the newbie quest begins: the HELLO sends
+you to 司令官麦哲伦 in the 指挥中心, you choose your first 亚比 (滴滴, 吉拉 or
+兔小子), fight, buy 亚比球, catch a 朵朵兔 and receive the HELLO. After the
+quest the task panel (任务, top right) lists the story quests under 可接, and
+its 前往 button takes you to where each one begins.
+
+The game runs at its original size of 960 × 560. Its clock starts on
+15 August 2012 each time the page is opened and then runs at normal speed.
+
+## Saves
+
+Progress is saved automatically in the browser's IndexedDB, separately for
+each site address. Clearing the site's data in the browser deletes it, and a
+different browser or computer starts from the beginning.
+
+To keep or move a save, use 存档 in the 工具箱:
+
+- 导出存档 downloads a file (`aola-revival-save`) with every save of this
+  browser for this site.
+- 导入存档 reads such a file, replaces all saves of this site with it and
+  reloads the page.
+
+## The control bar
+
+| Button | What it does |
+| --- | --- |
+| 地图 (bottom left) | The world map of November 2012; click a place to go there. In a 副本 it opens the 副本's map, in 黑星堡垒 it leaves. |
+| 发言 | Ready-made phrases to say. |
+| 表情 | Faces shown over your head. |
+| 动作 | Actions your character performs. |
+| 射击 | Shooting with 射击卡. 光能射线 and 冰冻射线 are free; the other cards are bought in 道具店 and used up one per shot. |
+| Chat box | Type and send a message. The button beside it shows the recent chat. |
+| 信息卡 | Your player card with the wardrobe: click clothes to put them on or take them off. |
+| 好友, 组队, 战队 | Not available (they need other players). |
+| 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, the 亚比仓库. |
+| 物品 | Everything collected: 道具, 亚比蛋, 种植, 射击卡. |
+| 回家 | Your 家园 (garden); 我的家 there leads into the 小屋. |
+| 商城 (cart) | The 收费 catalogs (服装, 道具, 家具, 亚比蛋), bought with 星币. |
+| ♪ | Music on or off. |
+| 任务 (top right) | The task panel. |
+| 工具箱, 沙盒 (right) | The revival's tools, described below. |
+
+Money: 晶币 are earned in the game (battles, mini games, quests). 星币 stand
+in for the real-money currency of 2012; the revival has no payment, so 星币
+come only from the 工具箱. 蓝宝石 (the membership) halves 星币 prices and
+opens members-only goods; it is switched on in the 工具箱.
+
+## 工具箱
+
+The 工具箱 was not in the 2013 game. It is meant for testing and for players
+who want to skip collecting. Open it with the 工具箱 button on the right of
+the screen.
+
+| Section | Use |
+| --- | --- |
+| 晶币, 星币, 晶豆 | Enter an amount and click 增加. Each total is capped at 9,999,999. 晶豆 is a later currency; the server keeps it but no 2013 shop uses it. |
+| 亚比经验 | Enter an amount and click 增加. The experience goes to the first 亚比 of the bag, which levels up, learns skills and evolves as after a battle. |
+| 成为蓝宝石 / 取消蓝宝石 | Switch the 蓝宝石 membership on or off. |
+| 领取亚比 | Enter the 亚比's 图鉴 number (编号) and a level from 1 to 100, then click 领取. The name appears next to the number. The 亚比 goes into the bag, or into the 亚比仓库 when the bag already holds six. It knows every skill its line learns up to that level. |
+| 传送 | Type a place's Chinese name (for example 艺术馆) or its room id and click 传送, or click 选地图 to pick from the places of the world map. 选地图 → 其他场景 lists every other room of the game, including the rooms of the story quests that were no longer on the map in 2013. |
+| 存档 | 导出存档 and 导入存档, see [Saves](#saves). |
+
+### 亚比 marked 无法获得
+
+The 2013 亚比图鉴 marks 55 亚比 as 无法获得 (cannot be obtained): enemies of
+the 四大副本, 达斯特's 亚比, quest opponents and bosses. In the original game
+players could only fight them. With 领取亚比 in the 工具箱 you can get any of
+them by number, like any other 亚比.
+
+Following and battles work for all 55:
+
+- **跟随**: three of them (415 埃黑多夫, 448 冰火巨人, 466 冰摩格) have walking
+  figures and follow you as those. The others have no walking figure in the
+  game files and follow you as their large 图鉴 picture.
+- **战斗**: all 55 have battle sprites and battle data, so they can fight in
+  every kind of battle. Their skills are the ones the 2013 tables list. As
+  enemies they needed few: many know only one to three skills, and 360
+  苹果智能炮 and 361 风筝雷电射线 have none, so they cannot attack.
+
+They cannot be caught in the wild or in the 副本 (the tables give them no
+catch rate), and the column 可学技能 counts the skills their line learns.
+
+| 编号 | 亚比 | 地区 | 图鉴里的获得方式 | 可学技能 | 跟随形象 |
+| --- | --- | --- | --- | --: | --- |
+| 118 | 骑士战马 | — | 无法获得。 | 1 | 图鉴大图 |
+| 210 | 圣甲虫 | 索里德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 4 | 图鉴大图 |
+| 213 | 石像守卫 | 索里德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 3 | 图鉴大图 |
+| 216 | 兵蚁 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 217 | 工蚁 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 2 | 图鉴大图 |
+| 218 | 守护力士 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 219 | 守护法师 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 222 | 贝德威尓 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 2 | 图鉴大图 |
+| 223 | 兰斯罗特 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 224 | 哥拉海德 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 225 | 保斯 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 2 | 图鉴大图 |
+| 227 | 变异蚁将军 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 4 | 图鉴大图 |
+| 239 | 狂暴天狼 | — | 达斯特大将迪瑞恩的亚比，无法获得。 | 4 | 图鉴大图 |
+| 240 | 法老王 | 索里德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 4 | 图鉴大图 |
+| 241 | 毒菇球 | 思伍德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 242 | 金刚蛤蟆 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 2 | 图鉴大图 |
+| 243 | 下水猛鳄 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 4 | 图鉴大图 |
+| 244 | 牛角滴滴 | 思伍德区 | 奥拉战记——蚁族王朝里的亚比，无法获得。 | 4 | 图鉴大图 |
+| 245 | 斗魂星云棒 | — | 斗魂星云棒幻化成的亚比，无法获得。 | 1 | 图鉴大图 |
+| 269 | 威尔斯 | — | 达斯特的亚比，无法获得。 | 1 | 图鉴大图 |
+| 270 | 木人桩 | 上古神殿 | 在上古神殿的“大妖之怒”任务中出现过，无法获得。 | 3 | 图鉴大图 |
+| 272 | 曼珠沙华 | 索里德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 3 | 图鉴大图 |
+| 301 | 达鲁 | — | 达斯特大将哈鲁达的亚比，无法获得。 | 16 | 图鉴大图 |
+| 304 | 帕克 | — | 达斯特大将可帕斯的亚比，无法获得。 | 16 | 图鉴大图 |
+| 307 | 利飞 | — | 达斯特大将菲莉的亚比，无法获得。 | 4 | 图鉴大图 |
+| 319 | 科克 | — | 达斯特大将多克特的亚比，无法获得。 | 4 | 图鉴大图 |
+| 322 | 达达 | — | 达斯特军队的亚比，无法获得。 | 16 | 图鉴大图 |
+| 324 | 钢铁达鲁 | — | 无法获得。 | 1 | 图鉴大图 |
+| 325 | 巨人守卫 | — | 达斯特大将古力德的亚比，无法获得。 | 16 | 图鉴大图 |
+| 326 | 炎魔 | — | 太阳之殿的考官，无法获得。 | 1 | 图鉴大图 |
+| 327 | 月魔 | — | 月亮之殿的考官，无法获得。 | 1 | 图鉴大图 |
+| 328 | SR战士 | — | 达斯特军队的亚比，无法获得。 | 16 | 图鉴大图 |
+| 329 | 强袭SR | — | 达斯特军队的亚比，无法获得。 | 16 | 图鉴大图 |
+| 332 | 邪恶霹雳 | 比特区 | 多克特研制出的霹雳，在“神奇的霹雳”任务中出现过，无法获得。 | 16 | 图鉴大图 |
+| 333 | 钢铁科克 | — | 无法获得。 | 2 | 图鉴大图 |
+| 334 | 组合机器人 | 比特区 | 多克特组装出的机械人，在“神奇的霹雳”任务中出现过，无法获得。 | 16 | 图鉴大图 |
+| 340 | 机械木乃伊 | 索里德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 4 | 图鉴大图 |
+| 360 | 苹果智能炮 | — | 发明岛的纽顿的亚比，无法获得。 | 0 | 图鉴大图 |
+| 361 | 风筝雷电射线 | — | 发明岛的弗朗科林的亚比，无法获得。 | 0 | 图鉴大图 |
+| 369 | 暗影甲龙 | — | 达斯特军团的先锋将领，无法获得。 | 16 | 图鉴大图 |
+| 400 | 迅猛龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 401 | 梁龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 402 | 翼龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 403 | 鱼龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 404 | 霸王龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |
+| 405 | 星辰毁灭者 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 2 | 图鉴大图 |
+| 415 | 埃黑多夫 | 艾夕区 | 奥拉战记——幻影冰宫里的亚比，无法获得。 | 16 | 行走形象 |
+| 448 | 冰火巨人 | 艾夕区 | 奥拉战记——幻影冰宫里的亚比，无法获得。 | 16 | 行走形象 |
+| 461 | 黑化念 | — | 风暴星系的终极BOSS，无法获得。 | 3 | 图鉴大图 |
+| 462 | 黑化巨翅金鹏 | — | 一只被黑暗力量控制的亚比，无法获得。 | 2 | 图鉴大图 |
+| 466 | 冰摩格 | 艾夕区 | 奥拉战记——幻影冰宫里的亚比，无法获得。 | 16 | 行走形象 |
+| 523 | 麦斗王 | 斗魂空间 | 一只被黑暗力量控制的亚比，无法获得。 | 2 | 图鉴大图 |
+| 527 | 奈乌达斯 | — | 达斯特军团的先锋将领，无法获得。 | 4 | 图鉴大图 |
+| 609 | 伊德鲁拉 | — | 达斯特军团的先锋将领，无法获得。 | 16 | 图鉴大图 |
+| 735 | 护花雪兔 | — | 保护冰凌花的使者，无法获得。 | 2 | 图鉴大图 |
+
+## 沙盒
+
+The 沙盒 was not in the 2013 game either. It sets up custom battles and
+custom maps. Open it with the 沙盒 button under the 工具箱. Its panel has two
+pages.
+
+Rules for every 沙盒 fight: winning brings nothing (no experience, effort
+points, evolution or catching), so the 沙盒 cannot be used to level 亚比. The
+server checks every value of a 关卡 and refuses one it cannot read.
+
+### 对手关卡: a list of opponents
+
+A 关卡 here is up to 10 opponents fought one after another.
+
+1. Enter a name for the 关卡.
+2. Click 添加对手 for each opponent and fill in its row:
+   - 编号: the 亚比's 图鉴 number (any 亚比 that can fight);
+   - 等级: 1 to 999 (above 100 the stats keep growing by the same formulas);
+   - 体力%, 攻击%, 防御%, 特攻%, 特防%, 速度%: each stat in percent of its
+     normal value at that level, from 1 to 10000. 100 leaves it unchanged.
+3. 每场前恢复体力 chooses whether your bag is healed before each fight.
+4. Click 开始挑战. A loss ends the 关卡.
+
+删 removes a row, 清空 removes all. 导出关卡 saves the 关卡 to a file and
+导入关卡 loads one, so 关卡 can be kept and shared. The last 关卡 is
+remembered.
+
+### 地图关卡: custom maps
+
+A 关卡 pack is one file with pictures and any number of 关卡, each made of
+rooms joined by doors, with opponents standing in the rooms. Packs are made
+with the editor (below).
+
+1. Click 导入关卡包 and choose a pack file (at most 16 MB). Its 关卡 are listed.
+2. Click 开始 next to a 关卡. You enter its first room.
+3. In a room:
+   - click a door to walk to it and go through. Doors drawn grey with
+     （未开启） open only after every opponent in the room is beaten;
+   - click an opponent to walk up to it and fight its team. A beaten
+     opponent stays gone until a pack is imported again;
+   - a door to the end of the 关卡 (labelled 通关 unless the pack names it
+     otherwise) finishes it and starts the next 关卡 if the pack names one;
+   - 离开沙盒 (top left) returns to where you opened the 沙盒.
+
+Each player is alone in the 沙盒's rooms.
+
+### The editor
+
+The editor is a web page beside the game, at `editor/` on the site (for
+example `https://<user>.github.io/<repo>/editor/`), or `tools/level-editor/
+index.html` opened directly from the repository. It needs no installation and
+loads nothing from other sites. With it you:
+
+- load pictures (PNG or JPG) and use them as backgrounds, props and
+  overlays;
+- add 关卡 and rooms;
+- paint where players can walk (brush, eraser, fill);
+- place entry points, doors with their targets, and opponents;
+- set each opponent's team (1 to 10 亚比 with level and stats);
+- check the pack and export it.
+
+The editor keeps the pack being edited in the browser between visits. Next to
+the game it shows the 亚比 names; opened from a file it shows numbers only.
+`docs/examples/sandbox-pack-example.json` is a small example pack. The file
+format is described in [SANDBOX.md](SANDBOX.md).

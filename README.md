@@ -1,225 +1,120 @@
 # aola-revival
 
-奥拉星 (Aola Star) as it was in January 2013, playable in a browser: the
-original client SWFs of the 2013-01-25 release, served at their original
-`www.9aola.com` URLs, running in Ruffle (WebAssembly) against a server
-emulator that runs in the page. Where the 2013 code is lost, it is rebuilt in
-ActionScript 3 against the surviving 2013 libraries, and every rebuilt file
-says so.
+A playable reconstruction of the web game 奥拉星 (Aola Star) as it was in
+January 2013.
 
-This repository holds everything needed to build it, the archived game files
-included, and builds a static site that any static host can serve, GitHub
-Pages included. Building downloads only tools (npm packages, playerglobal,
-FFDec), never game files.
+The original client SWFs of the 25 January 2013 release run in
+[Ruffle](https://ruffle.rs) in the browser. A server emulator written in
+TypeScript runs in the same page and answers the client with the 2013
+protocol. Client modules that did not survive are rebuilt in ActionScript 3
+against the surviving 2013 libraries and compiled into SWFs. The result is a
+static website: nothing runs on a server, and progress is saved in the
+browser.
 
-The game files in `game/`, and the data derived from them in `rebuild/gen`
-and `rebuild/static`, are 百田's. Keep this repository private and do not
-redistribute them.
+The repository contains the archived game files (`game/`), the rebuilt
+sources and everything needed to build the site. Building downloads build
+tools only, never game files.
 
-## Build
+## Status
 
-Needs Node 22.18 or newer, Java 11 or newer (17 is what CI uses), Python 3,
-`curl` and `unzip`. The SWF build is a shell script: Linux, macOS, or WSL on
-Windows.
+Playable: the newbie quest and 182 other quests of 2010–2013, NPCs
+in every place of the November 2012 world map, wild 亚比, battles and
+catching, the 守护者 and event bosses, the 四大副本, 85 mini games, shops,
+the 小屋, 家园 and 动物园, the 亚比孵化器, riding, 射击, the 奥拉周刊 back
+issues and more. See [docs/FEATURES.md](docs/FEATURES.md) for the full lists.
+
+Not available: anything that needs other players (friends, teams, 战队,
+trading, player battles), daily tasks, the HELLO's own panel and most
+time-limited activities. Their buttons show 这个功能还在修复中.
+
+Additions that were not in the 2013 game: the 工具箱 (currencies, any 亚比,
+teleport, save export) and the 沙盒 (custom battles and custom maps with an
+editor). See [docs/GUIDE.md](docs/GUIDE.md).
+
+## Quick start
+
+Requirements: Node.js 22.18 or newer, Java 11 or newer, Python 3, `curl` and
+`unzip`, on Linux, macOS or WSL.
 
 ```bash
 npm ci
-npm run build:swf   # rebuilt SWF modules -> build/rebuilt/ (about 3 minutes)
-npm run build       # static site -> dist/ (about 920 MB)
-npm run serve       # http://127.0.0.1:8080/
+npm run build:swf   # compile the rebuilt modules into build/rebuilt/
+npm run build       # assemble the site in dist/ (about 1.4 GB)
+npm run serve       # serve dist/ at http://127.0.0.1:8080/
 ```
 
-The first `build:swf` fetches the build tools into `.toolchain/`
-(`rebuild/build/setup-toolchain.sh`, checksums pinned): Apache Royale 0.9.12
-(the ActionScript compiler, from npm), `playerglobal.swc` 10.1 and JPEXS FFDec
-26.4.0 (from GitHub). It then makes SWCs of the eleven 2013 libraries in
-`game/` (`rebuild/build/libs.txt`), compiles the rebuilt modules
-(`rebuild/build/all.sh`) and the generated stand-ins for lost services
-(`rebuild/build/stubs.sh`), and adds `rebuild/static/`.
+The first `build:swf` downloads the compiler tools into `.toolchain/`. Open
+the page from `http://127.0.0.1`, `http://localhost` or an `https://`
+address; the page needs a service worker, which browsers allow only there.
+Click 开始游戏. You play as 小奥拉, and the newbie quest starts.
 
-`npm run build` (`scripts/build-static.mjs`) writes `dist/`:
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) describes the build in detail.
 
-| In dist/ | What |
+## Deploying
+
+`dist/` can be served by any static web host.
+
+For GitHub Pages, the workflow `.github/workflows/pages.yml` runs the tests,
+builds the modules and the site, and deploys `dist/` on every push to `main`.
+Enable it under Settings → Pages → Build and deployment → Source: GitHub
+Actions. The site is then at `https://<user>.github.io/<repo>/`.
+
+To leave folders of game files out of the site, pass them to the build:
+`npm run build -- --exclude activityres,weekly`.
+
+Notes:
+
+- The page asks the original hosts (`www.9aola.com` and others) for every
+  file; the service worker answers from `dist/files/`. On an `https` page the
+  requests are made over `https`, so the browser does not block them as mixed
+  content.
+- Nothing is loaded from other sites: Ruffle, the emulator and all pictures
+  are part of the site, and Ruffle is set to open no links.
+- `robots.txt` and a robots meta tag ask all crawlers, including AI crawlers,
+  to stay out. Crawlers read `robots.txt` only at the root of a host, so on a
+  project site it applies only if the same file is served at the root.
+
+## Documentation
+
+| Document | Contents |
 | --- | --- |
-| `index.html`, `config.js`, `boot.js` | the front end (`web/`) |
-| `emulator.js` | the 2013 server emulator, run in the page (`server/src/browser`) |
-| `sw.js` | the service worker that answers requests for the original hosts |
-| `ruffle/` | Ruffle 0.7.1 (npm `@ruffle-rs/ruffle`) |
-| `files/` | the game files: `build/rebuilt` above `game/`, a file the first answers for left out; `%` in names becomes `~`; `files/index.json` lists them |
+| [docs/GUIDE.md](docs/GUIDE.md) | Playing: controls, saves, the 工具箱 (including the 亚比 marked 无法获得) and the 沙盒 |
+| [docs/FEATURES.md](docs/FEATURES.md) | What is supported: places and NPCs, quests, bosses, the 四大副本, mini games, other systems, known gaps |
+| [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) | How it works: the page, the emulator, the rebuilt client, each subsystem |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Building, testing, the folder structure, the tools |
+| [docs/SANDBOX.md](docs/SANDBOX.md) | The 关卡 file formats and the editor |
+| [docs/ARCHIVE.md](docs/ARCHIVE.md) | The archive of the game's CDN that `game/` was made from |
+| [docs/HISTORY.md](docs/HISTORY.md) | The work, update by update, with the details and sources of each change |
 
-Open the page from `http://127.0.0.1`, `http://localhost` or `https://`
-(service workers need one of these). Click 开始游戏; you log in as 小奥拉 and
-arrive in 奥拉广场. Progress is kept in the browser (IndexedDB), per site.
-
-## Publish on GitHub Pages
-
-1. Push this repository to GitHub. It is about 920 MB; no file is over 20 MB.
-2. Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-3. Push to `main` (or run the workflow by hand). `.github/workflows/pages.yml`
-   runs the tests, `build:swf` and `build`, and deploys `dist/`; the site is at
-   `https://<user>.github.io/<repo>/`.
-
-GitHub Pages from a private repository needs a paid plan (Pro, Team or
-Enterprise), and the published site is public to anyone with its address,
-even when the repository is private; only GitHub Enterprise Cloud can make a
-Pages site private. Pages publishes at most 1 GB: `npm run build -- --exclude
-activityres,game` leaves out whole folders if the site grows past it.
-
-The site asks every crawler and AI robot to stay out: `dist/robots.txt`
-(`web/robots.txt`: `Disallow: /` for all robots, and by name for the AI and
-training crawlers that read only their own group) and a `noindex, nofollow,
-noai` robots meta tag in `index.html`. Robots read `robots.txt` only at the
-root of a host, so on a project site (`https://<user>.github.io/<repo>/`) it
-counts only if the `<user>.github.io` repository serves the same file at its
-root, or on a custom domain; the meta tag works on either.
-
-On an https page the browser would block the game's `http://` requests before
-the service worker sees them, so `boot.js` asks for the original hosts over
-https there (and tells Ruffle to do the same); the service worker answers
-both. It also gives each file its content type, which a static host cannot
-tell from a name like `aola.js~3F20121227`.
-
-## game/
-
-17,186 files (1,108 MB) at the paths the January 2013 client asks for:
-`www.9aola.com/<path>%3F<version>`, the version being the one in the
-2013-01-25 manifest or the loader's default `1210`.
-
-`game/FILES.jsonl` lists every file with its size, SHA-1 and origin:
-
-| Origin | Files | What |
-| --- | --: | --- |
-| `era` | 13,305 | from the live-CDN archive of 28 October 2026, uploaded on or before the release date: the files the 2013 client loaded, or older unchanged ones; 248 of them taken later, which the archive's first pass had not asked for: 22 shop book pages and the 8 trees of the 家园 (`plant/y000001–8`, June 2012) with `tools/add_later.py`, 217 films, comics and panels of the 2012 story quests (`tools/story_files.py`), the 奥拉星2周年 film of the 百田大剧场 (`tools/theatre.py`) |
-| `later` | 3,737 | uploaded after the release: used only where nothing older survives, and only what the 2013 client asks for (listed in the manifest or the config, the 亚比, NPCs, tasks and furniture of the 2013 ranges by number); 291 of them (`"added": "story quests…"`) for the 2012 story quests: scenes the 2013 client no longer had, the scripts that survive only as their 2015–2019 uploads (`tools/story_files.py`) and the fight art of two task 亚比; with `tools/add_later.py`: 2 the HELLO's look, 51 shop book pages (道具, 家具, 种植, 射击卡), 6 the 形象卡's bare body; the 战队 film at its December 2012 address (a May 2013 upload, `tools/theatre.py`) |
-| `derived` | 6 | made here from a file above: the two films of the 百田大剧场 as WebM and MP4 (a page cannot play Flash video) and a frame of each (`tools/theatre.py`) |
-| `capture` | 138 | not on the CDN any more: Wayback Machine captures of the boot chain and pages, the November 2012 map from 百田's guide page |
-
-It was made from the archive (`docs/ARCHIVE.md`) and earlier captures with
-`tools/make_game_root.py select` (rules and lists in `tools/data/`), and the
-files added since with `tools/story_files.py --fetch`, `tools/add_later.py` and
-`tools/theatre.py` (the only tools that download into `game/`; building never does). The same
-folder can be made again from `FILES.jsonl` and a local copy of the archive,
-every SHA-1 checked, nothing downloaded (the files added since are not in the
-archive: give a copy of `game/` as a search folder):
-
-```bash
-python3 tools/make_game_root.py assemble --files game/FILES.jsonl \
-    --archive aola_archive_2013 --search <older folders holding captures> --out game
-```
-
-## Developing
-
-- **ActionScript**: sources in `rebuild/src` (one folder per module, shared
-  code in `rebuild/src/shared`). `npm run build:swf` rebuilds all of them; to
-  build one, `. .toolchain/env.sh` and call `rebuild/build/as3c.sh` as
-  `all.sh` does. `rebuild/gen` holds sources generated once from the
-  decompiled 2013 libraries (`tools/gen_stubs.py` for the stand-ins,
-  `tools/gen_npc_data.py`, `gen_tasks.py`, `gen_pets.py`, `gen_bconfig.py`,
-  `gen_wildpets.py`, `gen_petmes.py` for data); `rebuild/static` holds the `config.xml` overlay
-  (`tools/config_overlay.py`) and the 亚比, skill and item tables the emulator
-  reads (`tools/gen_pmdata.py`, `gen_pets.py`, `gen_materials.py`,
-  `gen_wildpets.py`). They are committed so that building needs no decompiler.
-- **Emulator** (TypeScript, `server/src`): `npm test` runs the unit tests (and
-  the Python ones in `tests/`), `npm run check` the type check.
-- **In the browser**: `npx playwright install chromium` once, then
-  `npm run e2e:newbie` plays the whole newbie quest in Chromium against
-  `dist/` and leaves screenshots in `work/e2e-newbie/`; `npm run e2e:story`
-  plays the story quests 1214 and 1219 (`work/e2e-story/`), `npm run e2e:music`
-  listens to the scene music and the music switch (`work/e2e-music/`),
-  `npm run e2e:garden` plants a tree in the 家园, goes into the 小屋 and plays a
-  film of the 百田大剧场 (`work/e2e-garden/`). The walk-throughs open the page
-  with `?bare=1` (the game alone at 20, 16, as they click by page position);
-  `--decorated` keeps the page's 2012 site look.
-  The scenarios `storysmoke.mjs` (every start conversation), `stepsmoke.mjs`
-  (the conversation of each step, and the errors the scripts throw) and
-  `storyplay.mjs` (quests played through, `QUESTS=1742,1750`) look at the
-  story quests at large.
-  `server/test/e2e/boot2013.mjs --mirror build/rebuilt,game` serves the game
-  files straight from the roots (no `npm run build` after changing a module);
-  `--url` tests a site served elsewhere, such as `npm run serve -- --base
-  /aola/` or the published Pages site.
-- **Node server** (`npm start`): serves `dist/` and the roots over HTTP with a
-  WebSocket bridge and optional raw TCP game ports, for several players.
-
-## What is rebuilt, and how faithful it is
-
-- **Engine** (`rebuild/src/control`): `mmo.play.*` written to the API the 392
-  surviving era SWFs use. `tools/engine_census.py` lists every member they
-  touch, with the exact override signatures and namespaces they need.
-- **奥拉广场** (`rebuild/src/scenes/starland`): the January 2013 square is lost
-  (the live file is a later redesign). The art is the July 2012 square kept in
-  `bigscene/starlandcopy.swf`, bound to rebuilt code by `tools/swf_transplant.py`.
-- **Services**: for each service whose module is lost, `tools/gen_stubs.py`
-  generated a class with the original name and interface. Every method returns
-  an empty value and logs its first call (`[rebuilt] stub called: …` in the
-  browser console), which shows what to rebuild next.
-- **Server** (`server/src/game/sfs2013`): the 2013 room protocol (login, rooms,
-  user variables, extension calls in AMF3), the startup replies, 亚比 and
-  battles, items and shops, the home, tasks. Rules the client never knew
-  (damage, catch rates, rewards) are RECONSTRUCTED and say where from.
-
-Working now: the newbie quest of 2012 from the HELLO's first call to
-麦哲伦's ceremony (choosing the first 亚比, the first fight, buying 亚比球,
-catching a 朵朵兔, getting the HELLO, with the era task panels and films);
-after it, the 162 story quests of 2010–12 under 可接 in the task panel
-(猫王子, 思伍德, 烈焰鸟, 巨人山脉, 幽暗冥州, 钻石岛, 美食之星, 童话之星, 糖果星,
-骑士学院, 尖叫游乐园, 白灵圣殿 …) running their own scripts, the first two of
-巨人山脉 checked from start to end; the
-world map (the November 2012 map), NPCs with their talk and the NPC
-challenges (异星使者维克 and ten others), each scene's music, walking round
-obstacles (A* on the scene's obstruction), the HELLO walking behind the player,
-the control bar of December 2011 (phrases, faces, actions, 射击 with the
-shoot cards and their effects, chat log, 奥拉周刊, music switch, 商城), the
-shop books (道具, 射击卡, 服装, 家具, 种植, the 收费 books of the 商城), the
-player card with the wardrobe, the pet bag and the following 亚比, the
-亚比仓库, the 家园 of 2012 (rebuilt from its tutorial picture: trees to plant,
-water, feed and pick in its 植树盆) with 我的家, the home with furniture and
-storage, the 百田大剧场 (the 奥拉星 films that survive), the start screen
-without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星币,
-晶豆, experience, any 亚比 by number, 蓝宝石; not of 2013), the 收费 goods
-bought with 星币, the 亚比孵化器, 更换技能 in the 亚比 bag (the bar's 背包, named 亚比), the 生态园 games
-(动物保卫战, 天空保卫战, 海底保卫战, 动物捕捉; later copies of the games), 星光游乐场's
-games and its 欢乐弹珠机, the 财富小管家 of 奥拉广场, 时空隧道's floors, the bosses'
-films in battle, the 动物园
-(rebuilt on the later zoo's art: animals that grow, feed, 收获 and 变异 into
-亚比), the 家园's 经验分配器 and 我的荣誉, the 守护者 bosses of the areas
-(their own pictures that wake up, their talks, their 亚比蛋; the bosses of the
-2011–12 events too: 友人契约书, 时间之神, 天之巨灵, 极速威锋, 满月巨灵, 猪猪超人,
-赤魔导士, 赤影飞狐, 年兽, 影刃, 鬼王, 天女若希, 翡冷翠), 欢乐岛's hot
-spring, the 兜兜回收器, battle music, the 四大副本 (幻影冰宫, 倒立金字塔,
-蚁族王朝, 恐龙博物馆: their doors, the choose panel of three modes, the rooms'
-scripts, 亚比 and bosses, chests and the rating), 坐骑 (a 蓝宝骑士 rides one of
-the 34 亚比 the 2013 data names), the 亚比 one could not get following as their
-picture, 修普森曼's and 艾尔利克's quests (纯白之翼的信念, 赤火斗士的意志,
-赤火剑的力量; withdrawn in November 2011, back on request), 主题公园 on the
-2012 park's art, 亚比研究中心 on the oldest art of it that survives (2014) and
-奥拉之树 on the stylized tree of 2014–24,
-灵兽宫 and the halls of 上古神殿, 斑比向前冲 and 酷跑星世界, the shops' lift
-(点我前往其他楼层), the 家具店 with 安娜 and the 迷幻星域 room and story book,
-黑星堡垒 (the era dungeon and its bosses), the 奥拉周刊 of every week from
-2010 on in the 图书馆, 欢乐岛, gathering in scenes, the wild and rare 亚比 the
-November 2012 map lists for each place, battles, and the mini games (their
-entrance panels, the games' own SWFs, 晶币 for the score). The 工具箱 also
-travels to any scene by name, from a list of the places of the 2012 map or
-from the pages of every other room,
-and exports and imports the browser's saves; the 沙盒 under it sets up 关卡 of
-one's own (up to ten opponents, levels up to 999, their stats in percent),
-exported and imported as files (docs/SANDBOX.md); and
-the bar's 物品 shows everything collected. Known gaps: the HELLO's panel,
-friends, daily tasks and most activities
-are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every
-missing system, what survives of it, the server commands it needs, and the
-milestone order.
-
-## Layout
+## Repository layout
 
 ```
-game/       the archived game files (see above) and FILES.jsonl
-rebuild/    AS3 sources (src/), generated sources (gen/), static data (static/), build scripts (build/)
-server/     emulator (TypeScript): 2013 protocol, in-page bundle, service worker, Node server, tests
-web/        front end: page, boot script, settings, the theatre and 存档 panels
-scripts/    build-static.mjs (dist/), serve.mjs (local static server)
-tools/      archive, dating, data generation and SWF tools (Python 3)
-tests/      Python tests and the URL-mapping fixtures shared by Python and TypeScript
-docs/       PLAN.md (state and plan), ARCHIVE.md (the CDN archive)
+game/       archived game files at their 2013 URLs, listed in game/FILES.jsonl
+rebuild/    ActionScript sources (src/), generated sources (gen/), data (static/), build scripts (build/)
+server/     the server emulator, the in-page bundle, the service worker, the Node server, tests
+web/        the page, its boot script and settings, the theatre and save panels
+scripts/    build-static.mjs (builds dist/), serve.mjs (local static server)
+tools/      archive, data generation and SWF tools (Python), the 关卡 editor
+tests/      Python tests and shared fixtures
+docs/       documentation
 ```
+
+## Acknowledgements
+
+奥拉星 was made by 百田 (广州百田信息科技有限公司). This project depends on
+the files 百田 kept on its CDN and on its official pages and guides, on
+Ruffle, the Internet Archive's Wayback Machine, JPEXS Free Flash Decompiler
+and Apache Royale, and on the player guide sites of 2010–2013. The full list
+is in [NOTICE.md](NOTICE.md).
+
+## Copyright and licence
+
+The code and documentation written for this project are copyright the
+aola-revival contributors and licensed under the GNU General Public License
+version 3 ([LICENSE](LICENSE)).
+
+The game itself is 百田's. The files in `game/`, the data derived from them
+in `rebuild/gen/`, `rebuild/static/` and `tools/data/`, and the code taken
+from 百田's SWFs in `rebuild/src/` are not covered by the GPL and remain
+百田's. Third-party code keeps its own licence. [NOTICE.md](NOTICE.md) lists
+exactly what is covered and what is not. Do not redistribute 百田's files.

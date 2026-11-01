@@ -59,9 +59,9 @@ package mmo.play.scene
       }
 
       /** REVIVAL: an entrance added from outside the scene (ScenePatches). */
-      revival function addEntranceFor(area:DisplayObject, sceneName:String, locationKey:String = "default"):void
+      revival function addEntranceFor(area:DisplayObject, sceneName:String, locationKey:String = "default", button:DisplayObject = null):void
       {
-         addEntrances(area, sceneName, locationKey);
+         addEntrances(area, sceneName, locationKey, button);
       }
 
       protected function addEntrances(area:DisplayObject, sceneName:String, locationKey:String = "default", button:DisplayObject = null, face:String = "ld"):void
@@ -309,6 +309,12 @@ package mmo.play.scene
       }
 
       // ───── driven by SceneManager ─────
+
+      /** REVIVAL: the entrances added so far, {area, scene, key} or {area, action} (tests/e2e). */
+      revival function get entranceList():Array
+      {
+         return _entrances.concat();
+      }
 
       revival function get measuresOwnWidth():Boolean
       {

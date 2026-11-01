@@ -299,6 +299,9 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/aolatreefb.swf)" --code "$
   --bind 0=mmo.scene.starland.DocAolatreeRevived --bind 112=mmo.scene.starland.AolatreeRevived \
   --note "REBUILT scene/aolatree (aola-revival) on the stylized tree of scene/aolatreefb (2021)" \
   --out "$W/scene/aolatree.swf%3F130124"
+# The 沙盒's room (aola-revival, docs/SANDBOX.md): code only, its pictures come from
+# the player's 关卡 pack.
+build scenes/sandboxroom mmo/scene/sandbox/DocSandboxRoom.as sandboxroom.swf "scene/sandboxroom.swf%3F1210"
 
 # 欢乐岛: the 2020 scene cut down to the 2013 engine (its own code needs later
 # services and could not be built), on its own art.

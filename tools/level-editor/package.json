@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "description": "The 沙盒 关卡 editor: a static page, no build step. This file only tells Node that pack.js is a CommonJS script (the repository's package is ESM), so server/test/levelpack.test.ts can require it.",
+  "type": "commonjs"
+}

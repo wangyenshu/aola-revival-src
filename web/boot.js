@@ -91,6 +91,9 @@
       playerVersion: 32,
       logLevel: cfg.verbose ? "info" : "warn",
       publicPath: "ruffle/",
+      // The game's own links to 百田's pages (官网, 充值, the forum) open nothing: no page of
+      // theirs is fetched. Its javascript: calls to the page are not links (allowScriptAccess).
+      openUrlMode: "deny",
     };
     await new Promise((resolve, reject) => {
       const s = document.createElement("script");
