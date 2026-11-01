@@ -48,6 +48,8 @@ export interface PetRecord {
   /** Effort points, hp first. */
   ev?: number[];
   got: string;
+  /** 沙盒 opponents only: their stats multiplied (hp first), as the player set them (sandbox.ts). */
+  mul?: number[];
 }
 
 /** Fields of UserRecord the pet code uses. */
@@ -89,10 +91,10 @@ export function nameOf(t: PetTables, race: number): string {
   return t.pm.species[String(race)]?.n ?? t.species[String(race)]?.n ?? `亚比${race}`;
 }
 
-export function statsOf(p: Pick<PetRecord, "race" | "level" | "iv" | "ev"> & { character?: string }, t?: PetTables): number[] {
+export function statsOf(p: Pick<PetRecord, "race" | "level" | "iv" | "ev"> & { character?: string; mul?: number[] }, t?: PetTables): number[] {
   const sp = t ? speciesOf(t, p.race) : undefined;
-  if (sp) return calcStats(sp, p.level, p.iv, p.ev, p.character);
-  return GROWTH.map(([b, k]) => b + k * p.level);
+  const base = sp ? calcStats(sp, p.level, p.iv, p.ev, p.character) : GROWTH.map(([b, k]) => b + k * p.level);
+  return p.mul ? base.map((v, i) => Math.max(1, Math.round(v * (p.mul![i] ?? 1)))) : base;
 }
 
 export function maxHpOf(p: PetRecord, t: PetTables): number {

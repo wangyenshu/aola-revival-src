@@ -266,7 +266,18 @@ export class World {
       player: p,
       world: this,
       params: (params && typeof params === "object" ? params : {}) as Record<string, unknown>,
-      reply: (obj, c) => s.sendBytes(S.ext({ _cmd: c ?? cmd, ...obj }), `xt reply ${c ?? cmd}`),
+      reply: (obj, c) => {
+        const name = c ?? cmd;
+        if (name === "onAmountUpdated" && typeof obj.amount === "string") {
+          // 亚比蛋 (type 5) are not told: the 2013 client's PetEggService (material/materialservice)
+          // throws "not implement" for an egg it does not list (getNewUserMaterial), and the eggs
+          // are read from the server where they are shown (the 孵化器's 1-2, the 物品's 1=1).
+          const amount = obj.amount.split("#").filter((a) => !a.startsWith("5_")).join("#");
+          if (!amount) return;
+          obj = { ...obj, amount };
+        }
+        s.sendBytes(S.ext({ _cmd: name, ...obj }), `xt reply ${name}`);
+      },
       broadcast: (obj, c, includeSelf = true) => {
         if (p.room) this.sendRoom(p.room, S.ext({ _cmd: c, ...obj }), includeSelf ? undefined : s, `xt broadcast ${c}`);
       },

@@ -1,6 +1,8 @@
 package mmo.dailyactivity
 {
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
+   import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.events.TimerEvent;
    import flash.utils.Timer;
@@ -14,7 +16,9 @@ package mmo.dailyactivity
    import mmo.common.ModalDialogEvent;
    import mmo.common.dialog.NewDialog;
    import mmo.common.eventdispatcher.CommonEventDispatcher;
+   import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import mmo.common.utils.tips.TipsManager;
+   import mmo.framework.comm.SocketClient;
    import mmo.interfaces.DailyActivity.BossTimeHelper;
    import mmo.interfaces.DailyActivity.IDailyActivity;
    import mmo.interfaces.arrowguide.ArrowType;
@@ -60,8 +64,9 @@ package mmo.dailyactivity
    public class DailyActivityService extends EventDispatcher implements IDailyActivity
    {
       /**
-       * scene, name, file (dailyactivity/dailyboss<file>), class, x, y, kind (wake, still, film, book, panel, ask),
-       * film class, npc, talk key, talk set (std, team, pig, feier, start, one), forms "race:level,…".
+       * scene, name, file (dailyactivity/dailyboss<file>), class, x, y, kind (wake, still, film, book, panel, ask,
+       * stone, wand), film class (for panel and stone: "file|class" of the panel), npc, talk key, talk set (std,
+       * team, pig, feier, start, one), forms "race:level,…".
        */
       private static const BOSSES:Array = [
          ["aixiscene6", "冰拳艾司", 20087, "IceBoss", 0, 0, "wake", null, 64, "iceboss", "std", "20087:80"],
@@ -81,33 +86,60 @@ package mmo.dailyactivity
          ["fairytalestar1", "童心", 30682, "Boss10682", 0, 0, "book", null, 462, "themepark30682", "std", "30682:88,10682:100"],
          ["haikustar2", "神龟", 10715, "Boss10715", 0, 0, "still", null, 513, "boss10715", "std", "10715:80,20715:100"],
          ["fightspace2", "终极麦斗王", 14523, "BossInteraction.PigBoss", 187, 272, "still", null, 278, "courageDoorBoss", "pig", "14523:100,11514:80,11516:80"],
-         ["bingxuestar4", "暴雪山神", 10757, "Boss10757", 0, 0, "film", "BossMovie10757", 538, "boss10757", "std", "10757:80,20757:100"],
+         ["bingxuestar4", "暴雪山神", 10757, "Boss10757", 0, 0, "wand", "BossMovie10757", 538, "boss10757", "std", "10757:80,20757:100"],
          ["yakestar4", "神罗麦提", 10840, "Boss10840", 0, 0, "film", "Boss10840Movie", 589, "boss12702", "std", "10840:80,20840:100"],
          ["candystar3", "超T兔", 10865, "Boss10865", 0, 0, "still", null, 613, "boss12731", "std", "10865:80,20865:100"],
-         ["cloudstar4", "石城守护者", 11213, "StoneBoss", 0, 0, "still", null, 1, "FirstWinTalk_1213", "one", "11213:60,21213:80,31213:100"],
+         ["cloudstar4", "岩波斗魂者", 11213, "StoneBoss", 0, 0, "stone", "dailyactivity/stonebosspanel|mmo.stoneboss.StoneBossPanel", 786, null, "one", "11213:60,21213:80,31213:100"],
          ["mysticocean5", "伊泽和迦娜", 11320, "Boss11320", 0, 0, "still", null, 842, "hello_before_OceanBoss", "one", "11320:100,11322:100"],
          ["feier4", "烈焰鸟", 30278, "Feier4boss", 640, 454, "wake", null, 80, "feier4boss", "feier", "30278:80"],
-         ["choicetemple", "神武月", 10105, "Boss10105", 0, 0, "film", "BossInteraction.BossMovie10105", 127, "boss10105", "start", "10105:80,20105:100"],
+         // 神武月 gives "一次机会" to become a partner (boss10105: a win boss10105100, a loss boss10105win);
+         // the 满月 神武月 (20105) is another boss, the later BossConfig's StartBoss (dailyboss20105, its
+         // film StarBossMovie, at 99, 209) with talks of its own (startboss, startbossfailure, startboss100,
+         // startbosswin). As two forms of one boss its second was out of reach: the talk after the first
+         // win, boss10105Two (“请珍惜明天的机会”), offers no fight.
+         ["choicetemple", "神武月", 10105, "Boss10105", 0, 0, "film", "BossInteraction.BossMovie10105", 127, "boss10105", "start", "10105:80"],
+         ["choicetemple", "神武月", 20105, "StartBoss", 99, 209, "film", "BossInteraction.StarBossMovie", 127, "startboss", "std", "20105:100"],
          ["choicetemple", "战无炎", 10111, "Boss10111", 0, 0, "film", "BossInteraction.BossMovie10111", 303, "boss10111", "start", "10111:90"],
-         // The bosses of the 2011–12 events (the later dailyactivity BossConfig, the boss pictures of
-         // their weeks; research notes in docs/PLAN.md). 友人契约书 (mysticearth2, from October 2012)
-         // was still there in January 2013; the others came back in 2013 only through 绝版乐园's panel
-         // and stand where their events put them.
+         // The bosses of the 2011–12 events: where their events put them (the 奥拉周刊 pages of their
+         // weeks, whose GO buttons name the scene, and 百田's guides; research notes in docs/PLAN.md).
+         // 友人契约书 (mysticearth2, from October 2012) was still there in January 2013; the others
+         // came back in 2013 only through 绝版乐园's panel. 主题公园 was the 守护者's stage of 2011–12:
+         // 极速威锋 (奥运守护者, September 2011), 满月巨灵 (中秋, September 2011), 天之巨灵 (天王星守护者,
+         // October 2011), 赤影飞狐 (新年, December 2011), 赤魔导士 (新春, January 2012), 天女若希
+         // (Valentine 2012), 猪猪超人 (March 2012), 翡冷翠 (端午 2012); they were never there all at
+         // once, and stand apart (the spots of those drawn round their middle RECONSTRUCTED).
          ["mysticearth2", "友人契约书", 11259, "Boss11259", 0, 0, "panel", "activityres/activity121018/friendcontract|mmo.activity121018.friendcontract.FriendContractPanel", 821, null, "one", "11259:100"],
-         ["themepark", "猪猪超人", 10884, "Boss10884", 547, 139, "still", null, 635, "boss10886", "one", "10884:100"],
+         ["themepark", "猪猪超人", 10884, "Boss10884", 895, 345, "still", null, 635, "boss10886", "one", "10884:100"],
          ["themepark", "满月巨灵", 10639, "Boss10639", 299, 328, "film", "BossMovie10639", 435, "themeparkMoonboss", "std", "10639:100"],
          ["themepark", "赤魔导士", 10796, "Boss10796", 0, 0, "still", null, 563, "boss10796", "std", "10796:80,20796:100"],
          ["themepark", "赤影飞狐", 10771, "Boss10771", 0, 0, "film", "BossMovie10771", 546, "boss10771", "std", "10771:80,20771:100"],
+         ["themepark", "极速威锋", 10633, "Boss10633", 0, 0, "film", "BossMovie10633", 433, "themeparkTeamboss", "team", "10633:100"],
+         ["themepark", "天之巨灵", 10665, "Boss10665", 760, 120, "film", "BossMovie10665", 460, "themepark10665", "std", "10665:100"],
+         ["themepark", "天女若希", 10819, "Boss10819", 0, 0, "still", null, 586, "boss12619", "std", "10819:80,20819:100"],
+         // 翡冷翠 (端午 2012, fought at the top of the 粽子塔 entered from 主题公园; its picture and
+         // talks are lost): in the park, dressed as its 亚比 (RECONSTRUCTED).
+         ["themepark", "翡冷翠", 10995, "Boss10995", 160, 420, "ask", null, 0, null, "one", "10995:100"],
          ["dreamhouse", "年兽", 10493, "Boss10493", 480, 320, "film", "BossMovie10493", 242, "dreamhouseTeamboss", "std", "10493:100"],
-         ["aolatree", "时间之神", 10112, "Boss10112", 640, 454, "film", "Boss10112Movie", 342, "boss10112", "std", "10112:80,20112:100"],
-         ["aolatree", "极速威锋", 10633, "Boss10633", 0, 0, "film", "BossMovie10633", 433, "themeparkTeamboss", "team", "10633:100"],
-         ["aolatree", "天之巨灵", 10665, "Boss10665", 568, 110, "film", "BossMovie10665", 460, "themepark10665", "std", "10665:100"],
+         // 时间之神, the 时间守护者 of the 泡泡节 (缤纷泡泡街, from 27 May 2011): the clock of the
+         // street's fountain is turned to call it (its film, the same clock, plays over the street's);
+         // then it stands by the clock (spot RECONSTRUCTED).
+         ["hubblebubblestreet1", "时间之神", 10112, "Boss10112", 410, 200, "clock", "Boss10112Movie", 342, "boss10112", "std", "10112:80,20112:100"],
          ["hell", "影刃", 10195, "ShadowBoss", 741, 248, "still", null, 156, "shadowboss", "std", "10195:80,20195:100"],
          ["hell", "鬼王", 11190, "Boss11190", 254, 238, "ask", null, 0, null, "one", "11190:100"],
-         ["diamondisland4", "天女若希", 10819, "Boss10819", 0, 0, "still", null, 586, "boss12619", "std", "10819:80,20819:100"],
-         // 翡冷翠 (2012; its room, picture and talks are lost): in the 奥拉神树's square, dressed as its 亚比 (RECONSTRUCTED).
-         ["aolatree", "翡冷翠", 10995, "Boss10995", 300, 400, "ask", null, 0, null, "one", "10995:100"]
+         // 蓝羽灵者, the 守护者 of 迷境花园 from 11 January 2013 (dailyboss31394 of 10 January 2013,
+         // with its GardenPanel): the first click wakes it, then a click opens its panel, whose 挑战
+         // fights its three forms (the later GardenInteraction); levels RECONSTRUCTED.
+         ["whitenight1", "蓝羽灵者", 31394, "Boss31394", 757, 456, "garden", "dailyactivity/dailyboss31394|mmo.dailyactivity.GardenPanel", 882, "boss", "garden", "31394:60,21394:80,11394:100"]
       ];
+
+      /**
+       * Pictures drawn in scene coordinates moved aside where bosses of different
+       * events now stand together: 极速威锋 stood where 赤魔导士 stands in 主题公园.
+       */
+      private static const SHIFTED:Object = {"10633": [-330, 30]};
+
+      /** Bosses whose picture dailyactivity/dailyboss<file> is lost (they stand dressed as their 亚比): not asked for. */
+      private static const NO_PICTURE:Object = {"10884": true, "11190": true, "10995": true};
 
       private var shown:Array = [];
       /** The boss last clicked: the talks' 挑战 fight it. */
@@ -160,15 +192,39 @@ package mmo.dailyactivity
          clear();
          var info:* = SceneManager.getInstance().loadedSceneInfo;
          if (info == null || info.scene == null || info.inHouse) return;
+         try
+         {
+            PlanetMenus.onScene(String(info.sceneName));
+            DaHeiHeiSummon.onScene(String(info.sceneName), info.scene);
+         }
+         catch (pe:Error) { RLog.error("planet activities", pe); }
          for each (var b:Object in bossesOf(String(info.sceneName)))
          {
-            // The book of 黑夜童心 lies on the table: over the scene, as the later module put it (foreGround).
+            // The book of 黑夜童心 lies on the table: the boss's picture (the same book, which
+            // opens and lets 童心 out) goes over the scene, as the later module put it
+            // (foreGround). The scene's own book stays where it is under it, so the book is
+            // still on the table once the picture's has opened and gone (the later module
+            // moved it away, and the book vanished with the film); a click on it talks to 童心.
             if (b.kind == "book")
             {
-               hideSceneItem(b, info.scene.container);
+               keepSceneItem(b, info.scene.container);
                place(b, info.scene.foreGround);
             }
-            else place(b, info.scene.container);
+            // 暴雪山神 (Boss10757Strategy of the later module): the scene's own totem in its
+            // foreground (bossitem, a button that does nothing, with the bubble 圣诞守护者——山神大人来啦！)
+            // makes way for the boss's picture, the same totem with its wand, over the scene.
+            else if (b.kind == "wand")
+            {
+               hideSceneItem(b, info.scene.foreGround);
+               if (b.item == null) hideSceneItem(b, info.scene);
+               place(b, info.scene.foreGround);
+            }
+            else
+            {
+               place(b, info.scene.container);
+               // 时间之神: the street's clock (eess, the fountain's) calls it.
+               if (b.kind == "clock") keepSceneItem(b, info.scene, "eess");
+            }
          }
       }
 
@@ -199,7 +255,29 @@ package mmo.dailyactivity
                var at:Point = whereOf(b, view);
                view.x = at.x;
                view.y = at.y;
-               if (view is MovieClip && (b.kind == "wake" || b.kind == "panel")) MovieClip(view).gotoAndStop(1);
+               // 岩波斗魂者 (StoneBoss) waits on its first frame: left playing, it ran its
+               // awakening (frame 2, mc) and frame 3 over and over and kept shining.
+               if (view is MovieClip && (b.kind == "wake" || b.kind == "panel" || b.kind == "stone" || b.kind == "garden")) MovieClip(view).gotoAndStop(1);
+               // 时间之神 comes when the clock is turned.
+               if (b.kind == "clock" && !b.filmed) view.visible = false;
+               // 暴雪山神's totem loops its wand until the film has played (its last frame: the 山神 standing).
+               if (view is MovieClip && b.kind == "wand" && MovieClip(view).totalFrames > 2)
+               {
+                  var loop:MovieClip = MovieClip(view);
+                  loop.addFrameScript(loop.totalFrames - 2, function():void { if (!b.filmed) loop.gotoAndPlay(1); });
+                  loop.gotoAndPlay(1);
+               }
+               // 黑夜童心's book: the picture's own dark mark under its opening book (beside mcbook.mc)
+               // is left out, so the scene's book shows on the table once the picture's has opened.
+               if (b.kind == "book")
+               {
+                  try
+                  {
+                     var mb:Sprite = Object(view).mcbook as Sprite;
+                     for (var bi:int = 0; mb != null && bi < mb.numChildren; bi++) if (mb.getChildAt(bi).name != "mc") mb.getChildAt(bi).visible = false;
+                  }
+                  catch (e4:Error) {}
+               }
                // 天女若希 (the 2016 picture): awake, without its sleeping part.
                if (b.cls == "Boss10819")
                {
@@ -216,7 +294,7 @@ package mmo.dailyactivity
             view.addEventListener(ClickAndHitEvent.ON_CLICK_AND_HIT, function(ev:ClickAndHitEvent):void { clicked(b); });
             RLog.log("guardian: " + b.name + " in " + b.scene);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (ApplicationDomain.currentDomain.hasDefinition(cls) || NO_PICTURE[b.file]) put();
          else ResScheduler.getResource("dailyactivity/dailyboss" + b.file, put, "", function(e:* = null):void
          {
             RLog.log("guardian: no picture dailyboss" + b.file);
@@ -238,7 +316,11 @@ package mmo.dailyactivity
          var r:Rectangle = view.getBounds(view);
          if (mc != null && b.kind == "wake") mc.gotoAndStop(1);
          var cx:Number = r.x + r.width / 2, cy:Number = r.y + r.height / 2;
-         if (Math.abs(cx) > 220 || Math.abs(cy) > 220) return new Point(0, 0);
+         if (Math.abs(cx) > 220 || Math.abs(cy) > 220)
+         {
+            var sh:Array = SHIFTED[String(b.file)] as Array;
+            return sh != null ? new Point(sh[0], sh[1]) : new Point(0, 0);
+         }
          if (int(b.x) != 0 || int(b.y) != 0) return new Point(int(b.x), int(b.y));
          var pts:Array = BossTimeHelper.points[b.scene] as Array;
          if (pts == null || pts.length == 0) return new Point(480, 320);
@@ -249,21 +331,49 @@ package mmo.dailyactivity
       }
 
       /**
-       * 黑夜童心 (Boss10682Strategy of the later module): the scene's own book
-       * on the table (bossitem, a button that does nothing) is moved out of
-       * the way and the boss's picture, the same book, stands in its place;
-       * a click opens it (mcbook.mc plays to its end) and 童心 comes out.
+       * 黑夜童心: the scene's own book on the table (bossitem, a button that did
+       * nothing) stays and answers a click as the boss does (the boss's picture
+       * over it opens its book, mcbook.mc, and 童心 comes out; then it talks).
        */
-      private static function hideSceneItem(b:Object, into:Sprite):void
+      private function keepSceneItem(b:Object, into:DisplayObjectContainer, name:String = "bossitem"):void
       {
-         var item:DisplayObject = into.getChildByName("bossitem");
+         var item:InteractiveObject = findNamed(into, name, 3) as InteractiveObject;
+         if (item == null) return;
+         b.kept = item;
+         ClickAndHitHelper.instance.registerTarget(item, true, 120);
+         item.addEventListener(ClickAndHitEvent.ON_CLICK_AND_HIT, function(ev:ClickAndHitEvent):void { clicked(b); });
+      }
+
+      /**
+       * 暴雪山神 (Boss10757Strategy of the later module): the scene's own totem
+       * (bossitem, a button that does nothing) is moved out of the way and the
+       * boss's picture, the same totem with its wand, stands in its place.
+       */
+      private static function hideSceneItem(b:Object, into:DisplayObjectContainer):void
+      {
+         var item:DisplayObject = findNamed(into, "bossitem", 3);
          if (item == null) return;
          item.y -= 2000000;
          b.item = item;
       }
 
+      /** The first display object of that name in `into`, looking `depth` levels down. */
+      private static function findNamed(into:DisplayObjectContainer, name:String, depth:int):DisplayObject
+      {
+         if (into == null) return null;
+         var hit:DisplayObject = into.getChildByName(name);
+         if (hit != null || depth <= 0) return hit;
+         for (var i:int = 0; i < into.numChildren; i++)
+         {
+            hit = findNamed(into.getChildAt(i) as DisplayObjectContainer, name, depth - 1);
+            if (hit != null) return hit;
+         }
+         return null;
+      }
+
       private function onUnload(e:SceneManagerEvent):void
       {
+         DaHeiHeiSummon.clear();
          clear();
       }
 
@@ -279,11 +389,14 @@ package mmo.dailyactivity
                if (v.parent) v.parent.removeChild(v);
                if (v is BossAvatar) BossAvatar(v).dispose();
                if (b.item != null) DisplayObject(b.item).y += 2000000;
+               if (b.kept != null) ClickAndHitHelper.instance.remove(b.kept);
             }
             catch (e:Error) {}
          }
          shown = [];
          if (!fighting) active = null;
+         SocketClient.instance.removeEventListener("2303", onBattleJoined);
+         panelShown = null;
       }
 
       // ---------------------------------------------------------------- click: wake up, film, talk
@@ -313,14 +426,89 @@ package mmo.dailyactivity
          {
             // 友人契约书: the first click plays its own animation, then its panel opens (as the
             // later BossInteraction did); the panel's 开始挑战 fights it (fightWithBoss).
+            if (b.playing) return;
             if (!b.awake && view != null && view.totalFrames > 1)
             {
                b.awake = true;
-               view.addFrameScript(view.totalFrames - 1, function():void { view.stop(); openPanel(b); });
+               b.playing = true;
+               view.addFrameScript(view.totalFrames - 1, function():void
+               {
+                  view.stop();
+                  b.playing = false;
+                  openPanel(b);
+               });
                view.gotoAndPlay(2);
                return;
             }
             openPanel(b);
+            return;
+         }
+         if (b.kind == "stone" && view != null)
+         {
+            // 岩波斗魂者 (StoneBossInteraction of the later module): the first click wakes it
+            // (frame 2: its mc plays once), then it stands awake (frame 3) and a click opens
+            // its panel (dailyactivity/stonebosspanel), whose 挑战 fights its three forms.
+            if (view.currentFrame < 3)
+            {
+               if (view.currentFrame == 2) return;
+               view.mouseEnabled = view.mouseChildren = false;
+               var awake:Function = function():void
+               {
+                  view.mouseEnabled = view.mouseChildren = true;
+                  view.gotoAndStop(3);
+               };
+               view.addFrameScript(1, function():void
+               {
+                  view.addFrameScript(1, null);
+                  var mc:MovieClip = view.getChildByName("mc") as MovieClip;
+                  if (mc == null || mc.totalFrames < 2) { awake(); return; }
+                  mc.addFrameScript(mc.totalFrames - 1, function():void { mc.stop(); awake(); });
+                  mc.gotoAndPlay(1);
+               });
+               view.gotoAndStop(2);
+               return;
+            }
+            openPanel(b);
+            return;
+         }
+         if (b.kind == "clock" && !b.filmed)
+         {
+            // 时间之神 (the 泡泡节's 时间守护者): the clock is turned (its film, the clock with its
+            // hands spinning, over the street's own, which is hidden meanwhile), then it stands there.
+            b.filmed = true;
+            var clock:DisplayObject = b.kept as DisplayObject;
+            if (clock != null) clock.visible = false;
+            playFilm(b, function():void
+            {
+               if (clock != null) clock.visible = true;
+               if (b.view != null) DisplayObject(b.view).visible = true;
+               talk(b);
+            });
+            return;
+         }
+         if (b.kind == "garden" && view != null)
+         {
+            // 蓝羽灵者 (GardenInteraction): the first click wakes it (frame 2, whose clip ends on
+            // frame 3, awake); then a click opens its panel.
+            if (view.currentFrame < 3)
+            {
+               if (view.currentFrame == 1) view.gotoAndStop(2);
+               return;
+            }
+            openPanel(b);
+            return;
+         }
+         if (b.kind == "wand" && !b.filmed && view != null)
+         {
+            // 暴雪山神 (Boss10757Strategy): the totem's wand calls the film (BossMovie10757);
+            // after it the 山神 stands where the totem was (the picture's last frame) and talks.
+            b.filmed = true;
+            view.stop();
+            playFilm(b, function():void
+            {
+               view.gotoAndStop(view.totalFrames);
+               talk(b);
+            });
             return;
          }
          if (b.kind == "ask")
@@ -358,6 +546,11 @@ package mmo.dailyactivity
 
       private function openPanel(b:Object):void
       {
+         // One panel at a time: a second click while it loads or shows (or while the boss's own
+         // animation still plays) opened another over it, and the one left under the battle
+         // covered it.
+         if (b.opening || (panelShown != null && panelShown.stage != null)) return;
+         b.opening = true;
          var parts:Array = String(b.film).split("|");
          ResScheduler.getResource(String(parts[0]), function(... a):void
          {
@@ -366,9 +559,69 @@ package mmo.dailyactivity
                var C:Class = getDefinitionByName(String(parts[1])) as Class;
                var panel:Object = new C();
                panel.showPanel();
+               panelShown = panel as DisplayObject;
+               if (b.kind == "garden") showGardenPanel(b, panel as DisplayObject);
+               // Before the battle module's own listener (priority): see onBattleJoined.
+               SocketClient.instance.addEventListener("2303", onBattleJoined, false, 100);
             }
             catch (err:Error) { RLog.error("guardian panel " + b.name, err); }
-         }, "", function(e:* = null):void { RLog.log("guardian: no panel " + parts[0]); });
+            b.opening = false;
+         }, "", function(e:* = null):void
+         {
+            b.opening = false;
+            RLog.log("guardian: no panel " + parts[0]);
+         });
+      }
+
+      /**
+       * 蓝羽灵者's GardenPanel (its showPanel is empty: the lost GardenInteraction showed
+       * it): over the scene, its win mark shown once the boss has been beaten (54_19's
+       * list holds 1393, its egg, as 岩波斗魂者's holds 1211).
+       */
+      private function showGardenPanel(b:Object, panel:DisplayObject):void
+      {
+         if (panel == null) return;
+         try
+         {
+            var win:DisplayObject = Object(panel).win as DisplayObject;
+            if (win != null) win.visible = false;
+         }
+         catch (e0:Error) {}
+         ModalDialogManager.getInstance().addModalDialogWithChangLayer(panel);
+         var onMarks:Function = function(e:*):void
+         {
+            SocketClient.instance.removeEventListener("54_19", onMarks);
+            var bo:String = "";
+            try { bo = String(e.params.bo || ""); } catch (e1:Error) {}
+            b.won = ("," + bo + ",").indexOf(",1393,") >= 0;
+            try { if (Object(panel).win != null) Object(panel).win.visible = b.won; } catch (e2:Error) {}
+         };
+         SocketClient.instance.addEventListener("54_19", onMarks);
+         SocketClient.instance.sendXtMessage("PetExtension", "54_19", {});
+      }
+
+      /** The panel of 友人契约书 or 岩波斗魂者 while it is open. */
+      private var panelShown:DisplayObject;
+
+      /**
+       * A battle is joined (2303) from a boss's panel: the panel goes first, as the
+       * later engine's enterFight cleared every panel (ModalDialogManager.clearAll)
+       * before it switched to the fighting layer. Left open on the top layer it
+       * covered the battle, which could then not be played (and every later fight
+       * was refused: 不能够在离开一个战场之前加入另外一个战场); closed after the battle
+       * module had switched layers, the dialog manager switched back to the scene
+       * (the panels open with a change of layer). Its own listeners stay:
+       * 岩波斗魂者's shows itself again after the battle, 友人契约书's plays its egg
+       * film after a first win. A refusal (2303 with msg alone) leaves it open.
+       */
+      private function onBattleJoined(e:* = null):void
+      {
+         try { if (e != null && e.params != null && e.params.msg != null && e.params.pmmList == null) return; } catch (pe:Error) {}
+         var p:DisplayObject = panelShown;
+         if (p != null && p.stage != null)
+         {
+            try { ModalDialogManager.getInstance().removeModalDialog(p); } catch (err:Error) { RLog.error("guardian panel", err); }
+         }
       }
 
       private function playFilm(b:Object, then:Function):void
@@ -391,6 +644,8 @@ package mmo.dailyactivity
             mc = MovieClip(outer.getChildByName("mc"));
             var holder:Sprite = new Sprite();
             holder.addChild(outer);
+            // Over the street's clock (缤纷泡泡街's eess, drawn 5 px lower than the film's).
+            if (b.kind == "clock") holder.y = -5;
             playClip(holder, mc, then);
             return;
          }
@@ -485,7 +740,18 @@ package mmo.dailyactivity
       private function onAction(e:TaskEvent):void
       {
          if (active == null || e.params == null) return;
+         // The bosses with a panel of their own (友人契约书, 岩波斗魂者) fight from it: their
+         // talks' nextFight is the panel's, not a second fight from here.
+         if (active.kind == "panel" || active.kind == "stone") return;
          var a:String = String(e.params.action || "");
+         if (active.kind == "garden")
+         {
+            // Its panel's 挑战 (begin_bossfight31394) fights the first form; the talks after a
+            // won form (boss31394failure, boss21394failure) go on (gotofight31394).
+            if (a == "begin_bossfight" + active.file) { active.form = 0; fight(); }
+            else if (a == "gotofight" + active.file) fight();
+            return;
+         }
          if (a.indexOf("begin_bossfight") == 0)
          {
             var ns:ITaskNpcService = ServiceContainer.getService(ITaskNpcService) as ITaskNpcService;
@@ -521,6 +787,32 @@ package mmo.dailyactivity
             var t:Timer = new Timer(1200, 1);
             t.addEventListener(TimerEvent.TIMER, function(te:TimerEvent):void { if (active == b) fight(); });
             t.start();
+            return;
+         }
+         if (b.talks == "garden")
+         {
+            var beaten:int = int(b.forms[Math.min(int(b.form), b.forms.length - 1)].race);
+            if (e.isWin && !last)
+            {
+               b.form = b.form + 1;
+               var gs:ITaskNpcService = ServiceContainer.getService(ITaskNpcService) as ITaskNpcService;
+               if (gs != null) gs.showNpcPanelFreely("boss" + beaten + "failure", int(b.npc));
+               return;
+            }
+            // The last form beaten (its film once, the first time) or a loss: back to the panel.
+            b.form = 0;
+            var again:Function = function():void { if (b.view != null && DisplayObject(b.view).stage != null) openPanel(b); };
+            if (e.isWin && !b.won)
+            {
+               b.won = true;
+               ResScheduler.getResource("dailyactivity/boss" + b.file + "movie", function(... r):void
+               {
+                  var fb:Object = {film: "Boss" + b.file + "Movie", kind: "film"};
+                  playFilm(fb, again);
+               }, "", function(err:* = null):void { again(); });
+               return;
+            }
+            again();
             return;
          }
          if (e.isWin)

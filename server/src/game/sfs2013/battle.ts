@@ -27,6 +27,7 @@
 // columns of the client's tables (pmdata.ts).
 
 import { stepsByPetWin, type TaskOwner } from "./tasks.ts";
+import { wildDrop, type ActsOwner } from "./planetacts.ts";
 import { FB_TIMES, betterGrade, ensureFbSpecies, fbByName, fbGrade, fbOfRoom, fbPay, fbRoomPets, fbSpecies, FBS, type FbRec } from "./fb.ts";
 import {
   catchLevel,
@@ -51,6 +52,8 @@ import {
   type PetRecord,
   type PetTables,
 } from "./pets.ts";
+import { installSandbox } from "./sandbox.ts";
+import { applyFate, dollLevel, gymOf, gymWon, installGyms, towerFloorWon, GYM_DARK, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
 import type { World, XtContext } from "./server.ts";
 
 // ---------------------------------------------------------------- skill effects
@@ -190,9 +193,14 @@ export interface Battle {
   asked?: number;
   /** A 副本 room's 亚比 id (fightInCopy): sent back with the end, where fbteam takes it off the room. */
   copyId?: number;
+  /** A 沙盒 fight (sandbox.ts): no experience, effort points or evolution for the win. */
+  noAward?: boolean;
 }
 
 export type Msg = [cmd: string, body: Record<string, unknown>];
+
+/** A win's words for the end of the battle (onWin): 2403's note (the battle screen's result lines), not sent. */
+export const NOTE = "revival_note";
 
 export interface Rng {
   (): number;
@@ -693,13 +701,17 @@ export const GUARDIANS: [string, string][] = [
   ["10715,20715", "80,100"], ["14523#11514#11516", "100#80#80"], ["10757,20757", "80,100"], ["10840,20840", "80,100"],
   ["10865,20865", "80,100"], ["11213,21213,31213", "60,80,100"],
   // Bosses of the 2013 world beside that table (the rebuilt dailyactivity): 伊泽 and 迦娜 (mysticocean5),
-  // 烈焰鸟 (feier4), 神武月 and 战无炎 (choicetemple); their levels are RECONSTRUCTED.
-  ["11320,11322", "100,100"], ["30278", "80"], ["10105,20105", "80,100"], ["10111", "90"],
+  // 烈焰鸟 (feier4), 神武月 and 战无炎 (choicetemple); their levels are RECONSTRUCTED. 神武月 (10105, its
+  // "一次机会" partner fight, boss10105) and the 满月 神武月 (20105, the later BossConfig's StartBoss with
+  // its own talks startboss…) are two bosses, not two forms of one.
+  ["11320,11322", "100,100"], ["30278", "80"], ["10105", "80"], ["20105", "100"], ["10111", "90"],
   // The bosses of the 2011–12 events (dailyactivity, rows added in the revival; levels RECONSTRUCTED
   // but 天女若希's second form, Lv100 in the later BossTimeHelper).
   ["11259", "100"], ["10884", "100"], ["10639", "100"], ["10493", "100"], ["10112,20112", "80,100"], ["10195,20195", "80,100"],
   ["10633", "100"], ["10665", "100"], ["10796,20796", "80,100"], ["10771,20771", "80,100"], ["11190", "100"], ["10819,20819", "80,100"],
   ["10995", "100"],
+  // 蓝羽灵者 (迷境花园, January 2013): three forms fought from its panel (RECONSTRUCTED levels).
+  ["31394,21394,11394", "60,80,100"],
 ];
 
 /**
@@ -711,21 +723,54 @@ const BOSS_SPECIES: Record<number, number> = { 10112: 114, 20112: 114 };
  * A boss's 亚比蛋 where its own line has none: 终极麦斗王's team (14523, then 猪阿饼 11514 and 猪阿酱
  * 11516, fought one after another) gives the 麦斗猪蛋 (520, the line of 麦斗队长 and 麦斗司令) when
  * its last 亚比 is beaten (RECONSTRUCTED: 麦斗王 523 himself is 无法获得; the 图鉴 names 斗魂空间 as
- * where the 麦斗 line is got).
+ * where the 麦斗 line is got). 0: no egg for that form (蓝羽灵者's first two; its last gives the 小羽灵蛋).
  */
-export const BOSS_EGGS: Record<number, number> = { 11516: 520 };
+export const BOSS_EGGS: Record<number, number> = { 11516: 520, 31394: 0, 21394: 0, 11394: 1393 };
 
-/** 友人契约书's mark in 54_19's list once beaten (its panel shows the egg as got when "1257" is in it). */
-const BOSS_MARKS: Record<number, number> = { 11259: 1257 };
+/**
+ * Bosses whose 亚比蛋 comes only with the first win of their last form, as their panels say: 蓝羽灵者
+ * (“首次战胜就可以获得它哦”, the 小羽灵蛋 1393), 友人契约书 (“首次战胜友人契约书就可以获得亚比蛋”) and
+ * 岩波斗魂者 (“首次战胜岩波斗魂者就可以获得亚比蛋”); their marks are then in 54_19's list.
+ */
+const FIRST_WIN_ONLY = new Set([11394, 11259, 31213]);
 
-/** A 守护者 form's level (its race at that index), else 20 + 5 per index as before. */
+/**
+ * Bosses' marks in 54_19's list once beaten: 友人契约书's panel shows the egg as got when "1257" is in
+ * it, 岩波斗魂者's (dailyactivity/stonebosspanel) when "1211" (its egg) is, after its last form, 31213.
+ */
+const BOSS_MARKS: Record<number, number> = { 11259: 1257, 31213: 1211, 11394: 1393 };
+
+/**
+ * A 守护者 form's level (its race at that index), else that race's level wherever its row has it (the
+ * rebuilt dailyactivity fights each of a "#" pair as a boss of its own, at index 0: 魂斗鱼 10472 and the
+ * second 浮云尊者 20475 fought at Lv20), else 20 + 5 per index as before.
+ */
 export function guardianLevel(race: number, index: number): number {
+  let anywhere = 0;
   for (const [races, levels] of GUARDIANS) {
     const rs = races.split(/[#,]/).map(Number);
     const ls = levels.split(/[#,]/).map(Number);
     if (rs[index] === race) return ls[index] ?? ls[0];
+    const at = rs.indexOf(race);
+    if (at >= 0 && !anywhere) anywhere = ls[at] ?? ls[0];
   }
-  return Math.min(100, 20 + 5 * index);
+  return anywhere || Math.min(100, 20 + 5 * index);
+}
+
+/**
+ * Is this form the last of its boss (the end of its "," chain; each of a "#" pair is a boss of its
+ * own)? Only beating the last form brings the boss's 亚比蛋 (RECONSTRUCTED: an egg for every form won
+ * gave 岩波斗魂者's three a run, 沙麒麟's two). Not a 守护者 of the table: true.
+ */
+export function lastGuardianForm(race: number, index: number): boolean {
+  for (const [races] of GUARDIANS) {
+    for (const pair of races.split("#")) {
+      const chain = pair.split(",").map(Number);
+      const at = chain[index] === race ? index : chain.lastIndexOf(race);
+      if (at >= 0) return at === chain.length - 1;
+    }
+  }
+  return true;
 }
 
 /** The 亚比蛋 of the 2013 PetEggData (materials type 5): egg N hatches race N, the first form of a line. */
@@ -756,7 +801,7 @@ const NPC_LEVELS = [8, 18, 30];
  * npcchallengeservice: 13 维克, 35 芭芭拉, 145 骑士团卫兵, 14 普伦博士, 3 米娜,
  * 26 哈德, 142 亨特, 32 安娜, 31 依依, 172 马赫, 312 上古使者). RECONSTRUCTED.
  */
-const NPC_TEAM_BASE: Record<number, number> = { 13: 61, 35: 10, 145: 43, 14: 1, 3: 34, 26: 70, 142: 19, 32: 10, 31: 1, 172: 99, 312: 70 };
+const NPC_TEAM_BASE: Record<number, number> = { 13: 61, 35: 10, 145: 43, 14: 1, 3: 34, 26: 70, 142: 19, 32: 10, 31: 1, 172: 97, 312: 70 };
 
 export interface NpcChallengeRecord {
   /** NPC id -> hardest mode won; NPC id -> the day its 欢乐弹珠 was given. */
@@ -783,17 +828,36 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ pms: (await deps.wild())[room] ?? [] });
   });
 
-  const begin = async (ctx: XtContext, race: number, level: number, catchable: boolean, onWin?: Battle["onWin"], asked?: number, onLose?: Battle["onLose"], copyId?: number) => {
+  const begin = async (
+    ctx: XtContext,
+    race: number,
+    level: number,
+    catchable: boolean,
+    onWin?: Battle["onWin"],
+    asked?: number,
+    onLose?: Battle["onLose"],
+    copyId?: number,
+    /** 沙盒: the opponent's stats multiplied, and no award for the win. */
+    sandbox?: { mul: number[] },
+    /** The battle made, before it is sent (the 道馆: 幻冥's 命运 on the player's 亚比). */
+    adjust?: (b: Battle) => void,
+  ): Promise<boolean> => {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     for (const p of o.pets ?? []) normalisePet(p, t);
     const old = battles.get(o.id);
-    if (old && !old.over) return ctx.reply({ msg: "你不能够在离开一个战场之前，加入另外一个战场！" }, "2303");
+    // A refused start: told in a 2303 with msg alone; false to the caller.
+    const refuse = (msg: string) => (ctx.reply({ msg }, "2303"), false);
+    if (old && !old.over) return refuse("你不能够在离开一个战场之前，加入另外一个战场！");
     const active = (o.pets ?? []).find((p) => p.hp > 0);
-    if (!active) return ctx.reply({ msg: WEAK }, "2303");
-    if (!speciesOf(t, race)) return ctx.reply({ msg: "这只亚比还不能对战哦！" }, "2303");
+    if (!active) return refuse(WEAK);
+    if (!speciesOf(t, race)) return refuse("这只亚比还不能对战哦！");
     const lesson = tutorial(o, race);
     const wildPet = makePet(t, race, lesson ? Math.min(level, 2) : level, deps.today());
+    if (sandbox) {
+      wildPet.mul = sandbox.mul;
+      wildPet.hp = statsOf(wildPet, t)[0];
+    }
     if (lesson) {
       // The newbie fight (task step 138) is a lesson, not a trial: the
       // 达斯特's 达达 is at most Lv2 and only attacks. RECONSTRUCTED; the
@@ -808,6 +872,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     b.onLose = onLose;
     b.asked = asked;
     b.copyId = copyId;
+    b.noAward = !!sandbox;
+    adjust?.(b);
     battles.set(o.id, b);
     engine.bag = o.pets;
     engine.ownerRef = o;
@@ -818,6 +884,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // bosses), by which the battle screen finds the boss's films (bossfightmovie/boss<id>).
       ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race }],
     ]);
+    return true;
   };
 
   // startPKWithRobot {raceId, level, sw, id}: a wild 亚比 of the room at one of its levels; tasks pass a level.
@@ -826,8 +893,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // 亚比 are lost: RECONSTRUCTED as the species at the level of the player's strongest 亚比 (at
   // least 5), two levels more for each further variant, not to be caught. A win counts for the
   // steps that ask for it (TaskDefine type 101, tasks.ts stepsByPetWin).
-  // Task 亚比 asked by plain species (taskext/task1411's 艾尔利克 230): fought as the others, not caught.
-  const TASK_PET_RACES = new Set([230]);
+  // Task 亚比 asked by plain species (taskext/task1411's 艾尔利克 230; 盘龙池's 龙族大法师 305, whom
+  // scene/temple12 fights by fightWithTaskPet(305): with no wild level it was a Lv5): fought as the
+  // others, not caught.
+  const TASK_PET_RACES = new Set([230, 305]);
   world.xt("PetExtension.54_2", async (ctx) => {
     const asked = Number(ctx.params.level);
     const id = Number(ctx.params.raceId);
@@ -837,12 +906,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const o = await deps.load(ctx);
       const top = Math.max(5, ...(o.pets ?? []).map((p) => p.level));
       const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
-      return begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id);
+      return void (await begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id));
     }
     const entry = ((await deps.wild())[ctx.player.room?.name ?? ""] ?? []).find((w) => w.raceId === id);
     const rng = deps.rng ?? Math.random;
     const level = entry ? entry.min + Math.floor(rng() * (entry.max - entry.min + 1)) : asked > 0 ? asked : 5;
-    await begin(ctx, id, Math.max(1, Math.min(100, level)), true, onWin);
+    // The items some rooms' wild 亚比 drop for the planets' activities (planetacts.ts WILD_DROPS).
+    const room = ctx.player.room?.name ?? "";
+    await begin(ctx, id, Math.max(1, Math.min(100, level)), true, (o) => [...onWin(o), ...wildDrop(o as ActsOwner, room, id)]);
   });
 
   // NPC challenge (the era npcchallenge/npcchallengeservice, PetFightTypes.FIGHT_IN_NPCCHALLENGE 14):
@@ -851,6 +922,58 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // npcChallenge_fail_<lv>); canGet: a win today brings one 欢乐弹珠 (item 343, "今天我身上的弹弹珠
   // 已经发完啦" once given). The 2013 server and the NPCs' teams are lost: each NPC fights with one
   // 亚比 of an evolution line, the next stage for each harder mode, at NPC_LEVELS (RECONSTRUCTED).
+  // The 道馆 (gyms.ts): 踢馆 84 / 86 / 87 / 88 (幻冥 with its 命运), 命运玩偶's 亚比 (88 with a raceId),
+  // 雷霆之塔's floors (85, the rebuilt timerFight). Not to be caught; 54_22 {res} first, as for the NPCs.
+  const gymFight = async (ctx: XtContext, type: number) => {
+    const refuse = (msg: string) => {
+      ctx.reply({ res: false });
+      ctx.reply({ msg }, "2303");
+    };
+    if (type === GYM_TOWER) {
+      const layer = Number(ctx.params.layer) | 0;
+      const run = gymOf(await deps.load(ctx)).tower;
+      const floor = THUNDER_FLOORS[layer - 1];
+      if (!run || !floor || layer !== run.floor + 1) return refuse("请先开启雷霆之塔的挑战！");
+      ctx.reply({ res: true });
+      return void (await begin(ctx, floor.race, floor.level, false, (o) => towerFloorWon(o, layer, deps.now?.() ?? Date.now())));
+    }
+    if (type === GYM_DARK && Number(ctx.params.raceId) > 0) {
+      const raceId = Number(ctx.params.raceId) | 0;
+      ctx.reply({ res: true });
+      return void (await begin(ctx, raceId % 10000, dollLevel(raceId), false, undefined, raceId));
+    }
+    const master = GYM_MASTERS[type];
+    if (!master) return refuse(type === GYM_LIGHT ? "友情的试炼需要好友的亚比一起参加哦！" : "这个挑战现在还不能进行哦！");
+    const o = await deps.load(ctx);
+    // 幻冥's 命运 (Dark_7) holds for this 踢馆 only.
+    const fate = type === GYM_DARK ? gymOf(o).fate : undefined;
+    if (fate) {
+      delete gymOf(o).fate;
+      await deps.save(o);
+    }
+    ctx.reply({ res: true });
+    await begin(
+      ctx,
+      master.race,
+      master.level,
+      false,
+      (owner) => {
+        const b = battles.get(owner.id);
+        gymWon(owner, type, b?.mine.pet.race ?? 0);
+        return [];
+      },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      fate ? (b) => {
+        const st = applyFate(b.mine.stats, fate);
+        b.mine.pet.hp = Math.min(st[0], Math.round((b.mine.pet.hp * st[0]) / Math.max(1, b.mine.stats[0])));
+        b.mine.stats = st;
+      } : undefined,
+    );
+  };
+
   world.xt("PetExtension.54_22", async (ctx) => {
     if (Number(ctx.params.type) === FIGHT_IN_MEMBER_ARENA) {
       // 黑星堡垒 (viparena, PetFightTypes.FIGHT_IN_MEMBER_ARENA 12): {mi, rm}, a floor's boss
@@ -858,9 +981,16 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // not to be caught (RECONSTRUCTED: the 2013 server's bosses are lost).
       const mi = Number(ctx.params.mi) | 0;
       const level = MEMBER_ARENA_LEVELS[String(ctx.params.rm ?? "")] ?? 60;
-      return begin(ctx, mi % 10000, level, false, undefined, mi);
+      return void (await begin(ctx, mi % 10000, level, false, undefined, mi));
     }
-    if (Number(ctx.params.type) !== FIGHT_IN_NPCCHALLENGE) return ctx.reply({ res: false });
+    const type = Number(ctx.params.type);
+    if (type >= GYM_THUNDER && type <= GYM_LIGHT) return gymFight(ctx, type);
+    if (type !== FIGHT_IN_NPCCHALLENGE) {
+      // A kind of fight not played here: the panel is told (2303 with msg: PetFightEvent.ENTER_FIGHT_FAIL),
+      // else its FIGHT_END listener stayed and answered the next battle as its own.
+      ctx.reply({ res: false });
+      return ctx.reply({ msg: "这个挑战现在还不能进行哦！" }, "2303");
+    }
     const npcId = Number(ctx.params.npcId) | 0;
     const lv = Math.max(1, Math.min(3, Number(ctx.params.lv) | 0));
     const o = (await deps.load(ctx)) as PetOwner & NpcChallengeRecord;
@@ -881,8 +1011,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
       if (r.gift[npcId] === day) return [];
       r.gift[npcId] = day;
       const items = (((owner as { items?: Record<string, Record<string, number>> }).items ??= {})["2"] ??= {});
-      items["343"] = (items["343"] ?? 0) + 1;
-      return [["onAmountUpdated", { amount: "2_343_0_1" }]];
+      // 上古使者 hands out 上古圣水 (379: npcChallenge_noItem_312 “今天我身上的上古圣水已经发完啦”), the others 欢乐弹珠.
+      const gift = npcId === 312 ? 379 : 343;
+      items[String(gift)] = (items[String(gift)] ?? 0) + 1;
+      return [["onAmountUpdated", { amount: `2_${gift}_0_1` }]];
     });
   });
 
@@ -1045,7 +1177,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const used = r.used?.[id] ?? 0;
     if (!def || used >= FB_TIMES) return ctx.reply({ succ: false, task: false, score: false }, "fb_1");
     (r.used ??= {})[id] = used + 1;
-    r.cur = { id, name: def.name, lv: Math.max(0, Math.min(2, Number(ctx.params.lv) | 0)), start: fbNow(), dead: {}, chests: [] };
+    r.cur = { id, name: def.name, lv: Math.max(0, Math.min(2, Number(ctx.params.lv) | 0)), start: fbNow(), dead: {}, chests: [], n: used + 1 };
     await deps.save(o);
     ctx.reply({ succ: true }, "fb_1");
   });
@@ -1060,7 +1192,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const room = ctx.player.room?.name ?? "";
     const def = fbOfRoom(room);
     if (!cur || !def || def.name !== cur.name) return null;
-    return { cur, room, def, pets: fbRoomPets(def, room, cur.lv) };
+    // The run of the day picks which of a list a fight takes (fbsiwude6's two statues).
+    return { cur, room, def, pets: fbRoomPets(def, room, cur.lv, (cur.n ?? 1) - 1) };
   };
   world.xt(`${FB}.fb_3`, async (ctx) => {
     const o = await deps.load(ctx);
@@ -1165,19 +1298,23 @@ export function installBattles(world: World, deps: BattleDeps): void {
     // The species of a boss form: variant * 10000 + species, or for 终极麦斗王's 14523 / 11514 / 11516
     // (PetAssetsMap) variant * 1000 + species.
     const species = BOSS_SPECIES[asked] ?? (speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000);
-    const egg = BOSS_EGGS[asked] ?? (asked === 14523 || asked === 11514 ? 0 : eggOfLine(t, species));
+    const egg = BOSS_EGGS[asked] ?? (asked === 14523 || asked === 11514 || !lastGuardianForm(asked, index) ? 0 : eggOfLine(t, species));
     const mark = BOSS_MARKS[asked];
     const onWin: Battle["onWin"] =
       egg || mark
         ? (o) => {
+            let again = false;
             if (mark) {
               const marks = ((o as { bossMarks?: number[] }).bossMarks ??= []);
-              if (!marks.includes(mark)) marks.push(mark);
+              again = marks.includes(mark);
+              if (!again) marks.push(mark);
             }
-            if (!egg) return [];
+            if (!egg || (again && FIRST_WIN_ONLY.has(asked))) return [];
             const eggs = (((o as { items?: Record<string, Record<string, number>> }).items ??= {})["5"] ??= {});
             eggs[String(egg)] = (eggs[String(egg)] ?? 0) + 1;
-            return [["onAmountUpdated", { amount: `5_${egg}_0_1` }]];
+            // The 2013 client is not told eggs by onAmountUpdated (server.ts leaves them out): the
+            // end of the battle says it.
+            return [["onAmountUpdated", { amount: `5_${egg}_0_1` }], [NOTE, { text: `获得了${nameOf(t, egg)}亚比蛋！` }]];
           }
         : undefined;
     await begin(ctx, species, guardianLevel(asked, index), false, onWin, asked);
@@ -1227,11 +1364,16 @@ export function installBattles(world: World, deps: BattleDeps): void {
       b.over = true;
       const pet = b.mine.pet;
       const before = pet.race;
-      const r = award(t, pet, b.wild.pet.race, b.wild.pet.level);
+      const r: WinResult = b.noAward ? { msgs: [] } : award(t, pet, b.wild.pet.race, b.wild.pet.level);
       out.push(...r.msgs);
       if (r.evolvedTo && o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
-      if (b.onWin) out.push(...b.onWin(o));
-      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, desc: `战斗胜利！${nameOf(t, before)}获得了经验。`, pmmList: e.views(b) }]);
+      // A win's own messages; NOTE ones are words for the end of the battle, not sent.
+      const won = b.onWin ? b.onWin(o) : [];
+      const notes = won.filter(([c]) => c === NOTE).map(([, m]) => String(m.text));
+      out.push(...won.filter(([c]) => c !== NOTE));
+      const desc = b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。`;
+      // myFinalRaceId: the 亚比 that ended it (PetFightEvent.myFinalRaceId; the 道馆 panels give their stone for their own).
+      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, myFinalRaceId: before, desc, ...(notes.length ? { note: notes.join("\n") } : {}), pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -1243,7 +1385,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       }
       b.over = true;
       if (b.onLose) out.push(...b.onLose(o));
-      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
+      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, myFinalRaceId: b.mine.pet.race, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -1345,6 +1487,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ]);
     return "end";
   });
+
+  // The 沙盒's fights (sandbox.ts): its opponents, not to be caught, no award.
+  installGyms(world, { load: deps.load, save: deps.save, tables: deps.tables, today: deps.today, now: () => deps.now?.() ?? Date.now(), rng: deps.rng ?? Math.random });
+  installSandbox(world, { load: deps.load, save: deps.save, tables: deps.tables, begin: (ctx, race, level, sandbox) => begin(ctx, race, level, false, undefined, undefined, undefined, undefined, sandbox) });
 
   // Leaving the room ends a battle left open (the client was closed mid-fight).
   world.xt(`${PM}.1307`, async (ctx) => {

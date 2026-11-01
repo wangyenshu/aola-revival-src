@@ -451,6 +451,17 @@ class GenNpcDataTest(unittest.TestCase):
             # Added room: every NPC whose picture game/ has.
             self.assertIn('"giantcordillera1":[[608,1,300,300,0],[77,1,500,300,0]]', out)
             self.assertNotIn('"gone"', out)
+            # --extra: a new always-shown host is added; a fifth value 0 for one the table keeps only
+            # as a task NPC replaces its row (always shown, at the given spot); a task NPC row (no
+            # fifth value) for one already there changes nothing; one without artwork is skipped.
+            extra = t / "extra.json"
+            extra.write_text(json.dumps({"scenes": {"library": [[43, 1, 600, 320, 0], [10, 1, 5, 5], [99, 2, 400, 300, 0],
+                                                                [12345, 1, 1, 1, 0]]}}), encoding="utf-8")
+            with redirect_stdout(io.StringIO()):
+                gen_npc_data.main(["--later", str(t / "later"), "--game", str(t / "game"), "--overlay", str(overlay),
+                                   "--talks", str(talks), "--out", str(t / "out2"), "--extra", str(extra)])
+            out = (t / "out2/mmo/tasknpc/SceneNpcData.as").read_text(encoding="utf-8")
+            self.assertIn('"library":[[10,1,100,300,0],[43,1,600,320,0],[99,2,400,300,0]]', out)
 
 
 if __name__ == "__main__":

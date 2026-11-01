@@ -12,7 +12,7 @@ package mmo.control
     * orange ball with three dots on a cloud, 表情 a laughing yellow face,
     * 动作 a green figure, 射击 an orange ring with a blue sight, 信息卡 a card
     * with a figure, 好友 a handshake, 组队 three balls, 战队 a winged star badge,
-    * 背包 a yellow sprout 亚比 on a cloud, 回家 the space capsule, 商城 a cart.
+    * 亚比 (the 背包) the 亚比球, 回家 the space capsule, 商城 a cart.
     * Each is centred on (0, 0) and about 36 px across.
     */
    public class BarIcons
@@ -35,6 +35,7 @@ package mmo.control
             case "home": home(g); break;
             case "mall": mall(g); break;
             case "toolbox": toolbox(g); break;
+            case "sandbox": sandbox(g); break;
             case "items": items(g); break;
          }
          s.filters = [new DropShadowFilter(1.5, 90, 0x0B3F70, 0.45, 3, 3, 1)];
@@ -203,30 +204,49 @@ package mmo.control
          g.lineStyle();
       }
 
+      /**
+       * 亚比 (the bar's 背包, renamed): the 亚比球 of the item list (item/view32,
+       * 普通亚比球) in the bar's style: a sprout on a glassy blue-white ball, its
+       * orange crown, the brown arch and the yellow face with two eyes.
+       */
       private static function pet(g:Graphics):void
       {
-         BarSkin.cloud(g, 0, 13, 32);
+         // sprout
          g.lineStyle(2, 0x3FA83C, 1, false, "normal", CapsStyle.ROUND);
-         g.moveTo(0, -11); g.lineTo(0, -16);
+         g.moveTo(0, -12); g.lineTo(-1, -17);
          g.lineStyle(1, 0x2F8A2F);
-         g.beginFill(0x6FD24A);
-         g.moveTo(0, -16); g.curveTo(-6, -23, -11, -17); g.curveTo(-6, -13, 0, -16);
-         g.moveTo(0, -16); g.curveTo(6, -24, 11, -18); g.curveTo(6, -13, 0, -16);
+         g.beginFill(0x8EDB3A);
+         g.moveTo(-1, -17); g.curveTo(-7, -24, -13, -19); g.curveTo(-7, -14, -1, -17);
+         g.moveTo(-1, -17); g.curveTo(6, -25, 12, -20); g.curveTo(6, -14, -1, -17);
          g.endFill();
-         BarSkin.ball(g, 0, 0, 12, 0xFFE76A, 0xF2A90E, 0xD08A00, 1.4);
-         g.lineStyle(1, 0x6B4A00);
+         // glassy ball, a little wider at the bottom
+         g.lineStyle(1.4, 0x2D6FC0);
+         BarSkin.vgrad(g, 34, 30, [0xFFFFFF, 0xBFE6FF, 0x5DB5F2], -14);
+         g.moveTo(0, -14); g.curveTo(15, -14, 16, 2); g.curveTo(17, 15, 0, 15); g.curveTo(-17, 15, -16, 2); g.curveTo(-15, -14, 0, -14);
+         g.endFill();
+         // orange crown
+         g.lineStyle();
+         BarSkin.vgrad(g, 26, 8, [0xFFE07A, 0xF59B1A], -14);
+         g.moveTo(-12, -6); g.curveTo(-9, -14, 0, -14); g.curveTo(9, -14, 12, -6); g.curveTo(0, -10, -12, -6);
+         g.endFill();
+         // brown arch round the face
+         g.lineStyle(3, 0x9A4E1E);
+         g.moveTo(-9, 9); g.curveTo(-10, -8, 0, -8); g.curveTo(10, -8, 9, 9);
+         // yellow face
+         g.lineStyle(1, 0xC07A00);
+         BarSkin.vgrad(g, 14, 14, [0xFFF27A, 0xF7C21C], -5);
+         g.drawCircle(0, 2, 6.5);
+         g.endFill();
+         g.lineStyle();
+         g.beginFill(0x1E2A5A);
+         g.drawEllipse(-3.6, -1, 2.6, 4.2);
+         g.drawEllipse(1, -1, 2.6, 4.2);
+         g.endFill();
          g.beginFill(0xFFFFFF);
-         g.drawEllipse(-8, -5, 7, 8);
-         g.drawEllipse(1, -5, 7, 8);
+         g.drawCircle(-2.6, 0, 0.8);
+         g.drawCircle(2, 0, 0.8);
          g.endFill();
-         g.lineStyle();
-         g.beginFill(0x2A2A2A);
-         g.drawCircle(-4, -0.5, 2.2);
-         g.drawCircle(4.5, -0.5, 2.2);
-         g.endFill();
-         g.lineStyle(1.2, 0x8A4A00);
-         g.moveTo(-3, 6); g.curveTo(0, 8.5, 3, 6);
-         g.lineStyle();
+         BarSkin.shine(g, -8, -9, 8, 4, 0.7);
       }
 
       private static function home(g:Graphics):void
@@ -301,6 +321,37 @@ package mmo.control
          g.endFill();
          g.lineStyle();
          BarSkin.shine(g, -5, -10, 12, 5, 0.6);
+      }
+
+      /** The 沙盒: a sand castle with its flag and a little spade, on a sand-coloured ball. */
+      private static function sandbox(g:Graphics):void
+      {
+         BarSkin.ball(g, 0, 0, 17, 0xFFE7A0, 0xE79A2E, 0xFFFFFF, 2);
+         // the castle
+         g.lineStyle(1.5, 0x8A4A00);
+         BarSkin.vgrad(g, 20, 16, [0xFFF0C0, 0xF2B44E], -2);
+         g.moveTo(-10, 12); g.lineTo(-10, -2); g.lineTo(-7, -2); g.lineTo(-7, 1); g.lineTo(-3, 1); g.lineTo(-3, -2);
+         g.lineTo(3, -2); g.lineTo(3, 1); g.lineTo(7, 1); g.lineTo(7, -2); g.lineTo(10, -2); g.lineTo(10, 12); g.lineTo(-10, 12);
+         g.endFill();
+         g.beginFill(0x8A4A00);
+         g.drawRoundRect(-2.5, 5, 5, 7, 4, 4);
+         g.endFill();
+         // the flag
+         g.lineStyle(1.3, 0x8A4A00);
+         g.moveTo(0, -2); g.lineTo(0, -14);
+         g.lineStyle(1, 0xB22A2A);
+         g.beginFill(0xFF5A4A);
+         g.moveTo(0, -14); g.lineTo(9, -11); g.lineTo(0, -8); g.lineTo(0, -14);
+         g.endFill();
+         // the spade
+         g.lineStyle(2, 0x2E86D6, 1, false, "normal", CapsStyle.ROUND);
+         g.moveTo(-15, -12); g.lineTo(-9, -4);
+         g.lineStyle(1, 0x1F5FA0);
+         g.beginFill(0x6CC0F5);
+         g.drawEllipse(-11, -6, 6, 8);
+         g.endFill();
+         g.lineStyle();
+         BarSkin.shine(g, -4, -11, 10, 4, 0.55);
       }
 
       private static function mall(g:Graphics):void

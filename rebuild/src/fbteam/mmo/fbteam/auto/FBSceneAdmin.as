@@ -1,11 +1,15 @@
 package mmo.fbteam.auto
 {
+   import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
+   import flash.display.InteractiveObject;
    import mmo.fbteam.common.SceneHelper;
    import mmo.fbteam.configure.FBConfig;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.fb.FbSceneMovieEvent;
    import mmo.interfaces.fb.FbSceneMovieEventDispatcher;
    import mmo.interfaces.fbteam.IFBTeamService;
+   import mmo.play.scene.SceneManager;
    
    public class FBSceneAdmin
    {
@@ -91,8 +95,52 @@ package mmo.fbteam.auto
          }
       }
       
+      /**
+       * REVIVAL. The art of some 幻影冰宫 rooms places a layer twice, the same symbol at two depths
+       * (fbaixi4, 7, 8, 9: background; fbaixi6: overlap). The engine stacks the layers it knows by
+       * name (the first of each) and the second copy ends on top of the room: over the players,
+       * the 亚比 and the doors, taking their clicks (fbaixi4's 变异库斯特 and its way out were not
+       * to be seen). The copy is hidden, as the engine does with a second obstruction.
+       */
+      private function hideLayerCopies() : void
+      {
+         var scene:DisplayObjectContainer = SceneManager.getInstance().loadedSceneInfo.scene as DisplayObjectContainer;
+         if(scene == null)
+         {
+            return;
+         }
+         for each(var layer:String in ["background","overlap","foreground","topground"])
+         {
+            var first:DisplayObject = scene.getChildByName(layer);
+            for(var i:int = 0; i < scene.numChildren; i++)
+            {
+               var copy:DisplayObject = scene.getChildAt(i);
+               if(copy.name != layer || copy == first)
+               {
+                  continue;
+               }
+               copy.visible = false;
+               if(copy is InteractiveObject)
+               {
+                  InteractiveObject(copy).mouseEnabled = false;
+               }
+               if(copy is DisplayObjectContainer)
+               {
+                  DisplayObjectContainer(copy).mouseChildren = false;
+               }
+            }
+         }
+      }
+      
       private function updatePlayer() : void
       {
+         try
+         {
+            this.hideLayerCopies();
+         }
+         catch(err:Error)
+         {
+         }
          var _loc1_:Class = FBConfig.instence.getClass(this.namespace[this.fbName] + this._key) as Class;
          if(null != this.scenePlayer)
          {

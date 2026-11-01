@@ -28,3 +28,32 @@ test("终极麦斗王's team: its last 亚比 gives the 麦斗猪蛋", async () 
   const { BOSS_EGGS } = await import("../src/game/sfs2013/battle.ts");
   assert.equal(BOSS_EGGS[11516], 520);
 });
+
+test("蓝羽灵者: three forms from its panel, the 小羽灵蛋 only for its last", async () => {
+  const { BOSS_EGGS } = await import("../src/game/sfs2013/battle.ts");
+  assert.deepEqual([guardianLevel(31394, 0), guardianLevel(21394, 1), guardianLevel(11394, 2)], [60, 80, 100]);
+  assert.equal(BOSS_EGGS[31394], 0);
+  assert.equal(BOSS_EGGS[21394], 0);
+  assert.equal(BOSS_EGGS[11394], 1393);
+});
+
+test("each of a pair fought as a boss of its own keeps its level (魂斗鱼, the second 浮云尊者)", () => {
+  assert.equal(guardianLevel(10472, 0), 100);
+  assert.equal(guardianLevel(20475, 0), 100);
+  // 神武月 and the 满月 神武月 (StartBoss) are two bosses
+  assert.equal(guardianLevel(10105, 0), 80);
+  assert.equal(guardianLevel(20105, 0), 100);
+});
+
+test("only the last form of a 守护者 brings its egg", async () => {
+  const { lastGuardianForm } = await import("../src/game/sfs2013/battle.ts");
+  assert.equal(lastGuardianForm(10090, 0), false); // 沙麒麟 Lv60
+  assert.equal(lastGuardianForm(20090, 1), true); // 沙麒麟 Lv80
+  assert.equal(lastGuardianForm(10102, 1), false); // 合金猛将's second (same id as the first)
+  assert.equal(lastGuardianForm(20102, 2), true);
+  assert.equal(lastGuardianForm(11213, 0), false); // 岩波斗魂者
+  assert.equal(lastGuardianForm(31213, 2), true);
+  assert.equal(lastGuardianForm(10472, 0), true); // 魂斗鱼, its own boss
+  assert.equal(lastGuardianForm(10884, 0), true); // 猪猪超人, one form
+  assert.equal(lastGuardianForm(12345, 0), true); // not in the table
+});

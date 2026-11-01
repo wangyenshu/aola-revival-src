@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aola-revival-level",
+  "title": "奥拉星 revival 沙盒 关卡 (format version 1)",
+  "description": "A 关卡 of the revival's 沙盒: opponents fought one after another. See docs/SANDBOX.md.",
+  "type": "object",
+  "required": ["enemies"],
+  "properties": {
+    "format": { "const": "aola-revival-level" },
+    "version": { "type": "integer", "minimum": 1 },
+    "name": { "type": "string", "maxLength": 30 },
+    "heal": { "type": "boolean", "default": true, "description": "The bag's 亚比 get their 体力 and PP back before each fight." },
+    "enemies": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["race"],
+        "properties": {
+          "race": { "type": "integer", "minimum": 1, "description": "The 亚比's 图鉴 number; it must be one that can fight." },
+          "level": { "type": "integer", "minimum": 1, "maximum": 999, "default": 1 },
+          "hp": { "$ref": "#/$defs/pct", "description": "体力" },
+          "at": { "$ref": "#/$defs/pct", "description": "攻击" },
+          "de": { "$ref": "#/$defs/pct", "description": "防御" },
+          "sa": { "$ref": "#/$defs/pct", "description": "特攻" },
+          "sd": { "$ref": "#/$defs/pct", "description": "特防" },
+          "sp": { "$ref": "#/$defs/pct", "description": "速度" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "pct": { "type": "number", "minimum": 1, "maximum": 10000, "default": 100, "description": "Percent of the stat the 亚比 has at its level." }
+  }
+}

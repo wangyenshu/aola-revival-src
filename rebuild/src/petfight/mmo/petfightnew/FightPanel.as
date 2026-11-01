@@ -1234,7 +1234,8 @@ package mmo.petfightnew
          setCommands(false);
          var win:Boolean = p.isWin == true;
          sound(win ? "x7009" : "x7010");
-         var done:Function = function():void { close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), id: int(p.id), isEscape: false}); };
+         // myFinalRaceId (PetFightEvent): the 亚比 that ended the fight; the 道馆 panels give their stone for their own.
+         var done:Function = function():void { close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), id: int(p.id), isEscape: false, myFinalRaceId: int(p.myFinalRaceId)}); };
          if (p.isCatched && caught)
          {
             showCaught(caught, done);
@@ -1242,6 +1243,8 @@ package mmo.petfightnew
          }
          var title:String = win ? "战斗胜利" : "战斗失败";
          var lines:Array = results.length ? results : (win ? ["战斗胜利！"] : ["你的亚比都倒下了……", "快打开亚比背包，带它们恢复体力吧！"]);
+         // note (the revival's server): what the win brought besides, a boss's 亚比蛋.
+         if (win && p.note) lines = lines.concat(String(p.note).split("\n"));
          showResult(title, lines, done);
       }
 

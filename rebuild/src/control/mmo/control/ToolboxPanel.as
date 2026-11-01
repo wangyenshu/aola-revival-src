@@ -91,7 +91,7 @@ package mmo.control
          row("晶币", "score", "10000", 92);
          row("星币", "xingbi", "1000", 130);
          row("晶豆", "jingdou", "1000", 168);
-         row("亚比经验", "exp", "10000", 206, "给背包里第一只亚比");
+         row("亚比经验", "exp", "10000", 206, "给第一只亚比");
 
          vipButton = RUI.button("成为蓝宝石", function():void { send({vip: !vip}); }, 104, 24, 0x6CC0F5, 0x2E86D6, "toolboxVip");
          vipButton.x = W - 128;
@@ -141,7 +141,7 @@ package mmo.control
          box.addChild(place(RUI.button("传送", teleport, 62, 26, 0xFFC45A, 0xF07812, "toolboxGo"), 276, 358));
          box.addChild(place(RUI.button("选地图", openPicker, 74, 26, 0x6CC0F5, 0x2E86D6, "toolboxPick"), 346, 358));
          var hint:TextField = RUI.text(11, 0x557799, false);
-         hint.text = "输入地图名（如 crossroad），或点「选地图」";
+         hint.text = "输入地图名";
          hint.x = 30;
          hint.y = 390;
          box.addChild(hint);

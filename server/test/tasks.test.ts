@@ -108,6 +108,14 @@ test("the HELLO follows: the user variable r, gone when it stops", async () => {
   assert.equal(none.res, 0);
 });
 
+test("the HELLO's record carries the skills woken at the HELLO学院 (f), with or without a HELLO", async () => {
+  const owner: TaskOwner = { robot: { name: "HELLO", exp: 0, follow: false }, area: { hello: { woken: [1, 4] } } };
+  const [[, r]] = await harness(owner).call("RobotExtension.2-0");
+  assert.equal(r.f, "01001");
+  const [[, none]] = await harness({}).call("RobotExtension.2-0");
+  assert.deepEqual(none, { has: 0, f: "00000" });
+});
+
 test("test runs can skip to a step", async () => {
   const { skipTo } = await import("../src/game/sfs2013/tasks.ts");
   const rec: TaskOwner = {};

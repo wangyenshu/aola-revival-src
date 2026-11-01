@@ -118,10 +118,14 @@ package mmo.tasknpc
        * RECONSTRUCTED greetings for NPCs whose later default talk speaks of
        * later stories (维克's 礼箱 and 亚特兰蒂斯): lines of the era's own
        * conversations instead (维克's is his reply in the delivery talk
-       * carrierBearLearnSkillTalk_13).
+       * carrierBearLearnSkillTalk_13). 泰勒's later line announces the second
+       * 最强亚比训练师大赛 of 12 June (2013); the first was his in the winter of
+       * 2012/13 (era task panel tp3159: 原来泰勒要举行最强训练师大赛): his line
+       * without the date and the 第二届.
        */
       private static const ERA_TALK:Object = {
-         13: ["嗯，最近收到的挑战信越来越多啦！不过难不倒我异星使者维克的。"]
+         13: ["嗯，最近收到的挑战信越来越多啦！不过难不倒我异星使者维克的。"],
+         827: ["最强亚比训练师大赛开始啦，记得准时参加！"]
       };
 
       /**

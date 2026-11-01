@@ -2,7 +2,8 @@
 // hosts (http://www.9aola.com/…, or https:// on an https page) from the game
 // files served next to the page, so the SWFs see their real URLs: domain
 // checks pass with no hosts-file edit and no network. Requests for other
-// hosts pass through untouched.
+// sites (百田's statistics, video and picture hosts the 2013 client names) are
+// answered as missing: nothing goes out but to the page's own origin.
 //
 // Static hosting (GitHub Pages, any file server): the build writes the files
 // under files/ with "%" in their names turned into "~" and lists them in
@@ -52,8 +53,13 @@ self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  if (!HOSTS.has(url.hostname)) return;
-  event.respondWith(fromMirror(event.request));
+  if (HOSTS.has(url.hostname)) {
+    event.respondWith(fromMirror(event.request));
+    return;
+  }
+  // Nothing goes out to other sites (百田's statistics, video and picture hosts the
+  // 2013 client names): only the page's own origin is fetched.
+  if (url.origin !== self.location.origin && /^https?:$/.test(url.protocol)) event.respondWith(missing(event.request.url));
 });
 
 /** Mirror file names are already percent-encoded; escape "%" once more for HTTP. */

@@ -4,9 +4,53 @@
   "no longer places although the quests' own start conversations name their rooms (776_3022_cloudstar2: 飞灵 in",
   "魔法羽林). [npcId, viewId, x, y]; the spots are RECONSTRUCTED (open ground near the middle of each room).",
   "Shown as task NPCs: only while they have something to say.",
-  "A fifth value 0 shows the NPC always (a scene NPC): 安娜 (32) of the 家具店, in the later table at 825,300 but its tasknpc/npc32.swf only a later upload; the 家具店's own scripts talk to her (32_49_furnitureshop, 荣誉榜)."
+  "A fifth value 0 shows the NPC always (a scene NPC): 安娜 (32) of the 家具店, in the later table at 825,300 but its tasknpc/npc32.swf only a later upload; the 家具店's own scripts talk to her (32_49_furnitureshop, 荣誉榜).",
+  "The same for the other hosts the 30 Nov 2012 world map (tools/data/map-places-2012.json) or the era newbie help (newBieHelpSystem NewBieSystemConfig.starWhere, Aug 2011) names, at the later table's spots where it has them; a row for an NPC the table keeps there as a task NPC makes it always shown:",
+  "泰勒 (827) of the 亚比协会, 小南姐姐 (43) of the 图书馆, 鲁阿鲁 (23) of the 遗迹区域 (later artwork only; the later table has them as scene NPCs), and 司令官麦哲伦 (9) of the 指挥中心, not at the later table's 340,317 but at 600,330, where the rebuilt newbie quest (taskext/task135, MAGELLAN) puts him, so that he stands in one place whatever the quest.",
+  "蓝宝石要塞: 军需官亨特 (142), 训练官卢卡斯 (148) (map), 骑士团卫兵 (145), 机械师马赫 (172) (newbie help; with 亨特 the era npcchallengeservice's ChallengeConfig challengers of bluesquare); 骑士团长亚瑟 is drawn by the scene itself (btnArthur). 乔布斯 (723) of the 银河商会 (map: 塞恩斯、乔布斯). The 道馆 masters 幻雷 833, 幻炎 831, 幻流 832, 幻冥 836, 幻光 835 (map). The later table has none of these: their spots are RECONSTRUCTED: open floor of the scenes as served, clear of their own buttons and exits (蓝宝石要塞 btnRMBCreator, btnArthur, the 星辉币 stall, 蓝钻兑换, et1/et2; the 道馆 btnRank and the drawn 踢馆 signs, 光明道馆 btnFriends), checked in the browser.",
+  "上古使者 (312) of the 灵兽宫: the era npcchallengeservice ChallengeConfig has him there (temple6), and the scene answers the choices of his menu (knowinfo: AncientBeastiec_know); the later table has no temple6. Spot RECONSTRUCTED (the floor between the 白虎 and 朱雀 pillars).",
+  "萨鲁奇 (44) of 奥拉之树 (map): the later table's spot (60,380) is for the 2025 drawing; on the rebuilt scene's art (scene/aolatreefb) it is in the bushes by the stairs, so he stands on the platform's left by the road to 奥拉广场 (RECONSTRUCTED)."
  ],
  "scenes": {
+  "aolatree": [
+   [
+    44,
+    1,
+    165,
+    325,
+    0
+   ]
+  ],
+  "bluesquare": [
+   [
+    142,
+    1,
+    650,
+    440,
+    0
+   ],
+   [
+    148,
+    1,
+    275,
+    345,
+    0
+   ],
+   [
+    145,
+    1,
+    760,
+    314,
+    0
+   ],
+   [
+    172,
+    1,
+    560,
+    400,
+    0
+   ]
+  ],
   "cloudstar2": [
    [
     776,
@@ -31,12 +75,111 @@
     380
    ]
   ],
+  "employmenttown": [
+   [
+    723,
+    1,
+    760,
+    350,
+    0
+   ]
+  ],
   "furnitureshop": [
    [
     32,
     1,
     825,
     300,
+    0
+   ]
+  ],
+  "huanguang": [
+   [
+    835,
+    1,
+    300,
+    440,
+    0
+   ]
+  ],
+  "huanlei": [
+   [
+    833,
+    1,
+    300,
+    300,
+    0
+   ]
+  ],
+  "huanliu": [
+   [
+    832,
+    1,
+    400,
+    330,
+    0
+   ]
+  ],
+  "huanming": [
+   [
+    836,
+    1,
+    650,
+    400,
+    0
+   ]
+  ],
+  "huanyan": [
+   [
+    831,
+    1,
+    400,
+    330,
+    0
+   ]
+  ],
+  "library": [
+   [
+    43,
+    1,
+    640,
+    300,
+    0
+   ]
+  ],
+  "maintown2": [
+   [
+    9,
+    1,
+    600,
+    330,
+    0
+   ]
+  ],
+  "suolide1": [
+   [
+    23,
+    1,
+    650,
+    250,
+    0
+   ]
+  ],
+  "temple6": [
+   [
+    312,
+    1,
+    600,
+    450,
+    0
+   ]
+  ],
+  "yabiunion": [
+   [
+    827,
+    1,
+    715,
+    315,
     0
    ]
   ]

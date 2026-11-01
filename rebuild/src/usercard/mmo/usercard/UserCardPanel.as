@@ -6,6 +6,8 @@ package mmo.usercard
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.MouseEvent;
+   import flash.events.TimerEvent;
+   import flash.utils.Timer;
    import flash.filters.DropShadowFilter;
    import flash.filters.GlowFilter;
    import flash.geom.Matrix;
@@ -277,7 +279,7 @@ package mmo.usercard
             try
             {
                clothes.wearMyOwnClothesById(uc.materialId);
-               if (avatar) avatar.setAvatarInfo(clothes.getMyAvatarInfo());
+               redrawAvatar();
             }
             catch (err:Error)
             {
@@ -353,8 +355,38 @@ package mmo.usercard
          return b;
       }
 
+      private var redraw:Timer;
+
+      /**
+       * After a change of clothes the stand's figure is drawn anew from a new
+       * album avatar once the change has settled: setting the clothes on the
+       * same album avatar twice in a row (put on, take off) could leave it
+       * blank while its pieces were still loading.
+       */
+      private function redrawAvatar():void
+      {
+         if (redraw == null)
+         {
+            redraw = new Timer(350, 1);
+            redraw.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void
+            {
+               if (parent == null) return;
+               if (avatar != null)
+               {
+                  try { avatar.dispose(); } catch (err:Error) {}
+                  avatar = null;
+               }
+               while (stand.numChildren > 0) stand.removeChildAt(0);
+               showAvatar();
+            });
+         }
+         redraw.reset();
+         redraw.start();
+      }
+
       public function close():void
       {
+         if (redraw != null) redraw.stop();
          if (avatar != null)
          {
             try { avatar.dispose(); } catch (e:Error) {}

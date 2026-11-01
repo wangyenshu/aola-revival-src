@@ -153,6 +153,8 @@ export interface TaskOwner {
   pets?: unknown[];
   score?: number;
   robot?: RobotRecord;
+  /** The 功能 of the places (areafuncs.ts); only the HELLO's woken skills are read here. */
+  area?: { hello?: { woken?: number[] } };
 }
 
 export interface RobotRecord {
@@ -423,8 +425,17 @@ export function installTasks(world: World, deps: TaskDeps): void {
   // which shows the HELLO in scenes, survives only as a later copy): the
   // HELLO is called "HELLO" until renamed. A following HELLO is the user
   // variable "r", so everyone in the room sees it.
-  const robotView = (r: RobotRecord | undefined) =>
-    r ? { has: 1, n: r.name, a: r.avatar ?? "", b: r.born ?? "2012-08-15", e: 100, f: "", t: 0, exp: r.exp, fl: r.follow ? 1 : 0 } : { has: 0 };
+  // f: the skills woken at the HELLO学院 (areafuncs.ts), one character per skill id, "1" woken, as
+  // robot/robotskillservice's SkillWakenTool reads it (also without a HELLO: it reads f regardless).
+  const skillBits = (rec: TaskOwner) => {
+    const woken: number[] = rec.area?.hello?.woken ?? [];
+    return [0, 1, 2, 3, 4].map((i) => (woken.includes(i) ? "1" : "0")).join("");
+  };
+  const robotView = (rec: TaskOwner) => {
+    const r = rec.robot;
+    const f = skillBits(rec);
+    return r ? { has: 1, n: r.name, a: r.avatar ?? "", b: r.born ?? "2012-08-15", e: 100, f, t: 0, exp: r.exp, fl: r.follow ? 1 : 0 } : { has: 0, f };
+  };
   const today = () => new Date(deps.now()).toISOString().slice(0, 10);
   world.xt("RobotExtension.2-11", async (ctx) => {
     const rec = await deps.load(ctx);
@@ -433,11 +444,11 @@ export function installTasks(world: World, deps: TaskDeps): void {
       await deps.save(rec);
       world.setUserVars(ctx.session, { r: robotVar(rec.robot) });
     }
-    ctx.reply({ res: 1, ...robotView(rec.robot) });
+    ctx.reply({ res: 1, ...robotView(rec) });
   });
   world.xt("RobotExtension.2-0", async (ctx) => {
     const rec = await deps.load(ctx);
-    ctx.reply(robotView(rec.robot));
+    ctx.reply(robotView(rec));
   });
   world.xt("RobotExtension.2-1", async (ctx) => {
     const rec = await deps.load(ctx);
@@ -447,7 +458,7 @@ export function installTasks(world: World, deps: TaskDeps): void {
       await deps.save(rec);
     }
     world.setUserVars(ctx.session, { r: robotVar(rec.robot) });
-    ctx.reply({ res: 1, ...robotView(rec.robot) });
+    ctx.reply({ res: 1, ...robotView(rec) });
   });
   world.xt("RobotExtension.2-2", async (ctx) => {
     const rec = await deps.load(ctx);

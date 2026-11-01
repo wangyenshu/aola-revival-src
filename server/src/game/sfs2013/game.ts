@@ -14,6 +14,8 @@ import { installEggs, type HatchRec } from "./eggs.ts";
 import { installZoo, type ZooRec } from "./zoo.ts";
 import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.ts";
 import { installMiniGames } from "./minigames.ts";
+import { installPlanetActs } from "./planetacts.ts";
+import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { World, type XtContext } from "./server.ts";
 
 export interface UserRecord {
@@ -683,6 +685,26 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
 
   // 斑比向前冲 (game/ninja/ninjarush; UserGameExtension 89_bb1 / 89_bb2): minigames.ts.
   installMiniGames(world, { load: me, save: (o) => save(o as UserRecord) });
+  // The activities of the 2012 story planets (摩么卡, 亚伦, 巨锁石灵, 达黑黑, 白京京, 卡索, 阿莫, 波波嘟, 独角兽): planetacts.ts.
+  installPlanetActs(world, {
+    load: me,
+    find: (name) => userRecord(emu, name),
+    save: (o) => save(o as UserRecord),
+    tables,
+    now: () => emu.clock.now().getTime(),
+    today,
+    givePet: (o, race, level) => givePetTo(o as UserRecord, race, level),
+  });
+  // The world map's 功能 of places (神奇摇摇树, 骑士王座, 星愿气球, 爱心协会 …): areafuncs.ts.
+  installAreaFuncs(world, {
+    load: async (ctx) => (await me(ctx)) as UserRecord & AreaRec,
+    save: (o) => save(o as UserRecord),
+    today,
+    now: () => emu.clock.now().getTime(),
+    get: (k) => emu.store.get(k),
+    set: (k, v) => emu.store.set(k, v),
+    pets: tables,
+  });
 
   // 黑星堡垒 (viparena, VipArenaClient, VipTowerExtension): the floors one has reached and passed
   // (VipArenaLevelManager). Floor n is reached on entering its first room (viparena1, 4, 7) and

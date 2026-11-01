@@ -224,7 +224,13 @@ package mmo.pet.dataservice
       {
          setAllPmHpPPFull();
          SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_heal", {});
-         if (callback != null) callback();
+         // The era callers pass function(ok:Boolean) (雷霆之塔's ThunderTowerController): called with
+         // none, the ArgumentError stopped them before their fight.
+         if (callback != null)
+         {
+            if (callback.length >= 1) callback(true);
+            else callback();
+         }
       }
 
       public function deletePetByPetId(id:int):void

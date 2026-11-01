@@ -13,7 +13,6 @@ package mmo.control
    import mmo.common.sound.SoundManager;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
-   import mmo.revival.RTextEntry;
    import flash.text.TextField;
    import flash.text.TextFieldType;
    import flash.text.TextFormat;
@@ -33,12 +32,12 @@ package mmo.control
     * stage): 地图 (the ringed planet, original art from the era
     * newBieHelpSystem module) and the HELLO on its glowing stand at the left;
     * 发言 表情 动作 射击; the chat line (当前, the box, ↵, and the △ for what was
-    * said); 信息卡 好友 组队 战队 背包 回家; the cart of the 商城, the sound
+    * said); 信息卡 好友 组队 战队 亚比 (the 2013 背包) 回家; the cart of the 商城, the sound
     * switch and the clock at the right. The icons are drawn (BarIcons).
     */
    public class ControlBar extends Sprite
    {
-      /** Called with a button name: map phrase face action shoot card friend team squad pet items home mall history toolbox. */
+      /** Called with a button name: map phrase face action shoot card friend team squad pet items home mall history toolbox sandbox. */
       public var onButton:Function;
       /** Called with the line typed into the chat box. */
       public var onSay:Function;
@@ -54,7 +53,7 @@ package mmo.control
 
       private static const LEFT:Array = [["phrase", "发言", 181], ["face", "表情", 232], ["action", "动作", 277], ["shoot", "射击", 320]];
       // 物品 (the revival's: every item one has) between 背包 and 回家, the others closer together for it.
-      private static const RIGHT:Array = [["card", "信息卡", 572], ["friend", "好友", 618], ["team", "组队", 664], ["squad", "战队", 710], ["pet", "背包", 756], ["items", "物品", 802], ["home", "回家", 847]];
+      private static const RIGHT:Array = [["card", "信息卡", 572], ["friend", "好友", 618], ["team", "组队", 664], ["squad", "战队", 710], ["pet", "亚比", 756], ["items", "物品", 802], ["home", "回家", 847]];
       private static const ICON_Y:int = 526;
       private static const LABEL_DY:int = 15;
 
@@ -79,6 +78,8 @@ package mmo.control
          addButton(new BarButton("btn_fbleave", BarIcons.make("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
          // The revival's 工具箱 (not of 2013), under the task icon.
          addButton(new BarButton("btn_toolbox", BarIcons.make("toolbox"), "工具箱", 0, 20, click), 936, 114);
+         // and its 沙盒 (fights the player sets up), under it.
+         addButton(new BarButton("btn_sandbox", BarIcons.make("sandbox"), "沙盒", 0, 20, click), 936, 168);
          buildChat();
          buildSound();
          buildClock();
@@ -196,7 +197,6 @@ package mmo.control
             if (e.keyCode == Keyboard.ENTER) send();
          });
          input.addEventListener(KeyboardEvent.KEY_UP, function(e:KeyboardEvent):void { e.stopPropagation(); });
-         RTextEntry.attach(input, "说点什么吧：", function():void { send(); });
          chat.addChild(input);
          var enter:Sprite = smallButton("btnSend", 524, 538, 22, 19, function():void { send(); });
          var eg:Graphics = enter.graphics;

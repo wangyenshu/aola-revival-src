@@ -63,6 +63,16 @@ package mmo.fbteam.common
       
       public function dispose() : void
       {
+         // REVIVAL: the bar's buttons outlive the run; a listener left on them answered the next
+         // 副本's 离开 for a manager without its name (FB_MSGS[null]: TypeError, no way out).
+         if(this.btnFBMap != null)
+         {
+            this.btnFBMap.removeEventListener(MouseEvent.CLICK,this.onClickMap);
+         }
+         if(this.btnFBLeave != null)
+         {
+            this.btnFBLeave.removeEventListener(MouseEvent.CLICK,this.onClickExit);
+         }
          TipsManager.getInstance().removeTips(this.btnFBMap);
          TipsManager.getInstance().removeTips(this.btnFBLeave);
          this.btnFBMap = null;

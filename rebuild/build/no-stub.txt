@@ -45,3 +45,6 @@ spacetime/spacetimeservice
 fbservice/fbservice
 fbteam/fbteamservice
 pet/petride
+# 飞天独角兽 (独角兽密林's light balls, NPC 459): the later copy in game/ runs on the
+# rebuilt engine; its server side is server/src/game/sfs2013/planetacts.ts.
+unicorn/skyunicornservice

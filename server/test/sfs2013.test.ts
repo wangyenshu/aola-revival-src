@@ -153,3 +153,22 @@ test("one player's extension requests run one after another", async () => {
   await slow(80);
   assert.deepEqual(saved, ["first", "second"]);
 });
+
+test("亚比蛋 are left out of onAmountUpdated (the 2013 client cannot add an egg it does not list)", async () => {
+  const { world, connect } = harness();
+  world.xt("SundriesExtension.eggs", (ctx) => {
+    ctx.reply({ amount: "2_343_0_1#5_1393_0_1" }, "onAmountUpdated");
+    ctx.reply({ amount: "5_520_0_1" }, "onAmountUpdated");
+    ctx.reply({ done: 1 });
+  });
+  const a = connect();
+  a.send(clientPayload(0, Up.Login, -1).utf("aola").utf("小奥拉").utf("").body());
+  await tick();
+  a.send(clientPayload(0, Up.JoinRoom, -1).utf("starland").u8(49).i32(-1).u8(48).utf("").body());
+  await tick();
+  a.received();
+  a.send(clientPayload(1, Up.XtReq, 1).i16(34).utf("eggs").raw(amf3Encode({})).body());
+  await tick();
+  const xt = a.received().filter((g) => g.handler === 1).map((g) => g.obj);
+  assert.deepEqual(xt, [{ _cmd: "onAmountUpdated", amount: "2_343_0_1" }, { _cmd: "eggs", done: 1 }]);
+});

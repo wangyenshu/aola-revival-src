@@ -156,9 +156,16 @@ package mmo.petfightnew
          FightPanel.backgroundOverride = null;
       }
 
+      /**
+       * 雷霆之塔's floors (activityres/activity121115/thunder/thundertower: {layer, min, sec}). The
+       * 2013 battle module that played them is lost: sent as a fight of type 85 (PetExtension 54_22,
+       * server gyms.ts; the type is RECONSTRUCTED, between the 踢馆's 84 and 86).
+       */
       public function timerFight(o:Object):void
       {
-         RLog.stub("LoginPetFightService.timerFight");
+         var p:Object = {};
+         for (var k:String in o) p[k] = o[k];
+         PetClient2.instance.startFight(85, p);
       }
 
       public function showGotChallengePanel(name:String, b:Boolean):void

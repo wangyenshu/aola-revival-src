@@ -177,7 +177,7 @@ water, feed and pick in its 植树盆) with 我的家, the home with furniture a
 storage, the 百田大剧场 (the 奥拉星 films that survive), the start screen
 without the January 2013 campaign, a 工具箱 on the control bar (晶币, 星币,
 晶豆, experience, any 亚比 by number, 蓝宝石; not of 2013), the 收费 goods
-bought with 星币, the 亚比孵化器, 更换技能 in the 背包, the 生态园 games
+bought with 星币, the 亚比孵化器, 更换技能 in the 亚比 bag (the bar's 背包, named 亚比), the 生态园 games
 (动物保卫战, 天空保卫战, 海底保卫战, 动物捕捉; later copies of the games), 星光游乐场's
 games and its 欢乐弹珠机, the 财富小管家 of 奥拉广场, 时空隧道's floors, the bosses'
 films in battle, the 动物园
@@ -192,15 +192,19 @@ scripts, 亚比 and bosses, chests and the rating), 坐骑 (a 蓝宝骑士 rides
 the 34 亚比 the 2013 data names), the 亚比 one could not get following as their
 picture, 修普森曼's and 艾尔利克's quests (纯白之翼的信念, 赤火斗士的意志,
 赤火剑的力量; withdrawn in November 2011, back on request), 主题公园 on the
-2012 park's art and 亚比研究中心 on the oldest art of it that survives (2014),
+2012 park's art, 亚比研究中心 on the oldest art of it that survives (2014) and
+奥拉之树 on the stylized tree of 2014–24,
 灵兽宫 and the halls of 上古神殿, 斑比向前冲 and 酷跑星世界, the shops' lift
 (点我前往其他楼层), the 家具店 with 安娜 and the 迷幻星域 room and story book,
 黑星堡垒 (the era dungeon and its bosses), the 奥拉周刊 of every week from
 2010 on in the 图书馆, 欢乐岛, gathering in scenes, the wild and rare 亚比 the
 November 2012 map lists for each place, battles, and the mini games (their
 entrance panels, the games' own SWFs, 晶币 for the score). The 工具箱 also
-travels to any scene by name or from a list of the places of the 2012 map
-and exports and imports the browser's saves, and
+travels to any scene by name, from a list of the places of the 2012 map or
+from the pages of every other room,
+and exports and imports the browser's saves; the 沙盒 under it sets up 关卡 of
+one's own (up to ten opponents, levels up to 999, their stats in percent),
+exported and imported as files (docs/SANDBOX.md); and
 the bar's 物品 shows everything collected. Known gaps: the HELLO's panel,
 friends, daily tasks and most activities
 are still stand-ins (clicking one says 这个功能还在修复中). `docs/PLAN.md` lists every

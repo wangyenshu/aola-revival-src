@@ -65,6 +65,14 @@ and 亚比蛋 pictures of 亚比 1–1426 the archive lacked, 斑比向前冲
 maps, roles and films), the 家具店's 迷幻星域故事书 (`bookfriendclub/seestory`,
 2011), the bubbles of 时空隧道 (`library_res/common_res_bubble`) and an entrance
 panel: 1 line in `index.jsonl` and 67 in `_later/index.jsonl`.
+A seventh run (1 November) indexed the files of update 11: 蓝羽灵者's picture
+and panel `dailyactivity/dailyboss31394` (10 January 2013, not in the October
+inventory) and 岩波斗魂者's `stonebosspanel`, the planets' activities
+(`momekaevolution/*` and `activityres/yalunevolution*` for 摩么卡 and 亚伦,
+`bringupres/fishbringuppanel` for 波波嘟, `rarepets/raredaheihei`), two 道馆
+panels of November 2012, the talk pictures `tasknpc/npc324` and `npc342`, and
+the stylized 奥拉之树 `scene/aolatreefb` (2021): 7 lines in `index.jsonl` and 7
+in `_later/index.jsonl`.
 
 ## How the files were found and dated
 

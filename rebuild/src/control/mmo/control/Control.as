@@ -186,6 +186,13 @@ package mmo.control
             case "toolbox":
                ToolboxPanel.toggle();
                break;
+            case "sandbox":
+               SandboxPanel.toggle();
+               break;
+            case "fbleave":
+               // A 副本's way out: its own FBButtonManager listens on the button
+               // (fbLeaveButton); nothing to do here (it said 这个功能还在修复中).
+               break;
             case "items":
                ItemsPanel.toggle();
                break;

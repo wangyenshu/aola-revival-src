@@ -32,7 +32,13 @@ package mmo.play.scene.helper.cilckandhit
          return _instance;
       }
 
-      public function registerTarget(target:InteractiveObject, walk:Boolean = true, distance:int = 0):void
+      /**
+       * Some scenes of the era (海枯之星's 召唤达黑黑) and later modules pass a fourth
+       * flag (registerTarget(t, true, 70, false)); its meaning is lost and it is
+       * accepted and not used, as the call threw ArgumentError #1063 and stopped
+       * the scene's setup.
+       */
+      public function registerTarget(target:InteractiveObject, walk:Boolean = true, distance:int = 0, flag:* = null):void
       {
          if (target == null) return;
          targets[target] = {walk: walk, distance: distance};

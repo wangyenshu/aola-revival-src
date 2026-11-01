@@ -476,6 +476,23 @@
      ]
     }
    ]
+  },
+  "haikustar4": {
+   "pets": [
+    {
+     "raceId": 706,
+     "name": "惊惊海豆",
+     "min": 16,
+     "max": 20,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED (as in 海枯之星's first room)",
+     "source": [
+      "activityres 达黑黑 猜弹珠 panel (rarepets/raredaheihei): 与海枯之山的水水海豆和惊惊海豆战斗 (弹珠, 惊惊海豆 more often)",
+      "PetDictionaryData 获得方式: 海枯之星"
+     ]
+    }
+   ]
   }
  }
 }

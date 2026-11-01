@@ -3,31 +3,56 @@
 // (PetClient2.fightInCopy {id}, PetExtension 54_17). The client side is the later
 // fbservice / fbteam modules and the 2016 choose panel on the 2013 libraries.
 //
-// The 2013 server and its tables are lost. What the client code fixes is kept:
-// the four 副本 and their rooms (FbID: 0 fbaixi 幻影冰宫, 1 fbsuolide 倒立金字塔,
-// 2 fbsiwude 蚁族王朝, 3 fbyishuzhidu 恐龙博物馆), the three modes (简单, 困难, 传奇:
-// the level the client asks), which rooms send 亚比 (fbteam FbWildPetConfig:
-// fbaixi1, 2, 3, 6) and which fights each room's script starts (fightInCopy(1…4)),
-// the ids some scripts check after a battle (幻影冰宫's door 亚比 10421 / 10415 and
-// 120421 / 120415, its last boss 10999 / 120999; 恐龙博物馆's 梁龙 30401, 翼龙 30402,
-// 鱼龙 30403), the replies' fields (succ, pms, fin/bn/gr/tm, gr "S;#;#", g/lt/bt).
-// Which 亚比 stand in each room follows the 2010–11 guides (7k7k, 100bt, doyo; the
-// research notes in docs/PLAN.md): 冰沙斗士 and 埃黑多夫 at the ice palace's gate,
-// 冰火巨人 and 冰摩格, 变异库斯特, 尤莱亚 and 拉贝尔幻影; 圣甲虫, 石像守卫, 帕克,
-// 阿努比斯, 扭扭大王 and 斯多王, 曼珠沙华, 机械木乃伊 and 法老王; 兵蚁, 工蚁, 守护力士,
-// 守护法师 and 影刃, 下水猛鳄, 圣斗士 and 魔斗士, the four 天王, 蚁将军 and 变异蚁将军;
-// 迅猛龙, 梁龙, 翼龙, 鱼龙, 霸王龙 and 星辰毁灭者. Where a room's fights are more than
-// the guides name, and everything else (levels, rewards, the rating, the entries a
-// day), RECONSTRUCTED.
+// The 2013 server and its tables are lost. What the client fixes is kept: the four
+// 副本 and their rooms (FbID: 0 fbaixi 幻影冰宫, 1 fbsuolide 倒立金字塔, 2 fbsiwude
+// 蚁族王朝, 3 fbyishuzhidu 恐龙博物馆), the three modes (简单, 困难, 传奇: the level the
+// client asks), the replies' fields (succ, pms, fin/bn/gr/tm, gr "S;#;#", g/lt/bt),
+// and, room by room, the fights. Each room's fbteam script (the rooms the team route
+// walks: FbAixiConfig, FbSuolideConfig, FbSiwudeConfig, FbYishuzhiduConfig) says
+// which fightInCopy(id) it starts, how many and when; the 亚比 behind each id is the
+// one the room shows there (its scene's symbols: the clicked figure, the NPC whose
+// talk starts the fight, whose head is the species' art):
+//   幻影冰宫 wanderers (fb_3, FbWildPetConfig fbaixi1, 2, 3, 6): the tips name 埃黑多夫 and
+//     冰沙斗士 for fbaixi2; fbaixi3 opens its first door after three of 10421 / 10415
+//     (120421 / 120415 harder), its second when all are down; fbaixi6 when all are down.
+//     fbaixi4: 变异库斯特 (NPC 602's talk names it), fbaixi8: 尤莱亚 (NPC 84), fbaixi9:
+//     拉贝尔幻影, told 10999 / 120999.
+//   倒立金字塔 fbsuolide1: the four 圣甲虫 (Monster1–4) 阿努比斯 calls, one fight; 2: the
+//     石像迷阵, a fight for each statue flagstone turned (ids 1, 2 … one more after each
+//     win: up to the nine of the grid); 3: the 木乃伊之棺, a mummy (帕克) in three of the
+//     five coffins, ids 1–3; 4: 阿努比斯; 6: the wooden and the earthen ones, 扭扭大王 60 and
+//     斯多王 72 (ScenePetAvatar); 7: the coin slot's 夜眼风魔 (1, 10 晶币) and 沙麒麟 (2, 100
+//     晶币), 曼珠沙华 (3); 8: 机械木乃伊; 9: 法老王.
+//   蚁族王朝 (team route 1–6, 9–11; 7 and 8 are not walked): fbsiwude1 and 2, three 兵蚁 each
+//     (NPC 644); 3: three 牛角滴滴 at the doors (NPC 645); 4: 毒菇球 (npc_0, NPC 190),
+//     金刚蛤蟆 (npc_1, 191), 下水猛鳄 (npc_2 by the chest, 192); 5: the 工蚁 (Ant); 6: the two
+//     statues, 守护力士 and 守护法师 (NPC 162 / 163), one fight: one of the two in turn, by the
+//     run of the day; 9: 蚁族圣斗士 (ant_0) and 魔斗士 (ant_1); 10: btnPet_1 保斯, 2 兰斯罗特,
+//     3 哥拉海德, 4 贝德威尓; 11: the 蚁将军's 小弟 (1), the 蚁将军 (2), the 变异蚁将军 (3).
+//   恐龙博物馆 fbyishuzhidu1: the 迅猛龙; 2: 梁龙 30401, 翼龙 30402, 鱼龙 30403 (the ids its
+//     script checks); 3: 霸王龙; 4: the archer, 星辰毁灭者.
+// RECONSTRUCTED: which wanderers stand in fbaixi1, 3 and 6 beyond what the doors count
+// (冰沙斗士 at the gate; 冰火巨人 and 冰摩格, the ice palace's other 亚比), the species of
+// fbsiwude11's 小弟 (the script names none; the 兵蚁 who guard the 蚁族王朝), the levels,
+// the rewards, the rating, the entries a day.
 
 export type FbRoom = {
   /** The room's wandering 亚比 (fb_3), species; the client places as many as it has spots for. */
   wild?: number[];
-  /** The room script's fights (fightInCopy(id)): species, or a full id (variant * 10000 + species) kept as it is. */
-  fights?: Record<number, number>;
+  /**
+   * The room script's fights (fightInCopy(id)): species, or a full id (variant * 10000 + species) kept
+   * as it is; a list: one of them, in turn by the run of the day (fbsiwude6's two statues, one fight).
+   */
+  fights?: Record<number, number | number[]>;
+  /** The fights that are the room's boss: a few levels above the rest. */
+  boss?: number[];
 };
 
 export type FbDef = { name: string; title: string; levels: [number, number, number]; rooms: Record<string, FbRoom> };
+
+/** The fights first … last against one species (a room that numbers its fights one after another). */
+const each = (first: number, last: number, species: number): Record<number, number> =>
+  Object.fromEntries(Array.from({ length: last - first + 1 }, (_, i) => [first + i, species]));
 
 /** The ids of the bosses whose species the 2013 tables lack (later 副本 bosses): the species that stands in for them in battle. */
 export const FB_STANDIN: Record<number, number> = {};
@@ -49,11 +74,11 @@ export const FBS: FbDef[] = [
       fbaixi1: { wild: [421, 421, 421] },
       fbaixi2: { wild: [415, 421, 415, 421, 415] },
       fbaixi3: { wild: [421, 415, 421, 466, 448, 466] },
-      // 变异库斯特 (the upper branch), 尤莱亚, then 拉贝尔幻影 in the 风暴核心.
-      fbaixi4: { fights: { 1: 463 } },
+      // 水晶密室's 变异库斯特, then 尤莱亚 and 拉贝尔幻影 in the 风暴核心.
+      fbaixi4: { fights: { 1: 463 }, boss: [1] },
       fbaixi6: { wild: [448, 466, 448, 466, 448] },
-      fbaixi8: { fights: { 1: 249 } },
-      fbaixi9: { fights: { 1: 999 } },
+      fbaixi8: { fights: { 1: 249 }, boss: [1] },
+      fbaixi9: { fights: { 1: 999 }, boss: [1] },
     },
   },
   {
@@ -61,17 +86,18 @@ export const FBS: FbDef[] = [
     title: "倒立金字塔",
     levels: [35, 60, 80],
     rooms: {
-      // 沙漏密室's 圣甲虫, 石像迷阵's 石像守卫, 木乃伊之棺's 帕克, 阿努比斯之门.
       fbsuolide1: { fights: { 1: 210 } },
-      fbsuolide2: { fights: { 1: 213 } },
-      fbsuolide3: { fights: { 1: 304 } },
-      fbsuolide4: { fights: { 1: 238 } },
-      // 土木战场: the single 副本's script checks 30060 (扭扭大王, wood) and 30072 (斯多王, earth).
+      // 石像迷阵: a 石像守卫 for each statue flagstone turned, numbered on (the grid has nine).
+      fbsuolide2: { fights: each(1, 9, 213) },
+      // 木乃伊之棺: 帕克 in three of the five coffins.
+      fbsuolide3: { fights: each(1, 3, 304) },
+      fbsuolide4: { fights: { 1: 238 }, boss: [1] },
+      // 土木战场: 扭扭大王 (wood) and 斯多王 (earth); the single 副本's script told them 30060 / 30072.
       fbsuolide6: { fights: { 1: 30060, 2: 30072 } },
-      // 莎华之间: 曼珠沙华; its coin slot's 夜眼风魔 and 沙麒麟.
-      fbsuolide7: { fights: { 1: 272, 2: 90, 3: 272 } },
-      fbsuolide8: { fights: { 1: 340 } },
-      fbsuolide9: { fights: { 1: 240 } },
+      // 莎华之间: the coin slot's 夜眼风魔 (10 晶币) and 沙麒麟 (100), and 曼珠沙华.
+      fbsuolide7: { fights: { 1: 81, 2: 90, 3: 272 }, boss: [3] },
+      fbsuolide8: { fights: { 1: 340 }, boss: [1] },
+      fbsuolide9: { fights: { 1: 240 }, boss: [1] },
     },
   },
   {
@@ -79,21 +105,23 @@ export const FBS: FbDef[] = [
     title: "蚁族王朝",
     levels: [40, 65, 85],
     rooms: {
-      // 蚁穴下水道's 兵蚁, 工蚁聚集地's 工蚁, 蚁神守护大厅's 守护力士, 守护法师 and 影刃.
-      fbsiwude1: { fights: { 1: 216, 2: 216, 3: 216 } },
-      fbsiwude2: { fights: { 1: 216, 2: 217, 3: 216, 4: 217, 5: 216, 6: 217 } },
-      fbsiwude3: { fights: { 1: 217, 2: 217, 3: 217 } },
-      fbsiwude4: { fights: { 1: 218, 2: 219, 3: 217 } },
+      // 蚁穴入口 and the searchlights: three 兵蚁 each.
+      fbsiwude1: { fights: each(1, 3, 216) },
+      fbsiwude2: { fights: each(1, 3, 216) },
+      // 蚁穴下水道: three 牛角滴滴 at the doors.
+      fbsiwude3: { fights: each(1, 3, 244) },
+      // The 蚁将军's treasure: 毒菇球, 金刚蛤蟆, 下水猛鳄 (the boss of the place, by the chest).
+      fbsiwude4: { fights: { 1: 241, 2: 242, 3: 243 }, boss: [3] },
+      // 工蚁聚集地.
       fbsiwude5: { fights: { 1: 217 } },
-      fbsiwude6: { fights: { 1: 195 } },
-      // 下水道深处's 毒菇球, 金刚蛤蟆 and 下水猛鳄.
-      fbsiwude7: { fights: { 1: 241, 2: 242 } },
-      fbsiwude8: { fights: { 1: 243 } },
-      // 蚁神巨像: 圣斗士 and 魔斗士; the 四大天王.
+      // 蚁神守护大厅: the two statues, 守护力士 and 守护法师; one fight, one of them in turn.
+      fbsiwude6: { fights: { 1: [218, 219] }, boss: [1] },
+      // 蚁神巨像: 蚁族圣斗士 and 魔斗士 on either side.
       fbsiwude9: { fights: { 1: 220, 2: 221 } },
-      fbsiwude10: { fights: { 1: 222, 2: 223, 3: 224, 4: 225 } },
-      // 小蚁, the 蚁将军, then the 变异蚁将军 (FBSiwude11_5FightWithAberrance).
-      fbsiwude11: { fights: { 1: 216, 2: 226, 3: 227 } },
+      // The 女王守护骑士: 保斯, 兰斯罗特, 哥拉海德, 贝德威尓 (btnPet_1 … 4).
+      fbsiwude10: { fights: { 1: 225, 2: 223, 3: 224, 4: 222 } },
+      // The 蚁将军's 小弟, the 蚁将军, the 变异蚁将军 (FBSiwude11_5FightWithAberrance).
+      fbsiwude11: { fights: { 1: 216, 2: 226, 3: 227 }, boss: [2, 3] },
     },
   },
   {
@@ -101,12 +129,12 @@ export const FBS: FbDef[] = [
     title: "恐龙博物馆",
     levels: [40, 65, 85],
     rooms: {
-      // 迅猛龙巢穴, 龙之谷 (the script's 梁龙 30401, 翼龙 30402, 鱼龙 30403), 暴君王座's
-      // 霸王龙, 龙殇墓地's 射手座 (星辰毁灭者).
+      // 迅猛龙, 龙之谷 (the script's 梁龙 30401, 翼龙 30402, 鱼龙 30403), 暴君王座's 霸王龙,
+      // 龙殇墓地's 射手座 (星辰毁灭者).
       fbyishuzhidu1: { fights: { 1: 400 } },
       fbyishuzhidu2: { fights: { 1: 30401, 2: 30402, 3: 30403 } },
-      fbyishuzhidu3: { fights: { 1: 404 } },
-      fbyishuzhidu4: { fights: { 1: 405 } },
+      fbyishuzhidu3: { fights: { 1: 404 }, boss: [1] },
+      fbyishuzhidu4: { fights: { 1: 405 }, boss: [1] },
     },
   },
 ];
@@ -137,15 +165,22 @@ export function fbSpecies(code: number): number {
   return FB_STANDIN[s] ?? s;
 }
 
-/** A room's 亚比 at a mode: wanderers numbered 1… (fb_3) and the script's fights by their ids. */
-export function fbRoomPets(def: FbDef, room: string, mode: number): { id: number; code: number; lv: number }[] {
+/**
+ * A room's 亚比 at a mode: wanderers numbered 1… (fb_3) and the script's fights by their ids. run: the
+ * run of the day (0 the first), which of a list a fight takes.
+ */
+export function fbRoomPets(def: FbDef, room: string, mode: number, run = 0): { id: number; code: number; lv: number }[] {
   const r = def.rooms[room];
   if (!r) return [];
   const base = def.levels[Math.max(0, Math.min(2, mode))];
   const deep = Number(room.slice(def.name.length)) || 1;
   const lv = (i: number) => Math.min(100, base + Math.floor(deep / 2) + (i % 3));
   if (r.wild) return r.wild.map((s, i) => ({ id: i + 1, code: fbCode(s, mode), lv: lv(i) }));
-  return Object.entries(r.fights ?? {}).map(([id, s]) => ({ id: Number(id), code: fbCode(s, mode), lv: lv(Number(id)) + 3 }));
+  return Object.entries(r.fights ?? {}).map(([k, f]) => {
+    const id = Number(k);
+    const s = Array.isArray(f) ? f[Math.max(0, run) % f.length] : f;
+    return { id, code: fbCode(s, mode), lv: Math.min(100, lv(id) + (r.boss?.includes(id) ? 6 : 3)) };
+  });
 }
 
 /** The rating of a run by its time (seconds; RECONSTRUCTED, the later client counts 11 minutes down). */
@@ -172,6 +207,6 @@ export type FbRec = {
   used?: Record<string, number>;
   /** Best rating by 副本 id: [简单, 困难, 传奇]. */
   best?: Record<string, string[]>;
-  /** The run now: 副本, mode, its start (game clock ms), the 亚比 beaten by room, the chests opened. */
-  cur?: { id: number; name: string; lv: number; start: number; dead: Record<string, number[]>; chests: string[] } | null;
+  /** The run now: 副本, mode, its start (game clock ms), the 亚比 beaten by room, the chests opened, the run of the day (1…). */
+  cur?: { id: number; name: string; lv: number; start: number; dead: Record<string, number[]>; chests: string[]; n?: number } | null;
 };

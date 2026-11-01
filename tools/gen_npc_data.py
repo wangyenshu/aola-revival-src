@@ -23,7 +23,9 @@ needs. Both go to rebuild/gen/ (committed, so building needs no decompiler):
 
 --extra adds task NPCs the later table no longer places (the 幻龙星系 quests' NPCs whose
 start talks name a room: 飞灵 776 in 魔法羽林 …), at RECONSTRUCTED spots (see its _doc), and
-NPCs of 2013 rooms whose only artwork is a later upload (a fifth value 0: always shown).
+the NPCs of 2013 rooms the filter above leaves out or keeps only as task NPCs (their artwork
+a later upload) or the later table no longer has: a fifth value 0, always shown (a row for
+an NPC the table already places in that room then replaces it).
 """
 from __future__ import annotations
 
@@ -116,10 +118,17 @@ def main(argv=None) -> None:
             scenes[sc] = keep
     if a.extra:
         for sc, lst in json.load(open(a.extra, encoding="utf-8"))["scenes"].items():
-            have = {d.get("npcId") for d in scenes.get(sc, [])}
             for npc, view, x, y, *kind in lst:
-                if npc not in have and npc in art:
-                    scenes.setdefault(sc, []).append({"npcId": npc, "viewId": view, "x": x, "y": y, "type": kind[0] if kind else 2})
+                if npc not in art:
+                    continue
+                row = {"npcId": npc, "viewId": view, "x": x, "y": y, "type": kind[0] if kind else 2}
+                old = next((d for d in scenes.get(sc, []) if d.get("npcId") == npc), None)
+                if old is None:
+                    scenes.setdefault(sc, []).append(row)
+                elif row["type"] == 0:
+                    # A host the later table places but this filter kept only as a task NPC
+                    # (its artwork a later upload): always shown, as in 2012.
+                    old.update(row)
     pkg = os.path.join(a.out, "mmo", "tasknpc")
     os.makedirs(pkg, exist_ok=True)
     rows = ",\n".join(

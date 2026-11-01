@@ -24,6 +24,44 @@ test("the 四大副本's rooms: the ids the room scripts check", () => {
   assert.equal((pm.species["999"] as { n: string }).n, "拉贝尔幻影");
 });
 
+test("each room's fights are the 亚比 its script and pictures show", () => {
+  const [aixi, suolide, siwude, dino] = FBS;
+  const species = (def: (typeof FBS)[number], room: string, run = 0) => fbRoomPets(def, room, 0, run).map((p) => fbSpecies(p.code));
+  // 蚁族王朝: 兵蚁 (NPC 644) in the first two rooms, 牛角滴滴 (NPC 645) at 蚁穴下水道's doors,
+  // 毒菇球 / 金刚蛤蟆 / 下水猛鳄 (npc_0–2, NPCs 190–192), the 工蚁, the two statues in turn.
+  assert.deepEqual(species(siwude, "fbsiwude2"), [216, 216, 216]);
+  assert.deepEqual(species(siwude, "fbsiwude3"), [244, 244, 244]);
+  assert.deepEqual(species(siwude, "fbsiwude4"), [241, 242, 243]);
+  assert.deepEqual(species(siwude, "fbsiwude5"), [217]);
+  assert.deepEqual([species(siwude, "fbsiwude6", 0), species(siwude, "fbsiwude6", 1)], [[218], [219]]);
+  assert.deepEqual(species(siwude, "fbsiwude10"), [225, 223, 224, 222]);
+  assert.deepEqual(species(siwude, "fbsiwude11"), [216, 226, 227]);
+  // The rooms the team route does not walk start no fight.
+  assert.deepEqual([species(siwude, "fbsiwude7"), species(siwude, "fbsiwude8")], [[], []]);
+  // 倒立金字塔: a 石像守卫 for each statue flagstone (ids on to 9), 帕克 in three coffins, the coin slot.
+  assert.deepEqual(species(suolide, "fbsuolide2"), Array(9).fill(213));
+  assert.deepEqual(species(suolide, "fbsuolide3"), [304, 304, 304]);
+  assert.deepEqual(species(suolide, "fbsuolide7"), [81, 90, 272]);
+  // No room fights the 2011 event boss 影刃.
+  const all = FBS.flatMap((d) => Object.keys(d.rooms).flatMap((r) => [0, 1].flatMap((run) => species(d, r, run))));
+  assert.ok(!all.includes(195));
+  // Every 亚比 the 图鉴 says is only found in a 副本 is fought in its own.
+  const own: [(typeof FBS)[number], number[]][] = [
+    [aixi, [415, 448, 466]],
+    [suolide, [210, 213, 240, 272, 340]],
+    [siwude, [216, 217, 218, 219, 222, 223, 224, 225, 227, 241, 242, 243, 244]],
+    [dino, [400, 401, 402, 403, 404, 405]],
+  ];
+  for (const [def, list] of own) {
+    const here = new Set(Object.keys(def.rooms).flatMap((r) => [0, 1].flatMap((run) => species(def, r, run))));
+    for (const s of list) assert.ok(here.has(s), `${def.title} fights ${s}`);
+  }
+  // Bosses stand a few levels above the room's other fights; harder modes above 简单.
+  const [anubis] = fbRoomPets(suolide, "fbsuolide4", 0);
+  assert.ok(anubis.lv > fbRoomPets(suolide, "fbsuolide3", 0)[0].lv);
+  assert.ok(fbRoomPets(siwude, "fbsiwude3", 1)[0].lv > fbRoomPets(siwude, "fbsiwude3", 0)[0].lv + 20);
+});
+
 test("a 副本 run: join, the room's 亚比, a chest once, the rating", async () => {
   const handlers = new Map<string, XtHandler>();
   const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world) } as unknown as World;

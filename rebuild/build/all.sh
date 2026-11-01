@@ -292,6 +292,13 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/yabistudycopy.swf)" --code
   --bind 0=mmo.scene.yabi.DocYabistudyRevived --bind 187=mmo.scene.yabi.YabistudyRevived \
   --note "REBUILT scene/yabistudy (aola-revival) on scene/yabistudycopy (April 2014)" \
   --out "$W/scene/yabistudy.swf%3F130124"
+# 奥拉之树 (its January 2013 scene lost, the live one a 2025 redrawing): rebuilt on the
+# stylized tree of 2014–24, the copy in scene/aolatreefb (2021).
+build scenes/aolatree mmo/scene/starland/DocAolatreeRevived.as aolatree-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/aolatreefb.swf)" --code "$OUT/aolatree-code.swf" --drop-art-abc \
+  --bind 0=mmo.scene.starland.DocAolatreeRevived --bind 112=mmo.scene.starland.AolatreeRevived \
+  --note "REBUILT scene/aolatree (aola-revival) on the stylized tree of scene/aolatreefb (2021)" \
+  --out "$W/scene/aolatree.swf%3F130124"
 
 # 欢乐岛: the 2020 scene cut down to the 2013 engine (its own code needs later
 # services and could not be built), on its own art.
@@ -379,3 +386,13 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/cloudstar1.swf)" \
   --code "$OUT/cloudstar1-code.swf" --bind 0=mmo.scene.cloudstar1.DocCloudStar1 --bind 24=mmo.scene.cloudstar1.CloudStar1 \
   --note "LATER scene/cloudstar1: its code compiled against the 2013 interfaces (aola-revival), its map button redrawn, on its own art" \
   --out "$W/scene/cloudstar1.swf%3F1210"
+
+# 巨锁石灵的机关 (族长之帐 yakestar3's btn_head; otherpanel/yakestarrarepetpanel, the
+# 2014 upload): its decompiled code compiled against the 2013 libraries, on its own
+# art; the later ProgressFullSprite.lockScreen / unlockScreen it calls when 小石灵 is
+# got are the 2013 show / close. The server side: server/src/game/sfs2013/planetacts.ts.
+build yakestarpanel mmo/yakestarratepetpanel/DocYakestarCompile.as yakestarpanel-code.swf ""
+mkdir -p "$W/otherpanel"
+python3 "$TOOLS/swf_transplant.py" --art "$(art otherpanel/yakestarrarepetpanel.swf)" --code "$OUT/yakestarpanel-code.swf" --drop-art-abc \
+  --note "LATER otherpanel/yakestarrarepetpanel (2014) on the 2013 libraries (aola-revival): ProgressFullSprite.lockScreen made show" \
+  --out "$W/otherpanel/yakestarrarepetpanel.swf%3F1210"
