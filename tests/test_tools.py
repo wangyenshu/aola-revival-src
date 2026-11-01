@@ -384,6 +384,29 @@ class AddLaterTest(unittest.TestCase):
         finally:
             srv.shutdown()
 
+    def test_from_archive(self):
+        import add_later
+
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t)
+            (t / "game").mkdir()
+            (t / "game/FILES.jsonl").write_text("")
+            arc = t / "archive"
+            (arc / "_later/aola.100bt.com/play/skinview").mkdir(parents=True)
+            (arc / "_later/aola.100bt.com/play/skinview/a000104.swf").write_bytes(b"CWS view")
+            (arc / "_later/aola.100bt.com/play/skinview/a000105.swf").write_bytes(b"CWS changed")
+            rows = [{"path": "skinview/a000104.swf", "lm": "2015-11-05T16:42:36Z", "size": 8, "sha1": hashlib.sha1(b"CWS view").hexdigest(), "ok": True},
+                    {"path": "skinview/a000105.swf", "lm": "2015-11-05T16:42:36Z", "size": 8, "sha1": "0" * 40, "ok": True}]
+            (arc / "_later/index.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+            args = ["--game", str(t / "game"), "--archive", str(arc), "--why", "形象卡",
+                    "skinview/a000104.swf", "skinview/a000105.swf", "skinview/nothere.swf"]
+            with redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                add_later.main(args)
+            self.assertEqual((t / "game/www.9aola.com/skinview/a000104.swf%3F1210").read_bytes(), b"CWS view")
+            self.assertFalse((t / "game/www.9aola.com/skinview/a000105.swf%3F1210").exists())
+            got = [json.loads(l) for l in (t / "game/FILES.jsonl").read_text().splitlines()]
+            self.assertEqual([(r["path"], r["origin"], r["added"]) for r in got], [("www.9aola.com/skinview/a000104.swf%3F1210", "later", "形象卡")])
+
 
 class GenTasksTest(unittest.TestCase):
     """The conversations the later uploads of task scripts carry themselves."""

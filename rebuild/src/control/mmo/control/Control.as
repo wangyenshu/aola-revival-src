@@ -5,6 +5,15 @@ package mmo.control
    import mmo.common.ProgressFullSprite;
    import flash.events.TimerEvent;
    import flash.utils.Timer;
+   import flash.net.URLLoader;
+   import flash.net.URLLoaderDataFormat;
+   import flash.events.IOErrorEvent;
+   import flash.utils.ByteArray;
+   import mmo.loader.scheduler.VersManager;
+   import flash.events.Event;
+   import flash.events.IEventDispatcher;
+   import flash.utils.setTimeout;
+   import mmo.interfaces.InitServiceEvent;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
    import mmo.common.utils.tips.TipsManager;
@@ -78,7 +87,36 @@ package mmo.control
          installDebugHook();
          ToolboxPanel.watchMoney();
          watchSpinner();
-         SceneManager.getInstance().loadDefaultScene();
+         afterClothes(function():void { SceneManager.getInstance().loadDefaultScene(); });
+      }
+
+      /**
+       * REVIVAL. The first room waits for ClothesService to know my clothes (its getUserClothes
+       * reply, which can come after the room is joined): the avatar service asks it about my
+       * clothes as it draws my avatar, failed while it did not know them, and the first room
+       * showed me as a bare name until the next room.
+       */
+      private static function afterClothes(go:Function):void
+      {
+         var svc:Object = null;
+         try { svc = ServiceContainer.getService("ClothesService"); } catch (e:Error) {}
+         var known:Boolean = true;
+         try { if (svc != null) svc.getMyAvatarInfo(); } catch (e1:Error) { known = false; }
+         if (svc == null || known || !(svc is IEventDispatcher))
+         {
+            go();
+            return;
+         }
+         var done:Boolean = false;
+         var once:Function = function(... a):void
+         {
+            if (done) return;
+            done = true;
+            IEventDispatcher(svc).removeEventListener(InitServiceEvent.onInited, once);
+            go();
+         };
+         IEventDispatcher(svc).addEventListener(InitServiceEvent.onInited, once);
+         setTimeout(once, 5000);
       }
 
       /**
@@ -425,6 +463,25 @@ package mmo.control
                switch (cmd)
                {
                   case "goto": sm.loadScene(arg); return "ok";
+                  case "mod":
+                     // Load the site's example mod revival/mods/<arg> and start it (tests/e2e).
+                     var ml:URLLoader = new URLLoader();
+                     ml.dataFormat = URLLoaderDataFormat.BINARY;
+                     ml.addEventListener(Event.COMPLETE, function(me:Event):void
+                     {
+                        ModRun.instance.load(ml.data as ByteArray, function(err:String, mi:Object):void
+                        {
+                           RLog.log("mod hook: " + (err || "loaded " + mi.id));
+                           if (err == null) ModRun.instance.startMod();
+                        });
+                     });
+                     ml.addEventListener(IOErrorEvent.IO_ERROR, function(me:Event):void { RLog.log("mod hook: no revival/mods/" + arg); });
+                     ml.load(VersManager.getVerURLRequest("revival/mods/" + arg));
+                     return "ok";
+                  case "modroom":
+                     // The mod loaded and the room of it shown.
+                     var mr:Object = ModRun.instance.loaded;
+                     return (mr ? mr.id : "none") + " " + (ModRun.instance.currentRoom ? ModRun.instance.currentRoom.id : "-");
                   case "joinfb":
                      // Enter a 副本 as its choose panel does (tests/e2e): "fbaixi:level:room".
                      var jf:Array = String(arg).split(":");

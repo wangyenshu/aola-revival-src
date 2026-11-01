@@ -89,7 +89,11 @@ package mmo.house.b020000
          });
          var bean:DisplayObject = overlap.getChildByName("btnGetBean");
          if (bean != null) bean.visible = false;
-         clickable(overlap.getChildByName("feedMachine"), "饲料机：给动物喂食", feedAll);
+         // The 饲料机's three frames are its fill (full, some, empty: the later FodderMachineHelper
+         // stops on one); left playing it ran through them and seemed to flash. Its feed is free here: full.
+         var feeder:MovieClip = overlap.getChildByName("feedMachine") as MovieClip;
+         if (feeder != null) feeder.gotoAndStop(1);
+         clickable(feeder, "饲料机：给动物喂食", feedAll);
          clickable(overlap.getChildByName("btnEco"), "生态园", function():void { SceneManager.getInstance().loadScene("ecologicalpark", "fromzoo"); });
          clickable(overlap.getChildByName("btnHome"), "我的家园", function():void { if (loader != null) loader.loadSubHouse(GARDEN_ID, "fromZoo"); });
          // The fish tank's places (waterPoolMC.fishContainer.pointionMC_0..8).

@@ -37,8 +37,8 @@ package mmo.houseservice
     * storage, and save.
     *
     * Only the furniture decorator is rebuilt; the robot, pet display, plant
-    * and breeding decorators are stand-ins that never answer, so a decorator
-    * that has not answered within a moment is counted as done.
+    * and breeding decorators are stand-ins that never answer: only the
+    * furniture's answer is waited for (and for at most a moment).
     */
    public class HouseService extends EventDispatcher implements IHouseService
    {
@@ -229,7 +229,10 @@ package mmo.houseservice
        */
       private function waitForAll(type:String, start:Function, done:Function):void
       {
-         var waiting:Array = _decorators.concat();
+         // Only the decorators that answer are waited for: the furniture's (rebuilt). The others
+         // (stand-ins) are started too but never answer, and waiting PATIENCE_MS for them held
+         // 回家 and the way to the 动物园 up twice, the room left on screen meanwhile.
+         var waiting:Array = _decorators.filter(function(d:*, i:int, a:Array):Boolean { return d is IFurnitureDecorator; });
          var finished:Boolean = false;
          var timer:uint;
          var check:Function = function():void

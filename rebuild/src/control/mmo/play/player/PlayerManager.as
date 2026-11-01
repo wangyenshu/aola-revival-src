@@ -2,9 +2,14 @@ package mmo.play.player
 {
    import flash.display.Bitmap;
    import flash.display.BitmapData;
+   import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
+   import flash.events.Event;
    import flash.geom.Matrix;
+   import flash.geom.Rectangle;
    import flash.events.EventDispatcher;
+   import flash.utils.getQualifiedClassName;
+   import flash.utils.getTimer;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
    import mmo.framework.comm.data.UserPoint;
@@ -117,7 +122,11 @@ package mmo.play.player
             RLog.error("players: generatePlayer " + name, err);
             p = new DefaultPlayerGenerator().generatePlayer(name, u, x, y);
          }
-         if (name == SocketClient.instance.myUserName) _myPlayer = p;
+         if (name == SocketClient.instance.myUserName)
+         {
+            _myPlayer = p;
+            standIn(p);
+         }
          else p.visible = _visible;
          _playerList[name] = p;
          if (layer) layer.addChild(p);
@@ -139,8 +148,86 @@ package mmo.play.player
          p.dispose();
       }
 
+      /** A picture of my avatar as it last stood, shown on my new player until its own is drawn. */
+      private var lastLook:Object;
+
+      /** My player's avatar (the avatar service's SkinProxyContainer), if it has one. */
+      private static function skinOf(p:PlayerBase):DisplayObject
+      {
+         for (var i:int = 0; p != null && i < p.numChildren; i++)
+         {
+            var c:DisplayObject = p.getChildAt(i);
+            if (getQualifiedClassName(c).indexOf("SkinProxyContainer") >= 0) return c;
+         }
+         return null;
+      }
+
+      /**
+       * REVIVAL. A new room builds my player anew, and the avatar service draws its avatar a
+       * moment later (frames after the room is shown): the player stood as a bare name, then
+       * appeared. A picture of the avatar taken as the last room was left stands in for it
+       * (SceneManager asks for it as a room starts loading).
+       */
+      public function keepLook():void
+      {
+         if (lastLook != null) BitmapData(lastLook.bd).dispose();
+         lastLook = null;
+         var skin:DisplayObject = skinOf(_myPlayer);
+         if (skin == null || !skin.visible)
+         {
+            RLog.log("players: no look to keep (" + (skin == null ? "no avatar" : "hidden") + ")");
+            return;
+         }
+         try
+         {
+            var r:Rectangle = skin.getBounds(_myPlayer);
+            if (r.width < 4 || r.height < 4 || r.width > 600 || r.height > 600)
+            {
+               RLog.log("players: no look to keep (" + r + ")");
+               return;
+            }
+            var bd:BitmapData = new BitmapData(Math.ceil(r.width), Math.ceil(r.height), true, 0);
+            var m:Matrix = skin.transform.matrix.clone();
+            m.translate(-r.x, -r.y);
+            bd.draw(skin, m);
+            lastLook = {bd: bd, x: r.x, y: r.y};
+         }
+         catch (e:Error)
+         {
+            RLog.log("players: no look to keep (" + e.message + ")");
+            lastLook = null;
+         }
+      }
+
+      private function standIn(p:PlayerBase):void
+      {
+         var look:Object = lastLook;
+         lastLook = null;
+         var skin:DisplayObject = skinOf(p);
+         if (look == null || skin == null) return;
+         var shown:Bitmap = new Bitmap(look.bd as BitmapData);
+         shown.name = "revivalLastLook";
+         shown.x = look.x;
+         shown.y = look.y;
+         p.addChildAt(shown, Math.min(p.numChildren, p.getChildIndex(skin) + 1));
+         var since:int = getTimer();
+         var check:Function = function(e:Event):void
+         {
+            var ready:Boolean = false;
+            try { ready = skin.width >= 4 && skin.height >= 4; } catch (err:Error) {}
+            if (!ready && p.stage != null && getTimer() - since < 4000) return;
+            p.removeEventListener(Event.ENTER_FRAME, check);
+            if (shown.parent) shown.parent.removeChild(shown);
+            shown.bitmapData.dispose();
+         };
+         p.addEventListener(Event.ENTER_FRAME, check);
+      }
+
       public function clear():void
       {
+         // The look is kept when a room starts loading (SceneManager), before anything
+         // else hears of it; else here.
+         if (_myPlayer != null && lastLook == null) keepLook();
          for each (var p:PlayerBase in _playerList)
          {
             p.dispose();

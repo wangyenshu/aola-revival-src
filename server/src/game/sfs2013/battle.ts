@@ -701,10 +701,10 @@ export const GUARDIANS: [string, string][] = [
   ["10715,20715", "80,100"], ["14523#11514#11516", "100#80#80"], ["10757,20757", "80,100"], ["10840,20840", "80,100"],
   ["10865,20865", "80,100"], ["11213,21213,31213", "60,80,100"],
   // Bosses of the 2013 world beside that table (the rebuilt dailyactivity): 伊泽 and 迦娜 (mysticocean5),
-  // 烈焰鸟 (feier4), 神武月 and 战无炎 (choicetemple); their levels are RECONSTRUCTED. 神武月 (10105, its
-  // "一次机会" partner fight, boss10105) and the 满月 神武月 (20105, the later BossConfig's StartBoss with
-  // its own talks startboss…) are two bosses, not two forms of one.
-  ["11320,11322", "100,100"], ["30278", "80"], ["10105", "80"], ["20105", "100"], ["10111", "90"],
+  // 烈焰鸟 (feier4), 神武月 and 战无炎 (choicetemple); their levels are RECONSTRUCTED. 神武月 is its
+  // "一次机会" partner fight (10105, boss10105); the 满月 神武月 (20105, the later StartBoss of 哈米乐园)
+  // is not in the 2013 world.
+  ["11320,11322", "100,100"], ["30278", "80"], ["10105", "80"], ["10111", "90"],
   // The bosses of the 2011–12 events (dailyactivity, rows added in the revival; levels RECONSTRUCTED
   // but 天女若希's second form, Lv100 in the later BossTimeHelper).
   ["11259", "100"], ["10884", "100"], ["10639", "100"], ["10493", "100"], ["10112,20112", "80,100"], ["10195,20195", "80,100"],

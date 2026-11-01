@@ -30,9 +30,7 @@ package mmo.revival
       {
          try
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return null;
-            var C:Class = getDefinitionByName(cls) as Class;
-            return new C() as DisplayObject;
+            return RDef.make(cls) as DisplayObject;
          }
          catch (e:Error) {}
          return null;

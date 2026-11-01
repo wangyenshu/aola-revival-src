@@ -27,8 +27,17 @@ package mmo.sceneinit
       private var fighting:Boolean;
       public static const FIGHT_MUSIC:String = "music/fightBgMusic1.mp3";
 
+      private static var _instance:SceneMusic;
+
+      /** The one SceneInit made (a mod's music() asks it to play the 沙盒 room's again). */
+      public static function get instance():SceneMusic
+      {
+         return _instance;
+      }
+
       public function SceneMusic()
       {
+         _instance = this;
          SoundManager.instance.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
          SoundManager.instance.addEventListener(SoundManagerEvent.ON_SWITCH_ON, onSwitchOn);
          CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_START, onFightStart);
@@ -60,7 +69,7 @@ package mmo.sceneinit
 
       private static function musicOf(name:String):String
       {
-         // The 沙盒 room plays the music its 关卡 pack names for the room shown (docs/SANDBOX.md).
+         // The 沙盒 room plays the music the mod names for the room shown (docs/MODDING.md).
          if (name == "sandboxroom")
          {
             try { return String(getDefinitionByName("mmo.control.SandboxRun")["music"] || ""); }

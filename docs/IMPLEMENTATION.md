@@ -165,7 +165,8 @@ extension name and command (`PetExtension.54_16`).
 | `fb.ts` | the 四大副本 |
 | `gyms.ts` | the 道馆 |
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |
-| `sandbox.ts` | the 沙盒's fights |
+| `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
+| `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
 
 Each player is one record: name, outfit, 晶币, 星币, 晶豆, items by type,
 亚比 (bag and 仓库), house and furniture, garden and zoo, quests, bosses
@@ -237,10 +238,10 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 | --- | --- |
 | `control` | the control bar, the engine classes (see above), the 工具箱, the 沙盒, the 物品 panel, the place picker, the debug hook |
 | `play`, `login` | the boot modules |
-| `shared` | code compiled into several modules: `mmo.revival.*` (logging, JSON, base64, UI drawing) |
+| `shared` | code compiled into several modules: `mmo.revival.*` (logging, JSON, base64, UI drawing, `RDef`), the mod API `mmo.revival.mod` |
 | `scenes` | rebuilt scenes: 奥拉广场 and 流星购物街 (`starland`), 主题公园, 亚比研究中心, 奥拉之树, 生态园, 十字大道, 图书馆, 欢乐岛, 烈焰洞穴 (`feier4`), 崩坏的上古神殿 (`temple1`), 道具店, 奇草树林, the 沙盒 room |
 | `tasknpc`, `taskservice`, `taskdefines`, `taskextmanager`, `taskpanelnew`, `tasktransport`, `taskext` | NPCs, conversations and the quest engine; the newbie quest's scripts |
-| `pet`, `petpackage`, `petwarehouse`, `petfollow`, `petride`, `peteggservice`, `pethatchegg`, `petskillmes`, `petfight`, `wildpet`, `peticonfill` | 亚比 data, the bag, the 仓库, following, riding, eggs, the battle screen and battle entry, wild 亚比 |
+| `pet`, `petpackage`, `newpetpackage`, `petwarehouse`, `petfollow`, `petride`, `peteggservice`, `pethatchegg`, `petskillmes`, `pmservice`, `petfight`, `wildpet`, `peticonservice`, `peticonfill` | 亚比 data, the 亚比 tables (PMService), the bag (and the "PetPackage" service that opens it), the 仓库, following, riding, eggs, the battle screen and battle entry, wild 亚比, 亚比 pictures |
 | `dailyactivity` | the 守护者 and event bosses, the planets' activities |
 | `fbservice`, `fbteam`, `fbchoosepanel` | the 四大副本 (later code on the 2013 interfaces) |
 | `spacetime` | 时空隧道 (later code) |
@@ -299,6 +300,7 @@ The modules and the emulator read tables generated once from the decompiled
 | `rebuild/gen/bconfig/` | `gen_bconfig.py` | the catalog books and their pages |
 | `revival/materials.json` | `gen_materials.py` | prices and buy-back prices |
 | `rebuild/gen/petmes/` | `gen_petmes.py` | 亚比 and skill names, evolution lines, egg pictures |
+| `rebuild/gen/pmservice/` | `gen_pmservice.py` | the rows of the 2013 PMCustomData: 亚比, skills, attributes, experience |
 | `rebuild/gen/stubs/` | `gen_stubs.py` | the stand-in services |
 | `rebuild/static/…/config.xml%3F201301241` | `config_overlay.py` | the 2013 `config.xml` with the story quest rooms, the game rooms and the 沙盒 room added |
 
@@ -398,10 +400,15 @@ rebuilt `house/houseloader` from the player's house record. The 动物园
 
 Both are in the control module (`ToolboxPanel`, `SandboxPanel`,
 `SandboxRun`) and talk to the server through `SundriesExtension`
-(`revival_toolbox`, `revival_sandbox`). The 沙盒's custom maps are shown by
-`scene/sandboxroom`, a code-only scene that draws the pack's pictures and
-reads the walk mask for `isBlocked`. [SANDBOX.md](SANDBOX.md) has the file
-formats.
+(`revival_toolbox`, `revival_sandbox`, `revival_mod`). The 沙盒 runs mods:
+SWF files written against the interfaces of `mmo.revival.mod`
+(`rebuild/src/shared`). `ModRun` (control) loads a mod into an application
+domain of its own and implements `IModGame`; `scene/sandboxroom`, a
+code-only scene, shows a mod's rooms (`SandboxRoom` implements `IModRoom`).
+A mod's 亚比 pictures reach the game's modules through `mmo.revival.RDef`,
+which the bag, the 仓库, the battle screen, following and the rebuilt
+`peticonservice` ask before the application domain. [MODDING.md](MODDING.md)
+has the API and the details.
 
 ## Ruffle
 

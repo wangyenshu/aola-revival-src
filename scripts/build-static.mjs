@@ -8,7 +8,6 @@
 // dist/
 //   index.html, config.js, boot.js,   the front end (web/)
 //   theatre.js
-//   editor/                             the 沙盒 关卡 editor (tools/level-editor/)
 //   emulator.js                         the in-page server emulator (server/src/browser/entry.ts)
 //   sw.js                               the service worker that answers the original URLs
 //   ruffle/                             Ruffle 0.7.1 (npm @ruffle-rs/ruffle)
@@ -53,9 +52,6 @@ mkdirSync(out, { recursive: true });
 // Front end.
 // robots.txt at the site's root: every crawler and AI robot is asked to stay out.
 for (const f of ["index.html", "config.js", "boot.js", "theatre.js", "saves.js", "robots.txt"]) copyFileSync(path.join(root, "web", f), path.join(out, f));
-// The 沙盒 关卡 editor (docs/SANDBOX.md), a static page of its own beside the game. Its
-// package.json only tells Node that pack.js is CommonJS (for the tests); the site has no use for it.
-cpSync(path.join(root, "tools/level-editor"), path.join(out, "editor"), { recursive: true, filter: (src) => path.basename(src) !== "package.json" });
 await build({
   entryPoints: [path.join(root, "server/src/browser/entry.ts")],
   outfile: path.join(out, "emulator.js"),
@@ -133,5 +129,3 @@ for (const [, full] of walk(out)) total += statSync(full).size;
 for (const r of roots) console.log(`${String(perRoot.get(r) ?? 0).padStart(6)} files from ${path.relative(root, r)}`);
 console.log(`${String(listed.length).padStart(6)} game files, ${(bytes / 1e6).toFixed(1)} MB${linked ? " (hard-linked)" : ""}`);
 console.log(`dist: ${(total / 1e6).toFixed(1)} MB in ${path.relative(process.cwd(), out) || out}`);
-// GitHub Pages publishes at most 1 GB.
-if (total > 1e9) console.warn("warning: over GitHub Pages' 1 GB limit; leave out folders with --exclude (e.g. --exclude activityres,game)");

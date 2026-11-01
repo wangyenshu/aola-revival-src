@@ -352,6 +352,24 @@ package mmo.tasknpc
 						  </choice>
 					 </context>
 				</config>;
+         talk["11_1548_yabistudy"] = <config>
+					<context npcId='11' str="（听我们讲完事情的始末后）原来这只就是带有光明力量的亚比吗……">
+						<choice type='0' str="请帮帮忙，无论如何要救它！">
+							<context npcId='11' str="总之，先把莱特留在亚比研究中心吧，我需要好好检查一下它的伤势。">
+								<choice type='0' str="……嗯，就拜托你了。">
+									<context npcId='1' str="主人，我们不能继续留在这里了，拉贝尔还在钻石宝殿跟威尔斯对战呢！"/>
+									<context npcId='11' str="……你们一定要小心，拉贝尔，就拜托你们了！">		
+										<choice type='0' str="我一定会把拉贝尔救回来的！">
+											<context npcId='1' str="主人，我们赶紧去&lt;font color='#FF6600'&gt;&lt;b&gt;钻石岛的钻石宝殿&lt;/b&gt;&lt;/font&gt;&lt;/font&gt;吧！">
+												<choice type='0' str="走！现在就去！" taskId="1548"/>
+											</context>
+										</choice>
+									</context>
+								</choice>
+							</context>
+						</choice>
+					</context>
+				</config>;
          talk["11_1601_yabistudy"] = <config>
 					<context npcId="1" iconId="27" str="贝鲁特博士，炎风受了重伤，你一定要帮帮我们啊！"/>
 					<context npcId="11" iconId="3" str="炎风受伤太严重了，没有这里的先进仪器，恐怕，很难医治。">
@@ -5834,6 +5852,27 @@ package mmo.tasknpc
          talk["246_1060_emptyspace1"] = <config>
 					<context npcId='246' str="师傅，我拿到钥匙了"/>
 				 </config>;
+         talk["246_1071_afterMovie"] = <config>
+					<context npcId='246' iconId='6' str="你们……你们都怎么了？"/>
+					<context npcId='254' str="小星猴，听说你在虚无空间忍饥挨饿，我们给你带桃子来了。"/>
+					<context npcId='246' iconId='6' str="你们！你们为什么会受伤？"/>
+					<context npcId='254' str="我们……">
+					  <choice type='0' str="发生了什么事，你们快说吧！" action="1071_Movie1"/>
+					</context>
+				  </config>;
+         talk["246_1071_afterMovie1"] = <config>
+					<context npcId='246' iconId='5' str="你们……"/>
+					<context npcId='246' iconId='5' str="我……"/>
+					<context npcId='254' str="嘿嘿，小星猴，快吃桃子吧！没什么的，我们相信你可以学好本领，保护大家的。">
+					  <choice type='0' str="说的对！" action="1071_Movie2"/>
+					</context>
+				  </config>;
+         talk["246_1071_afterMovie2"] = <config>
+					<context npcId='246' str="这两只猪这么肥，一定跑不快。"/>
+					<context npcId='246' str="我来引开它们，你在这里放一些障碍，我们一起教训一下阿饼阿酱。">
+					  <choice type='0' str="好！就这么办。" action="1055_Movie" taskId="1051"/>
+					</context>
+				  </config>;
          talk["246_1092_fightspace1"] = <config name="246_1092_fightspace1">
 					<context npcId="246" iconId="4" str="又见到你们，真是太高兴啦！"></context>
 					<context npcId="1" str="你来得真及时！"></context>
@@ -6168,6 +6207,20 @@ package mmo.tasknpc
          talk["24_74_suolide3"] = <dialog>
 					<context action="24_74"/>
 				</dialog>;
+         talk["250_1038_3time"] = <config>
+				  <context npcId='250' iconId='2' str="呼噜噜噜~~~好困啊~！">
+					<choice type='0' str="敢不敢再跟我打一次！">
+                      <context npcId='250' iconId='2' str="呼噜噜噜~~~今天不跟你玩啦，我要回去睡觉啦，明天再来吧！">
+                        <choice type='0' str="明天我还会来的！"/>
+					    </context>
+				    </choice>
+				  </context>
+				</config>;
+         talk["250_1038_say"] = <config>
+				  <context npcId='250' iconId='1' str="哟，又见面了。你要是能用亚比球抓住我，我就跟你走哦！">
+					<choice type='0' str="那就试试看！" action="1038_gotofight"/>
+				  </context>
+				</config>;
          talk["253_1057_afterMovie"] = <config>
                   <context npcId='253' str="唉……岁月不饶人啊！刚刚赶回这虚无空间，要说这么多话，我的嗓子都快哑了。"/>
 					<context npcId='1' str="主人，像风云这么厉害的人都会口渴呢。">
@@ -11597,6 +11650,17 @@ package mmo.tasknpc
 						<choice str="太好了，这样你就可以飞走啦！" action="1922_DuckBecomeSwanMovie">
 						</choice>
 					</context>
+				</config>;
+         talk["46_165_talk"] = <config>
+					<context str="嘿嘿嘿，会进化的木木鸟，我最后的一个实验材料也收集到了。"/>
+					<context str="我的木木鸟！" npcId="36">
+						<choice type="0" str="把木木鸟还回来！">
+							<context str="嘿嘿，有勇气的话就追过来吧！" npcId="46">
+								<choice type="0" str="我一定会救回木木鸟的。" action="36_167_Movie2"/>
+							</context>
+						</choice>
+					</context> 
+				   
 				</config>;
          talk["46_169_siwude2"] = <config>
 					<context str="这么快就追来了，有点本事。"/>

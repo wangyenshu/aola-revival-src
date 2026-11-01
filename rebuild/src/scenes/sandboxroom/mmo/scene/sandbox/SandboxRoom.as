@@ -1,59 +1,67 @@
 package mmo.scene.sandbox
 {
+   import com.greensock.TweenLite;
    import flash.display.Bitmap;
    import flash.display.BitmapData;
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.events.MouseEvent;
    import flash.filters.GlowFilter;
+   import flash.geom.Matrix;
    import flash.geom.Point;
    import flash.text.TextField;
    import flash.utils.getDefinitionByName;
    import mmo.common.utils.tips.TipsManager;
+   import mmo.play.player.PlayerManager;
    import mmo.play.player.sceneplayer.ScenePetAvatar;
    import mmo.play.scene.SceneBase;
    import mmo.play.scene.helper.cilckandhit.ClickAndHitEvent;
    import mmo.play.scene.helper.cilckandhit.ClickAndHitHelper;
    import mmo.play.scene.revival;
+   import mmo.revival.RDef;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
+   import mmo.revival.mod.IModNpc;
+   import mmo.revival.mod.IModRoom;
 
    /**
-    * A room of a 沙盒 关卡 pack (format version 2, docs/SANDBOX.md), drawn
-    * from the pack's pictures: the background (its size: 560 high, 960 wide
-    * or wider, scrolled like the wide rooms of the game), props behind or in
-    * front of the players, an overlay over them (at 0, 0, scaled as the
-    * background is), the walk mask (stretched over the room; black wall,
-    * white or transparent floor), the doors (clicked: walked to, then gone
-    * through) and the opponents (clicked: walked up to, then fought).
+    * REVIVAL. The 沙盒 room (scene/sandboxroom, not of 2013): shows a room of
+    * the mod loaded (mmo.control.ModRun, docs/MODDING.md). Built, it asks the
+    * mod's run for the room's definition (background, walk mask, size, spawns)
+    * and draws it; shown, it hands itself (IModRoom) to the room's build
+    * function, which puts the NPCs, opponents, doors and pictures. Rooms are
+    * 560 high and 960 to 2880 wide, scrolled as the wide rooms of the game.
     *
-    * The room asks mmo.control.SandboxRun (the control module) for what to
-    * show and hands it the doors and opponents; by name, so that this file
-    * needs nothing of the control module to be built.
+    * It asks for the run by name, so that this file needs nothing of the
+    * control module to be built.
     */
-   public class SandboxRoom extends SceneBase
+   public class SandboxRoom extends SceneBase implements IModRoom
    {
       private static const H:int = 560;
 
-      private var run:Class;
-      private var cur:Object;
+      private var run:Object;
+      private var shown:Object;
       private var roomW:int = 960;
       private var mask:BitmapData;
       private var maskSX:Number = 1;
       private var maskSY:Number = 1;
+      private var wallTest:Function;
 
       private var bg:Sprite;
       private var fg:Sprite;
       private var ui:Sprite;
-      private var doorViews:Array = [];
-      private var foes:Array = [];
+      private var screen:Sprite;
+      private var leaveFns:Array = [];
+      private var people:Array = [];
 
       public function SandboxRoom()
       {
          super(480, 470);
-         // The layers SceneBase looks for, by name: obstruction (empty: the mask answers
-         // isBlocked, but the path finder wants one), background, overlap (players), foreground.
+         // The layers SceneBase looks for, by name: obstruction (empty: isBlocked answers, but
+         // the path finder wants one), background, overlap (players), foreground.
          var obs:Sprite = new Sprite();
          obs.name = "obstruction";
          addChild(obs);
@@ -71,74 +79,81 @@ package mmo.scene.sandbox
          addChild(top);
          try
          {
-            run = getDefinitionByName("mmo.control.SandboxRun") as Class;
-            cur = run ? run["current"]() : null;
+            var C:Object = getDefinitionByName("mmo.control.ModRun");
+            run = C ? C.instance : null;
+            shown = run ? run.roomToShow() : null;
          }
          catch (e:Error) { RLog.error("sandbox room", e); }
-         if (cur == null || cur.room == null)
+         if (shown == null)
          {
             drawEmpty();
             return;
          }
-         try { draw(); } catch (e2:Error) { RLog.error("sandbox room " + cur.room.id, e2); }
+         try { draw(shown.def); } catch (e2:Error) { RLog.error("sandbox room " + shown.id, e2); }
       }
 
-      // ---------------------------------------------------------------- pictures
+      // ---------------------------------------------------------------- drawing
 
-      private function picture(id:*):BitmapData
+      private static function display(p:*):DisplayObject
       {
-         if (id == null || cur.pictures == null) return null;
-         return cur.pictures[String(id)] as BitmapData;
+         if (p is DisplayObject) return DisplayObject(p);
+         if (p is BitmapData) return new Bitmap(BitmapData(p), "auto", true);
+         if (p is Class)
+         {
+            try
+            {
+               var o:* = new p();
+               if (o is BitmapData) return new Bitmap(BitmapData(o), "auto", true);
+               return o as DisplayObject;
+            }
+            catch (e:Error) { RLog.error("sandbox room picture", e); }
+         }
+         return null;
       }
 
-      private function draw():void
+      private function draw(def:Object):void
       {
-         var room:Object = cur.room;
-         var b:BitmapData = picture(room.background);
-         // The background's scale (1 for a picture 560 high and 960 to 2880 wide): the overlay
-         // is scaled as it is.
-         var kx:Number = 1, ky:Number = 1;
+         var b:DisplayObject = display(def.background);
          if (b != null)
          {
-            var s:Number = H / b.height;
-            roomW = Math.max(960, Math.min(2880, Math.round(b.width * s)));
-            kx = roomW / b.width;
-            ky = s;
-            var bm:Bitmap = new Bitmap(b, "auto", true);
-            bm.width = roomW;
-            bm.height = H;
-            bg.addChild(bm);
+            var r:Object = b.getBounds(b);
+            var s:Number = H / Math.max(1, r.height);
+            roomW = Math.max(960, Math.min(2880, Math.round(r.width * s)));
+            b.scaleX = roomW / Math.max(1, r.width);
+            b.scaleY = s;
+            b.x = -r.x * b.scaleX;
+            b.y = -r.y * s;
+            bg.addChild(b);
          }
          else
          {
+            roomW = Math.max(960, Math.min(2880, int(def.width) || 960));
             bg.graphics.beginFill(0x2A3B4E);
-            bg.graphics.drawRect(0, 0, 960, H);
+            bg.graphics.drawRect(0, 0, roomW, H);
             bg.graphics.endFill();
          }
-         mask = picture(room.mask);
+         if (def.walk is Function) wallTest = def.walk as Function;
+         else if (def.walk is BitmapData) mask = BitmapData(def.walk);
+         else
+         {
+            var w:DisplayObject = display(def.walk);
+            if (w != null)
+            {
+               // A walk mask drawn as a picture: made a bitmap of the room's size (one per two pixels).
+               var wr:Object = w.getBounds(w);
+               mask = new BitmapData(Math.ceil(roomW / 2), H / 2, true, 0);
+               var m:Matrix = new Matrix();
+               m.translate(-wr.x, -wr.y);
+               m.scale(roomW / Math.max(1, wr.width) / 2, H / Math.max(1, wr.height) / 2);
+               mask.draw(w, m);
+            }
+         }
          if (mask != null)
          {
             maskSX = mask.width / roomW;
             maskSY = mask.height / H;
          }
-         for each (var p:Object in room.props is Array ? room.props : [])
-         {
-            var pb:BitmapData = p ? picture(p.image) : null;
-            if (pb == null || !(p.at is Array)) continue;
-            var pm:Bitmap = new Bitmap(pb, "auto", true);
-            pm.x = Number(p.at[0]);
-            pm.y = Number(p.at[1]);
-            (p.front ? fg : bg).addChild(pm);
-         }
-         var ob:BitmapData = picture(room.overlay);
-         if (ob != null)
-         {
-            var om:Bitmap = new Bitmap(ob, "auto", true);
-            om.scaleX = kx;
-            om.scaleY = ky;
-            fg.addChild(om);
-         }
-         var spawns:Object = room.spawns || {};
+         var spawns:Object = def.spawns || {};
          var first:Point = null;
          for (var k:String in spawns)
          {
@@ -149,13 +164,13 @@ package mmo.scene.sandbox
             if (first == null || k == "start") first = pt;
          }
          addInitLocation("start", first || new Point(Math.min(480, roomW / 2), 470));
-         // The whole width is there from the start: SceneBase measures the room by its background.
-         if (bg.width < roomW)
-         {
-            bg.graphics.beginFill(0, 0);
-            bg.graphics.drawRect(0, 0, roomW, H);
-            bg.graphics.endFill();
-         }
+         // The whole width is there from the start: SceneBase measures the room by its background
+         // as the room is entered (what a room's build function puts later does not widen it).
+         var full:Shape = new Shape();
+         full.graphics.beginFill(0, 0);
+         full.graphics.drawRect(0, 0, roomW, H);
+         full.graphics.endFill();
+         bg.addChildAt(full, 0);
       }
 
       private function drawEmpty():void
@@ -172,10 +187,15 @@ package mmo.scene.sandbox
          return true;
       }
 
-      /** Off the room, or on the mask's wall (alpha 128 or more and dark). */
+      /** Off the room, or a wall: the mod's test, or the mask's (alpha 128 or more and dark). */
       override public function isBlocked(x:Number, y:Number):Boolean
       {
          if (x < 0 || y < 0 || x >= roomW || y >= H) return true;
+         if (wallTest != null)
+         {
+            try { return Boolean(wallTest(x, y)); } catch (e:Error) { wallTest = null; RLog.error("mod walk", e); }
+            return false;
+         }
          if (mask == null) return false;
          var c:uint = mask.getPixel32(int(x * maskSX), int(y * maskSY));
          if ((c >>> 24) < 128) return false;
@@ -183,44 +203,36 @@ package mmo.scene.sandbox
          return lum < 128;
       }
 
-      // ---------------------------------------------------------------- the room's things
+      // ---------------------------------------------------------------- shown
 
       override protected function onJoinRoom():void
       {
          addUi();
-         if (cur == null || cur.room == null)
+         if (shown == null)
          {
             var t:TextField = RUI.text(16, 0xFFFFFF, true, 600);
-            t.text = "沙盒里还没有开始的关卡。请打开控制栏上的「沙盒」，导入关卡包后点「开始」。";
+            t.text = "沙盒里没有开始的模组。请打开控制栏上的「沙盒」，在「模组」页导入或选择一个模组后点「开始」。";
             t.x = 180;
             t.y = 250;
             ui.addChild(t);
             return;
          }
-         var room:Object = cur.room;
-         for each (var d:Object in room.doors is Array ? room.doors : [])
-         {
-            if (d != null && d.rect is Array && d.rect.length >= 4) addDoor(d);
-         }
-         for each (var e:Object in room.enemies is Array ? room.enemies : [])
-         {
-            if (e == null || !(e.at is Array) || !(e.team is Array) || e.team.length == 0) continue;
-            if (run["isBeaten"](String(e.id))) continue;
-            addFoe(e);
-         }
-         refreshDoors();
          addEventListener(Event.ENTER_FRAME, keepUi);
+         if (run != null) run.attach(this);
       }
 
       override protected function onLeaveRoom():void
       {
          removeEventListener(Event.ENTER_FRAME, keepUi);
-         for each (var f:Object in foes)
+         for each (var p:ModPerson in people) p.dispose();
+         people = [];
+         var fns:Array = leaveFns;
+         leaveFns = [];
+         for each (var f:Function in fns)
          {
-            try { ClickAndHitHelper.instance.remove(f.view); } catch (e:Error) {}
+            try { f(); } catch (e:Error) { RLog.error("mod onLeave", e); }
          }
-         foes = [];
-         doorViews = [];
+         if (run != null) run.detach(this);
       }
 
       private function addUi():void
@@ -236,20 +248,22 @@ package mmo.scene.sandbox
          plate.y = 8;
          ui.addChild(plate);
          var title:TextField = RUI.text(14, 0xFFFFFF, true);
-         var lv:Object = cur ? cur.level : null;
-         var rm:Object = cur ? cur.room : null;
-         title.text = lv ? String(lv.name || lv.id) + (rm ? " · " + String(rm.name || rm.id) : "") : "沙盒";
+         var def:Object = shown ? shown.def : null;
+         title.text = shown ? String(shown.mod || "") + (def && def.name ? " · " + String(def.name) : "") : "沙盒";
          if (title.width > 210) title.width = 210;
          title.x = 20;
          title.y = 18;
          ui.addChild(title);
          var leave:Sprite = RUI.button("离开沙盒", function():void
          {
-            if (run != null) run["exit"]();
+            if (run != null) run.leave();
          }, 88, 28, 0x6CC0F5, 0x2E86D6, "sandboxLeave");
          leave.x = 244;
          leave.y = 14;
          ui.addChild(leave);
+         screen = new Sprite();
+         screen.name = "modScreen";
+         ui.addChildAt(screen, 0);
       }
 
       /** The room's buttons stay put while a wide room scrolls under them. */
@@ -258,120 +272,182 @@ package mmo.scene.sandbox
          if (ui != null) ui.x = -x;
       }
 
-      private function addDoor(d:Object):void
+      // ---------------------------------------------------------------- IModRoom
+
+      public function get id():String
       {
-         var rx:Number = Number(d.rect[0]), ry:Number = Number(d.rect[1]);
-         var rw:Number = Math.max(10, Number(d.rect[2])), rh:Number = Math.max(10, Number(d.rect[3]));
-         var look:Shape = new Shape();
-         look.x = rx;
-         look.y = ry;
-         bg.addChild(look);
-         var label:TextField = RUI.text(13, 0xFFFFFF, true);
-         label.filters = [new GlowFilter(0x0B2440, 1, 3, 3, 6)];
-         label.text = doorLabel(d);
-         label.x = rx + (rw - label.width) / 2;
-         label.y = ry + Math.max(0, (rh - label.height) / 2);
-         fg.addChild(label);
+         return shown ? String(shown.id) : "";
+      }
+
+      public function get roomWidth():int
+      {
+         return roomW;
+      }
+
+      public function add(d:DisplayObject, x:Number = 0, y:Number = 0, layer:String = "back"):DisplayObject
+      {
+         if (d == null) return null;
+         d.x = x;
+         d.y = y;
+         var into:DisplayObjectContainer = layer == "front" ? fg : layer == "players" ? playerLayer : layer == "screen" ? screen : bg;
+         if (into == null) into = bg;
+         into.addChild(d);
+         return d;
+      }
+
+      public function remove(d:DisplayObject):void
+      {
+         if (d != null && d.parent != null) d.parent.removeChild(d);
+      }
+
+      public function door(x:Number, y:Number, w:Number, h:Number, label:String, onEnter:Function, drawn:Boolean = true):Sprite
+      {
+         w = Math.max(10, w);
+         h = Math.max(10, h);
+         if (drawn)
+         {
+            var look:Shape = new Shape();
+            look.graphics.lineStyle(3, 0x7FE0FF, 0.95);
+            look.graphics.beginFill(0xFFFFFF, 0.18);
+            look.graphics.drawRoundRect(0, 0, w, h, 12, 12);
+            look.graphics.endFill();
+            look.x = x;
+            look.y = y;
+            bg.addChild(look);
+         }
+         if (label)
+         {
+            var t:TextField = RUI.text(13, 0xFFFFFF, true);
+            t.filters = [new GlowFilter(0x0B2440, 1, 3, 3, 6)];
+            t.text = label;
+            t.x = x + (w - t.width) / 2;
+            t.y = y + Math.max(0, (h - t.height) / 2);
+            fg.addChild(t);
+         }
          // The hit area: invisible (SceneBase makes it so), walked to when clicked.
          var area:Sprite = new Sprite();
-         area.name = "sandboxDoor_" + doorViews.length;
+         area.name = "modDoor_" + (label || bg.numChildren);
          area.graphics.beginFill(0xFFFFFF);
-         area.graphics.drawRect(0, 0, rw, rh);
+         area.graphics.drawRect(0, 0, w, h);
          area.graphics.endFill();
-         area.x = rx;
-         area.y = ry;
+         area.x = x;
+         area.y = y;
          bg.addChild(area);
          addEntranceAction(area, function():void
          {
-            if (run != null) run["door"](d);
+            if (onEnter == null) return;
+            try { onEnter(); } catch (e:Error) { RLog.error("mod door", e); }
          });
-         try { TipsManager.getInstance().addTips(area, label.text); } catch (e:Error) {}
-         doorViews.push({door: d, look: look, label: label, w: rw, h: rh, text: label.text});
+         if (label) try { TipsManager.getInstance().addTips(area, label); } catch (e2:Error) {}
+         return area;
       }
 
-      private function doorLabel(d:Object):String
+      public function npc(def:Object):IModNpc
       {
-         if (d.label) return String(d.label);
-         var to:String = String(d.to || "");
-         if (to == "#finish") return "通关";
-         if (to == "#exit") return "离开";
-         var lv:Object = cur.level;
-         var roomId:String = to;
-         var slash:int = to.indexOf("/");
-         var prefix:String = "";
-         if (slash >= 0)
+         return person(def, false);
+      }
+
+      public function foe(def:Object):IModNpc
+      {
+         return person(def, true);
+      }
+
+      private function person(def:Object, foe:Boolean):IModNpc
+      {
+         if (def == null) return null;
+         var view:DisplayObject = lookOf(def.look);
+         var p:ModPerson = new ModPerson(this, def, view, foe, run);
+         people.push(p);
+         return p;
+      }
+
+      /** A look: a DisplayObject, a Class, or a race (the mod's 亚比: its figure; the game's: dressed as it). */
+      private static function lookOf(look:*):DisplayObject
+      {
+         if (look is DisplayObject || look is Class) return display(look);
+         var race:int = int(look);
+         if (race <= 0) race = 1;
+         if (RDef.has("mmo.revival.modwalk" + race))
          {
-            // A room of another 关卡: named with its 关卡.
-            lv = null;
-            for each (var l:Object in cur.pack && cur.pack.levels is Array ? cur.pack.levels : []) if (l != null && String(l.id) == to.substring(0, slash)) lv = l;
-            roomId = to.substr(slash + 1);
-            prefix = lv ? String(lv.name || lv.id) + " · " : to.substring(0, slash) + " · ";
+            var d:DisplayObject = RDef.make("mmo.revival.modwalk" + race) as DisplayObject;
+            if (d != null)
+            {
+               var holder:Sprite = new Sprite();
+               var b:Object = d.getBounds(d);
+               var k:Number = Math.min(1, 110 / Math.max(1, b.height));
+               d.scaleX = d.scaleY = k;
+               d.x = -(b.left + b.width / 2) * k;
+               d.y = -b.bottom * k;
+               holder.addChild(d);
+               return holder;
+            }
          }
-         var target:String = roomId;
-         for each (var r:Object in lv && lv.rooms is Array ? lv.rooms : []) if (r != null && String(r.id) == roomId) target = String(r.name || r.id);
-         var label:String = prefix + target;
-         return "→ " + (label.length > 16 ? label.substr(0, 15) + "…" : label);
+         var pet:ScenePetAvatar = new ScenePetAvatar(race, null);
+         pet.mouseEnabled = pet.mouseChildren = false;
+         return pet;
       }
 
-      /** Doors that open once the room is cleared look shut until then. */
-      private function refreshDoors():void
+      /** Called by ModPerson: put it among the players and make it clickable (walked up to first). */
+      internal function place(p:ModPerson):void
       {
-         var cleared:Boolean = run != null && run["cleared"]();
-         for each (var v:Object in doorViews)
-         {
-            var shut:Boolean = v.door.open == "cleared" && !cleared;
-            var g:Shape = v.look;
-            g.graphics.clear();
-            g.graphics.lineStyle(3, shut ? 0x8C96A0 : (v.door.to == "#finish" ? 0xFFD24A : 0x7FE0FF), 0.95);
-            g.graphics.beginFill(shut ? 0x30363C : 0xFFFFFF, shut ? 0.45 : 0.18);
-            g.graphics.drawRoundRect(0, 0, v.w, v.h, 12, 12);
-            g.graphics.endFill();
-            TextField(v.label).text = v.text + (shut ? "（未开启）" : "");
-            TextField(v.label).x = v.look.x + (v.w - TextField(v.label).width) / 2;
-         }
+         playerLayer.addChild(p);
+         ClickAndHitHelper.instance.registerTarget(p, true, 90);
+         p.addEventListener(ClickAndHitEvent.ON_CLICK_AND_HIT, function(ev:ClickAndHitEvent):void { p.clicked(); });
       }
 
-      private function addFoe(e:Object):void
+      internal function unplace(p:ModPerson):void
       {
-         var race:int = int(e.team[0].race);
-         var at:Point = new Point(Number(e.at[0]), Number(e.at[1]));
-         var view:ScenePetAvatar = new ScenePetAvatar(race, null);
-         view.name = "sandboxFoe_" + String(e.id);
-         view.x = at.x;
-         view.y = at.y;
-         if (e.boss)
-         {
-            view.scaleX = view.scaleY = 1.5;
-         }
-         playerLayer.addChild(view);
-         var tag:TextField = RUI.text(12, e.boss ? 0xFFE27A : 0xFFFFFF, true);
-         tag.filters = [new GlowFilter(0x40140A, 1, 3, 3, 6)];
-         var n:int = e.team.length;
-         tag.text = (e.name ? String(e.name) : (e.boss ? "首领" : "对手")) + (n > 1 ? "（" + n + "只亚比）" : "") + " Lv" + int(e.team[0].level || 1);
-         tag.x = at.x - tag.width / 2;
-         tag.y = at.y + 6;
-         fg.addChild(tag);
-         try { TipsManager.getInstance().addTips(view, "点击挑战"); } catch (e1:Error) {}
-         ClickAndHitHelper.instance.registerTarget(view, true, 90);
-         var foe:Object = {enemy: e, view: view, tag: tag};
-         view.addEventListener(ClickAndHitEvent.ON_CLICK_AND_HIT, function(ev:ClickAndHitEvent):void { fight(foe); });
-         foes.push(foe);
+         try { ClickAndHitHelper.instance.remove(p); } catch (e:Error) {}
+         if (p.parent != null) p.parent.removeChild(p);
+         var i:int = people.indexOf(p);
+         if (i >= 0) people.splice(i, 1);
       }
 
-      private function fight(foe:Object):void
+      internal function labelLayer():Sprite
       {
-         if (run == null || run["fighting"]) return;
-         run["fightEnemy"](foe.enemy, function(win:Boolean):void
+         return fg;
+      }
+
+      public function say(d:DisplayObject, text:String, seconds:Number = 3):void
+      {
+         if (d == null || text == null) return;
+         var bubble:Sprite = Bubble.make(text);
+         var at:Point = fg.globalToLocal(d.localToGlobal(new Point(0, d.getBounds(d).top)));
+         bubble.x = at.x;
+         bubble.y = at.y - 6;
+         fg.addChild(bubble);
+         TweenLite.delayedCall(Math.max(0.5, seconds), function():void { if (bubble.parent) bubble.parent.removeChild(bubble); });
+      }
+
+      public function get player():Point
+      {
+         var me:Object = PlayerManager.getInstance().myPlayer;
+         return me ? new Point(me.x, me.y) : new Point(0, 0);
+      }
+
+      public function walkTo(x:Number, y:Number, then:Function = null):void
+      {
+         var me:Object = PlayerManager.getInstance().myPlayer;
+         if (me == null) return;
+         try { me.walkTo(x, y); } catch (e:Error) { RLog.error("mod walkTo", e); }
+         if (then == null) return;
+         var self:SandboxRoom = this;
+         var tries:int = 0;
+         var check:Function = function(ev:Event):void
          {
-            if (!win) return;
-            try { ClickAndHitHelper.instance.remove(foe.view); } catch (e:Error) {}
-            var v:DisplayObject = foe.view as DisplayObject;
-            if (v != null && v.parent) v.parent.removeChild(v);
-            if (foe.tag && foe.tag.parent) foe.tag.parent.removeChild(foe.tag);
-            var i:int = foes.indexOf(foe);
-            if (i >= 0) foes.splice(i, 1);
-            refreshDoors();
-         });
+            var moving:Boolean = false;
+            try { moving = me.isMoving(); } catch (e2:Error) {}
+            if (moving && ++tries < 25 * 30) return;
+            self.removeEventListener(Event.ENTER_FRAME, check);
+            if (self.stage == null) return;
+            try { then(); } catch (e3:Error) { RLog.error("mod walkTo then", e3); }
+         };
+         addEventListener(Event.ENTER_FRAME, check);
+      }
+
+      public function onLeave(f:Function):void
+      {
+         if (f != null) leaveFns.push(f);
       }
    }
 }

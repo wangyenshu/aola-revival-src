@@ -1,6 +1,7 @@
 package mmo.play
 {
    import flash.display.Sprite;
+   import mmo.play.debug.Tracer;
    import mmo.play.player.PlayerManager;
    import mmo.play.player.PlayerManagerEvent;
    import mmo.play.player.movable.MovableEvent;
@@ -81,7 +82,7 @@ package mmo.play
          var q18:AutomaticCacheChecker, q19:LinkUtil;
          var q20:DragAndDropHelper, q21:TaskNpcPanelConfig, q21b:GameResultWrapper, q21c:ScenePetAvatar;
          var q22:ITaskInitiallerConfig, q23:NewBaseTaskInitialler, q24:TaskHelper, q25:TaskInitiallerConfig;
-         var q26:ActClientSender;
+         var q26:ActClientSender, q27:Tracer;
       }
    }
 }

@@ -48,3 +48,14 @@ pet/petride
 # 飞天独角兽 (独角兽密林's light balls, NPC 459): the later copy in game/ runs on the
 # rebuilt engine; its server side is server/src/game/sfs2013/planetacts.ts.
 unicorn/skyunicornservice
+# 亚比融合: the 2014 copy of pet/petmixnew and the March 2013 copy of
+# petmixnewinit/petmixnewinitservice in game/ run on the rebuilt engine; their
+# server side is server/src/game/sfs2013/yabistudy.ts.
+pet/petmixnew
+petmixnewinit/petmixnewinitservice
+# "PetPackage": rebuilt (src/newpetpackage), it shows the 亚比 panel.
+pet/newpetpackage
+# PetIconService: rebuilt (src/peticonservice).
+pet/peticon
+# PMService: rebuilt (src/pmservice; PMSearchService stays a stand-in there).
+pet/pmservice

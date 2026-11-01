@@ -4,11 +4,15 @@ package mmo.hellohelper.helloicon
    import flash.display.DisplayObjectContainer;
    import flash.display.MovieClip;
    import flash.display.SimpleButton;
+   import flash.events.Event;
    import flash.events.EventDispatcher;
    import flash.events.MouseEvent;
    import flash.events.TimerEvent;
    import flash.geom.Point;
    import flash.system.ApplicationDomain;
+   import flash.text.TextField;
+   import flash.text.TextFormat;
+   import flash.utils.Dictionary;
    import flash.utils.Timer;
    import mmo.framework.comm.SocketClient;
    import mmo.interfaces.IService;
@@ -85,6 +89,11 @@ package mmo.hellohelper.helloicon
             btnHello.x = helloPoint.x;
             btnHello.y = helloPoint.y;
             btnHello.name = "btnHello";
+            // Its bubble while the mouse is over it ("主人,快点让HELLO带你玩转好玩活动吧！")
+            // comes with the frames of the over state.
+            var overFit:Function = function(e:Event):void { fitTexts(btnHello.overState); };
+            btnHello.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void { btnHello.addEventListener(Event.ENTER_FRAME, overFit); });
+            btnHello.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void { btnHello.removeEventListener(Event.ENTER_FRAME, overFit); });
             con.addChild(btnHello);
             btnHello.addEventListener(MouseEvent.CLICK, onClickSb);
             showHelloMovie(mcComeOutStr, null);
@@ -122,9 +131,50 @@ package mmo.hellohelper.helloicon
          mc.x = helloPoint.x;
          mc.y = helloPoint.y;
          mc.mouseEnabled = mc.mouseChildren = false;
+         // The films' bubbles come and go with their frames.
+         var fitting:Function = function(e:Event):void
+         {
+            if (mc.parent == null) mc.removeEventListener(Event.ENTER_FRAME, fitting);
+            else fitTexts(mc);
+         };
+         mc.addEventListener(Event.ENTER_FRAME, fitting);
          btnHello.visible = false;
          con.addChild(mc);
          mc.gotoAndPlay(1);
+      }
+
+      /** The bubbles' fields already fitted. */
+      private static var fitted:Dictionary = new Dictionary(true);
+
+      /**
+       * The bubbles' words (SimSun 12, 2 px between lines, in fields as tall as
+       * two such lines, or three) take more room in the font the browser has
+       * (wider, and lines up to 1.45 times the size apart), and their last line
+       * was cut off. They are made smaller, down to 10, with no space between
+       * lines, until their lines fit. (Ruffle's textHeight does not measure the
+       * font it draws with, so the lines are counted.)
+       */
+      private static function fitTexts(d:DisplayObject):void
+      {
+         var tf:TextField = d as TextField;
+         if (tf != null)
+         {
+            if (fitted[tf] || tf.text.length == 0) return;
+            fitted[tf] = true;
+            var f:TextFormat = tf.getTextFormat();
+            var size:int = int(f.size) || 12;
+            if (tf.numLines * (size * 1.4 + int(f.leading)) <= tf.height) return;
+            f.leading = 0;
+            tf.setTextFormat(f);
+            while (tf.numLines * size * 1.4 > tf.height && size > 10)
+            {
+               f.size = --size;
+               tf.setTextFormat(f);
+            }
+            return;
+         }
+         var c:DisplayObjectContainer = d as DisplayObjectContainer;
+         for (var i:int = 0; c != null && i < c.numChildren; i++) fitTexts(c.getChildAt(i));
       }
 
       private function onClickSb(e:MouseEvent):void

@@ -2,6 +2,7 @@
   "name": "aola-revival",
   "version": "0.2.0",
   "private": true,
+  "license": "GPL-3.0-only",
   "description": "奥拉星 as of January 2013, revived: the archived client, rebuilt modules and an in-browser server emulator, built into a static site",
   "type": "module",
   "engines": {

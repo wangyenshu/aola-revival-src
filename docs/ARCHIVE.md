@@ -18,6 +18,10 @@ every path that was asked.
 | `_meta/live-versiondata-2026-09-11.swf`, `live-config-2026-10-22.xml`, `start.xml`, `play.html` | Today's live manifest, config and page, for comparison later. |
 | `_meta/report-before-2014.md` | Files and sizes per folder. |
 
+The four indexes (`index.jsonl`, `_later/`, `_site/`, `_wayback/`) are also
+kept with the code in `tools/data/archive/`, so `tools/make_aola_archive.py`
+can rebuild the archive from a checkout alone.
+
 ## Additions
 
 The revival's curation tools took more files from the live server into

@@ -1,0 +1,18 @@
+{
+	"config": "royale",
+	"compilerOptions": {
+		"targets": [
+			"SWF"
+		],
+		"source-path": [
+			"src"
+		],
+		"external-library-path": [
+			"../../../../build/mod-sdk/aola-mod-api.swc"
+		],
+		"output": "bin/hello.swf",
+		"target-player": "10.1",
+		"swf-version": 10
+	},
+	"mainClass": "HelloMod"
+}

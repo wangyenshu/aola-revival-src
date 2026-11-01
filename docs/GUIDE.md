@@ -151,12 +151,12 @@ catch rate), and the column 可学技能 counts the skills their line learns.
 ## 沙盒
 
 The 沙盒 was not in the 2013 game either. It sets up custom battles and
-custom maps. Open it with the 沙盒 button under the 工具箱. Its panel has two
+runs mods. Open it with the 沙盒 button under the 工具箱. Its panel has two
 pages.
 
 Rules for every 沙盒 fight: winning brings nothing (no experience, effort
-points, evolution or catching), so the 沙盒 cannot be used to level 亚比. The
-server checks every value of a 关卡 and refuses one it cannot read.
+points, evolution or catching). A mod can give 亚比 itself, as the 工具箱
+can. The server checks every value of a 关卡 and refuses one it cannot read.
 
 ### 对手关卡: a list of opponents
 
@@ -175,41 +175,27 @@ A 关卡 here is up to 10 opponents fought one after another.
 导入关卡 loads one, so 关卡 can be kept and shared. The last 关卡 is
 remembered.
 
-### 地图关卡: custom maps
+### 模组: mods
 
-A 关卡 pack is one file with pictures and any number of 关卡, each made of
-rooms joined by doors, with opponents standing in the rooms. Packs are made
-with the editor (below).
+A mod is a program for the 沙盒, written in ActionScript 3 and compiled to
+a SWF file. Mods make rooms of their own with characters who talk and give
+choices, play animations, set up fights, and can add new 亚比 with their own
+pictures, stats and skills. How to write one is in [MODDING.md](MODDING.md).
 
-1. Click 导入关卡包 and choose a pack file (at most 16 MB). Its 关卡 are listed.
-2. Click 开始 next to a 关卡. You enter its first room.
-3. In a room:
-   - click a door to walk to it and go through. Doors drawn grey with
-     （未开启） open only after every opponent in the room is beaten;
-   - click an opponent to walk up to it and fight its team. A beaten
-     opponent stays gone until a pack is imported again;
-   - a door to the end of the 关卡 (labelled 通关 unless the pack names it
-     otherwise) finishes it and starts the next 关卡 if the pack names one;
-   - 离开沙盒 (top left) returns to where you opened the 沙盒.
+1. Click 载入 next to one of the examples the site comes with, or 导入模组 to
+   choose a mod's `.swf` file (at most 16 MB). Its name, author and
+   description are shown.
+2. Click 开始. The 沙盒 panel closes and the mod begins, usually in a room
+   of its own.
+3. In a mod's rooms, click the floor to walk, a door to walk to it and go
+   through, a character to talk to it or fight it. 离开沙盒 (top left)
+   returns to where you opened the 沙盒.
 
-Each player is alone in the 沙盒's rooms.
+Each player is alone in the 沙盒's rooms. A mod keeps its progress on the
+server (at most 64 KB per mod). 亚比 a mod gives go to the bag, or to the
+仓库 when the bag is full. A 亚比 the mod made itself (numbers 900001–999999)
+is known to the game only while that mod is running: after a reload it is
+put aside until the mod is started again.
 
-### The editor
-
-The editor is a web page beside the game, at `editor/` on the site (for
-example `https://<user>.github.io/<repo>/editor/`), or `tools/level-editor/
-index.html` opened directly from the repository. It needs no installation and
-loads nothing from other sites. With it you:
-
-- load pictures (PNG or JPG) and use them as backgrounds, props and
-  overlays;
-- add 关卡 and rooms;
-- paint where players can walk (brush, eraser, fill);
-- place entry points, doors with their targets, and opponents;
-- set each opponent's team (1 to 10 亚比 with level and stats);
-- check the pack and export it.
-
-The editor keeps the pack being edited in the browser between visits. Next to
-the game it shows the 亚比 names; opened from a file it shows numbers only.
-`docs/examples/sandbox-pack-example.json` is a small example pack. The file
-format is described in [SANDBOX.md](SANDBOX.md).
+A mod is a program and runs with the game's rights, so it could change your
+save. Only load mods whose source you have read or whose author you trust.

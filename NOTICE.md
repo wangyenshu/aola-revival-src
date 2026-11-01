@@ -27,7 +27,7 @@ This covers, unless an exception below applies:
 - `server/`: the server emulator, the in-page bundle, the service worker,
   the Node server and the tests;
 - `web/`: the front end;
-- `scripts/`, `tools/` (including `tools/level-editor/`), `tests/`,
+- `scripts/`, `tools/` (including `tools/mod-sdk/` and its examples), `tests/`,
   `rebuild/build/` and `.github/`;
 - `docs/`, `README.md` and this file;
 - the ActionScript in `rebuild/src/` written for this project: files whose

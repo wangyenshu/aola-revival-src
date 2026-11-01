@@ -8,6 +8,8 @@ package mmo.control
    import flash.net.FileFilter;
    import flash.net.FileReference;
    import flash.net.SharedObject;
+   import flash.net.URLLoader;
+   import flash.net.URLLoaderDataFormat;
    import flash.text.TextField;
    import flash.utils.ByteArray;
    import flash.utils.Timer;
@@ -20,6 +22,7 @@ package mmo.control
    import mmo.interfaces.pet.data.PetDictionaryDataItem;
    import mmo.interfaces.pet.fight.PetFightEvent;
    import mmo.loader.layer.LayerManager;
+   import mmo.loader.scheduler.VersManager;
    import mmo.revival.RJson;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
@@ -34,13 +37,14 @@ package mmo.control
     * imported from one (FileReference); the last one is remembered
     * (SharedObject).
     *
-    * 地图关卡: a 关卡 pack (format version 2, made with the editor beside the
-    * game): its 关卡 listed, each started in its rooms (SandboxRun, the 沙盒
-    * room).
+    * 模组: mods, SWFs written in ActionScript 3 against the mod API
+    * (mmo.revival.mod; docs/MODDING.md): imported from a file or picked from
+    * the examples the site has (revival/mods/index.json), then started
+    * (ModRun): their rooms, characters, films and 亚比.
     *
-    * A win brings nothing (no experience). Server:
-    * SundriesExtension.revival_sandbox (sandbox.ts); the formats are in
-    * docs/SANDBOX.md.
+    * A win of the 对手关卡 brings nothing (no experience). Server:
+    * SundriesExtension.revival_sandbox (sandbox.ts); its file format is in
+    * docs/MODDING.md.
     */
    public class SandboxPanel extends Sprite
    {
@@ -48,20 +52,19 @@ package mmo.control
       private static const MAX:int = 10;
       private static const W:int = 600;
       private static const H:int = 528;
-      private static const LEVELS_A_PAGE:int = 9;
       private static const STATS:Array = [["hp", "体力"], ["at", "攻击"], ["de", "防御"], ["sa", "特攻"], ["sd", "特防"], ["sp", "速度"]];
       private static var current:SandboxPanel;
 
-      /** The 关卡 pack imported (version 2), kept while the game runs. */
-      private static var pack:Object;
+      /** The examples of the site (revival/mods/index.json), once read. */
+      private static var examples:Array;
       private static var lastPage:String = "fights";
 
       private var box:Sprite;
       private var fightsPage:Sprite;
-      private var packPage:Sprite;
-      private var packInfo:TextField;
-      private var levelRows:Sprite;
-      private var levelPage:int;
+      private var modsPage:Sprite;
+      private var modInfo:TextField;
+      private var exampleRows:Sprite;
+      private var startModBtn:Sprite;
       private var nameIn:TextField;
       private var healBox:Sprite;
       private var heal:Boolean = true;
@@ -90,13 +93,13 @@ package mmo.control
          box.y = Math.max(2, (560 - H) / 2 - 8);
          addChild(box);
          box.addChild(place(RUI.button("对手关卡", function():void { showPage("fights"); }, 100, 24, 0x8ED0FA, 0x3C96DC, "sandboxTabFights"), 18, 48));
-         box.addChild(place(RUI.button("地图关卡", function():void { showPage("pack"); }, 100, 24, 0x8ED0FA, 0x3C96DC, "sandboxTabPack"), 124, 48));
+         box.addChild(place(RUI.button("模组", function():void { showPage("mods"); }, 100, 24, 0x8ED0FA, 0x3C96DC, "sandboxTabMods"), 124, 48));
          fightsPage = new Sprite();
          fightsPage.y = 26;
          box.addChild(fightsPage);
-         packPage = new Sprite();
-         packPage.y = 26;
-         box.addChild(packPage);
+         modsPage = new Sprite();
+         modsPage.y = 26;
+         box.addChild(modsPage);
 
          var t:TextField = RUI.text(14, RUI.BLUE, true);
          t.text = "关卡";
@@ -141,80 +144,148 @@ package mmo.control
          said.y = 486;
          box.addChild(said);
 
-         buildPackPage();
+         buildModsPage();
          if (!load(remembered())) load({name: "我的关卡", heal: true, enemies: [{race: 1, level: 120}]});
-         showPage(pack != null ? lastPage : "fights");
+         showPage(lastPage);
       }
 
       private function showPage(which:String):void
       {
          lastPage = which;
          fightsPage.visible = which == "fights";
-         packPage.visible = which == "pack";
-         if (which == "pack") drawPack();
+         modsPage.visible = which == "mods";
+         if (which == "mods") drawMods();
       }
 
-      // ---------------------------------------------------------------- 地图关卡 (packs)
+      // ---------------------------------------------------------------- 模组 (mods)
 
-      private function buildPackPage():void
+      private function buildModsPage():void
       {
-         packInfo = RUI.text(13, RUI.BLUE, true, W - 60);
-         packInfo.height = 22;
-         packInfo.x = 26;
-         packInfo.y = 56;
-         packPage.addChild(packInfo);
+         modInfo = RUI.text(13, RUI.BLUE, true, W - 60);
+         modInfo.wordWrap = true;
+         modInfo.multiline = true;
+         modInfo.width = W - 60;
+         modInfo.x = 26;
+         modInfo.y = 56;
+         modsPage.addChild(modInfo);
          var hint:TextField = RUI.text(11, 0x557799, false, W - 50);
-         hint.text = "关卡包用网站上的关卡编辑器（editor/）制作：图片、房间、门和对手都在一个文件里。";
+         hint.wordWrap = true;
+         hint.width = W - 50;
+         hint.text = "模组是用 ActionScript 3 写的 SWF 文件（说明见 docs/MODDING.md），里面的程序在游戏里运行：只导入你信任的模组。";
          hint.x = 26;
-         hint.y = 76;
-         packPage.addChild(hint);
-         packPage.addChild(RUI.well(14, 96, W - 28, 310));
-         levelRows = new Sprite();
-         levelRows.y = 106;
-         packPage.addChild(levelRows);
-         packPage.addChild(place(RUI.button("导入关卡包", importLevel, 110, 26, 0x6CC0F5, 0x2E86D6, "sandboxImportPack"), 18, 424));
-         packPage.addChild(place(RUI.smallButton("上一页", function():void { levelPage--; drawPack(); }, 70, 26, "sandboxLevelsPrev"), W - 168, 424));
-         packPage.addChild(place(RUI.smallButton("下一页", function():void { levelPage++; drawPack(); }, 70, 26, "sandboxLevelsNext"), W - 90, 424));
+         hint.y = 128;
+         modsPage.addChild(hint);
+         var ex:TextField = RUI.text(13, RUI.BLUE, true);
+         ex.text = "示例模组";
+         ex.x = 26;
+         ex.y = 166;
+         modsPage.addChild(ex);
+         modsPage.addChild(RUI.well(14, 188, W - 28, 218));
+         exampleRows = new Sprite();
+         exampleRows.y = 196;
+         modsPage.addChild(exampleRows);
+         modsPage.addChild(place(RUI.button("导入模组", importMod, 110, 26, 0x6CC0F5, 0x2E86D6, "sandboxImportMod"), 18, 424));
+         startModBtn = RUI.button("开始", startMod, 110, 30, 0xFFC45A, 0xF07812, "sandboxStartMod");
+         modsPage.addChild(place(startModBtn, W - 128, 422));
       }
 
-      private function drawPack():void
+      private function drawMods():void
       {
-         while (levelRows.numChildren > 0) levelRows.removeChildAt(0);
-         if (pack == null)
+         var m:Object = ModRun.instance.loaded;
+         modInfo.text = m == null ? "还没有载入模组：导入一个模组文件（.swf），或载入下面的示例。"
+            : "模组「" + m.name + "」" + (m.version ? " " + m.version : "") + (m.author ? "  作者：" + m.author : "") + (m.description ? "\n" + m.description : "");
+         startModBtn.alpha = m == null ? 0.4 : 1;
+         while (exampleRows.numChildren > 0) exampleRows.removeChildAt(0);
+         if (examples == null)
          {
-            packInfo.text = "还没有关卡包：点「导入关卡包」。";
+            readExamples();
             return;
          }
-         var levels:Array = pack.levels as Array;
-         var pages:int = Math.max(1, Math.ceil(levels.length / LEVELS_A_PAGE));
-         levelPage = Math.max(0, Math.min(pages - 1, levelPage));
-         packInfo.text = "关卡包「" + String(pack.name || "未命名") + "」" + (pack.author ? "  作者：" + String(pack.author).substr(0, 30) : "") + "  共" + levels.length + "关" + (pages > 1 ? "（第" + (levelPage + 1) + "/" + pages + "页）" : "");
-         for (var i:int = 0; i < LEVELS_A_PAGE && levelPage * LEVELS_A_PAGE + i < levels.length; i++)
+         for (var i:int = 0; i < examples.length && i < 6; i++)
          {
-            var n:int = levelPage * LEVELS_A_PAGE + i;
-            var l:Object = levels[n];
-            var t:TextField = RUI.text(13, 0x335577, true);
-            t.text = (n + 1) + ". " + String(l.name || l.id).substr(0, 30) + "    " + (l.rooms is Array ? l.rooms.length : 0) + "个房间";
+            var e:Object = examples[i];
+            var t:TextField = RUI.text(13, 0x335577, true, W - 170);
+            t.wordWrap = true;
+            t.width = W - 170;
+            t.text = String(e.name || e.file) + (e.description ? "：" + String(e.description) : "");
             t.x = 30;
-            t.y = i * 32 + 4;
-            levelRows.addChild(t);
-            levelRows.addChild(place(RUI.button("开始", startLevel(String(l.id)), 70, 26, 0xFFC45A, 0xF07812, "sandboxLevel_" + n), W - 110, i * 32));
+            t.y = i * 34 + 2;
+            exampleRows.addChild(t);
+            exampleRows.addChild(place(RUI.button("载入", loadExample(e), 70, 26, 0x8ED0FA, 0x3C96DC, "sandboxExample_" + i), W - 110, i * 34));
          }
       }
 
-      private function startLevel(id:String):Function
+      /** The site's examples: revival/mods/index.json, [{file, name, description}]. */
+      private function readExamples():void
+      {
+         examples = [];
+         var ld:URLLoader = new URLLoader();
+         ld.addEventListener(Event.COMPLETE, function(e:Event):void
+         {
+            try { examples = (RJson.decode(String(ld.data)) as Array) || []; } catch (err:Error) { examples = []; }
+            if (parent != null) drawMods();
+         });
+         ld.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { RLog.log("sandbox: no revival/mods/index.json"); });
+         try { ld.load(VersManager.getVerURLRequest("revival/mods/index.json")); } catch (err:Error) { RLog.error("sandbox examples", err); }
+      }
+
+      private function loadExample(e:Object):Function
       {
          return function():void
          {
-            var why:String = SandboxRun.check(pack);
-            if (why != null)
-            {
-               said.text = why;
-               return;
-            }
-            close();
-            SandboxRun.start(pack, id);
+            var file:String = String(e.file || "");
+            if (!/^[A-Za-z0-9_-]+\.swf$/.test(file)) return;
+            said.text = "正在载入示例模组……";
+            var ld:URLLoader = new URLLoader();
+            ld.dataFormat = URLLoaderDataFormat.BINARY;
+            ld.addEventListener(Event.COMPLETE, function(ev:Event):void { gotMod(ld.data as ByteArray); });
+            ld.addEventListener(IOErrorEvent.IO_ERROR, function(ev:Event):void { said.text = "示例模组读取失败。"; });
+            try { ld.load(VersManager.getVerURLRequest("revival/mods/" + file)); } catch (err:Error) { said.text = "示例模组读取失败。"; }
          };
+      }
+
+      private function importMod():void
+      {
+         try
+         {
+            file = new FileReference();
+            file.addEventListener(Event.SELECT, function(e:Event):void
+            {
+               var big:Boolean = false;
+               try { big = file.size > ModRun.MAX_BYTES; } catch (se:Error) {}
+               if (big) said.text = "文件太大了（模组最多16 MB）。";
+               else file.load();
+            });
+            file.addEventListener(Event.COMPLETE, function(e:Event):void { gotMod(file.data); });
+            file.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { said.text = "读取失败。"; });
+            file.browse([new FileFilter("模组 (*.swf)", "*.swf")]);
+         }
+         catch (err:Error)
+         {
+            RLog.error("sandbox import mod", err);
+            said.text = "这个页面不能选择文件。";
+         }
+      }
+
+      /** A mod's bytes read (a file or an example): loaded. */
+      public function gotMod(bytes:ByteArray):void
+      {
+         ModRun.instance.load(bytes, function(err:String, m:Object):void
+         {
+            said.text = err != null ? err : "已载入模组「" + m.name + "」：点「开始」。";
+            if (parent != null) drawMods();
+         });
+      }
+
+      private function startMod():void
+      {
+         if (ModRun.instance.loaded == null)
+         {
+            said.text = "先导入或载入一个模组。";
+            return;
+         }
+         close();
+         ModRun.instance.startMod();
       }
 
       // ---------------------------------------------------------------- the 关卡 in the panel
@@ -398,10 +469,9 @@ package mmo.control
             file = new FileReference();
             file.addEventListener(Event.SELECT, function(e:Event):void
             {
-               // A pack is at most 16 MB (docs/SANDBOX.md).
                var big:Boolean = false;
-               try { big = file.size > 16000000; } catch (se:Error) {}
-               if (big) said.text = "文件太大了（关卡包最多16 MB）。";
+               try { big = file.size > 1000000; } catch (se:Error) {}
+               if (big) said.text = "这不是奥拉星的关卡文件。";
                else file.load();
             });
             file.addEventListener(Event.COMPLETE, function(e:Event):void
@@ -411,22 +481,6 @@ package mmo.control
                   var data:ByteArray = file.data;
                   data.position = 0;
                   var lv:Object = RJson.decode(data.readUTFBytes(data.length));
-                  if (lv != null && lv.levels is Array)
-                  {
-                     // A 关卡 pack (version 2): its 关卡 on the 地图关卡 page.
-                     var why:String = SandboxRun.check(lv);
-                     if (why != null)
-                     {
-                        said.text = why;
-                        return;
-                     }
-                     pack = lv;
-                     SandboxRun.reset();
-                     levelPage = 0;
-                     showPage("pack");
-                     said.text = "已导入关卡包「" + String(lv.name || "未命名") + "」（" + lv.levels.length + "关）。";
-                     return;
-                  }
                   if (lv == null || (lv.format != null && lv.format != FORMAT) || !(lv.enemies is Array)) throw new Error("not a level");
                   load(lv);
                   remember(level());

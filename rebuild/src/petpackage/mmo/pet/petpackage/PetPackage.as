@@ -27,6 +27,7 @@ package mmo.pet.petpackage
    import mmo.common.eventdispatcher.CommonEventDispatcher;
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
+   import mmo.revival.RDef;
    import mmo.revival.RLog;
    import mmo.revival.RPetIcon;
    import mmo.revival.RNotice;
@@ -205,7 +206,7 @@ package mmo.pet.petpackage
          into.addChild(holder);
          var put:Function = function(d:*):void
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls) || holder.parent == null) return;
+            if (!RDef.has(cls) || holder.parent == null) return;
             var pic:DisplayObject = RPetIcon.make(cls);
             if (pic == null) return;
             var b:Object = pic.getBounds(pic);
@@ -216,7 +217,7 @@ package mmo.pet.petpackage
             pic.y = size == "L" ? -b.bottom * k : -(b.top + b.height / 2) * k;
             holder.addChild(pic);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put(null);
+         if (RDef.has(cls)) put(null);
          else ResScheduler.getResource("peticon/peticon" + viewId, put, cls, function(e:*):void {});
          return holder;
       }

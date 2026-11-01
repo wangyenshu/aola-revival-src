@@ -33,6 +33,8 @@ sh "$HERE/all.sh" "$OUT" "$GAME"
 sh "$HERE/stubs.sh" "$ROOT/rebuild/gen/stubs" "$OUT" "${JOBS:-4}" | tee "$ROOT/rebuild/out/stubs.log" | grep -v '^ok' || true
 # Data the rebuilt modules and the emulator read (config overlay, 亚比 and item tables).
 cp -R "$ROOT/rebuild/static/." "$OUT/"
+# The example mods the 沙盒 offers (tools/mod-sdk/examples, docs/MODDING.md).
+node "$ROOT/tools/mod-sdk/build.mjs" examples "$OUT/www.9aola.com/revival/mods"
 fails="$(grep -c '^FAIL' "$ROOT/rebuild/out/stubs.log" || true)"
 n="$(find "$OUT" -type f | wc -l | tr -d ' ')"
 echo "built $n files into $OUT"

@@ -9,3 +9,6 @@
 desktop/target/
 __pycache__/
 *.pyc
+
+# Mods built from tools/mod-sdk (build.mjs, VS Code)
+tools/mod-sdk/examples/*/bin/

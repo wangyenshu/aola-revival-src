@@ -25,6 +25,8 @@ package mmo.petfollow
     * as their large picture (peticon<id>_L), scaled to a follower's size, instead
     * of in 雪咪兔's clothes.
     */
+   import mmo.revival.RDef;
+
    public class PetFollowAvatar extends ScenePlayer
    {
       private var raceId:int;
@@ -65,8 +67,8 @@ package mmo.petfollow
          var cls:String = "mmo.pet.peticon" + viewId + "_L";
          var put:Function = function(... a):void
          {
-            if (look != null || !ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-            var C:Class = getDefinitionByName(cls) as Class;
+            if (look != null || !RDef.has(cls)) return;
+            var C:Class = RDef.get(cls);
             look = new C() as DisplayObject;
             if (look == null) return;
             var b:Rectangle = look.getBounds(look);
@@ -76,7 +78,7 @@ package mmo.petfollow
             look.y = -b.bottom * k;
             addChild(look);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (RDef.has(cls)) put();
          else ResScheduler.getResource("peticon/peticon" + viewId, put, cls, function(e:* = null):void {});
       }
 

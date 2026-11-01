@@ -28,8 +28,9 @@ trading, player battles), daily tasks, the HELLO's own panel and most
 time-limited activities. Their buttons show 这个功能还在修复中.
 
 Additions that were not in the 2013 game: the 工具箱 (currencies, any 亚比,
-teleport, save export) and the 沙盒 (custom battles and custom maps with an
-editor). See [docs/GUIDE.md](docs/GUIDE.md).
+teleport, save export) and the 沙盒 (custom battles, and mods written in
+ActionScript 3 that add rooms, characters, animations and 亚比). See
+[docs/GUIDE.md](docs/GUIDE.md).
 
 ## Quick start
 
@@ -49,6 +50,27 @@ address; the page needs a service worker, which browsers allow only there.
 Click 开始游戏. You play as 小奥拉, and the newbie quest starts.
 
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) describes the build in detail.
+
+## Getting the game files
+
+A copy of the code without `game/` (for example one made with
+`git archive -o aola-revival-src.tar.gz HEAD -- . ':(exclude)game'`) can
+download 百田's files again:
+
+```bash
+python3 tools/fetch_game.py        # download game/ from 百田's CDN and the Wayback Machine
+sh tools/bootstrap.sh              # the same, then npm ci, build:swf and build
+```
+
+`tools/fetch_game.py` reads `tools/data/game-sources.jsonl`, which gives the
+download URLs of every file and its SHA-1; a file is kept only if it matches.
+The six files made here (the two theatre films as MP4 and WebM, and a
+picture of each) are made again with FFmpeg if it is installed. 百田 replaces files on its CDN from time to time; files that no
+longer match are listed in `work/fetch-game-report.json`, and
+`--keep-changed` keeps the newer copies instead. The whole archive of
+October 2026 (more files than the game uses) can be downloaded with
+`python3 tools/make_aola_archive.py --out aola_archive_2013`, from the
+indexes in `tools/data/archive/`.
 
 ## Deploying
 
@@ -82,7 +104,7 @@ Notes:
 | [docs/FEATURES.md](docs/FEATURES.md) | What is supported: places and NPCs, quests, bosses, the 四大副本, mini games, other systems, known gaps |
 | [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) | How it works: the page, the emulator, the rebuilt client, each subsystem |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Building, testing, the folder structure, the tools |
-| [docs/SANDBOX.md](docs/SANDBOX.md) | The 关卡 file formats and the editor |
+| [docs/MODDING.md](docs/MODDING.md) | Writing mods for the 沙盒: building with Apache Royale or VS Code, the API, the examples |
 | [docs/ARCHIVE.md](docs/ARCHIVE.md) | The archive of the game's CDN that `game/` was made from |
 | [docs/HISTORY.md](docs/HISTORY.md) | The work, update by update, with the details and sources of each change |
 
@@ -94,7 +116,7 @@ rebuild/    ActionScript sources (src/), generated sources (gen/), data (static/
 server/     the server emulator, the in-page bundle, the service worker, the Node server, tests
 web/        the page, its boot script and settings, the theatre and save panels
 scripts/    build-static.mjs (builds dist/), serve.mjs (local static server)
-tools/      archive, data generation and SWF tools (Python), the 关卡 editor
+tools/      archive, data generation and SWF tools (Python), the mod SDK
 tests/      Python tests and shared fixtures
 docs/       documentation
 ```

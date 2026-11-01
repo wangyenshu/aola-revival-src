@@ -92,16 +92,14 @@ package mmo.dailyactivity
          ["cloudstar4", "岩波斗魂者", 11213, "StoneBoss", 0, 0, "stone", "dailyactivity/stonebosspanel|mmo.stoneboss.StoneBossPanel", 786, null, "one", "11213:60,21213:80,31213:100"],
          ["mysticocean5", "伊泽和迦娜", 11320, "Boss11320", 0, 0, "still", null, 842, "hello_before_OceanBoss", "one", "11320:100,11322:100"],
          ["feier4", "烈焰鸟", 30278, "Feier4boss", 640, 454, "wake", null, 80, "feier4boss", "feier", "30278:80"],
-         // 神武月 gives "一次机会" to become a partner (boss10105: a win boss10105100, a loss boss10105win);
-         // the 满月 神武月 (20105) is another boss, the later BossConfig's StartBoss (dailyboss20105, its
-         // film StarBossMovie, at 99, 209) with talks of its own (startboss, startbossfailure, startboss100,
-         // startbosswin). As two forms of one boss its second was out of reach: the talk after the first
-         // win, boss10105Two (“请珍惜明天的机会”), offers no fight.
+         // 神武月 gives "一次机会" to become a partner (boss10105: a win boss10105100, a loss boss10105win).
+         // The 满月 神武月 (20105, the later BossConfig's StartBoss, dailyboss20105) is left out: its talks
+         // (startboss…) make it the guardian of 哈米乐园, a later place, and standing beside the first it
+         // put two 神武月 in the hall.
          ["choicetemple", "神武月", 10105, "Boss10105", 0, 0, "film", "BossInteraction.BossMovie10105", 127, "boss10105", "start", "10105:80"],
-         ["choicetemple", "神武月", 20105, "StartBoss", 99, 209, "film", "BossInteraction.StarBossMovie", 127, "startboss", "std", "20105:100"],
          ["choicetemple", "战无炎", 10111, "Boss10111", 0, 0, "film", "BossInteraction.BossMovie10111", 303, "boss10111", "start", "10111:90"],
          // The bosses of the 2011–12 events: where their events put them (the 奥拉周刊 pages of their
-         // weeks, whose GO buttons name the scene, and 百田's guides; research notes in docs/PLAN.md).
+         // weeks, whose GO buttons name the scene, and 百田's guides).
          // 友人契约书 (mysticearth2, from October 2012) was still there in January 2013; the others
          // came back in 2013 only through 绝版乐园's panel. 主题公园 was the 守护者's stage of 2011–12:
          // 极速威锋 (奥运守护者, September 2011), 满月巨灵 (中秋, September 2011), 天之巨灵 (天王星守护者,
@@ -258,6 +256,9 @@ package mmo.dailyactivity
                // 岩波斗魂者 (StoneBoss) waits on its first frame: left playing, it ran its
                // awakening (frame 2, mc) and frame 3 over and over and kept shining.
                if (view is MovieClip && (b.kind == "wake" || b.kind == "panel" || b.kind == "stone" || b.kind == "garden")) MovieClip(view).gotoAndStop(1);
+               // 伊泽和迦娜 (two frames: a glowing button, then the two standing): left playing it
+               // flickered between them, and a click in the button's frame found nothing under 迦娜.
+               if (view is MovieClip && b.cls == "Boss11320") MovieClip(view).gotoAndStop(MovieClip(view).totalFrames);
                // 时间之神 comes when the clock is turned.
                if (b.kind == "clock" && !b.filmed) view.visible = false;
                // 暴雪山神's totem loops its wand until the film has played (its last frame: the 山神 standing).

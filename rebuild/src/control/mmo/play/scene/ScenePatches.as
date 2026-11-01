@@ -35,7 +35,9 @@ package mmo.play.scene
     * 体育馆's 斑比向前冲 (a later game, its button in the later scene).
     * 日月之境 and 木石之境: their way back to 崩坏的上古神殿. 艺术馆: its door
     * to 博物馆大厅, moved off the room in the later copy. 古代遗迹, 龙族圣殿 and
-    * 亚比训练室: doors their later copies lost (spot, ARRIVALS).
+    * 亚比训练室: doors their later copies lost (spot, ARRIVALS). 蓝宝石要塞, 六芒前殿,
+    * 奇灵神树, 六芒内殿 and 龙族圣殿: the later copies' advertisements are hidden
+    * (LATER_PROMOS).
     *
     * NPC menus (the 功能 the 30 Nov 2012 world map lists for places): the
     * revival's NPC service has no per-NPC menus, while the later scenes still
@@ -72,6 +74,9 @@ package mmo.play.scene
          "employmenttown": [[465, "职业协会！", "465_occupationMes"], [465, "职业亚比大变身！", "465_evolution"]],
          "yabiunion": [[827, "亚比协会", "827_YabiUnion"]],
          "aolatree": [[44, "奥拉星历史漫画", "revival_historycomic"]],
+         // 亚比融合 (PetMixService, pet/petmixnew): the rebuilt 亚比研究中心's art (the 2014 copy) has
+         // no machine of its own for it; 贝鲁特 offers it (RECONSTRUCTED: where it is asked for).
+         "yabistudy": [[11, "亚比融合", "revival_service:PetMixService"]],
          // The 道馆 (the later scenes of their 2015 return lost the masters' 2012 trials): each
          // master offers the map's three functions, opening the panels of November 2012
          // (activityres/activity121115, 121122) where the later scene does not.
@@ -136,6 +141,12 @@ package mmo.play.scene
                   // 骑士团长亚瑟 (btnArthur): the 2026 scene opens the 2025 vip/viparthur; he
                   // talks (his December 2012 picture, tasknpc/npc147) and gives the weekly gift.
                   takeOver(info, "btnArthur", showArthur);
+                  hide(info, LATER_PROMOS.bluesquare);
+                  break;
+               case "hexagrampalace1":
+               case "hexagrampalace3":
+               case "hexagrampalace4":
+                  hide(info, LATER_PROMOS[info.sceneName]);
                   break;
                case "gymnasium":
                   // 斑比向前冲: the later scene asks the later GameTable's GAME_NINJA_RUSH (66),
@@ -168,6 +179,7 @@ package mmo.play.scene
                   // 龙族圣殿 (a copy of 2020) has no way out: down the carpet on the left to 古代遗迹
                   // (above the corner the control bar's 小精灵 covers).
                   spot(info, new Rectangle(0, 395, 150, 75), "msevenstar1", "from2to1", "古代遗迹");
+                  hide(info, LATER_PROMOS.msevenstar2);
                   break;
                case "yabitrain":
                   // 亚比训练室 (a later copy) has no way out: the stairs down to 亚比研究中心 and,
@@ -369,6 +381,35 @@ package mmo.play.scene
             if (f != null) return f;
          }
          return null;
+      }
+
+      /**
+       * Advertisements of later years in later copies of rooms, by room: the buttons and stands
+       * of their sales and rankings (none answers anything in the 2013 game).
+       */
+      private static const LATER_PROMOS:Object = {
+         // 蓝宝石要塞 (2026): 万欲之源众望终响, 星辉币兑换商店, 蓝钻兑换, 2026 季赛, 首充蓝宝送.
+         bluesquare: ["btnnianfei2026", "btnXHES", "btnLZS", "btnjifeigain26", "btnLBSC"],
+         // 六芒前殿 (2025): the 典藏皮肤 sale and the 最强荣耀 stand.
+         hexagrampalace1: ["btnmipandiancangpifu", "mchonor"],
+         // 奇灵神树 (2020): the 元宵最强荣耀 stand.
+         hexagrampalace3: ["mcHonortop"],
+         // 六芒内殿 (2025): 光启召唤法阵.
+         hexagrampalace4: ["btnGQSC"],
+         // 龙族圣殿 (2020): the three 帝皇龙 sales and the 最强荣耀 stand.
+         msevenstar2: ["btnTQZJL", "btnSLC", "btnSDEDC", "mchonor"]
+      };
+
+      private static function hide(info:SceneInfo, names:Array):void
+      {
+         for each (var n:String in names)
+         {
+            var d:DisplayObject = find(info.scene, n, 3);
+            if (d == null) continue;
+            d.visible = false;
+            if (d is InteractiveObject) InteractiveObject(d).mouseEnabled = false;
+            if (d is DisplayObjectContainer) DisplayObjectContainer(d).mouseChildren = false;
+         }
       }
 
       private static function door(info:SceneInfo, name:String, to:String, key:String, tip:String):void

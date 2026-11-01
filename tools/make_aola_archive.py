@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Rebuild the 奥拉星 2010-2013 archive (taken 28 Oct 2026) from the live CDN.
 
-Reads the archive's two indexes (index.jsonl and _later/index.jsonl, both in
-archive-meta.zip), downloads every listed file from its original URL on
+Reads the archive's two indexes (index.jsonl and _later/index.jsonl, in
+archive-meta.zip and in tools/data/archive/), downloads every listed file from its original URL on
 http://aola.100bt.com/play/, and keeps it only if its SHA-1 matches the copy
 archived on 28 October 2026. Python 3.8+, standard library only.
 
+    python3 tools/make_aola_archive.py --out aola_archive_2013
     python3 make_aola_archive.py --index archive-meta.zip --out aola_archive_2013
     python3 make_aola_archive.py --index archive-meta.zip --out aola_archive_2013 --tar
 
 --index   archive-meta.zip, or a folder that holds index.jsonl and _later/index.jsonl
+          (default: tools/data/archive, the copy of the two indexes kept with the code)
 --out     folder to build; re-running skips files already there and correct
 --tar     afterwards also write <out>.tar.gz (only if every file checked out)
 --workers parallel downloads (default 16)
@@ -90,7 +92,8 @@ def sha1_file(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--index", required=True)
+    ap.add_argument("--index", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "archive"),
+                    help="archive-meta.zip, or a folder with index.jsonl and _later/index.jsonl (default tools/data/archive)")
     ap.add_argument("--out", default="aola_archive_2013")
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--limit", type=int, default=0)
@@ -131,7 +134,12 @@ def main():
                     with urllib.request.urlopen(req, timeout=60) as resp:
                         body = resp.read()
                     if hashlib.sha1(body).hexdigest() != r["sha1"]:
+                        # The CDN's edge servers do not all hold the same version of a
+                        # replaced file: ask again before calling it changed.
                         kind = "changed"
+                        if attempt < 3:
+                            time.sleep(1 + attempt)
+                            continue
                         break
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
                     tmp = dest + ".part"

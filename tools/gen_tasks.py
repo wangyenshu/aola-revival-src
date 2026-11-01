@@ -263,9 +263,13 @@ def write(t: dict, chosen: list[int], out_gen: str, out_static: str) -> dict:
             if e not in lst:
                 lst.append(e)
     # Scripts number the parts of a step too: 202802 is part 2 of step 2028 (they open those themselves).
+    # They also open talks under ids of their own that the scene table lists with their scripts but
+    # that are no step: 1071 (拜师学艺's first films, 1050) and 1038 (原子 after 遇见小宇宙, 1034).
+    listed = {i for lst in scene_te.values() for e in lst for i in e["taskIds"] + e["starterIds"]}
+
     def ours(k: str) -> bool:
         i = int(k.split("_")[1])
-        return i in ids or (i >= 10000 and i // 100 in step_ids)
+        return i in ids or i in listed or (i >= 10000 and i // 100 in step_ids)
 
     talk_keys = sorted(k for k in t["talk"] if ours(k))
     start_keys = sorted(k for k in t["start"] if ours(k))

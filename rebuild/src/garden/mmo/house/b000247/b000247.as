@@ -1,5 +1,7 @@
 package mmo.house.b000247
 {
+   import flash.display.Bitmap;
+   import flash.display.BitmapData;
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
@@ -7,6 +9,7 @@ package mmo.house.b000247
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
+   import flash.geom.Matrix;
    import flash.geom.Point;
    import flash.geom.Rectangle;
    import flash.system.ApplicationDomain;
@@ -107,6 +110,7 @@ package mmo.house.b000247
             while (mc.numChildren > 1) mc.removeChildAt(mc.numChildren - 1);
             mc.mouseEnabled = mc.mouseChildren = false;
             into.addChild(mc);
+            hideSampleFriend(mc);
          };
          if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
          else ResScheduler.getResource("house/houseteachmovie/houseteachgarden", put, cls, function(e:* = null):void { RLog.log("garden: no picture"); });
@@ -232,13 +236,27 @@ package mmo.house.b000247
          try { if (loader.houseInfo.desc) who = loader.houseInfo.desc; } catch (e:Error) {}
          plate(412, 6, 116, 20, 0x1C5D9B, who, 0xFFFFFF);
          plate(16, 455, 88, 18, 0xF2B21B, who, 0x8A3B00);
-         // The tutorial's sample friend in the friends' list: the list stays empty here.
-         var cover:Sprite = new Sprite();
-         cover.mouseEnabled = false;
-         cover.graphics.beginFill(0x31C9FB);
-         cover.graphics.drawRoundRect(158, 450, 98, 106, 10, 10);
-         cover.graphics.endFill();
-         hud.addChild(cover);
+      }
+
+      /**
+       * The tutorial's sample friend in the friends' list (the list stays empty here): covered by
+       * a copy of an empty stretch of the same bar further right, from the bar's top edge to its
+       * bottom (the bar is the same all along, so the patch does not show).
+       */
+      private function hideSampleFriend(picture:DisplayObject):void
+      {
+         const X:int = 155, W:int = 103, TOP:int = 440, H:int = 120, FROM:int = 300;
+         try
+         {
+            var bd:BitmapData = new BitmapData(W, H, false, 0x31C9FB);
+            bd.draw(picture, new Matrix(1, 0, 0, 1, -FROM, -TOP));
+            var patch:Bitmap = new Bitmap(bd);
+            patch.name = "gardenFriendPatch";
+            patch.x = X;
+            patch.y = TOP;
+            if (picture.parent != null) picture.parent.addChild(patch);
+         }
+         catch (e:Error) { RLog.error("garden friends' list", e); }
       }
 
       private function plate(x:int, y:int, w:int, h:int, fill:uint, text:String, color:uint):void

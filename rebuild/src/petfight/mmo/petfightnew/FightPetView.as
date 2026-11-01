@@ -10,6 +10,7 @@ package mmo.petfightnew
    import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
    import mmo.loader.scheduler.ResScheduler;
+   import mmo.revival.RDef;
    import mmo.revival.RLog;
 
    /**
@@ -60,10 +61,10 @@ package mmo.petfightnew
          var make:Function = function(... a):void
          {
             var dom:ApplicationDomain = ApplicationDomain.currentDomain;
-            var pick:String = dom.hasDefinition(cls) ? cls : dom.hasDefinition(base + "_1") ? base + "_1" : dom.hasDefinition(base + "_2") ? base + "_2" : null;
+            var pick:String = RDef.has(cls) ? cls : RDef.has(base + "_1") ? base + "_1" : RDef.has(base + "_2") ? base + "_2" : null;
             if (pick != null)
             {
-               var C:Class = getDefinitionByName(pick) as Class;
+               var C:Class = RDef.get(pick);
                mc = new C() as MovieClip;
                if (mc != null)
                {
@@ -77,7 +78,9 @@ package mmo.petfightnew
             }
             useIcon(onReady);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) make();
+         if (RDef.has(cls)) make();
+         // A 亚比 of a mod (docs/MODDING.md) has no file of the game: its sprite or its icon.
+         else if (raceId >= 900001 && raceId <= 999999) make();
          else ResScheduler.getResource("fightassets/pet" + raceId, make, "", function(e:* = null):void
          {
             RLog.log("fight: no battle sprite for 亚比 " + raceId);
@@ -90,9 +93,9 @@ package mmo.petfightnew
          var cls:String = "mmo.pet.peticon" + raceId + "_L";
          var put:Function = function(... a):void
          {
-            if (ApplicationDomain.currentDomain.hasDefinition(cls))
+            if (RDef.has(cls))
             {
-               var C:Class = getDefinitionByName(cls) as Class;
+               var C:Class = RDef.get(cls);
                still = new C() as DisplayObject;
                var b:Object = still.getBounds(still);
                var k:Number = Math.min(1.4, 150 / Math.max(1, b.height));
@@ -104,7 +107,7 @@ package mmo.petfightnew
             }
             onReady();
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (RDef.has(cls)) put();
          else ResScheduler.getResource("peticon/peticon" + raceId, put, cls, function(e:* = null):void { onReady(); });
       }
 

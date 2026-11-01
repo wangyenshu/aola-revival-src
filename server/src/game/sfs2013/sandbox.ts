@@ -10,7 +10,7 @@
 //                                                 refusing 2303 and revival_sandbox {res: 0, msg: ""};
 //                                              -> revival_sandbox {res: 0, msg} when lv is not a 关卡
 //
-// The 关卡 file (exported and imported by the panel; docs/SANDBOX.md):
+// The 关卡 file (exported and imported by the panel; docs/MODDING.md):
 //   {"format": "aola-revival-level", "version": 1, "name": "…", "heal": true,
 //    "enemies": [{"race": 605, "level": 150, "hp": 100, "at": 100, "de": 100, "sa": 100, "sd": 100, "sp": 100}, …]}
 // hp … sp are percentages of the stats the 亚比 has at that level (100: as it is).

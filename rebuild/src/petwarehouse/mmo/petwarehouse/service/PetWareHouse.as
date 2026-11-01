@@ -16,6 +16,7 @@ package mmo.petwarehouse.service
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
+   import mmo.revival.RDef;
    import mmo.revival.RLog;
    import mmo.revival.RPetIcon;
    import mmo.revival.RNotice;
@@ -212,7 +213,7 @@ package mmo.petwarehouse.service
          var cls:String = "mmo.pet.peticon" + viewId + "_S";
          var put:Function = function(d:* = null):void
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls) || into.stage == null && into.parent == null) return;
+            if (!RDef.has(cls) || into.stage == null && into.parent == null) return;
             var pic:DisplayObject = RPetIcon.make(cls);
             if (pic == null) return;
             var b:Object = pic.getBounds(pic);
@@ -222,7 +223,7 @@ package mmo.petwarehouse.service
             pic.y = -(b.top + b.height / 2) * k;
             into.addChild(pic);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (RDef.has(cls)) put();
          else ResScheduler.getResource("peticon/peticon" + viewId, put, cls, function(e:* = null):void {});
       }
 

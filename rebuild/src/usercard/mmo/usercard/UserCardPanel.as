@@ -5,8 +5,12 @@ package mmo.usercard
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.events.IOErrorEvent;
    import flash.events.MouseEvent;
+   import flash.events.SecurityErrorEvent;
    import flash.events.TimerEvent;
+   import flash.net.URLLoader;
+   import flash.net.URLLoaderDataFormat;
    import flash.utils.Timer;
    import flash.filters.DropShadowFilter;
    import flash.filters.GlowFilter;
@@ -20,10 +24,12 @@ package mmo.usercard
    import mmo.interfaces.avatar.IAlbumAvatarProxy;
    import mmo.interfaces.avatar.IAvatarService;
    import mmo.interfaces.material.clothes.AvatarInfo;
+   import mmo.interfaces.material.clothes.Clothes;
    import mmo.interfaces.material.clothes.IClothesService;
    import mmo.interfaces.material.clothes.UserClothes;
    import mmo.interfaces.material.MaterialServiceEvent;
    import mmo.loader.layer.LayerManager;
+   import mmo.loader.scheduler.VersManager;
    import mmo.revival.RLog;
 
    /**
@@ -197,13 +203,77 @@ package mmo.usercard
                sprite.y = -b.bottom * k + 6;
             };
             stand.addEventListener(Event.ENTER_FRAME, fitAvatar);
-            if (own) avatar.setAvatarInfo(clothes.getMyAvatarInfo());
-            else clothes.getOthersAvatarInfo(userName, function(info:AvatarInfo):void { if (avatar) avatar.setAvatarInfo(info); });
+            var mine:IAlbumAvatarProxy = avatar;
+            var dress:Function = function(info:AvatarInfo):void
+            {
+               drawable(info, function(shown:AvatarInfo):void { if (avatar == mine && shown != null) avatar.setAvatarInfo(shown); });
+            };
+            if (own) dress(clothes.getMyAvatarInfo());
+            else clothes.getOthersAvatarInfo(userName, dress);
          }
          catch (e:Error)
          {
             RLog.error("usercard avatar", e);
          }
+      }
+
+      /** skinview file name -> whether the site has it (asked once a session). */
+      private static var views:Object = {};
+
+      /**
+       * The clothes of info whose big picture (skinview/<file>) the site has.
+       * The album avatar loads each piece's skinview file; for a piece whose
+       * file is missing its own error handler fails (it reads the failed
+       * request as a ResLoader), and the pieces asked for after it, even on
+       * the next card, were never drawn: the card stood blank once clothes
+       * without a skinview file had been worn. Most clothes have one (later
+       * copies, game/); the others are left off the card.
+       */
+      private static function drawable(info:AvatarInfo, done:Function):void
+      {
+         if (info == null)
+         {
+            done(null);
+            return;
+         }
+         var list:Array = info.getClothes();
+         var waiting:int = 0;
+         var finish:Function = function():void
+         {
+            var shown:AvatarInfo = info.clone();
+            shown.setClothes(list.filter(function(u:*, i:int, a:Array):Boolean
+            {
+               var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
+               return c == null || !c.fileName || views[c.fileName] !== false;
+            }));
+            done(shown);
+         };
+         var asked:Object = {};
+         for each (var u:* in list)
+         {
+            var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
+            if (c == null || !c.fileName || views.hasOwnProperty(c.fileName) || asked[c.fileName]) continue;
+            asked[c.fileName] = true;
+            waiting++;
+            ask(c.fileName, function():void { if (--waiting == 0) finish(); });
+         }
+         if (waiting == 0) finish();
+      }
+
+      private static function ask(file:String, then:Function):void
+      {
+         var ld:URLLoader = new URLLoader();
+         ld.dataFormat = URLLoaderDataFormat.BINARY;
+         var end:Function = function(e:Event):void
+         {
+            views[file] = e.type == Event.COMPLETE;
+            then();
+         };
+         ld.addEventListener(Event.COMPLETE, end);
+         ld.addEventListener(IOErrorEvent.IO_ERROR, end);
+         ld.addEventListener(SecurityErrorEvent.SECURITY_ERROR, end);
+         try { ld.load(VersManager.getVerURLRequest("skinview/" + file)); }
+         catch (err:Error) { views[file] = false; then(); }
       }
 
       private function refreshGrid():void

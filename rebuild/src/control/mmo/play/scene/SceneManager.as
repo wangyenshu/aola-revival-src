@@ -322,6 +322,8 @@ package mmo.play.scene
          busy = true;
          loadingInfo = info;
          loadingHooks = hooks || {};
+         // My avatar as it stands, for my player in the next room until its own is drawn.
+         try { PlayerManager.getInstance().keepLook(); } catch (ek:Error) {}
          var e:SceneManagerEvent = new SceneManagerEvent(SceneManagerEvent.ON_LOADING_SCENE, {sceneName: info.sceneName, SceneInfo: info});
          dispatchEvent(e);
          if (e.params.cancel)
@@ -418,7 +420,11 @@ package mmo.play.scene
          if (old.scene)
          {
             try { old.scene.leave(); } catch (e2:Error) { RLog.error("scene: leaving " + old.sceneName, e2); }
-            if (old.scene.parent) old.scene.parent.removeChild(old.scene);
+            // REVIVAL: the room left stays on screen (without its players, taking no clicks) until
+            // the new one is put in its place (onJoinRoom); taken away at once, the stage stood
+            // white while the server room was joined (回家 flashed white).
+            old.scene.mouseEnabled = old.scene.mouseChildren = false;
+            leftScene = old.scene;
          }
          safeDispatch(new SceneManagerEvent(SceneManagerEvent.DISPOSED_SCENE, {sceneName: old.sceneName}));
       }
@@ -430,8 +436,9 @@ package mmo.play.scene
          loadingInfo = null;
          var scene:SceneBase = info.scene;
          var layer:Sprite = LayerManager.getBaseScene();
-         while (layer.numChildren > 0) layer.removeChildAt(0);
          layer.addChild(scene);
+         dropLeftScene();
+         while (layer.numChildren > 1) layer.removeChildAt(0);
          var size:Object = ConfigReader.instance.getBigScene(info.sceneName);
          // Arrival points a later copy of the room lost (ScenePatches.ARRIVALS).
          var loc:Point = ScenePatches.arrival(info.sceneName, info.locationKey) || scene.locationFor(info.locationKey);
@@ -513,6 +520,7 @@ package mmo.play.scene
       private function fail(what:String, err:Error):void
       {
          busy = false;
+         dropLeftScene();
          loadingHooks = {};
          RLog.error(what, err);
          var name:String = loadingInfo ? loadingInfo.sceneName : null;
@@ -528,9 +536,19 @@ package mmo.play.scene
          RNotice.show(LayerManager.getBaseScene().stage, "这里还没有修复好，暂时不能进入哦！");
       }
 
+      /** The room left, still on screen until the next one is shown. */
+      private var leftScene:SceneBase;
+
+      private function dropLeftScene():void
+      {
+         if (leftScene != null && leftScene.parent) leftScene.parent.removeChild(leftScene);
+         leftScene = null;
+      }
+
       private function onJoinRoomError(e:SocketClientEvent):void
       {
          stopListening();
+         dropLeftScene();
          busy = false;
          loadingHooks = {};
          dispatchEvent(new SceneManagerEvent(SceneManagerEvent.ON_JOIN_ROOM_ERROR, {sceneName: loadingInfo ? loadingInfo.sceneName : null, error: e.params}));

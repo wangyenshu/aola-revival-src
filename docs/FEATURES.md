@@ -339,8 +339,9 @@ The 功能 the 2012 world map lists for each place:
 | 奥拉之树 | 星愿气球、奥拉星历史漫画 | 可用 |
 | 战斗星域 | 亚比对战空间 | 不可用 (needs other players) |
 | 流星购物街 | 购买服装、家具、道具和树苗 | 可用 |
-| 亚比研究中心 | 亚比天赋改造、亚比融合、神奇摇摇树 | 可用 |
-| 亚比研究中心 | 亚比训练、亚比超进化 | 未验证 |
+| 亚比研究中心 | 亚比融合 (贝鲁特; the 元生体 hatch in their places' 孵化器)、神奇摇摇树 | 可用 |
+| 亚比研究中心 | 亚比天赋改造 | 部分 (the 天赋改造机 opens the 天赋启迪 of January 2013; the 天赋改造 panel itself is lost) |
+| 亚比研究中心 | 亚比训练、亚比超进化 | 不可用 |
 | 星光游乐场 | 欢乐券兑换 | 可用 |
 | 欢乐岛 | 亚比成长计划、百田卡通大剧院 | 可用 |
 | 欢乐岛 | 魔法秋游 | 未验证 |
@@ -641,7 +642,6 @@ estimates.
 | 伊泽和迦娜 | 海洋神域 `mysticocean5` | 11320 伊泽 Lv100，11322 迦娜 Lv100 |
 | 烈焰鸟 | 烈焰洞穴 `feier4` | 30278 烈焰鸟 Lv80 |
 | 神武月 | 选择之殿 `choicetemple` | 10105 神武月 Lv80 |
-| 神武月 | 选择之殿 `choicetemple` | 20105 神武月 Lv100 |
 | 战无炎 | 选择之殿 `choicetemple` | 10111 战无炎 Lv90 |
 | 友人契约书 | 雏菊平原 `mysticearth2` | 11259 友人契约书 Lv100 |
 | 猪猪超人 | 主题公园 `themepark` | 10884 猪猪超人 Lv100 |
@@ -846,7 +846,11 @@ Also available outside the table: 斑比向前冲 (2017, in 奥拉运动场) and
   picture where none exists).
 - Riding (坐骑): one of the 34 亚比 of the 2013 ride list, for 蓝宝骑士.
 - The 亚比孵化器 in the 家园: 亚比蛋 from bosses and from the 收费亚比蛋商品册.
-- 亚比天赋改造 and 亚比融合 in 亚比研究中心.
+- 亚比融合 (贝鲁特 in 亚比研究中心): two 亚比 and a material make a 元生体, which
+  hatches in the 孵化器 of its place (艾夕区奇迹冰殿, 索里德区新世界, 巨人山顶,
+  奇迹谷底, 生命之树, 水下广场, 烈焰洞穴) in 24 or 72 hours.
+- 天赋启迪 (the 天赋改造机 in 亚比研究中心): raising a 亚比's 天赋 with 启迪能量
+  or 星币.
 - The 亚比图鉴.
 
 ### Shops and money

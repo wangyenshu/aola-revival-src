@@ -16,6 +16,8 @@ import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.
 import { installMiniGames } from "./minigames.ts";
 import { installPlanetActs } from "./planetacts.ts";
 import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
+import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
+import { installMods, stashModPets, type ModRec } from "./mods.ts";
 import { World, type XtContext } from "./server.ts";
 
 export interface UserRecord {
@@ -48,6 +50,8 @@ export interface UserRecord {
   robot?: RobotRecord;
   /** 晶币 won in mini games today. */
   gameCoins?: { day: string; n: number };
+  /** Fights asked for today with a 亚比 that comes out once a day only so often (70_6): race -> times. */
+  dailyFights?: { day: string; n: Record<string, number> };
   /** 星币 (UserInfo.xingbi) and 晶豆 (a later currency; kept for the toolbox only). */
   xingbi?: number;
   jingdou?: number;
@@ -209,6 +213,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
         await emu.store.set("meta/nextUserId", next);
         rec = normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
       }
+      // A mod's 亚比 the game does not know now (their mod not started yet in this page): aside.
+      const known = await tables();
+      stashModPets(rec as UserRecord & ModRec, (race) => !!speciesOf(known, race));
       await emu.store.set(userKey(name), rec);
       // The 2013 client reads the worn clothes as "avatar" (SocketClient) and "c" (ClothesService).
       const follow = rec.pets?.find((p) => p.id === rec!.followPet);
@@ -645,6 +652,26 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     now: () => emu.clock.now().getTime(),
   });
 
+  // The 沙盒's mods: their 亚比, gifts and saved data (mods.ts).
+  installMods(world, {
+    load: async (ctx) => (await me(ctx)) as UserRecord & ModRec,
+    save: (o) => save(o),
+    tables,
+    today,
+  });
+
+  // 亚比融合 and 天赋启迪 (亚比研究中心): yabistudy.ts.
+  const labDeps: LabDeps<UserRecord & LabRec> = {
+    load: async (ctx) => (await me(ctx)) as UserRecord & LabRec,
+    save: (o) => save(o),
+    now: () => emu.clock.now().getTime(),
+    today,
+    tables,
+    get: (k) => emu.store.get(k),
+    set: (k, v) => emu.store.set(k, v),
+  };
+  installYabiStudy(world, labDeps);
+
   installEggs(world, {
     me,
     save: (o) => save(o as UserRecord),
@@ -653,6 +680,10 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       const pet = newPet(o as UserRecord, await tables(), race, level, today());
       ((o as UserRecord).storage ??= []).push(pet);
       return pet.id;
+    },
+    fuse: {
+      state: (o, st) => fuseState(o as UserRecord & LabRec, st, labDeps),
+      collect: (o, id) => fuseCollect(o as UserRecord & LabRec, id),
     },
   });
 
@@ -826,7 +857,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       const rec = await me(ctx);
       const mi = String(Number(ctx.params.mi));
       const qt = Math.max(1, Number(ctx.params.qt) || 1);
-      const t = String(Number(ctx.params.t ?? 2) | 0 || 2);
+      const t = String(ctx.params.t === undefined ? 2 : Number(ctx.params.t) | 0);
       const items = ((rec.items ??= {})[t] ??= {});
       items[mi] = (items[mi] ?? 0) + qt;
       await save(rec);
@@ -851,6 +882,18 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // 舞动全星's 冠军榜 (game/dance, 70_5 {} -> {rank: [{sId, dd, un, score}]}): the 2013 server's
   // list is lost; an empty list stops the panel waiting.
   world.xt("SundriesExtension.70_5", (ctx) => ctx.reply({ rank: [] }));
+  // 虚无空间's 原子 (scene/emptyspace1 once 遇见小宇宙 is done: the password letters bring him out):
+  // 70_6 {raceId: 510} -> {count}, this fight's number today; above 3 he sleeps (250_1038_3time).
+  // The 2013 server is lost: RECONSTRUCTED as a count of the times asked today, so three a day.
+  world.xt("SundriesExtension.70_6", async (ctx) => {
+    const rec = await me(ctx);
+    const race = String(Number(ctx.params.raceId) | 0);
+    if (rec.dailyFights?.day !== today()) rec.dailyFights = { day: today(), n: {} };
+    const count = (rec.dailyFights.n[race] ?? 0) + 1;
+    rec.dailyFights.n[race] = count;
+    await save(rec);
+    ctx.reply({ count });
+  });
   // 家具店's 安娜 asks whether the 我的荣誉 present is waiting (70_14 {} -> {showup}); the
   // present is given in the 家园's 我的荣誉, so none here. Statistics (HolidayExtension 74_1
   // logEvent {eventId}) are counted on the server only.

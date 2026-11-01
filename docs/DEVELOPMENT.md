@@ -71,7 +71,7 @@ rebuild/
   gen/                        sources generated from decompiled modules (committed)
     stubs/                    stand-ins for the lost services (tools/gen_stubs.py)
     tasknpc/, taskdata/       NPC placement, conversations, quest tables
-    petdict/, petfight/, petmes/, wildpet/, bconfig/, weekly/   data classes
+    petdict/, petfight/, petmes/, pmservice/, wildpet/, bconfig/, weekly/   data classes
   static/                     files served as they are
     www.9aola.com/config.xml%3F201301241   the 2013 config.xml with the revival's rooms
     www.9aola.com/revival/    tables the emulator reads (pets, pmdata, tasks, wildpets, materials, theatre)
@@ -105,18 +105,18 @@ scripts/
   build-static.mjs            builds dist/
   serve.mjs                   local static server
 
-tools/                        Python tools (see below), fetch_refs.sh
+tools/                        Python tools (see below), fetch_refs.sh, bootstrap.sh
   data/                       inputs of the tools: the 2013 manifest, live config and catalogs,
                               the 2012 world map's lists, NPC and quest supplements
-  level-editor/               the 沙盒 关卡 editor (static page; pack.js also runs in Node)
+    game-sources.jsonl        where every file of game/ can be downloaded again
+    archive/                  the indexes of the October 2026 CDN archive (docs/ARCHIVE.md)
+  mod-sdk/                    build.mjs (the mod API library, a mod, the examples) and examples/
 
 tests/
   test_tools.py               tests of the Python tools
   mirrorpath-fixtures.json    URL-to-file cases shared by the Python and TypeScript tests
 
 docs/                         documentation
-  examples/                   an example 关卡 pack
-  sandbox-level.schema.json   JSON Schema of the 关卡 files
 ```
 
 Generated and ignored: `node_modules/`, `.toolchain/`, `rebuild/out/`
@@ -144,6 +144,8 @@ output).
 4. Runs `stubs.sh`: compiles the stand-ins of `rebuild/gen/stubs` (in
    parallel, `JOBS=4`), except the modules in `no-stub.txt`.
 5. Copies `rebuild/static/` into `build/rebuilt/`.
+6. Builds the example mods (`tools/mod-sdk/build.mjs examples`) into
+   `build/rebuilt/www.9aola.com/revival/mods/` with their `index.json`.
 
 To compile one module while working on it:
 
@@ -163,8 +165,7 @@ compile against `play.swc`.
 
 `scripts/build-static.mjs`:
 
-1. Copies the front end (`web/`) and the 关卡 editor (`tools/level-editor/`
-   to `dist/editor/`).
+1. Copies the front end (`web/`).
 2. Bundles the emulator (`server/src/browser/entry.ts` → `emulator.js`)
    and the service worker (`sw.ts` → `sw.js`) with esbuild.
 3. Copies Ruffle from `node_modules/@ruffle-rs/ruffle` to `dist/ruffle/`.
@@ -195,8 +196,8 @@ picked up without running `npm run build`. Only changes to `web/` and
 | `tasks.test.ts` | quest progress and server-finished steps |
 | `house.test.ts`, `plants.test.ts`, `eggs.test.ts` | the 小屋, trees, eggs |
 | `shoot.test.ts`, `parkour.test.ts`, `fb.test.ts`, `gyms.test.ts` | 射击, 酷跑星世界, the 四大副本, the 道馆 |
-| `planetacts.test.ts`, `areafuncs.test.ts` | the planets' activities, the functions of the places |
-| `sandbox.test.ts`, `levelpack.test.ts` | the 沙盒's fights, the 关卡 pack format and the editor's rules |
+| `planetacts.test.ts`, `areafuncs.test.ts`, `yabistudy.test.ts` | the planets' activities, the functions of the places, 亚比融合 and 天赋启迪 |
+| `sandbox.test.ts`, `mods.test.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
 | `tests/test_tools.py` | URL mapping, the archive and game-root tools, `swfinfo`, `add_later`, `gen_tasks` |
 
 ### Browser tests
@@ -249,6 +250,7 @@ commands:
 | `bar name`, `top`, `layers n`, `clearmodal` | press a control bar button, list the top layer or the display tree, close panels |
 | `xt Ext.cmd k=v …` | send an extension request |
 | `addpet race`, `heal`, `give id`, `tasktest id`, `fight race` | test conveniences (some need the server's dev commands, enabled by `?dev=1`) |
+| `mod file`, `modroom` | load and start `revival/mods/<file>` (an example mod), the room a mod shows |
 
 ## Conventions
 
@@ -263,8 +265,11 @@ commands:
 - The build must not download game files. Only the curation tools
   (`tools/add_later.py`, `story_files.py`, `weeklies.py`, `theatre.py`) add
   files to `game/`, and each addition gets a `FILES.jsonl` line with its CDN
-  path, upload date and SHA-1. `tools/archive_additions.py` then adds the
-  files to the archive's indexes.
+  path, upload date and SHA-1. After adding files, run
+  `tools/game_sources.py build` (and `check`) so that
+  `tools/data/game-sources.jsonl` lists them, and
+  `tools/archive_additions.py --meta tools/data/archive …` to add them to
+  the archive's indexes.
 - Nothing in the front end may load from other sites, and the game must not
   use JavaScript `alert`, `confirm` or `prompt`.
 - A new server command is a handler registered with
@@ -285,7 +290,10 @@ of each file explains its inputs.
 | `extract_archive.py` | unpack the archive pieces and verify every file |
 | `archive_additions.py` | add the files `game/` took later to the archive's indexes |
 | `make_game_root.py` | select the files the revival serves into `game/` and list them in `FILES.jsonl` (`select`), or rebuild `game/` from the list and an archive (`assemble`) |
-| `add_later.py` | add live CDN copies of files the 2013 client asks for |
+| `fetch_game.py` | download every file of `game/` again from 百田's CDN and the Wayback Machine, checking each SHA-1, and make the theatre's videos with FFmpeg (for a checkout without `game/`) |
+| `game_sources.py` | keep `tools/data/game-sources.jsonl`, the download URLs of every file of `game/` (`build`), and check it against `game/FILES.jsonl` (`check`) |
+| `bootstrap.sh` | `fetch_game.py`, then `npm ci`, `build:swf` and `build` |
+| `add_later.py` | add live CDN copies of files the 2013 client asks for (from the CDN, or `--archive` from a copy of the archive) |
 | `story_files.py` | find and add the files the 2012 story quests need |
 | `weeklies.py` | add the 奥拉周刊 back issues |
 | `theatre.py` | add the theatre films and convert them to WebM and MP4 (FFmpeg) |
@@ -320,6 +328,7 @@ of each file explains its inputs.
 | `gen_bconfig.py` | the catalog books |
 | `gen_materials.py` | prices (`revival/materials.json`) |
 | `gen_petmes.py` | the data of the rebuilt `petskillmesservice` |
+| `gen_pmservice.py` | the tables of the rebuilt `pmservice` (the 2013 PMCustomData) |
 | `config_overlay.py` | the `config.xml` overlay |
 
 These read decompiled modules (made with FFDec) and the files in `game/`;
@@ -333,3 +342,15 @@ their docstrings give the exact commands.
 | `abc_rename.py` | rename a string in a SWF's bytecode |
 | `peticon_fill.py` | add missing small pictures to `peticon` files |
 | `clean_start.py` | remove the January 2013 campaign from the start screen |
+
+### Mods
+
+`tools/mod-sdk/build.mjs` (Node; uses the toolchain of `.toolchain/env.sh`):
+
+| Command | Does |
+| --- | --- |
+| `node tools/mod-sdk/build.mjs api` | `build/mod-sdk/aola-mod-api.swc`, the library mods compile against |
+| `node tools/mod-sdk/build.mjs <folder>` | a mod from its `asconfig.json` |
+| `node tools/mod-sdk/build.mjs examples [out]` | the examples of `tools/mod-sdk/examples/` and their `index.json` |
+
+[MODDING.md](MODDING.md) covers writing mods.

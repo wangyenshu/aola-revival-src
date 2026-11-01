@@ -80,9 +80,15 @@ package mmo.scene.starland
          love.graphics.endFill();
          foreground.addChild(love);
          door(love, "爱心协会", "loveassociation", FaceDirectionTypes.FACELEFTUP);
-         // Later years': the 卡牌达人馆 (2014) and the 棒棒奶酪 exchange.
+         // Later years': the 卡牌达人馆 (2014) and the 棒棒奶酪 exchange. The 卡牌达人馆's door (et6)
+         // is a yellow shape that turns transparent only when it is made a door; it is not one
+         // here, so it is hidden (it covered the building).
          var et6:InteractiveObject = foreground.getChildByName("et6") as InteractiveObject;
-         if (et6 != null) et6.mouseEnabled = false;
+         if (et6 != null)
+         {
+            et6.mouseEnabled = false;
+            et6.visible = false;
+         }
          var bjf:DisplayObject = overlap ? overlap.getChildByName("btnBJF") : null;
          if (bjf != null) bjf.visible = false;
          initElevator();

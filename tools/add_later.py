@@ -11,6 +11,12 @@ never downloads anything; this is for curating game/.
 
   tools/add_later.py --game game --live-head <live inventory head.jsonl> \\
       --why "HELLO in scenes" skin/a000033.swf skin/a300000.swf
+
+With --archive, the files are taken from a copy of the October 2026 archive
+(docs/ARCHIVE.md) instead of the CDN: each must be listed in one of its
+indexes (index.jsonl, _later/index.jsonl) and match the SHA-1 given there.
+
+  tools/add_later.py --game game --archive <archive folder> --why "形象卡" skinview/a000104.swf
 """
 from __future__ import annotations
 
@@ -38,13 +44,27 @@ def game_name(path: str) -> str:
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--game", required=True)
-    ap.add_argument("--live-head", required=True, action="append", help="a live CDN inventory (path, status, lm, size per line); may be given more than once")
+    ap.add_argument("--live-head", action="append", default=[], help="a live CDN inventory (path, status, lm, size per line); may be given more than once")
+    ap.add_argument("--archive", help="a copy of the archive: take the files from it (checked against its indexes) instead of the CDN")
     ap.add_argument("--why", required=True, help='what they are for, kept as "added" in FILES.jsonl')
     ap.add_argument("--cdn", default=CDN, help=argparse.SUPPRESS)
     ap.add_argument("paths", nargs="+", help="CDN paths, e.g. skin/a000033.swf")
     a = ap.parse_args(argv)
+    if not a.live_head and not a.archive:
+        ap.error("give --live-head or --archive")
 
     head = {}
+    stored = {}
+    if a.archive:
+        for sub in ("", "_later"):
+            idx = os.path.join(a.archive, sub, "index.jsonl")
+            if not os.path.exists(idx):
+                continue
+            for line in open(idx, encoding="utf-8"):
+                r = json.loads(line)
+                if r.get("ok"):
+                    head[r["path"]] = r
+                    stored[r["path"]] = os.path.join(a.archive, sub, "aola.100bt.com", "play", *r["path"].split("/"))
     for inv in a.live_head:
         for line in open(inv, encoding="utf-8"):
             r = json.loads(line)
@@ -60,10 +80,19 @@ def main(argv=None) -> None:
             print(f"  {p}: already in game/")
             continue
         if p not in head:
-            print(f"  {p}: not on the live CDN", file=sys.stderr)
+            print(f"  {p}: not on the live CDN" if not a.archive else f"  {p}: not in the archive", file=sys.stderr)
             continue
         data = None
-        for attempt in range(4):
+        if p in stored:
+            if not os.path.exists(stored[p]):
+                print(f"  {p}: listed but missing from the archive copy", file=sys.stderr)
+                continue
+            with open(stored[p], "rb") as f:
+                data = f.read()
+            if hashlib.sha1(data).hexdigest() != head[p].get("sha1"):
+                print(f"  {p}: not the archived file (SHA-1)", file=sys.stderr)
+                continue
+        for attempt in range(0 if data is not None else 4):
             try:
                 req = urllib.request.Request(a.cdn + p, headers=UA)
                 with urllib.request.urlopen(req, timeout=60) as r:

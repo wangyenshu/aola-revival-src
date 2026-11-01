@@ -12,6 +12,7 @@
 //                                  command name is "1=1"; the revival's 物品 lists the 亚比蛋 with it)
 //   PocketMonsterExtension 1223 recyclePm {id, loc: 4} -> "2223" {res, id, loc}
 //                                  放回仓库: a hatched 亚比 leaves the 孵化器
+//   1-2 with st 3–9 and recyclePm loc 7 are the 亚比融合's 孵化器 (yabistudy.ts, deps.fuse).
 //
 // The eggs are the 亚比蛋 materials (type 5, mmo.materialdata.PetEggData; bought
 // from the 收费亚比蛋商品册), one entry per egg; an egg of material id N
@@ -48,6 +49,11 @@ export interface EggDeps<O extends EggOwner> {
   now: () => number;
   /** Put a new 亚比 of this race into the owner's 仓库; its id. */
   hatchPet: (o: O, race: number, level: number) => Promise<number>;
+  /** The 亚比融合's 孵化器 (kinds 3–9): their "1-2" state, and recyclePm loc 7. */
+  fuse?: {
+    state: (o: O, st: number) => Promise<Record<string, unknown>>;
+    collect: (o: O, id: number) => boolean;
+  };
 }
 
 /** Each egg the player has, with an id of its own (material id * 1000 + n). */
@@ -90,7 +96,9 @@ export function installEggs<O extends EggOwner>(world: World, deps: EggDeps<O>):
     const o = await deps.me(ctx);
     // os: the hatching kind asked (UserPetEgg.STATE_OFFLINE_HATCH 2, the 批量孵化器), which the
     // egg service and the later panels check.
-    ctx.reply({ ...(await state(o)), os: Number(ctx.params.st ?? 2) | 0 || 2 }, "1-2");
+    const st = Number(ctx.params.st ?? 2) | 0 || 2;
+    if (st >= 3 && st <= 9 && deps.fuse) return ctx.reply({ ...(await deps.fuse.state(o, st)), os: st }, "1-2");
+    ctx.reply({ ...(await state(o)), os: st }, "1-2");
   });
 
   world.xt(`${EGG_EXT}.1-4`, async (ctx) => {
@@ -142,6 +150,11 @@ export function installEggs<O extends EggOwner>(world: World, deps: EggDeps<O>):
     const o = await deps.me(ctx);
     const id = Number(ctx.params.id) | 0;
     const loc = Number(ctx.params.loc) | 0;
+    if (loc === 7 && deps.fuse) {
+      const ok = deps.fuse.collect(o, id);
+      if (ok) await deps.save(o);
+      return ctx.reply({ res: ok ? 1 : -1, id, loc }, "2223");
+    }
     const h = o.hatch;
     const i = h?.pets?.indexOf(id) ?? -1;
     if (!h || !h.pets || i < 0) return ctx.reply({ res: -1, id, loc }, "2223");

@@ -4,9 +4,9 @@ package mmo.scene.sandbox
    import mmo.play.scene.SceneBase;
 
    /**
-    * The 沙盒 room (scene/sandboxroom, the revival's own; docs/SANDBOX.md).
+    * The 沙盒 room (scene/sandboxroom, the revival's own; docs/MODDING.md).
     * Each load builds a new room, because the room shown is whichever room of
-    * a 关卡 pack the 沙盒 is in (SandboxRun.current()), and the scene file may
+    * the mod loaded is entered (ModRun.roomToShow()), and the scene file may
     * be loaded once and kept.
     */
    [SWF(width="960", height="560", backgroundColor="#1d2a3a", frameRate="25")]

@@ -76,12 +76,29 @@ package mmo.tasknpc
          current.start(xml.context);
       }
 
+      /**
+       * REVIVAL: a conversation of a mod (mmo.control.ModRun): the speaker's name and picture
+       * are given (picture: a DisplayObject, drawn at the left as the NPCs' half-length ones).
+       */
+      public static function showAs(xml:XML, name:String, picture:DisplayObject = null):void
+      {
+         closeCurrent();
+         if (xml == null) return;
+         current = new NpcTalkPanel(0, 1);
+         current.customName = name || "";
+         current.customPicture = picture;
+         current.start(xml.context);
+      }
+
+      private var customName:String;
+      private var customPicture:DisplayObject;
+
       /** Test hook (tests/e2e, through the control's "talk" command): the open conversation. */
       public static function debugText():String
       {
          if (current == null || current.node == null) return "";
          var n:XML = current.node;
-         var out:String = TaskNpcService.npcName(current.npcId) + ": " + String(n.@str);
+         var out:String = (current.customName != null ? current.customName : TaskNpcService.npcName(current.npcId)) + ": " + String(n.@str);
          var i:int = 0;
          for each (var c:XML in n.choice) out += " | [" + (i++) + "] " + String(c.@str);
          return out;
@@ -236,7 +253,7 @@ package mmo.tasknpc
          }
          if (String(n.@npcId) != "") npcId = int(n.@npcId);
          if (String(n.@iconId) != "") iconId = int(n.@iconId);
-         nameField.text = npcId > 0 ? TaskNpcService.npcName(npcId) : "";
+         nameField.text = customName != null ? customName : npcId > 0 ? TaskNpcService.npcName(npcId) : "";
          textField.htmlText = "<font face='SimSun'>" + personalise(String(n.@str)) + "</font>";
          showPortrait();
          while (choiceBox.numChildren) choiceBox.removeChildAt(0);
@@ -382,6 +399,16 @@ package mmo.tasknpc
          if (key == shownIconKey) return;
          shownIconKey = key;
          while (portrait.numChildren) portrait.removeChildAt(0);
+         if (customPicture != null)
+         {
+            var cb:Object = customPicture.getBounds(customPicture);
+            var cs:Number = Math.min(1, 150 / Math.max(1, cb.height), 128 / Math.max(1, cb.width));
+            customPicture.scaleX = customPicture.scaleY = cs;
+            customPicture.x = -cb.left * cs;
+            customPicture.y = -cb.bottom * cs;
+            portrait.addChild(customPicture);
+            return;
+         }
          if (npcId <= 0) return;
          var cls:String = "mmo.tasknpc.NpcIcon" + npcId + "_" + iconId;
          var target:Sprite = portrait;

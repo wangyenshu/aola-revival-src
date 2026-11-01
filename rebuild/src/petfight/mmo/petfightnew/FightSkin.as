@@ -15,6 +15,7 @@ package mmo.petfightnew
    import flash.text.TextFormatAlign;
    import flash.utils.getDefinitionByName;
    import mmo.loader.scheduler.ResScheduler;
+   import mmo.revival.RDef;
    import mmo.revival.RPetIcon;
 
    /**
@@ -144,8 +145,8 @@ package mmo.petfightnew
          var cls:String = "mmo.pet.attribute" + attr;
          var put:Function = function(... a):void
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-            var C:Class = getDefinitionByName(cls) as Class;
+            if (!RDef.has(cls)) return;
+            var C:Class = RDef.get(cls);
             var d:DisplayObject = new C() as DisplayObject;
             var b:Object = d.getBounds(d);
             var k:Number = Math.min(box / Math.max(1, b.width), box / Math.max(1, b.height));
@@ -155,7 +156,7 @@ package mmo.petfightnew
             while (into.numChildren) into.removeChildAt(0);
             into.addChild(d);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (RDef.has(cls)) put();
          else ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});
       }
 
@@ -165,8 +166,8 @@ package mmo.petfightnew
          var cls:String = "mmo.item.view" + id;
          var put:Function = function(... a):void
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-            var C:Class = getDefinitionByName(cls) as Class;
+            if (!RDef.has(cls)) return;
+            var C:Class = RDef.get(cls);
             var d:DisplayObject = new C() as DisplayObject;
             var b:Object = d.getBounds(d);
             var k:Number = Math.min(1.2, box / Math.max(1, b.width), box / Math.max(1, b.height));
@@ -176,7 +177,7 @@ package mmo.petfightnew
             while (into.numChildren) into.removeChildAt(0);
             into.addChild(d);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (RDef.has(cls)) put();
          else ResScheduler.getResource("item/view" + id, put, cls, function(e:* = null):void {});
       }
 
@@ -186,7 +187,7 @@ package mmo.petfightnew
          var cls:String = "mmo.pet.peticon" + race + (large ? "_L" : "_S");
          var put:Function = function(... a):void
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
+            if (!RDef.has(cls)) return;
             var pic:DisplayObject = RPetIcon.make(cls);
             if (pic == null) return;
             var b:Object = pic.getBounds(pic);
@@ -197,7 +198,7 @@ package mmo.petfightnew
             while (into.numChildren) into.removeChildAt(0);
             into.addChild(pic);
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
+         if (RDef.has(cls)) put();
          else ResScheduler.getResource("peticon/peticon" + race, put, cls, function(e:* = null):void {});
       }
 
