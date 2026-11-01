@@ -1,6 +1,10 @@
 package mmo.sceneinit
 {
    import flash.events.Event;
+   import flash.events.TimerEvent;
+   import flash.media.Sound;
+   import flash.media.SoundChannel;
+   import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
    import mmo.common.sound.SoundManager;
    import mmo.common.sound.SoundManagerEvent;
@@ -20,6 +24,10 @@ package mmo.sceneinit
     * that played it in 2013 is lost; the later client's SoundManager keeps two,
     * music/fightBgMusic0 and 1: 1 is the classic one, the older encoding of
     * the two, 0 a 2019 piece).
+    *
+    * The 沙盒's rooms play the music their mod gives (docs/MODDING.md): a music
+    * file of the game as above, or the mod's own Sound, looped on a channel
+    * of its own, stopped by a battle, another room or the sound switch.
     */
    public class SceneMusic
    {
@@ -28,6 +36,11 @@ package mmo.sceneinit
       public static const FIGHT_MUSIC:String = "music/fightBgMusic1.mp3";
 
       private static var _instance:SceneMusic;
+      /** A mod's own music, playing (or held while the switch is off). */
+      private var own:Sound;
+      private var ownChannel:SoundChannel;
+      /** The sound switch has no event for off: looked at while a mod's music plays. */
+      private var ownWatch:Timer;
 
       /** The one SceneInit made (a mod's music() asks it to play the 沙盒 room's again). */
       public static function get instance():SceneMusic
@@ -47,6 +60,14 @@ package mmo.sceneinit
       public function playSceneMusic(name:String):void
       {
          sceneName = name;
+         var mine:Sound = name == "sandboxroom" ? modSound() : null;
+         if (mine != null)
+         {
+            SoundManager.instance.stopBackgroundMusic();
+            playOwn(mine);
+            return;
+         }
+         stopOwn();
          var files:String = musicOf(name);
          if (files == null || files.length == 0)
          {
@@ -62,6 +83,7 @@ package mmo.sceneinit
       {
          var files:String = musicOf(name);
          if (files == null || files.length == 0) return;
+         stopOwn();
          sceneName = name;
          if (playingOneOf(files)) return;
          playRandom(files);
@@ -81,6 +103,45 @@ package mmo.sceneinit
          return null;
       }
 
+      private static function modSound():Sound
+      {
+         try { return getDefinitionByName("mmo.control.ModRun")["musicSoundNow"] as Sound; }
+         catch (e:Error) {}
+         return null;
+      }
+
+      private function playOwn(s:Sound):void
+      {
+         if (s == own && ownChannel != null) return;
+         stopOwn();
+         own = s;
+         if (fighting || SoundManager.instance.isClose) return;
+         try { ownChannel = s.play(0, int.MAX_VALUE); }
+         catch (e:Error) { RLog.error("mod music", e); }
+         RLog.log("music: the mod's own (sandboxroom)");
+         if (ownWatch == null)
+         {
+            ownWatch = new Timer(500);
+            ownWatch.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
+            {
+               if (ownChannel != null && SoundManager.instance.isClose)
+               {
+                  ownChannel.stop();
+                  ownChannel = null;
+               }
+            });
+         }
+         ownWatch.start();
+      }
+
+      private function stopOwn():void
+      {
+         if (ownChannel != null) ownChannel.stop();
+         ownChannel = null;
+         own = null;
+         if (ownWatch != null) ownWatch.stop();
+      }
+
       private static function playingOneOf(files:String):Boolean
       {
          var now:String = SoundManager.instance.currentMusic;
@@ -98,7 +159,7 @@ package mmo.sceneinit
 
       private function onSoundComplete(e:Event):void
       {
-         if (fighting) return;
+         if (fighting || own != null) return;
          if (sceneName != null && !SoundManager.instance.isClose) playRandom(musicOf(sceneName) || "");
       }
 
@@ -111,6 +172,7 @@ package mmo.sceneinit
       private function onFightStart(e:Event):void
       {
          fighting = true;
+         stopOwn();
          SoundManager.instance.stopBackgroundMusic();
          fightMusic();
       }

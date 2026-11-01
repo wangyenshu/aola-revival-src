@@ -16,7 +16,7 @@ package mmo.fortunemanager
     * the bank machine of 奥拉广场 where idle 晶币 are put away for 1 to 7 days
     * and come back with interest (百田's guide of 5 January 2012: 500,000 晶币
     * for 7 days earn 24,500). The 2013 module is lost and the later one
-    * (fortunemanager/starcoin, 2026) keeps 晶豆 on later classes; this panel,
+    * (fortunemanager/starcoin, later) keeps 晶豆 on later classes; this panel,
     * drawn in the look of the rebuilt panels, speaks the later client's
     * ScoreManager commands, which the revival's server answers:
     *

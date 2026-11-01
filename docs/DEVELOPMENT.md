@@ -109,8 +109,8 @@ tools/                        Python tools (see below), fetch_refs.sh, bootstrap
   data/                       inputs of the tools: the 2013 manifest, live config and catalogs,
                               the 2012 world map's lists, NPC and quest supplements
     game-sources.jsonl        where every file of game/ can be downloaded again
-    archive/                  the indexes of the October 2026 CDN archive (docs/ARCHIVE.md)
-  mod-sdk/                    build.mjs (the mod API library, a mod, the examples) and examples/
+    archive/                  the indexes of the CDN archive (docs/ARCHIVE.md)
+  mod-sdk/                    build.mjs (the mod API library, a mod, the examples), embed/, examples/
 
 tests/
   test_tools.py               tests of the Python tools
@@ -286,7 +286,7 @@ of each file explains its inputs.
 | Tool | Purpose |
 | --- | --- |
 | `live_archive.py` | find, date and download what remains of the 2010–2013 files on the live CDN |
-| `make_aola_archive.py` | rebuild the archive of 28 October 2026 from the live CDN |
+| `make_aola_archive.py` | rebuild the archive from the live CDN |
 | `extract_archive.py` | unpack the archive pieces and verify every file |
 | `archive_additions.py` | add the files `game/` took later to the archive's indexes |
 | `make_game_root.py` | select the files the revival serves into `game/` and list them in `FILES.jsonl` (`select`), or rebuild `game/` from the list and an archive (`assemble`) |
@@ -349,7 +349,7 @@ their docstrings give the exact commands.
 
 | Command | Does |
 | --- | --- |
-| `node tools/mod-sdk/build.mjs api` | `build/mod-sdk/aola-mod-api.swc`, the library mods compile against |
+| `node tools/mod-sdk/build.mjs api` | `build/mod-sdk/aola-mod-api.swc`, the library mods compile against, and `aola-mod-embed.swc` (`tools/mod-sdk/embed/`: the base classes of embedded files) |
 | `node tools/mod-sdk/build.mjs <folder>` | a mod from its `asconfig.json` |
 | `node tools/mod-sdk/build.mjs examples [out]` | the examples of `tools/mod-sdk/examples/` and their `index.json` |
 

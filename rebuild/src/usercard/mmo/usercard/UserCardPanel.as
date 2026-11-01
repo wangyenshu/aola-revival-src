@@ -5,12 +5,14 @@ package mmo.usercard
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.events.HTTPStatusEvent;
    import flash.events.IOErrorEvent;
    import flash.events.MouseEvent;
    import flash.events.SecurityErrorEvent;
    import flash.events.TimerEvent;
    import flash.net.URLLoader;
    import flash.net.URLLoaderDataFormat;
+   import flash.utils.ByteArray;
    import flash.utils.Timer;
    import flash.filters.DropShadowFilter;
    import flash.filters.GlowFilter;
@@ -237,43 +239,75 @@ package mmo.usercard
             return;
          }
          var list:Array = info.getClothes();
-         var waiting:int = 0;
+         var files:Array = [];
+         for each (var u:* in list)
+         {
+            var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
+            if (c != null && c.fileName && !views.hasOwnProperty(c.fileName) && files.indexOf(c.fileName) < 0) files.push(c.fileName);
+         }
+         var missed:Array = [];
          var finish:Function = function():void
          {
             var shown:AvatarInfo = info.clone();
             shown.setClothes(list.filter(function(u:*, i:int, a:Array):Boolean
             {
                var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
-               return c == null || !c.fileName || views[c.fileName] !== false;
+               return c == null || !c.fileName || (views[c.fileName] !== false && missed.indexOf(c.fileName) < 0);
             }));
             done(shown);
          };
-         var asked:Object = {};
-         for each (var u:* in list)
+         // Counted before any is asked: an answer that comes at once does not finish early.
+         var waiting:int = files.length;
+         if (waiting == 0)
          {
-            var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
-            if (c == null || !c.fileName || views.hasOwnProperty(c.fileName) || asked[c.fileName]) continue;
-            asked[c.fileName] = true;
-            waiting++;
-            ask(c.fileName, function():void { if (--waiting == 0) finish(); });
+            finish();
+            return;
          }
-         if (waiting == 0) finish();
+         var answer:Function = function(file:String):Function
+         {
+            return function(ok:Boolean):void
+            {
+               if (!ok) missed.push(file);
+               if (--waiting == 0) finish();
+            };
+         };
+         for each (var f:String in files) ask(f, answer(f));
       }
 
+      /**
+       * Whether skinview/<file> is a SWF the site has: views[file] true or false, kept for the
+       * session only when sure (the file came, or the site answered that it has none). A page
+       * the host sends instead of a missing file is no SWF. Gives up after 8 s.
+       */
       private static function ask(file:String, then:Function):void
       {
          var ld:URLLoader = new URLLoader();
          ld.dataFormat = URLLoaderDataFormat.BINARY;
-         var end:Function = function(e:Event):void
+         var status:int = 0;
+         var over:Boolean = false;
+         var timer:Timer = new Timer(8000, 1);
+         var end:Function = function(ok:Boolean, sure:Boolean):void
          {
-            views[file] = e.type == Event.COMPLETE;
-            then();
+            if (over) return;
+            over = true;
+            timer.stop();
+            try { ld.close(); } catch (e0:Error) {}
+            if (sure) views[file] = ok;
+            then(ok);
          };
-         ld.addEventListener(Event.COMPLETE, end);
-         ld.addEventListener(IOErrorEvent.IO_ERROR, end);
-         ld.addEventListener(SecurityErrorEvent.SECURITY_ERROR, end);
+         ld.addEventListener(HTTPStatusEvent.HTTP_STATUS, function(e:HTTPStatusEvent):void { status = e.status; });
+         ld.addEventListener(Event.COMPLETE, function(e:Event):void
+         {
+            var b:ByteArray = ld.data as ByteArray;
+            var swf:Boolean = b != null && b.length > 8 && (b[0] == 0x46 || b[0] == 0x43 || b[0] == 0x5A) && b[1] == 0x57 && b[2] == 0x53;
+            end(swf, true);
+         });
+         ld.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { end(false, status == 404 || status == 410); });
+         ld.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(e:Event):void { end(false, false); });
+         timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void { end(false, false); });
+         timer.start();
          try { ld.load(VersManager.getVerURLRequest("skinview/" + file)); }
-         catch (err:Error) { views[file] = false; then(); }
+         catch (err:Error) { end(false, false); }
       }
 
       private function refreshGrid():void

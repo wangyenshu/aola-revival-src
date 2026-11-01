@@ -24,7 +24,7 @@ package mmo.petwarehouse.service
 
    /**
     * REBUILT pet/petwarehouse (service PetWareHouse, IShowPanel): the 亚比仓库.
-    * The January 2013 module is lost; the later one is a 2026 rework. The
+    * The January 2013 module is lost; the later one is a rework of years after. The
     * commands are the era PetClient's: viewPMInLocation (1213 -> 2213, loc 0
     * the bag, 1 the 仓库, twelve to a page) and sendPmToFromStorage (1224 ->
     * 2224 {result}, loc where the 亚比 goes). The panel is drawn in the look of

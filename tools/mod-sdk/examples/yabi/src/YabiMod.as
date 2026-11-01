@@ -80,10 +80,11 @@ package
                team: [{race: FROG, level: 15}],
                onWin: function():void
                {
-                  game.setData("caught", true);
                   game.givePet(FROG, 5, function(ok:Boolean):void
                   {
-                     if (ok) game.message("泡泡蛙跟你走了！打开「亚比」看看它吧。");
+                     if (!ok) return;
+                     game.setData("caught", true);
+                     game.message("泡泡蛙跟你走了！打开「亚比」看看它吧。");
                   });
                }
             });

@@ -10,6 +10,9 @@
 		"external-library-path": [
 			"../../../../build/mod-sdk/aola-mod-api.swc"
 		],
+		"library-path": [
+			"../../../../build/mod-sdk/aola-mod-embed.swc"
+		],
 		"output": "bin/yabi.swf",
 		"target-player": "10.1",
 		"swf-version": 10

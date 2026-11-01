@@ -17,9 +17,11 @@ This page covers:
 - how it all works inside the game.
 
 > **Security.** A mod is a program. The game runs it with the game's own
-> rights: it can do anything the game can, including reading and changing
-> the save kept in the browser. Only load mods whose source you have read
-> or whose author you trust.
+> rights: it can do anything the game can. It can send any request to the
+> server as the player (and so change the save), and through the Flash
+> player's link to the page it can run JavaScript in the page, on the
+> site's address. Only load mods whose source you have read or whose
+> author you trust.
 
 ## A first mod
 
@@ -71,6 +73,11 @@ because the game supplies them when the mod runs:
 - `playerglobal.swc`, Flash Player 10.1's classes;
 - `aola-mod-api.swc`, the four interfaces of `mmo.revival.mod`.
 
+A third, `aola-mod-embed.swc`, is linked into the mod: the classes the
+compiler bases embedded files on (`mx.core.BitmapAsset`, `SoundAsset` and
+the others; see [Pictures, animations and music](#pictures-animations-and-music)).
+Only the ones a mod uses end up in its SWF.
+
 The compiler is Apache Royale's, the same one that builds the rebuilt
 modules of the game.
 
@@ -82,7 +89,7 @@ this repository. `npm run build:swf` downloads the compiler and
 `rebuild/build/setup-toolchain.sh` does only that step.
 
 ```bash
-node tools/mod-sdk/build.mjs api                              # build/mod-sdk/aola-mod-api.swc
+node tools/mod-sdk/build.mjs api                              # build/mod-sdk/aola-mod-api.swc and aola-mod-embed.swc
 node tools/mod-sdk/build.mjs tools/mod-sdk/examples/hello     # tools/mod-sdk/examples/hello/bin/hello.swf
 node tools/mod-sdk/build.mjs my-mod                           # a mod folder of your own
 node tools/mod-sdk/build.mjs examples build/mods              # every example, with index.json
@@ -107,6 +114,7 @@ my-mod/
 		"swf-version": 10,
 		"source-path": ["src"],
 		"external-library-path": ["../aola-revival/build/mod-sdk/aola-mod-api.swc"],
+		"library-path": ["../aola-revival/build/mod-sdk/aola-mod-embed.swc"],
 		"output": "bin/mymod.swf"
 	},
 	"mainClass": "MyMod"
@@ -120,8 +128,8 @@ my-mod/
 - `compilerOptions.library-path` (libraries to link in);
 - `compilerOptions.output`.
 
-It adds `playerglobal.swc` and the API SWC itself. The other fields are for
-VS Code.
+It adds `playerglobal.swc`, the API SWC and the embed SWC itself. The other
+fields are for VS Code.
 
 ### With VS Code
 
@@ -135,27 +143,51 @@ VS Code.
 3. Royale's configuration looks for `playerglobal.swc` under
    `$PLAYERGLOBAL_HOME/10.1/`. Set `PLAYERGLOBAL_HOME` to the repository's
    `.toolchain/playerglobal` before starting VS Code.
-4. Build the API SWC once (`node tools/mod-sdk/build.mjs api`) and point
-   `external-library-path` at it.
+4. Build the two SWCs once (`node tools/mod-sdk/build.mjs api`), and point
+   `external-library-path` at `aola-mod-api.swc` and `library-path` at
+   `aola-mod-embed.swc`.
 5. Build with **Terminal → Run Build Task → ActionScript: compile release**.
    The extension also completes code against the API's interfaces.
 
 From a terminal, the same build is
 `PLAYERGLOBAL_HOME=… npx asconfigc --sdk <royale-asjs> -p my-mod`.
 
-### Pictures and animations
+### Pictures, animations and music
 
-Any of the following can be used for pictures and animations:
+Pictures and animations can be drawn in code (with `Graphics`, as the
+examples do) or embedded from files. An embedded file becomes a class of
+the mod. Put the `[Embed]` on a class of its own, one file each; the path is
+relative to that file:
 
-- **Code.** Draw with `Graphics`, as the examples do.
-- **Embedded pictures.** For example
-  `[Embed(source="art/bg.png")] public static const Bg:Class;` gives a
-  Bitmap class.
-- **Embedded symbols.** Symbols of a SWF made in Animate or another Flash
-  tool, for example
-  `[Embed(source="art/art.swf", symbol="Hero")] public static const Hero:Class;`.
-  Embedded symbols are the way to get timeline animations (MovieClips with
-  frames), such as a 亚比's battle sprite.
+```as3
+package
+{
+   import mx.core.BitmapAsset;
+
+   [Embed(source="../art/bg.png")]      // PNG, JPEG or GIF: a Bitmap
+   public class Bg extends BitmapAsset
+   {
+   }
+}
+```
+
+| File | The class extends | Gives |
+| --- | --- | --- |
+| a picture (`.png`, `.jpg`, `.gif`) | `mx.core.BitmapAsset` | a Bitmap |
+| a symbol of a SWF made in Animate or another Flash tool (`source="art/art.swf", symbol="Hero"`) | `mx.core.MovieClipAsset` (a symbol with frames) or `mx.core.SpriteAsset` | a MovieClip or Sprite: the way to get timeline animations, such as a 亚比's battle sprite |
+| an MP3 (11025, 22050 or 44100 Hz) | `mx.core.SoundAsset` | a Sound |
+| any other file (`mimeType="application/octet-stream"`) | `mx.core.ByteArrayAsset` | its bytes |
+
+An `[Embed]` on a variable (`[Embed(source="bg.png")] public static const
+Bg:Class;`) works too, but with this compiler it puts the file into the SWF
+twice.
+
+Music: give a room's `music` (or `IModGame.music`) the class of an embedded
+MP3, or a Sound. It plays looped while the room is shown, stops during
+fights and when the player switches the music off, and the scene's own
+music comes back outside the 沙盒. The `story` example plays its own tune
+(`src/Tune.as`, `art/tune.mp3`, made by `art/make_tune.py`) on the shore and
+a music file of the game in the lighthouse room.
 
 Classes written outside the package block (as in the examples) are defined
 in the order of the file. A static constant initialised with one of them
@@ -175,8 +207,9 @@ In the game, open **沙盒 → 模组**:
   in `revival/mods/index.json`.
 
 **开始** starts the mod that is loaded. One mod is loaded at a time;
-loading another forgets the first. To load a new build of the same mod,
-import it again.
+loading another forgets the first (its SWF is unloaded and stopped, its
+pending replies and conversations dropped). To load a new build of the
+same mod, import it again.
 
 ## The API
 
@@ -185,9 +218,10 @@ All four interfaces are in the package `mmo.revival.mod` (sources:
 
 Rooms are 560 high and 960 to 2880 wide. Positions are room coordinates:
 0, 0 is the top left of the room, and characters stand on their feet. Rooms
-wider than 960 scroll as the wide rooms of the game do. Text may use the
-HTML the game's panels use (`<font color='#FF6600'>…</font>`) and
-`#username#` (the player's name).
+wider than 960 scroll as the wide rooms of the game do. The text of a
+conversation (`talk`) may use the HTML the game's panels use
+(`<font color='#FF6600'>…</font>`) and `#username#` (the player's name).
+Other text (names, door labels, `say`, room names) is shown as it is.
 
 ### `IMod`
 
@@ -208,8 +242,8 @@ shown.
 | Member | |
 | --- | --- |
 | `room(id, def)` | define a room (fields below) |
-| `enter(roomId, spawn = null)` | show the room, the player at the spawn point (default `"start"`) |
-| `leave()` | leave the mod: back to where the 沙盒 was started |
+| `enter(roomId, spawn = null)` | show the room, the player at the spawn point (default `"start"`). Called while a scene is loading, it waits until that scene is shown |
+| `leave()` | leave the mod: back to where the 沙盒 was started (from a home or a 副本: to the last place outdoors) |
 | `get currentRoom():IModRoom` | the room shown, or null |
 
 The fields of a room's `def`:
@@ -220,37 +254,37 @@ The fields of a room's `def`:
 | `background` | a DisplayObject, a BitmapData or a Class. It is scaled to 560 high, and its width then (kept to 960–2880) is the room's width |
 | `width` | the room's width when there is no background (960–2880, default 960; the room is then dark blue) |
 | `walk` | where the player may walk. `function(x, y):Boolean` returning true for a wall; or a picture (BitmapData, DisplayObject or Class) stretched over the room: black is wall, white or transparent is floor. Default: everywhere |
-| `music` | a music file of the game, such as `"music/themeparknew4.mp3"` |
-| `spawns` | entry points: `{name: [x, y], …}`. `"start"` is used when `enter` names none, else the first one, else 480, 470 |
+| `music` | the room's music: the class of an embedded MP3, or a Sound (the mod's own music); or a music file of the game, such as `"music/themeparknew4.mp3"` |
+| `spawns` | entry points: `{name: [x, y], …}`. `"start"` is used when `enter` names none. A name the room does not have, or no spawns, puts the player at 480, 470 |
 | `build` | `function(room:IModRoom):void`, called each time the room is shown, to put its characters, opponents, doors and pictures. A room is built anew every time it is entered: keep what must last with `setData` |
 
 **Conversations, films and messages**
 
 | Member | |
 | --- | --- |
-| `talk(speaker, pages, done = null)` | a conversation in the game's NPC panel. `speaker`: `{name, picture}` (picture: DisplayObject or Class, drawn at the left; optional). `pages`: each a String, or `{text, choices: [[label, function], …]}`. The pages are shown one after another, and a click goes on. A choice closes the panel and calls its function, so put choices on the last page. `done()` is called after the last page (not after a choice, nor when the panel is closed with ×) |
-| `film(clip, done = null, seconds = 0)` | show a DisplayObject over the whole screen (960 × 560), the room dimmed under it, with a 跳过 button; then `done()`. A MovieClip of several frames plays from its first frame to its last. Anything else stays until it dispatches `Event.COMPLETE`, or for `seconds` |
+| `talk(speaker, pages, done = null)` | a conversation in the game's NPC panel. `speaker`: `{name, picture}` (picture: DisplayObject or Class, drawn at the left; optional; a DisplayObject already shown in the room is drawn as a copy). `pages`: each a String, or `{text, choices: [[label, function], …]}`. The pages are shown one after another, and a click goes on. A choice closes the panel and calls its function, so put choices on the last page. `done()` is called after the last page (not after a choice, nor when the panel is closed with ×) |
+| `film(clip, done = null, seconds = 0)` | show a DisplayObject over the whole screen (960 × 560), the room dimmed under it, with a 跳过 button; then `done()`. A MovieClip of several frames plays from its first frame to its last; a whole embedded SWF (`MovieClipLoaderAsset`) plays its own timeline once loaded. Anything else stays until it dispatches `Event.COMPLETE`, or for `seconds` |
 | `message(text)` | a message box |
-| `music(path)` | change the music of the room shown (`""`: none) |
+| `music(music)` | change the music of the room shown: the class of an embedded MP3 or a Sound, a music file of the game, or `""` for none (API 2; API 1 took only a music file of the game). Called before the room is shown, it takes effect when it is |
 
 **Fights and 亚比**
 
 | Member | |
 | --- | --- |
-| `fight(team, done = null, heal = true)` | fight 1–10 opponents one after another. Each is `{race, level, hp, at, de, sa, sd, sp}`: `race` is a 亚比 of the game or of the mod, `level` is 1–999, and the six are 体力, 攻击, 防御, 特攻, 特防 and 速度 in percent of the normal value (1–10000, default 100). `done(win:Boolean)`. `heal`: the bag's 亚比 get their 体力 and PP back before each fight. A win brings nothing (no experience) |
+| `fight(team, done = null, heal = true)` | fight 1–10 opponents one after another. Each is `{race, level, hp, at, de, sa, sd, sp}`: `race` is a 亚比 of the game or of the mod, `level` is 1–999, and the six are 体力, 攻击, 防御, 特攻, 特防 and 速度 in percent of the normal value (1–10000, default 100). `done(win:Boolean)` (a team the server refuses counts as a loss). `heal`: the bag's 亚比 get their 体力 and PP back before each fight. A win brings nothing (no experience). More than 10 opponents: the first 10. While a fight is on, another `fight` is ignored (no `done`) |
 | `species(def, done = null)` | define a 亚比 of the mod (next section). `done(ok:Boolean)` |
-| `givePet(race, level = 1, done = null)` | give the player a 亚比: a 亚比 of the game, or one the mod has defined. It goes to the bag, or to the 仓库 when the bag is full. `done(ok:Boolean)` |
+| `givePet(race, level = 1, done = null)` | give the player a 亚比: a 亚比 of the game, or one this mod has defined. `level`: 1–100. It goes to the bag, or to the 仓库 when the bag is full. `done(ok:Boolean)` |
 
 **Saved data and the rest**
 
 | Member | |
 | --- | --- |
 | `getData(key):*` | a value the mod saved, or undefined |
-| `setData(key, value)` | save a value (JSON-like: numbers, strings, booleans, arrays, plain objects; `undefined` deletes it). The data is kept with the player's game, read before `start` and saved half a second after the last change. At most 64 KB per mod |
-| `after(seconds, f)` | call `f()` after `seconds`, unless the room has been left by then |
+| `setData(key, value)` | save a value (JSON-like: numbers, strings, booleans, arrays, plain objects; `undefined` deletes it). The data is kept with the player's game, read before `start` and sent half a second after a change (with the changes made meanwhile). At most 64 KB (UTF-8) per mod and 1 MB for all mods; data over that is not kept (the console says so) |
+| `after(seconds, f)` | call `f()` after `seconds`, unless the room has been left by then. Asked for before a room is shown (in `start`, a door's handler), the time counts from when it is |
 | `log(...parts)` | write to the browser's console |
-| `get playerName():String` | the player's name |
-| `get apiVersion():int` | 1 |
+| `get playerName():String` | the player's name as the game shows it (as `#username#`) |
+| `get apiVersion():int` | 2 |
 
 ### `IModRoom`
 
@@ -275,7 +309,7 @@ The fields of a character (`npc`, `foe`):
 | Field | |
 | --- | --- |
 | `name` | shown under it (an opponent also shows its team's size and first level) |
-| `look` | a DisplayObject, a Class, or a race: a 亚比 of the mod (its `walk` picture, or its icon) or of the game (dressed as that 亚比, as the wild 亚比 are) |
+| `look` | a DisplayObject, a Class, or a race: a 亚比 of the mod (its `walk` picture, or its icon, made at most 110 high) or of the game (dressed as that 亚比, as the wild 亚比 are). Default: 兔小子 (race 1) |
 | `picture` | its picture in `talk()`. Default: the look's class, the mod 亚比's icon, or a snapshot of the look |
 | `x`, `y` | where it stands (its feet) |
 | `scale` | default 1 |
@@ -297,12 +331,12 @@ The fields of a character (`npc`, `foe`):
 
 ```as3
 game.species({
-   id: 900101,                         // 900001–999999
+   id: 900777,                         // 900001–999999: pick a number of your own
    name: "泡泡蛙",
    attr: 10,                           // or [10, 11]; the game's attribute numbers (9 火, 10 水, 11 草 …)
    stats: [70, 60, 65, 80, 70, 75],    // 体力, 攻击, 防御, 特攻, 特防, 速度 base values, 1–255
    skills: [[0, 1014], [4, 11014], [8, 1148]],   // [level learnt, skill id of the game]
-   exp: "2",                           // experience curve of the game (default "2")
+   exp: "2",                           // experience curve of the game (default, and for an unknown one, "2")
    icon: Frog,                         // Class: its picture, about 150 high, feet at 0, 0
    fight: FrogFight,                   // optional Class: battle sprite facing the viewer
    back: FrogBack,                     // optional Class: battle sprite seen from behind
@@ -340,17 +374,24 @@ be caught with 亚比球 and does not evolve.
 runs and once its mod has called `species`. A player who has one (from
 `givePet`) keeps it in the save. At login, 亚比 the game does not know are
 put aside, and they come back to the bag or the 仓库 when their mod is
-started and calls `species` again. Keep the `id` and the definition the
-same across versions of a mod.
+started and calls `species` again. Each keeps the id of the mod that made
+it: another mod using the same number gets none of them back, and while
+one mod's 亚比 is known in a run, another mod cannot define or give that
+number (`done(false)`). Keep the `id` and the definition the same across
+versions of a mod, and pick a number other mods are unlikely to use.
 
 **Errors.** The server refuses a definition that cannot be (`done(false)`;
 the log says why):
 
-- an id outside 900001–999999;
-- no name;
-- an attribute that is not the game's;
+- an id outside 900001–999999, or one another mod has defined in this run;
+- no name (a longer one is cut to 12 characters);
+- a first attribute that is not the game's (a second one that is not
+  becomes the first);
 - stats outside 1–255;
-- a skill that is not the game's.
+- no skill, or a skill that is not the game's (at most 40 are kept).
+
+The server answers with the definition as it keeps it, and the game's
+panels get that one.
 
 ## Examples
 
@@ -361,7 +402,7 @@ the log says why):
 | Folder | Shows |
 | --- | --- |
 | `hello` | one room drawn in code, a walk function, a character with a question, a door out, saved data (visits) |
-| `story` | two rooms joined by doors (a wide room of 1400), conversations with choices, a film drawn in code (ended with `Event.COMPLETE`), an opponent with a team of the game's 亚比, progress kept with `setData`, a 亚比 given as a reward |
+| `story` | two rooms joined by doors (a wide room of 1400), conversations with choices, a film drawn in code (ended with `Event.COMPLETE`), an opponent with a team of the game's 亚比, progress kept with `setData`, a 亚比 given as a reward, music of its own (an embedded MP3) and of the game |
 | `yabi` | a 亚比 of the mod (`species`) standing in the room, fought, and given to the player |
 
 ## The 对手关卡 file

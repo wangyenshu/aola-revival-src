@@ -264,7 +264,8 @@ def write(t: dict, chosen: list[int], out_gen: str, out_static: str) -> dict:
                 lst.append(e)
     # Scripts number the parts of a step too: 202802 is part 2 of step 2028 (they open those themselves).
     # They also open talks under ids of their own that the scene table lists with their scripts but
-    # that are no step: 1071 (拜师学艺's first films, 1050) and 1038 (原子 after 遇见小宇宙, 1034).
+    # that are no step, such as 1071 (拜师学艺's first films, 1050) and 1038 (原子 after 遇见小宇宙,
+    # 1034); 165 (task 160's script) and 1548 (a step the later task tables dropped) come along.
     listed = {i for lst in scene_te.values() for e in lst for i in e["taskIds"] + e["starterIds"]}
 
     def ours(k: str) -> bool:

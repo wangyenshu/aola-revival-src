@@ -12,7 +12,7 @@ never downloads anything; this is for curating game/.
   tools/add_later.py --game game --live-head <live inventory head.jsonl> \\
       --why "HELLO in scenes" skin/a000033.swf skin/a300000.swf
 
-With --archive, the files are taken from a copy of the October 2026 archive
+With --archive, the files are taken from a copy of the archive
 (docs/ARCHIVE.md) instead of the CDN: each must be listed in one of its
 indexes (index.jsonl, _later/index.jsonl) and match the SHA-1 given there.
 
@@ -68,7 +68,8 @@ def main(argv=None) -> None:
     for inv in a.live_head:
         for line in open(inv, encoding="utf-8"):
             r = json.loads(line)
-            if r.get("status") == 200:
+            # A file the archive holds is taken from it, checked against its own line.
+            if r.get("status") == 200 and r["path"] not in stored:
                 head[r["path"]] = r
     files = os.path.join(a.game, "FILES.jsonl")
     rows = [json.loads(l) for l in open(files, encoding="utf-8")]

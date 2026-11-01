@@ -30,7 +30,7 @@ import zipfile
 from concurrent.futures import ThreadPoolExecutor
 
 ROOTS = (("index.jsonl", "aola.100bt.com/play"), ("_later/index.jsonl", "_later/aola.100bt.com/play"),
-         # Added 31 October 2026 (tools/archive_additions.py): live files outside /play/
+         # Added later (tools/archive_additions.py): live files outside /play/
          # (paths from the host) and pictures from the Wayback Machine. Optional.
          ("_site/index.jsonl", "_site"), ("_wayback/index.jsonl", "_wayback"))
 OPTIONAL = {"_site/index.jsonl", "_wayback/index.jsonl"}

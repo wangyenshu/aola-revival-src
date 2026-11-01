@@ -95,7 +95,7 @@ package mmo.play.scene
             [835, "我的伙伴我做主", P121122 + "myfriends|mmo.activity121122.myfriends.MFMainPanel"]],
          // 太空港's 战队 functions are 指挥官瑞斯's in the 战队要塞 behind it (the scene answers them;
          // SquadService itself is not rebuilt).
-         // 蓝宝石要塞 (its 2026 scene answers none of its 2012 functions): 军需官亨特's weekly
+         // 蓝宝石要塞 (its later scene answers none of its 2012 functions): 军需官亨特's weekly
          // 蓝宝石礼包 (the era VipGiftService's week panel) and 训练官卢卡斯's 亚比骑乘训练
          // (PetRideTrannig, pet/petridepanel, not rebuilt: its stand-in says so).
          "bluesquare": [[142, "我要领取蓝宝石礼包！", "revival_vipgift"], [148, "亚比骑乘训练", "revival_service:PetRideTrannig"]],
@@ -138,7 +138,7 @@ package mmo.play.scene
                   door(info, "et1", "temple1", "from" + info.sceneName, "崩坏的上古神殿");
                   break;
                case "bluesquare":
-                  // 骑士团长亚瑟 (btnArthur): the 2026 scene opens the 2025 vip/viparthur; he
+                  // 骑士团长亚瑟 (btnArthur): the later scene opens a later vip/viparthur; he
                   // talks (his December 2012 picture, tasknpc/npc147) and gives the weekly gift.
                   takeOver(info, "btnArthur", showArthur);
                   hide(info, LATER_PROMOS.bluesquare);
@@ -388,7 +388,7 @@ package mmo.play.scene
        * of their sales and rankings (none answers anything in the 2013 game).
        */
       private static const LATER_PROMOS:Object = {
-         // 蓝宝石要塞 (2026): 万欲之源众望终响, 星辉币兑换商店, 蓝钻兑换, 2026 季赛, 首充蓝宝送.
+         // 蓝宝石要塞 (later): 万欲之源众望终响, 星辉币兑换商店, 蓝钻兑换, 季赛, 首充蓝宝送.
          bluesquare: ["btnnianfei2026", "btnXHES", "btnLZS", "btnjifeigain26", "btnLBSC"],
          // 六芒前殿 (2025): the 典藏皮肤 sale and the 最强荣耀 stand.
          hexagrampalace1: ["btnmipandiancangpifu", "mchonor"],

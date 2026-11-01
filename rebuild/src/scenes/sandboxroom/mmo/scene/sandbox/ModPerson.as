@@ -25,6 +25,8 @@ package mmo.scene.sandbox
       private var room:SandboxRoom;
       private var def:Object;
       private var look:DisplayObject;
+      /** The look in its holder (as drawn in the room). */
+      private var art:DisplayObject;
       private var foe:Boolean;
       private var run:Object;
       private var tag:TextField;
@@ -41,10 +43,13 @@ package mmo.scene.sandbox
          buttonMode = true;
          if (look != null)
          {
+            // Scaled in a holder of its own: a look the mod shows again keeps its own size.
             var k:Number = (Number(def.scale) || 1) * (foe && def.boss ? 1.5 : 1);
-            look.scaleX *= k;
-            look.scaleY *= k;
-            addChild(look);
+            var holder:Sprite = new Sprite();
+            holder.scaleX = holder.scaleY = k;
+            holder.addChild(look);
+            addChild(holder);
+            art = holder;
          }
          var label:String = def.name ? String(def.name) : (foe ? (def.boss ? "首领" : "对手") : "");
          if (foe && def.team is Array && def.team.length > 0)
@@ -126,15 +131,15 @@ package mmo.scene.sandbox
          }
          if (!(def.look is DisplayObject) && int(def.look) > 0 && RDef.has("mmo.pet.peticon" + int(def.look) + "_L"))
             return RDef.make("mmo.pet.peticon" + int(def.look) + "_L") as DisplayObject;
-         if (look == null) return null;
+         if (art == null) return null;
          try
          {
-            var b:Object = look.getBounds(this);
+            var b:Object = art.getBounds(this);
             if (b.width < 2 || b.height < 2) return null;
             var bd:BitmapData = new BitmapData(Math.ceil(b.width), Math.ceil(b.height), true, 0);
-            var m:Matrix = look.transform.matrix.clone();
+            var m:Matrix = art.transform.matrix.clone();
             m.translate(-b.x, -b.y);
-            bd.draw(look, m);
+            bd.draw(art, m);
             var pic:Bitmap = new Bitmap(bd, "auto", true);
             pic.x = b.x;
             pic.y = b.y;

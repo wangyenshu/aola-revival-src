@@ -13,7 +13,7 @@ to it.
 
 ## Copyright and licence of this project
 
-Copyright (C) 2026 the aola-revival contributors.
+Copyright (C) the aola-revival contributors.
 
 The work written for this project is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License,

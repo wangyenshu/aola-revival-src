@@ -235,8 +235,8 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art bigscene/starlandcopy.swf)" \
   --code "$OUT/starland-code.swf" --bind 0=mmo.scene.starland.Docstarland --bind 225=mmo.scene.starland.Starland \
   --note "REBUILT scene/starland: rebuilt code (aola-revival) on the July 2012 art of bigscene/starlandcopy.swf" \
   --out "$W/scene/starland.swf%3F130124"
-# 流星购物街 (starshopping): the January 2013 scene is lost (the live one is of
-# 2026); the config gives the July 2012 art (starlandcopy) that name.
+# 流星购物街 (starshopping): the January 2013 scene is lost (the live one is a
+# later one); the config gives the July 2012 art (starlandcopy) that name.
 cp "$W/scene/starland.swf%3F130124" "$W/scene/starshopping.swf%3F130124"
 
 # 道具店: the later scene's own code (2016 copy, decompiled), compiled against

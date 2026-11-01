@@ -8,7 +8,7 @@ package mmo.pm.service
 
    /**
     * REBUILT pet/pmservice (PMService). The January 2013 module is lost and the
-    * live one is a 2026 rework on later interfaces. This hands out the 2013
+    * live one is a later rework on later interfaces. This hands out the 2013
     * PMCustomData (interfaces library): its four maps of rows, PMData by race,
     * PMExp by experience type, PMAttDef by attribute and PMSkill by skill, in
     * the columns of the 2013 PMExcelMap. The rows are the revival's tables

@@ -40,7 +40,7 @@ NPCs come in two kinds:
   characters that appear in many rooms.
 
 The numbers are NPC ids (`tasknpc/npc<id>`). Many rooms are later redrawings
-(2014–2026) of the 2012 rooms; where a later room places NPCs that no 2012
+(2014 and after) of the 2012 rooms; where a later room places NPCs that no 2012
 quest uses, they never appear.
 
 | 地点 | 场景 | 常驻 NPC | 任务 NPC（有任务时出现） |

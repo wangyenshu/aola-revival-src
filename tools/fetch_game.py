@@ -38,7 +38,7 @@ does not match is not kept unless --keep-changed is given; then
 it is kept and listed as changed (the game may behave differently there).
 Files the list marks with a note (the revival does not serve them) only give
 a warning. Files that cannot be had at all are listed with their URLs; the
-archive of 28 October 2026 (docs/ARCHIVE.md) still has them.
+archive (docs/ARCHIVE.md) still has them.
 
 Python 3.8+, standard library only. Honours HTTP_PROXY / HTTPS_PROXY.
 These are 百田's files, for private preservation and study: do not
@@ -263,7 +263,7 @@ def main(argv=None) -> int:
     hard = [r for r in problems if r["status"] in ("failed", "changed-skipped")]
     if hard:
         print(f"{len(hard)} files could not be had as listed (see the report); "
-              "--keep-changed keeps the changed ones, the October 2026 archive has the rest.")
+              "--keep-changed keeps the changed ones, the archive has the rest.")
     return 1 if hard else 0
 
 

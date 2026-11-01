@@ -67,8 +67,8 @@ download URLs of every file and its SHA-1; a file is kept only if it matches.
 The six files made here (the two theatre films as MP4 and WebM, and a
 picture of each) are made again with FFmpeg if it is installed. 百田 replaces files on its CDN from time to time; files that no
 longer match are listed in `work/fetch-game-report.json`, and
-`--keep-changed` keeps the newer copies instead. The whole archive of
-October 2026 (more files than the game uses) can be downloaded with
+`--keep-changed` keeps the newer copies instead. The whole archive
+(more files than the game uses) can be downloaded with
 `python3 tools/make_aola_archive.py --out aola_archive_2013`, from the
 indexes in `tools/data/archive/`.
 
@@ -106,7 +106,6 @@ Notes:
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Building, testing, the folder structure, the tools |
 | [docs/MODDING.md](docs/MODDING.md) | Writing mods for the 沙盒: building with Apache Royale or VS Code, the API, the examples |
 | [docs/ARCHIVE.md](docs/ARCHIVE.md) | The archive of the game's CDN that `game/` was made from |
-| [docs/HISTORY.md](docs/HISTORY.md) | The work, update by update, with the details and sources of each change |
 
 ## Repository layout
 

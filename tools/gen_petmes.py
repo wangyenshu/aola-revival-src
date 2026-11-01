@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the data of the rebuilt pet/petskillmesservice.
 
-The January 2013 PetSkillMesService is lost (the live one is a 2026 rework on
+The January 2013 PetSkillMesService is lost (the live one is a later rework on
 the later IPMService). Its answers (a 亚比's name, attribute and evolution
 line, a skill's name, power, hit rate and PP, the experience table) come from
 the same tables the emulator reads, revival/pmdata.json (tools/gen_pmdata.py),

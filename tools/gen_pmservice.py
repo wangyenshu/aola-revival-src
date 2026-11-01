@@ -2,7 +2,7 @@
 """Generate the tables of the rebuilt pet/pmservice.
 
 The January 2013 PMService (pet/pmservice v130124) is lost; the live file is a
-2026 rework on later interfaces. The 2013 client asks it for
+later rework on later interfaces. The 2013 client asks it for
 mmo.interfaces.pet.pm.data.PMCustomData: four maps of rows (PMData, PMExp,
 PMAttDef, PMSkill) whose columns are the titles of the 2013 PMExcelMap. This
 writes those rows from the emulator's tables, revival/pmdata.json

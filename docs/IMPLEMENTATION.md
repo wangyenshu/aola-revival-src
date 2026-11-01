@@ -1,9 +1,8 @@
 # Implementation
 
 This document describes how the revival works: the page, the server
-emulator, the rebuilt client and each game system. The history of each
-change, with its sources, is in [HISTORY.md](HISTORY.md); building and
-testing are in [DEVELOPMENT.md](DEVELOPMENT.md).
+emulator, the rebuilt client and each game system. Building and testing
+are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Overview
 
@@ -65,7 +64,7 @@ manifest (`versiondata.swf?201301241`) or the loader's default, `1210`.
 | `capture` | 142 | 17 MB | Wayback Machine captures: the boot chain, the 2013 site's pictures, the November 2012 map |
 | `derived` | 6 | 64 MB | made here: the theatre films converted to WebM and MP4, and a frame of each |
 
-The files come from an archive of the live CDN made on 28 October 2026
+The files come from an archive of the live CDN
 ([ARCHIVE.md](ARCHIVE.md)) and earlier Wayback captures, selected by
 `tools/make_game_root.py`. Curation tools added files later (story quest
 rooms, catalog pages, the 奥拉周刊, boss pictures); each addition is listed
@@ -261,7 +260,7 @@ click that reaches a stand-in shows 这个功能还在修复中.
 
 ### Using later code
 
-Some modules survive only as later uploads (2014–2026), which call classes
+Some modules survive only as later uploads (2014 and after), which call classes
 the 2013 libraries do not have. They are handled in these ways:
 
 - **Recompiled**: the decompiled later code is compiled against the 2013

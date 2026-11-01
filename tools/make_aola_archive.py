@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Rebuild the 奥拉星 2010-2013 archive (taken 28 Oct 2026) from the live CDN.
+"""Rebuild the 奥拉星 2010-2013 archive from the live CDN.
 
 Reads the archive's two indexes (index.jsonl and _later/index.jsonl, in
 archive-meta.zip and in tools/data/archive/), downloads every listed file from its original URL on
-http://aola.100bt.com/play/, and keeps it only if its SHA-1 matches the copy
-archived on 28 October 2026. Python 3.8+, standard library only.
+http://aola.100bt.com/play/, and keeps it only if its SHA-1 matches the archived
+copy. Python 3.8+, standard library only.
 
     python3 tools/make_aola_archive.py --out aola_archive_2013
     python3 make_aola_archive.py --index archive-meta.zip --out aola_archive_2013
@@ -22,10 +22,10 @@ Result:
     <out>/_later/aola.100bt.com/play/...   7,213 later uploads that 2012/13 code refers to
                                            (among them the 1,483 battle sprites fightassets/pet<n>)
     <out>/index.jsonl, _later/index.jsonl, _meta/, ARCHIVE.md
-    <out>/_changed-on-cdn.txt              files the operator has replaced since 28 Oct 2026
+    <out>/_changed-on-cdn.txt              files the operator has replaced since the archive
 
 A file in _changed-on-cdn.txt can no longer be fetched as archived; its
-28 Oct 2026 copy exists only in the original archive, so keep that list.
+archived copy exists only in the original archive, so keep that list.
 These are 百田's files, for private preservation. Do not redistribute.
 """
 import argparse
@@ -175,7 +175,7 @@ def main():
             f.write("".join(x + "\n" for x in sorted(failed)))
     print(f"done: {counts}")
     if changed:
-        print(f"{len(changed)} files were replaced on the CDN since 28 Oct 2026: see _changed-on-cdn.txt")
+        print(f"{len(changed)} files were replaced on the CDN since the archive: see _changed-on-cdn.txt")
     if failed:
         print(f"{len(failed)} downloads failed (network): run the same command again to retry them")
 

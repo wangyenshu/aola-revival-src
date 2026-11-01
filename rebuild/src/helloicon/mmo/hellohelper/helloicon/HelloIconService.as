@@ -92,8 +92,8 @@ package mmo.hellohelper.helloicon
             // Its bubble while the mouse is over it ("主人,快点让HELLO带你玩转好玩活动吧！")
             // comes with the frames of the over state.
             var overFit:Function = function(e:Event):void { fitTexts(btnHello.overState); };
-            btnHello.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void { btnHello.addEventListener(Event.ENTER_FRAME, overFit); });
-            btnHello.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void { btnHello.removeEventListener(Event.ENTER_FRAME, overFit); });
+            btnHello.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void { overFit(e); btnHello.addEventListener(Event.EXIT_FRAME, overFit); });
+            btnHello.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void { btnHello.removeEventListener(Event.EXIT_FRAME, overFit); });
             con.addChild(btnHello);
             btnHello.addEventListener(MouseEvent.CLICK, onClickSb);
             showHelloMovie(mcComeOutStr, null);
@@ -131,13 +131,13 @@ package mmo.hellohelper.helloicon
          mc.x = helloPoint.x;
          mc.y = helloPoint.y;
          mc.mouseEnabled = mc.mouseChildren = false;
-         // The films' bubbles come and go with their frames.
+         // The films' bubbles come and go with their frames: fitted once a frame is built.
          var fitting:Function = function(e:Event):void
          {
-            if (mc.parent == null) mc.removeEventListener(Event.ENTER_FRAME, fitting);
+            if (mc.parent == null) mc.removeEventListener(Event.EXIT_FRAME, fitting);
             else fitTexts(mc);
          };
-         mc.addEventListener(Event.ENTER_FRAME, fitting);
+         mc.addEventListener(Event.EXIT_FRAME, fitting);
          btnHello.visible = false;
          con.addChild(mc);
          mc.gotoAndPlay(1);
@@ -149,7 +149,7 @@ package mmo.hellohelper.helloicon
       /**
        * The bubbles' words (SimSun 12, 2 px between lines, in fields as tall as
        * two such lines, or three) take more room in the font the browser has
-       * (wider, and lines up to 1.45 times the size apart), and their last line
+       * (wider, and lines about 1.4 times the size apart), and their last line
        * was cut off. They are made smaller, down to 10, with no space between
        * lines, until their lines fit. (Ruffle's textHeight does not measure the
        * font it draws with, so the lines are counted.)

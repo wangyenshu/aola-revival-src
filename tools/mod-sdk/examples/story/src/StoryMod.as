@@ -30,7 +30,7 @@ package
             name: "海边小路",
             background: Shore,
             walk: function(x:Number, y:Number):Boolean { return y < 360; },
-            music: "music/themeparknew4.mp3",
+            music: Tune,                            // the mod's own music (Tune.as)
             spawns: {start: [140, 470], fromLighthouse: [820, 440]},
             build: buildShore
          });
@@ -39,6 +39,7 @@ package
             background: Lighthouse,
             width: 1400,
             walk: function(x:Number, y:Number):Boolean { return y < 380 || (x > 560 && x < 840 && y < 470); },
+            music: "music/challenger.mp3",          // a music file of the game
             spawns: {start: [160, 470]},
             build: buildLighthouse
          });
@@ -113,10 +114,13 @@ package
             onWin: function():void
             {
                game.setData("step", 3);
+               game.music(Tune);
                room.add(new Beam(), 700, 120, "front");
+               // The reward first: it does not hang on the conversation being read to its end.
+               game.givePet(1, 10);
                game.talk({name: "守灯人老海", picture: Keeper}, [
                   "灯塔又亮了！这只亚比送给你，它一直想跟着勇敢的人。"
-               ], function():void { game.givePet(1, 10); });
+               ]);
             },
             onLose: function():void { game.message("再试一次吧！"); }
          });

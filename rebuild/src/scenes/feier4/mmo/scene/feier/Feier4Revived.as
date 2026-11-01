@@ -11,8 +11,8 @@ package mmo.scene.feier
 
    /**
     * LATER scene/feier4 (火山口, where 烈焰鸟 the 守护者 sleeps): the January
-    * 2013 scene is lost and the live one (2026) asks for a later date helper
-    * and the gathering spots of a 2026 activity, and stopped as it was
+    * 2013 scene is lost and the live one (later) asks for a later date helper
+    * and the gathering spots of a later activity, and stopped as it was
     * entered. Its code cut down to the 2013 engine, on its own art: the way
     * back to 火山山口 (feier3) and the 闪光石 to gather (material 93). The file
     * places its obstruction twice; the second is hidden here.
@@ -62,7 +62,7 @@ package mmo.scene.feier
             if (stone != null && g != null) g.registerGatherMaterial(93, stone);
          }
          catch (e:Error) {}
-         // The 2026 activity's gathering spots stay hidden.
+         // The later activity's gathering spots stay hidden.
          for (var i:int = 0; i < 3; i++)
          {
             var act:DisplayObject = container.getChildByName("mcActGather" + i);

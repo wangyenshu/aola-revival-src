@@ -3,7 +3,7 @@
 
 The archive (docs/ARCHIVE.md's layout: index.jsonl for files uploaded
 2010–2013, _later/index.jsonl for later uploads, under aola.100bt.com/play/)
-was made on 28 October 2026. Curation tools have since taken more files from
+was made from the live CDN. Curation tools have since taken more files from
 the live CDN into game/ (tools/add_later.py, story_files.py, theatre.py, …),
 each listed in game/FILES.jsonl with its CDN path, upload date and SHA-1.
 This writes an index line for each of them that neither index has, with the
@@ -68,7 +68,6 @@ def main(argv=None) -> None:
     ap.add_argument("--meta", required=True, help="the unpacked archive-meta folder (index.jsonl, _later/index.jsonl)")
     ap.add_argument("--live-head", action="append", default=[], help="live inventories (path, status, lm, size, etag per line)")
     ap.add_argument("--head-missing", action="store_true", help="ask the CDN for the ETag of files no inventory has")
-    ap.add_argument("--today", default=dt.date.today().isoformat())
     a = ap.parse_args(argv)
 
     game = Path(a.game)
@@ -112,7 +111,7 @@ def main(argv=None) -> None:
             rec["sha1"] = hashlib.sha1(data).hexdigest()
             rec.update(facts(data, src))
             rec["ok"] = True
-            rec["added"] = f"{a.today}: {row.get('added') or 'game/'}"
+            rec["added"] = row.get("added") or "game/"
             target = era_ix if (rec["lm"] or "9999") < "2014-01-01" else later_ix
             add[target].append(rec)
             known[src] = rec
@@ -130,7 +129,7 @@ def main(argv=None) -> None:
                         rec["replaced_since_head"] = True
                 except Exception as e:  # noqa: BLE001
                     print(f"  HEAD {src}: {e}", file=sys.stderr)
-            rec.update(ok=True, added=f"{a.today}: {row.get('added') or 'game/'}")
+            rec.update(ok=True, added=row.get("added") or "game/")
             add[site_ix].append(rec)
             known_site.add(path)
         elif origin == "capture" and re.match(r"https?://web\.archive\.org/web/\d+", src):
@@ -141,7 +140,7 @@ def main(argv=None) -> None:
             # The raw capture (id_), not the page the Wayback Machine rewrites.
             raw = re.sub(r"^https?://web\.archive\.org/web/(\d+)(?:id_)?/", r"https://web.archive.org/web/\1id_/", src)
             add[way_ix].append({"path": path, "url": raw, "size": len(data), "sha1": hashlib.sha1(data).hexdigest(), "ok": True,
-                                "added": f"{a.today}: {row.get('added') or 'game/'}"})
+                                "added": row.get("added") or "game/"})
             known_way.add(path)
 
     for ix, recs in add.items():

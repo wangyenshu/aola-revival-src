@@ -30,7 +30,7 @@ package mmo.spacetime
    import mmo.spacetime.number.SpacetimeNumberManager;
    
    /**
-    * LATER spacetime/spacetimeservice (时空隧道), its code (a 2026 upload of the
+    * LATER spacetime/spacetimeservice (时空隧道), its code (a later upload of the
     * service) compiled against the 2013 interfaces; the January 2013 module is
     * lost and the revival had a stand-in. The tunnel's protocol is the 2013
     * SpacetimeClient's (TowerExtension 56_*, answered by the revival's server):

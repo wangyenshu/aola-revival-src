@@ -1,6 +1,9 @@
 package mmo.control
 {
+   import flash.display.Bitmap;
+   import flash.display.BitmapData;
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
    import flash.display.Loader;
    import flash.display.MovieClip;
    import flash.display.Sprite;
@@ -8,9 +11,13 @@ package mmo.control
    import flash.events.IOErrorEvent;
    import flash.events.MouseEvent;
    import flash.events.TimerEvent;
+   import flash.geom.Matrix;
+   import flash.geom.Rectangle;
+   import flash.media.Sound;
    import flash.system.ApplicationDomain;
    import flash.system.LoaderContext;
    import flash.utils.ByteArray;
+   import flash.utils.Dictionary;
    import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
    import flash.utils.setTimeout;
@@ -22,7 +29,9 @@ package mmo.control
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
    import mmo.loader.layer.LayerManager;
+   import mmo.play.player.PlayerManager;
    import mmo.play.scene.SceneManager;
+   import mmo.play.scene.SceneManagerEvent;
    import mmo.revival.RDef;
    import mmo.revival.RJson;
    import mmo.revival.RLog;
@@ -50,7 +59,7 @@ package mmo.control
    public class ModRun implements IModGame
    {
       public static const ROOM:String = "sandboxroom";
-      public static const API_VERSION:int = 1;
+      public static const API_VERSION:int = 2;
       /** The largest mod file. */
       public static const MAX_BYTES:int = 16000000;
       /** Mods' own 亚比 numbers. */
@@ -70,8 +79,16 @@ package mmo.control
       private var back:String;
       private var data:Object = {};
       private var dataSaver:Timer;
-      private var musicPath:String;
+      /** The music music() set for the room shown (null: the room's own). */
+      private var musicSet:* = null;
+      /** A class of the mod -> its Sound (made once). */
+      private var sounds:Dictionary = new Dictionary();
       private var talkSeq:int;
+      private var loadSeq:int;
+      /** enter() waiting for a scene being loaded: {room, spawn}, or null. */
+      private var pendingEnter:Object;
+      /** after() asked for before a room was shown: [{seconds, f}]. */
+      private var afters:Array = [];
       private var talks:Object = {};
       private var races:Array = [];
       private var waiting:Object = {};
@@ -83,13 +100,36 @@ package mmo.control
          return _instance;
       }
 
-      /** The music of the room shown (SandboxRun.music, SceneMusic). */
+      /** The room's music as set: music() or the room's def (a Sound, a class, a path or ""). */
+      private function musicAsSet():*
+      {
+         if (roomDef == null) return "";
+         return musicSet != null ? musicSet : roomDef.music;
+      }
+
+      /** The music file of the game the room shown plays (SandboxRun.music, SceneMusic), or "". */
       public static function get musicNow():String
       {
          var r:ModRun = _instance;
-         if (r == null || r.roomDef == null) return "";
-         var m:String = r.musicPath != null ? r.musicPath : String(r.roomDef.music || "");
-         return /^music\/[A-Za-z0-9_\/.-]+\.mp3$/.test(m) && m.indexOf("..") < 0 ? m : "";
+         var m:* = r != null ? r.musicAsSet() : "";
+         if (!(m is String)) return "";
+         return /^music\/[A-Za-z0-9_\/.-]+\.mp3$/.test(m) && String(m).indexOf("..") < 0 ? m : "";
+      }
+
+      /** The mod's own music for the room shown (SceneMusic), or null. */
+      public static function get musicSoundNow():Sound
+      {
+         var r:ModRun = _instance;
+         var m:* = r != null ? r.musicAsSet() : null;
+         if (m is Sound) return m as Sound;
+         if (!(m is Class)) return null;
+         if (r.sounds[m] === undefined)
+         {
+            var made:Sound = null;
+            try { made = new m() as Sound; } catch (e:Error) { RLog.error("mod music", e); }
+            r.sounds[m] = made;
+         }
+         return r.sounds[m] as Sound;
       }
 
       // ---------------------------------------------------------------- loading
@@ -112,15 +152,19 @@ package mmo.control
          if (sig != "FWS" && sig != "CWS" && sig != "ZWS") { done("这不是模组文件（模组是 SWF 文件）。", null); return; }
          unload();
          var ld:Loader = new Loader();
+         var seq:int = ++loadSeq;
          var answered:Boolean = false;
          var answer:Function = function(err:String, inf:Object):void
          {
             if (answered) return;
             answered = true;
+            if (err != null) try { ld.unloadAndStop(); } catch (e0:Error) {}
             done(err, inf);
          };
          ld.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void
          {
+            // A load given up (timed out) or followed by another is not the mod loaded.
+            if (answered || seq != loadSeq) { try { ld.unloadAndStop(); } catch (e1:Error) {} return; }
             var m:IMod = ld.content as IMod;
             if (m == null) { answer("这个 SWF 不是模组（它的主类没有实现 mmo.revival.mod.IMod）。", null); return; }
             var inf:Object = null;
@@ -147,9 +191,11 @@ package mmo.control
          setTimeout(function():void { answer("模组读取超时。", null); }, 20000);
       }
 
-      /** Forget the mod loaded (its rooms, its 亚比's pictures). */
+      /** Forget the mod loaded (its rooms, its 亚比's pictures, its timers and sounds). */
       public function unload():void
       {
+         saveNow();
+         pendingEnter = null;
          if (roomDef != null && SceneManager.getInstance().loadedSceneInfo != null && SceneManager.getInstance().loadedSceneInfo.sceneName == ROOM) leave();
          for each (var race:int in races)
          {
@@ -163,8 +209,14 @@ package mmo.control
          roomName = null;
          mod = null;
          info = null;
+         if (holder != null) try { holder.unloadAndStop(); } catch (e:Error) {}
          holder = null;
          data = {};
+         sounds = new Dictionary();
+         talks = {};
+         afters = [];
+         // Replies still to come for the mod before are dropped.
+         waiting = {};
       }
 
       /** Start the mod loaded: its saved data first, then IMod.start. */
@@ -177,9 +229,9 @@ package mmo.control
          {
             data = {};
             try { if (p.data) data = RJson.decode(String(p.data)) || {}; } catch (e:Error) { data = {}; }
-            var inf:Object = SceneManager.getInstance().loadedSceneInfo;
-            if (inf == null || String(inf.sceneName) != ROOM) back = inf ? String(inf.sceneName) : "starland";
-            musicPath = null;
+            if (mod == null) return;
+            noteBack();
+            musicSet = null;
             try { mod.start(self); }
             catch (err:Error)
             {
@@ -225,9 +277,26 @@ package mmo.control
          return API_VERSION;
       }
 
+      /** The name the player is shown by (as #username# in conversations). */
       public function get playerName():String
       {
+         try
+         {
+            var me:Object = PlayerManager.getInstance().myPlayer;
+            if (me != null && me.hasOwnProperty("nickName") && me.nickName) return String(me.nickName);
+         }
+         catch (e:Error) {}
          return SocketClient.instance.myUserName;
+      }
+
+      /** Where 离开沙盒 goes back to: the scene the player was in (outdoors, from a home or a 副本). */
+      private function noteBack():void
+      {
+         var sm:SceneManager = SceneManager.getInstance();
+         var inf:Object = sm.loadedSceneInfo;
+         if (inf != null && String(inf.sceneName) == ROOM) return;
+         if (inf == null) back = "starland";
+         else back = inf.inHouse || inf.isFB ? sm.lastOutdoorScene : String(inf.sceneName);
       }
 
       public function room(id:String, def:Object):void
@@ -245,20 +314,36 @@ package mmo.control
             return;
          }
          var sm:SceneManager = SceneManager.getInstance();
-         if (sm.isLoading) return;
-         var inf:Object = sm.loadedSceneInfo;
-         if (inf == null || String(inf.sceneName) != ROOM) back = inf ? String(inf.sceneName) : "starland";
+         if (sm.isLoading)
+         {
+            // A scene is on its way (the room left when another mod was started there): enter
+            // once it is shown. One such wait at a time; leave() and unload() drop it.
+            var self:ModRun = this;
+            var mine:Object = pendingEnter = {room: roomId, spawn: spawn};
+            var later:Function = function(e:Event):void
+            {
+               sm.removeEventListener(SceneManagerEvent.SCENE_INITED, later);
+               if (pendingEnter != mine) return;
+               pendingEnter = null;
+               if (rooms[roomId] === def) self.enter(roomId, spawn);
+            };
+            sm.addEventListener(SceneManagerEvent.SCENE_INITED, later);
+            return;
+         }
+         pendingEnter = null;
+         noteBack();
          roomDef = def;
          roomName = roomId;
-         musicPath = null;
+         musicSet = null;
          sm.loadScene(ROOM, spawn || "start", true);
       }
 
       public function leave():void
       {
+         pendingEnter = null;
          roomDef = null;
          roomName = null;
-         musicPath = null;
+         musicSet = null;
          SandboxRun.reset();
          var to:String = back || "starland";
          back = null;
@@ -280,6 +365,10 @@ package mmo.control
       public function attach(r:IModRoom):void
       {
          _room = r;
+         // after() asked for before a room was shown: counted from now.
+         var waitingAfters:Array = afters;
+         afters = [];
+         for each (var a:Object in waitingAfters) startAfter(a.seconds, a.f, r);
          if (roomDef == null || !(roomDef.build is Function)) return;
          try { roomDef.build(r); }
          catch (err:Error)
@@ -349,11 +438,34 @@ package mmo.control
       /** A DisplayObject from a DisplayObject or a Class (or null). */
       public static function picture(p:*):DisplayObject
       {
+         // One already shown (an NPC's view) stays where it is: a picture of it is used.
+         if (p is DisplayObject && DisplayObject(p).parent != null) return snapshot(DisplayObject(p));
          if (p is DisplayObject) return DisplayObject(p);
          if (p is Class)
          {
             try { return new p() as DisplayObject; } catch (e:Error) { RLog.error("mod picture", e); }
          }
+         return null;
+      }
+
+      private static function snapshot(d:DisplayObject):DisplayObject
+      {
+         try
+         {
+            var b:Rectangle = d.getBounds(d);
+            if (b.width < 1 || b.height < 1) return null;
+            var k:Number = Math.min(1, 400 / Math.max(b.width, b.height));
+            var bd:BitmapData = new BitmapData(Math.ceil(b.width * k), Math.ceil(b.height * k), true, 0);
+            bd.draw(d, new Matrix(k, 0, 0, k, -b.left * k, -b.top * k), null, null, null, true);
+            var bm:Bitmap = new Bitmap(bd, "auto", true);
+            bm.x = b.left;
+            bm.y = b.top;
+            bm.scaleX = bm.scaleY = 1 / k;
+            var s:Sprite = new Sprite();
+            s.addChild(bm);
+            return s;
+         }
+         catch (e:Error) { RLog.error("mod picture", e); }
          return null;
       }
 
@@ -393,7 +505,22 @@ package mmo.control
             }
          };
          if (frames) clip.addEventListener(Event.ENTER_FRAME, frame);
-         clip.addEventListener(Event.COMPLETE, end);
+         if ("movieClipData" in clip)
+         {
+            // A whole embedded SWF (mx.core.MovieClipLoaderAsset): its COMPLETE says it has loaded;
+            // its own timeline, once there, is watched instead.
+            clip.addEventListener(Event.COMPLETE, function(e:Event):void
+            {
+               var ldr:Loader = DisplayObjectContainer(clip).numChildren > 0 ? DisplayObjectContainer(clip).getChildAt(0) as Loader : null;
+               var inner:MovieClip = ldr != null ? ldr.content as MovieClip : null;
+               if (inner == null || inner.totalFrames <= 1 || ended) return;
+               mc = inner;
+               frames = true;
+               clip.addEventListener(Event.ENTER_FRAME, frame);
+               inner.gotoAndPlay(1);
+            });
+         }
+         else clip.addEventListener(Event.COMPLETE, end);
          if (seconds > 0) setTimeout(end, seconds * 1000);
          var skip:Sprite = RUI.button("跳过", end, 64, 26, 0x6CC0F5, 0x2E86D6, "modFilmSkip");
          skip.x = 960 - 80;
@@ -406,7 +533,11 @@ package mmo.control
 
       public function fight(team:Array, done:Function = null, heal:Boolean = true):void
       {
-         if (team == null || team.length == 0 || SandboxRun.fighting) return;
+         if (team == null || team.length == 0 || SandboxRun.fighting)
+         {
+            RLog.log("mod: fight refused (" + (SandboxRun.fighting ? "a fight is on" : "no team") + ")");
+            return;
+         }
          SandboxRun.fight({name: info ? info.name : "", heal: heal, enemies: team.slice(0, 10)}, function(win:Boolean, at:int, refused:Boolean = false):void
          {
             if (done != null)
@@ -442,13 +573,21 @@ package mmo.control
          ask({op: "species", mod: info ? info.id : "", def: RJson.encode(sent)}, function(p:Object):void
          {
             if (p.res != 1) RLog.log("mod: 亚比 " + race + " refused: " + p.msg);
-            // The panels that read the 亚比 tables (PMService, rebuilt pet/pmservice) find it too.
-            else try
+            else
             {
-               var pm:Object = ServiceContainer.getService("PMService");
-               if (pm != null && pm.hasOwnProperty("addPM")) pm.addPM(race, sent.name, sent.attr[0], sent.attr[1], sent.stats, learnOf(def.skills), sent.exp);
+               // The panels that read the 亚比 tables (PMService, rebuilt pet/pmservice) find it too,
+               // as the server keeps it.
+               var kept:Object = sent;
+               try { if (p.def) kept = RJson.decode(String(p.def)) || sent; } catch (e1:Error) {}
+               try
+               {
+                  var pm:Object = ServiceContainer.getService("PMService");
+                  if (pm != null && pm.hasOwnProperty("addPM")) pm.addPM(race, kept.name, kept.attr[0], kept.attr[1], kept.stats, learnOf(kept.skills), kept.exp);
+               }
+               catch (err:Error) { RLog.error("mod PMService", err); }
+               // 亚比 of it put aside at login are back: the bag shows them.
+               if (int(p.back) > 0) try { PetClient.instance.viewAllPM(); } catch (e2:Error) {}
             }
-            catch (err:Error) { RLog.error("mod PMService", err); }
             if (done != null) done(p.res == 1);
          });
       }
@@ -485,17 +624,26 @@ package mmo.control
          if (info == null) return;
          if (value === undefined) delete data[key];
          else data[key] = value;
-         // Saved a moment later (one request for many changes).
+         // Saved a moment later (one request for the changes of half a second).
          if (dataSaver == null)
          {
             dataSaver = new Timer(500, 1);
-            dataSaver.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void
-            {
-               if (info != null) ask({op: "save", mod: info.id, data: RJson.encode(data)});
-            });
+            dataSaver.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void { saveNow(); });
          }
-         dataSaver.reset();
-         dataSaver.start();
+         if (!dataSaver.running) dataSaver.start();
+      }
+
+      /** Send the mod's data now if a save is waiting (with the mod's own id). */
+      private function saveNow():void
+      {
+         if (dataSaver == null || !dataSaver.running) return;
+         dataSaver.stop();
+         if (info == null) return;
+         var id:String = info.id;
+         ask({op: "save", mod: id, data: RJson.encode(data)}, function(p:Object):void
+         {
+            if (p.res != 1) RLog.log("mod " + id + ": its data was not saved (" + (p.msg || "?") + "; at most 64 KB)");
+         });
       }
 
       public function message(text:String):void
@@ -503,9 +651,12 @@ package mmo.control
          NewDialog.showMessage(String(text));
       }
 
-      public function music(path:String):void
+      public function music(music:*):void
       {
-         musicPath = path == null ? "" : path;
+         musicSet = music == null ? "" : music;
+         // Played when the room is shown (it may be called before, from start()).
+         var inf:Object = SceneManager.getInstance().loadedSceneInfo;
+         if (inf == null || String(inf.sceneName) != ROOM) return;
          try
          {
             var sm:Object = getDefinitionByName("mmo.sceneinit.SceneMusic");
@@ -516,10 +667,21 @@ package mmo.control
 
       public function after(seconds:Number, f:Function):void
       {
-         var r:IModRoom = _room;
+         if (f == null) return;
+         // Asked for before a room is shown (in start(), a door's handler): counted once it is.
+         if (_room == null || SceneManager.getInstance().isLoading)
+         {
+            afters.push({seconds: seconds, f: f});
+            return;
+         }
+         startAfter(seconds, f, _room);
+      }
+
+      private function startAfter(seconds:Number, f:Function, r:IModRoom):void
+      {
          setTimeout(function():void
          {
-            if (_room != r || f == null) return;
+            if (_room != r) return;
             try { f(); } catch (err:Error) { RLog.error("mod after", err); }
          }, Math.max(0, seconds) * 1000);
       }

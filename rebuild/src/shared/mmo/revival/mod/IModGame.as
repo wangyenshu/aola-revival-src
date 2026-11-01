@@ -9,7 +9,7 @@ package mmo.revival.mod
     */
    public interface IModGame
    {
-      /** The API version (1). */
+      /** The API version (2: music() and a room's music take a mod's own Sound). */
       function get apiVersion():int;
 
       /** The player's name. */
@@ -24,7 +24,8 @@ package mmo.revival.mod
        *   walk        where one may walk: BitmapData or DisplayObject (black = wall,
        *               white or clear = floor; stretched over the room) or
        *               function(x, y):Boolean (true = wall); default everywhere
-       *   music       a music file of the game ("music/xxx.mp3")
+       *   music       the room's music: a Sound or a class of one (an MP3 the mod
+       *               embeds), or a music file of the game ("music/xxx.mp3")
        *   spawns      {name: [x, y]}; "start" is used when enter() names none
        *   build       function(room:IModRoom):void, called each time the room is
        *               shown: put its NPCs, opponents, doors and pictures there
@@ -97,8 +98,12 @@ package mmo.revival.mod
       /** A message box. */
       function message(text:String):void;
 
-      /** Play a music file of the game ("music/xxx.mp3"), or "" for none. */
-      function music(path:String):void;
+      /**
+       * Change the music of the room shown: a Sound or a class of one (an MP3 the
+       * mod embeds, played looped), a music file of the game ("music/xxx.mp3"),
+       * or "" for none. (API 2; in API 1 only a music file of the game.)
+       */
+      function music(music:*):void;
 
       /** f() after seconds, unless the room has been left by then. */
       function after(seconds:Number, f:Function):void;

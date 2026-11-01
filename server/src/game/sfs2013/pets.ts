@@ -50,6 +50,8 @@ export interface PetRecord {
   got: string;
   /** 沙盒 opponents only: their stats multiplied (hp first), as the player set them (sandbox.ts). */
   mul?: number[];
+  /** A mod's 亚比 (mods.ts): the id of the mod that made its species. */
+  mod?: string;
 }
 
 /** Fields of UserRecord the pet code uses. */

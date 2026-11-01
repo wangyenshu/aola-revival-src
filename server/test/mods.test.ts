@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BAG_MAX, MOD_DATA_MAX, installMods, parseModSpecies, stashModPets, type ModRec } from "../src/game/sfs2013/mods.ts";
+import { BAG_MAX, MOD_DATA_MAX, MOD_DATA_TOTAL, installMods, parseModSpecies, stashModPets, type ModRec } from "../src/game/sfs2013/mods.ts";
 import type { PetRecord, PetTables } from "../src/game/sfs2013/pets.ts";
 import { EMPTY_PMDATA } from "../src/game/sfs2013/pmdata.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
@@ -45,7 +45,17 @@ test("mods: saved data by mod, its limits", async () => {
   assert.equal((await call({ op: "save", mod: "bad id!", data: "{}" })).res, 0);
   assert.equal((await call({ op: "save", mod: "hello", data: "{not json" })).res, 0);
   assert.equal((await call({ op: "save", mod: "hello", data: JSON.stringify({ x: "y".repeat(MOD_DATA_MAX) }) })).res, 0);
+  // Bytes, not characters: 30000 CJK characters are 90000 bytes.
+  assert.equal((await call({ op: "save", mod: "hello", data: JSON.stringify({ x: "字".repeat(30000) }) })).res, 0);
   assert.equal((await call({ op: "data", mod: "other" })).data, "");
+  // Names objects already have are no mod ids.
+  assert.equal((await call({ op: "save", mod: "__proto__", data: "{}" })).res, 0);
+  assert.equal((await call({ op: "data", mod: "constructor" })).data, "");
+  // All mods together: at most MOD_DATA_TOTAL.
+  const big = JSON.stringify({ x: "y".repeat(MOD_DATA_MAX - 20) });
+  let saved = 0;
+  for (let i = 0; i < MOD_DATA_TOTAL / MOD_DATA_MAX + 2; i++) saved += (await call({ op: "save", mod: `m${i}`, data: big })).res;
+  assert.ok(saved < MOD_DATA_TOTAL / MOD_DATA_MAX + 2);
 });
 
 test("mods: a 亚比 of a mod is checked, made known, given; put aside while unknown and given back", async () => {
@@ -54,15 +64,24 @@ test("mods: a 亚比 of a mod is checked, made known, given; put aside while unk
   assert.equal(typeof parseModSpecies(JSON.stringify({ id: 900101, name: "x", attr: [77], stats: [1, 1, 1, 1, 1, 1], skills: [1016] }), t), "string");
   assert.equal(typeof parseModSpecies(JSON.stringify({ id: 900101, name: "x", attr: [10], stats: [1, 1, 1, 1, 1, 300], skills: [1016] }), t), "string");
   assert.equal(typeof parseModSpecies(JSON.stringify({ id: 900101, name: "x", attr: [10], stats: [1, 1, 1, 1, 1, 1], skills: [9999] }), t), "string");
+  // An unknown or inherited curve becomes "2"; a legend cell of the chart is no attribute.
+  const sp = parseModSpecies(JSON.stringify({ id: 900101, name: "x", attr: [10], stats: [1, 1, 1, 1, 1, 1], skills: [1016], exp: "__proto__" }), t);
+  assert.equal(typeof sp === "object" && sp.exp, "2");
+  assert.equal(typeof parseModSpecies(JSON.stringify({ id: 900101, name: "x", attr: [9], stats: [1, 1, 1, 1, 1, 1], skills: [1016] }), t), "string");
 
   const rec: ModRec = { id: 1, name: "小奥拉", pets: [pet(1, 1)], nextPetId: 1 };
   const { call } = setup(rec, t);
   // Not known yet: not given.
-  assert.equal((await call({ op: "give", race: 900101, level: 5 })).res, 0);
+  assert.equal((await call({ op: "give", mod: "bubblefrog", race: 900101, level: 5 })).res, 0);
   const r = await call({ op: "species", mod: "bubblefrog", def: FROG });
   assert.equal(r.res, 1);
+  assert.equal(JSON.parse(r.def).exp, "2");
   assert.equal(t.pm.species["900101"].n, "泡泡蛙");
-  assert.equal((await call({ op: "give", race: 900101, level: 5 })).res, 1);
+  // Another mod may neither redefine it nor give it.
+  assert.equal((await call({ op: "species", mod: "other", def: FROG })).res, 0);
+  assert.equal((await call({ op: "give", mod: "other", race: 900101, level: 5 })).res, 0);
+  assert.equal((await call({ op: "give", mod: "bubblefrog", race: 900101, level: 5 })).res, 1);
+  assert.equal(rec.pets![1].mod, "bubblefrog");
   assert.deepEqual(rec.pets!.map((p) => p.race), [1, 900101]);
   rec.followPet = rec.pets![1].id;
 
@@ -72,8 +91,14 @@ test("mods: a 亚比 of a mod is checked, made known, given; put aside while unk
   assert.deepEqual(rec.pets!.map((p) => p.race), [1]);
   assert.equal(rec.modPets!.length, 1);
   assert.equal(rec.followPet, undefined);
-  // The mod tells it again: back in the bag.
-  assert.equal((await call({ op: "species", mod: "bubblefrog", def: FROG })).back, 1);
+  // A new run (the tables made again): another mod with the same number does not take it back.
+  const t2 = tables();
+  const { call: call2 } = setup(rec, t2);
+  assert.equal((await call2({ op: "species", mod: "other", def: FROG })).back, 0);
+  assert.equal(rec.modPets!.length, 1);
+  // Its own mod does: back in the bag.
+  const { call: call3 } = setup(rec, tables());
+  assert.equal((await call3({ op: "species", mod: "bubblefrog", def: FROG })).back, 1);
   assert.deepEqual(rec.pets!.map((p) => p.race), [1, 900101]);
   assert.equal(rec.modPets!.length, 0);
 });

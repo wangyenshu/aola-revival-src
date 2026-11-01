@@ -34,7 +34,7 @@ package mmo.map
     * bar with SimpleCustomLoader.loadSingleResource("map/map",
     * "mmo.map.AolaMapService", ...).showPanel()).
     *
-    * The January 2013 map/map.swf is lost; the live one is a 2026 redesign.
+    * The January 2013 map/map.swf is lost; the live one is a later redesign.
     * The artwork shown here is the world map of 30 November 2012 that 百田
     * published on its own guide page (aola.100bt.com/xinshouybdt/52097.html,
     * img2.a0bi.com/upload/old/web/1354946686227_.swf), installed as

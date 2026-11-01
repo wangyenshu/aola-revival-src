@@ -3,14 +3,17 @@
 // compiler and playerglobal.swc in .toolchain/, set up by `npm run build:swf` or
 // rebuild/build/setup-toolchain.sh).
 //
-//   node tools/mod-sdk/build.mjs api                 the mod API as a SWC: build/mod-sdk/aola-mod-api.swc
+//   node tools/mod-sdk/build.mjs api                 the mod API as a SWC: build/mod-sdk/aola-mod-api.swc,
+//                                                    and the classes embedded files are based on:
+//                                                    build/mod-sdk/aola-mod-embed.swc
 //   node tools/mod-sdk/build.mjs <mod folder> …      a mod from its asconfig.json (mainClass,
 //                                                    compilerOptions.source-path, .library-path, .output)
 //   node tools/mod-sdk/build.mjs examples [out dir]  the examples of tools/mod-sdk/examples into
 //                                                    out dir (default build/mods) with index.json
 //
 // A mod is compiled against playerglobal.swc and the API SWC as external libraries: the game
-// gives those classes at run time. Java 11+ is needed.
+// gives those classes at run time. The embed SWC (mx.core.BitmapAsset, SoundAsset, …, which
+// the compiler bases [Embed] classes on) is linked into the mod. Java 11+ is needed.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
@@ -22,6 +25,9 @@ const ROOT = path.resolve(HERE, "../..");
 const API_SRC = path.join(ROOT, "rebuild/src/shared");
 const API_DIR = path.join(API_SRC, "mmo/revival/mod");
 const API_SWC = path.join(ROOT, "build/mod-sdk/aola-mod-api.swc");
+const EMBED_SRC = path.join(HERE, "embed");
+const EMBED_DIR = path.join(EMBED_SRC, "mx/core");
+const EMBED_SWC = path.join(ROOT, "build/mod-sdk/aola-mod-embed.swc");
 const CONFIG = path.join(ROOT, "rebuild/build/empty-config.xml");
 
 function toolchain() {
@@ -50,14 +56,19 @@ function newest(dir) {
   return t;
 }
 
+function swc(tc, srcRoot, dir, pkg, out, label) {
+  if (existsSync(out) && statSync(out).mtimeMs > newest(dir)) return out;
+  mkdirSync(path.dirname(out), { recursive: true });
+  const classes = readdirSync(dir).filter((f) => f.endsWith(".as")).map((f) => `${pkg}.${f.slice(0, -3)}`);
+  java(tc, "compc.jar", [`-load-config=${CONFIG}`, `-external-library-path+=${tc.pg}`, `-source-path+=${srcRoot}`,
+    "-target-player=10.1", "-swf-version=10", "-include-classes", ...classes, `-output=${out}`]);
+  console.log(`${label}: ${path.relative(process.cwd(), out)}`);
+  return out;
+}
+
 export function buildApi(tc = toolchain()) {
-  if (existsSync(API_SWC) && statSync(API_SWC).mtimeMs > newest(API_DIR)) return API_SWC;
-  mkdirSync(path.dirname(API_SWC), { recursive: true });
-  const classes = readdirSync(API_DIR).filter((f) => f.endsWith(".as")).map((f) => "mmo.revival.mod." + f.slice(0, -3));
-  java(tc, "compc.jar", [`-load-config=${CONFIG}`, `-external-library-path+=${tc.pg}`, `-source-path+=${API_SRC}`,
-    "-target-player=10.1", "-swf-version=10", "-include-classes", ...classes, `-output=${API_SWC}`]);
-  console.log(`API: ${path.relative(process.cwd(), API_SWC)}`);
-  return API_SWC;
+  swc(tc, EMBED_SRC, EMBED_DIR, "mx.core", EMBED_SWC, "embed");
+  return swc(tc, API_SRC, API_DIR, "mmo.revival.mod", API_SWC, "API");
 }
 
 export function buildMod(dir, out, tc = toolchain()) {
@@ -71,8 +82,9 @@ export function buildMod(dir, out, tc = toolchain()) {
   out = path.resolve(out ?? path.resolve(dir, opts.output ?? `bin/${path.basename(dir)}.swf`));
   mkdirSync(path.dirname(out), { recursive: true });
   const api = buildApi(tc);
+  const libs = new Set([EMBED_SWC, ...(opts["library-path"] ?? []).map((l) => path.resolve(dir, l))]);
   const args = [`-load-config=${CONFIG}`, `-external-library-path+=${tc.pg}`, `-external-library-path+=${api}`,
-    ...sources.map((s) => `-source-path+=${s}`), ...(opts["library-path"] ?? []).map((l) => `-library-path+=${path.resolve(dir, l)}`),
+    ...sources.map((s) => `-source-path+=${s}`), ...[...libs].map((l) => `-library-path+=${l}`),
     "-target-player=10.1", "-swf-version=10", "-static-link-runtime-shared-libraries=true", "-debug=false", "-optimize=true",
     "-default-size", "960", "560", "-default-frame-rate", "25", `-output=${out}`, mainFile];
   try {

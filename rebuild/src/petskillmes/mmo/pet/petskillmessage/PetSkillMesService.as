@@ -11,7 +11,7 @@ package mmo.pet.petskillmessage
     * answered with the fields of the later module's objects (getPetMes:
     * id, pname, attribute, attribute2, evolution [{level, raceId}], exptype;
     * getPetSkillMes: id, pname, power, aim, pp, attribute, type, descriptor).
-    * The January 2013 module is lost and the live one is a 2026 rework on the
+    * The January 2013 module is lost and the live one is a later rework on the
     * later IPMService; the data are the revival's 亚比 and skill tables
     * (PetMesData, tools/gen_petmes.py). Egg pictures are petegg/egg<race>,
     * else the egg of the 亚比's attribute (petegg/egg<attribute>).
