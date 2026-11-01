@@ -79,6 +79,14 @@ builds the modules and the site, and deploys `dist/` on every push to `main`.
 Enable it under Settings → Pages → Build and deployment → Source: GitHub
 Actions. The site is then at `https://<user>.github.io/<repo>/`.
 
+To serve the site from a branch instead, run the workflow
+`.github/workflows/gh-pages-branch.yml` by hand (Actions → "Build and
+publish to gh-pages" → Run workflow). It creates the branch `gh-pages` if
+there is none, builds the site as `pages.yml` does, and force-pushes `dist/`
+there as a single commit, replacing whatever the branch held. Then choose
+Source: Deploy from a branch, `gh-pages`, `/ (root)`. Each run uploads the
+whole site (about 1.4 GB).
+
 To leave folders of game files out of the site, pass them to the build:
 `npm run build -- --exclude activityres,weekly`.
 

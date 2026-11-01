@@ -1,0 +1,76 @@
+# Build the site as pages.yml does and put it on the branch gh-pages, for
+# "Deploy from a branch" (Repository settings → Pages → Source: "Deploy from a
+# branch", branch gh-pages, folder / (root)). Run by hand only: Actions → this
+# workflow → "Run workflow".
+#
+# The branch gets one commit holding exactly the files of dist/: whatever was
+# on it before is replaced (it is force-pushed), so it never grows with old
+# builds. dist/ is about 1.4 GB, so each run uploads that much.
+name: Build and publish to gh-pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-branch
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make sure the branch gh-pages exists
+        run: |
+          if git ls-remote --exit-code --heads "$REMOTE" gh-pages > /dev/null; then
+            echo "gh-pages exists: its files will be replaced"
+          else
+            echo "gh-pages does not exist: creating it"
+            empty="$(mktemp -d)"
+            git -C "$empty" init -q -b gh-pages
+            git -C "$empty" -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q --allow-empty -m "Create gh-pages"
+            git -C "$empty" push -q "$REMOTE" gh-pages
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Cache build tools
+        uses: actions/cache@v4
+        with:
+          path: .toolchain
+          key: toolchain-${{ hashFiles('rebuild/build/setup-toolchain.sh') }}
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      - run: npm test
+      - name: Build the rebuilt SWF modules
+        run: npm run build:swf
+      - name: Build the static site
+        run: npm run build -- --copy
+
+      - name: Push dist/ to gh-pages
+        working-directory: dist
+        run: |
+          # No Jekyll on GitHub Pages: the files are served as they are.
+          touch .nojekyll
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config http.postBuffer 1048576000
+          git add -A
+          git commit -q -m "Site built from ${GITHUB_SHA}"
+          git push --force "$REMOTE" gh-pages
+          echo "gh-pages now holds $(git ls-files | wc -l) files from ${GITHUB_SHA}"

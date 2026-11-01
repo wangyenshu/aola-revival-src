@@ -57,7 +57,9 @@ project site) and `--cert`/`--key` (serve https).
 ## Repository layout
 
 ```
-.github/workflows/pages.yml   CI: tests, build:swf, build, deploy to GitHub Pages
+.github/workflows/
+  pages.yml                   CI: tests, build:swf, build, deploy to GitHub Pages
+  gh-pages-branch.yml         run by hand: the same build, force-pushed to the branch gh-pages
 LICENSE, NOTICE.md            licence and copyright notes
 
 game/                         百田's game files at their 2013 URLs
