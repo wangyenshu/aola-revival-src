@@ -34,7 +34,7 @@ jobs:
             echo "gh-pages does not exist: creating it"
             empty="$(mktemp -d)"
             git -C "$empty" init -q -b gh-pages
-            git -C "$empty" -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            git -C "$empty" -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
               commit -q --allow-empty -m "Create gh-pages"
             git -C "$empty" push -q "$REMOTE" gh-pages
           fi
@@ -68,7 +68,7 @@ jobs:
           touch .nojekyll
           git init -q -b gh-pages
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git config http.postBuffer 1048576000
           git add -A
           git commit -q -m "Site built from ${GITHUB_SHA}"
