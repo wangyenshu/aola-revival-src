@@ -17,7 +17,7 @@ package mmo.robot.robotmanager
 
       private static function compileMe():void
       {
-         var a:RobotManager, b:RobotAvatar;
+         var a:RobotManager, b:RobotAvatar, c:HelloWheel, d:RareSearch, e:SkillOrderPanel;
       }
    }
 }

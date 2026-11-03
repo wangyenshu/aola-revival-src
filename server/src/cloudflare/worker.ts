@@ -1,0 +1,154 @@
+// The shared (multiplayer) server on Cloudflare: a Worker in front, one Durable Object for the
+// game (every 奥拉 in one world, as the Node server src/node/multi.ts has them in one process),
+// and the built site (npm run build's dist/) as the Worker's static assets.
+//
+//   /__socket/9339   the game (WebSocket), handed to the Durable Object
+//   /__api/…          the start screen's 改名字 and the status (src/game/sfs2013/api.ts)
+//   everything else   the static site (the ASSETS binding)
+//
+// The saves are the Durable Object's storage (SQLite-backed: one value may be up to 2 MB).
+// wrangler.example.toml is a configuration to start from; docs/MULTIPLAYER.md has the steps.
+// The game code is the same as on Node (src/game/sfs2013/host.ts); only this file knows of
+// Cloudflare, and it declares the little of its runtime it uses (no @cloudflare/workers-types).
+
+import type { Store } from "../core/store.ts";
+import { NullRecorder } from "../core/recorder.ts";
+import { apiBodyMax, handleApi } from "../game/sfs2013/api.ts";
+import { createGameHost, type GameHost } from "../game/sfs2013/host.ts";
+
+// ---------------------------------------------------------------- the runtime, as used here
+
+interface DurableObjectStorage {
+  get<T>(key: string): Promise<T | undefined>;
+  put<T>(key: string, value: T): Promise<void>;
+  delete(key: string): Promise<boolean>;
+  list<T>(options?: { prefix?: string }): Promise<Map<string, T>>;
+}
+interface DurableObjectState {
+  storage: DurableObjectStorage;
+}
+interface DurableObjectId {}
+interface DurableObjectStub {
+  fetch(req: Request): Promise<Response>;
+}
+interface DurableObjectNamespace {
+  idFromName(name: string): DurableObjectId;
+  get(id: DurableObjectId): DurableObjectStub;
+}
+interface Fetcher {
+  fetch(req: Request | string): Promise<Response>;
+}
+/** A Worker WebSocket: accept() takes it on; its events are those of a browser WebSocket. */
+interface WorkerSocket extends WebSocket {
+  accept(): void;
+}
+declare const WebSocketPair: { new (): { 0: WorkerSocket; 1: WorkerSocket } };
+
+export interface Env {
+  GAME: DurableObjectNamespace;
+  ASSETS: Fetcher;
+  /** "1": no new names, only 奥拉 the server has may log in. */
+  AOLA_CLOSED?: string;
+  /** The game clock's anchor, China time (default 2012-08-15). */
+  AOLA_DATE?: string;
+  /** At most this many in the game at once (default 200). */
+  AOLA_MAX_PLAYERS?: string;
+  /** "1": a save without a password takes the password of its first login. */
+  AOLA_ADOPT?: string;
+  /** "0": the 工具箱, mods' gifts and 导入存档 closed to the players (open by default). */
+  AOLA_TOOLBOX?: string;
+}
+
+// ---------------------------------------------------------------- the Worker
+
+export default {
+  async fetch(req: Request, env: Env): Promise<Response> {
+    const url = new URL(req.url);
+    if (url.pathname.startsWith("/__socket/") || url.pathname.startsWith("/__api/")) {
+      // One world: every connection and request to the same Durable Object.
+      return env.GAME.get(env.GAME.idFromName("world")).fetch(req);
+    }
+    return env.ASSETS.fetch(req);
+  },
+};
+
+// ---------------------------------------------------------------- the game
+
+/** The Store of the game over a Durable Object's storage (values are kept as they are given). */
+export class DurableStore implements Store {
+  private readonly storage: DurableObjectStorage;
+  constructor(storage: DurableObjectStorage) {
+    this.storage = storage;
+  }
+  async get<T>(key: string): Promise<T | undefined> {
+    // A copy, as from the file store: the live records are LiveRecordStore's (host.ts).
+    const v = await this.storage.get<string>(key);
+    return v === undefined ? undefined : (JSON.parse(v) as T);
+  }
+  async set<T>(key: string, value: T): Promise<void> {
+    await this.storage.put(key, JSON.stringify(value));
+  }
+  async delete(key: string): Promise<void> {
+    await this.storage.delete(key);
+  }
+  async keys(prefix = ""): Promise<string[]> {
+    return [...(await this.storage.list({ prefix })).keys()].sort();
+  }
+}
+
+const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" };
+
+export class AolaGame {
+  private readonly host: GameHost;
+  private readonly maxPlayers: number;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.maxPlayers = Number(env.AOLA_MAX_PLAYERS) || 200;
+    this.host = createGameHost({
+      store: new DurableStore(state.storage),
+      // The tables the game reads (www.9aola.com/revival/*.json), from the site's files.
+      loadJson: async (p) => {
+        const res = await env.ASSETS.fetch(new Request(`https://assets.local/files/www.9aola.com/${p}`));
+        return res.ok ? res.json() : undefined;
+      },
+      date: env.AOLA_DATE || "2012-08-15",
+      accounts: { required: true, register: env.AOLA_CLOSED !== "1", adopt: env.AOLA_ADOPT === "1" },
+      recorder: new NullRecorder(),
+      toolbox: env.AOLA_TOOLBOX !== "0",
+    });
+  }
+
+  async fetch(req: Request): Promise<Response> {
+    const url = new URL(req.url);
+    if (url.pathname.startsWith("/__api/")) {
+      // The limit is in bytes (a body of Chinese text is three bytes a character).
+      const bytes = req.method === "POST" ? new Uint8Array(await req.arrayBuffer()) : new Uint8Array();
+      if (bytes.length > apiBodyMax(url.pathname)) {
+        return new Response(JSON.stringify({ ok: false, error: "这个存档太大了。" }), { status: 413, headers: JSON_HEADERS });
+      }
+      const addr = `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`;
+      const out = await handleApi(this.host, url.pathname, req.method, new TextDecoder().decode(bytes), addr);
+      return new Response(out.status === 204 ? null : JSON.stringify(out.body), { status: out.status, headers: JSON_HEADERS });
+    }
+    const m = /^\/__socket\/(\d+)/.exec(url.pathname);
+    if (!m || req.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("not found\n", { status: 404 });
+    // Every connection counts, logged in or not.
+    if (this.host.emulator.sessions.size >= this.maxPlayers + 20) return new Response("the server is full\n", { status: 503 });
+    const pair = new WebSocketPair();
+    const [client, ws] = [pair[0], pair[1]];
+    ws.accept();
+    ws.binaryType = "arraybuffer";
+    const session = this.host.attach(
+      { remote: `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`, send: (b) => ws.send(b), close: () => ws.close() },
+      Number(m[1]),
+    );
+    ws.addEventListener("message", (e: MessageEvent) => {
+      const d = e.data;
+      session.receive(typeof d === "string" ? new TextEncoder().encode(d) : new Uint8Array(d as ArrayBuffer));
+    });
+    const gone = () => this.host.detach(session);
+    ws.addEventListener("close", gone);
+    ws.addEventListener("error", gone);
+    return new Response(null, { status: 101, webSocket: client } as ResponseInit);
+  }
+}

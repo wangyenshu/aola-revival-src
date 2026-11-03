@@ -7,7 +7,7 @@ import { parseFraming } from "../core/framing.ts";
 import { ConsoleRecorder, MemoryRecorder, TeeRecorder } from "../core/recorder.ts";
 import { installAola2012 } from "../game/aola2012.ts";
 import { installHandshakeDemo } from "../game/devHandlers.ts";
-import { installSfs2013 } from "../game/sfs2013/game.ts";
+import { createGameHost } from "../game/sfs2013/host.ts";
 import { IdbStore } from "./idbStore.ts";
 import { SFS2013_FRAMING, sfs2013Codec } from "../game/sfs2013/server.ts";
 import { installInPageSockets } from "./shim.ts";
@@ -28,6 +28,23 @@ export interface InPageConfig {
 export function startInPage(cfg: InPageConfig) {
   const memory = new MemoryRecorder();
   const sfs = cfg.protocol === "sfs2013";
+  if (sfs && !cfg.demo) {
+    // The 2013 game for the one player of this page (game/sfs2013/host.ts), saves in IndexedDB.
+    const host = createGameHost({
+      store: new IdbStore(),
+      // Game data next to the game files (the service worker serves www.9aola.com from the mirror roots).
+      // Through the service worker; over https on an https page (mixed content is blocked).
+      loadJson: (path) =>
+        fetch(`${location.protocol === "https:" ? "https" : "http"}://www.9aola.com/${path}`).then((r) => (r.ok ? r.json() : undefined)),
+      date: cfg.date,
+      dev: cfg.dev,
+      recorder: cfg.verbose ? new TeeRecorder(memory, new ConsoleRecorder()) : memory,
+    });
+    installInPageSockets(host.emulator, {
+      match: (url) => (url.startsWith(cfg.proxyPrefix) ? Number(url.slice(cfg.proxyPrefix.length)) || 0 : undefined),
+    });
+    return { emulator: host.emulator, frames: memory.records, rename: host.rename };
+  }
   const emu = new Emulator({
     framing: sfs ? SFS2013_FRAMING : parseFraming(cfg.framing ?? "raw"),
     codec: sfs ? sfs2013Codec : undefined,
@@ -37,19 +54,11 @@ export function startInPage(cfg: InPageConfig) {
     answerPolicy: false,
   });
   if (cfg.demo) installHandshakeDemo(emu);
-  else if (sfs)
-    installSfs2013(emu, {
-      // Game data next to the game files (the service worker serves www.9aola.com from the mirror roots).
-      // Through the service worker; over https on an https page (mixed content is blocked).
-      loadJson: (path) =>
-        fetch(`${location.protocol === "https:" ? "https" : "http"}://www.9aola.com/${path}`).then((r) => (r.ok ? r.json() : undefined)),
-      dev: cfg.dev,
-    });
   else installAola2012(emu);
   installInPageSockets(emu, {
     match: (url) => (url.startsWith(cfg.proxyPrefix) ? Number(url.slice(cfg.proxyPrefix.length)) || 0 : undefined),
   });
-  return { emulator: emu, frames: memory.records };
+  return { emulator: emu, frames: memory.records, rename: async () => "这个页面不能改名字。" };
 }
 
 (globalThis as Record<string, unknown>).AolaEmulator = { startInPage };

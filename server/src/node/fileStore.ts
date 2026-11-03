@@ -18,6 +18,8 @@ export class JsonFileStore implements Store {
   }
 
   async get<T>(key: string): Promise<T | undefined> {
+    // A write of it on its way: read what it writes.
+    await this.writing.get(key)?.catch(() => {});
     try {
       return JSON.parse(await fs.readFile(this.file(key), "utf8")) as T;
     } catch (e) {
@@ -26,15 +28,30 @@ export class JsonFileStore implements Store {
     }
   }
 
-  async set<T>(key: string, value: T): Promise<void> {
+  /** Writes of a key one after another (two at once would share the .tmp file). */
+  private readonly writing = new Map<string, Promise<void>>();
+
+  set<T>(key: string, value: T): Promise<void> {
     const f = this.file(key);
-    await fs.mkdir(path.dirname(f), { recursive: true });
-    const tmp = f + ".tmp";
-    await fs.writeFile(tmp, JSON.stringify(value, null, 1));
-    await fs.rename(tmp, f);
+    // The value as it is now: it may change before its turn comes.
+    const text = JSON.stringify(value, null, 1);
+    const write = async () => {
+      await fs.mkdir(path.dirname(f), { recursive: true });
+      const tmp = f + ".tmp";
+      await fs.writeFile(tmp, text);
+      await fs.rename(tmp, f);
+    };
+    const before = this.writing.get(key) ?? Promise.resolve();
+    const done = before.then(write, write);
+    this.writing.set(key, done);
+    void done.finally(() => {
+      if (this.writing.get(key) === done) this.writing.delete(key);
+    }).catch(() => {});
+    return done;
   }
 
   async delete(key: string): Promise<void> {
+    await this.writing.get(key)?.catch(() => {});
     await fs.rm(this.file(key), { force: true });
   }
 

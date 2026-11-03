@@ -121,9 +121,13 @@ package mmo.tasknpc
        * carrierBearLearnSkillTalk_13). 泰勒's later line announces the second
        * 最强亚比训练师大赛 of 12 June (2013); the first was his in the winter of
        * 2012/13 (era task panel tp3159: 原来泰勒要举行最强训练师大赛): his line
-       * without the date and the 第二届.
+       * without the date and the 第二届. 麦哲伦's later line (达斯特……每年都会与你们有交集呢)
+       * looks back over the years of the story; his 2012 greeting is lost, so he
+       * says what the era 新手指南 says of him (guide/npcguideres, March 2011: 在司令官麦哲伦
+       * 那里，你可以接到许多有关奥拉星故事的任务).
        */
       private static const ERA_TALK:Object = {
+         9: ["小奥拉，在我这里，你可以接到许多有关奥拉星故事的任务。"],
          13: ["嗯，最近收到的挑战信越来越多啦！不过难不倒我异星使者维克的。"],
          827: ["最强亚比训练师大赛开始啦，记得准时参加！"]
       };
@@ -167,6 +171,7 @@ package mmo.tasknpc
             if (row[4] != 0 && !isResident(row[0], info.sceneName) && taskTalksOf(row[0], info.sceneName).length == 0) continue;
             addNpcToScene(row[0], row[1], -1, row[2], row[3]);
          }
+         oneOfEach(info.sceneName);
          TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_INITED_NPC, {sceneName: info.sceneName}));
       }
 
@@ -182,7 +187,30 @@ package mmo.tasknpc
             if (has && npcs[row[0]] == null) addNpcToScene(row[0], row[1], -1, row[2], row[3]);
             else if (!has && npcs[row[0]] != null && taskTalks[row[0]] == null) removeNpcFromScene(row[0]);
          }
+         oneOfEach(info.sceneName);
          for (var k:String in npcs) Npc(npcs[k]).setTaskMark(hasTaskTalk(int(k)));
+      }
+
+      /**
+       * One person stands once in a room: the later table has some twice under two ids, a host
+       * of the room (always there) and a task NPC (with a quest's talk): 吉蒂 15 and 2 in 艾希区.
+       * While the task NPC is there the host of the same name steps aside (its quest talks are
+       * the task NPC's own), and comes back when it goes.
+       */
+      private function oneOfEach(scene:String):void
+      {
+         var rows:Array = (SceneNpcData.SCENES[scene] as Array) || [];
+         var taskNames:Object = {};
+         for each (var r:Array in rows) if (r[4] != 0 && npcs[r[0]] != null) taskNames[npcName(r[0])] = true;
+         for each (var h:Array in rows)
+         {
+            if (h[4] != 0) continue;
+            var host:Npc = npcs[h[0]] as Npc;
+            if (host == null || host.view == null) continue;
+            var away:Boolean = taskNames[npcName(h[0])] == true && npcName(h[0]) != "";
+            host.view.visible = !away;
+            host.view.mouseEnabled = host.view.mouseChildren = !away;
+         }
       }
 
       /**

@@ -38,6 +38,8 @@ package mmo.revival.task
       private var talkNpcs:Object = {};
       private var timers:Array = [];
       private var shown:Object = {};
+      /** True while refresh() runs because a step was just added (the player is already in the room). */
+      protected var stepChanged:Boolean;
       private var disposed:Boolean;
 
       public function TaskScript(taskId:int)
@@ -53,7 +55,12 @@ package mmo.revival.task
          listen(TaskEventDispatcher.instance, TaskEvent.ON_USER_TASK_ADD, function(e:TaskEvent):void
          {
             var id:int = int(e.params.t.taskId);
-            if (isMyStep(id)) delay(200, refresh);
+            if (isMyStep(id)) delay(100, function():void
+            {
+               stepChanged = true;
+               try { refresh(); }
+               finally { stepChanged = false; }
+            });
          });
          refresh();
       }

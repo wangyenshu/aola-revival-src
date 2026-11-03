@@ -30,6 +30,7 @@ package mmo.house.b000247
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.play.scene.SceneManager;
+   import mmo.revival.RExpPanel;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
    import mmo.revival.RUI;
@@ -50,7 +51,7 @@ package mmo.house.b000247
     * Working: 我的家 (the main house), 亚比仓库 (pet/petwarehouse), the 植树盆
     * (PlantPanel: the trees of PlantData, drawn from their June 2012
     * pictures plant/y<id>; PlantExtension), 亚比孵化器 (pet/pethatchegg),
-    * 经验分配器 (ExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
+    * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
     * 进入动物园 (the rebuilt zoo, furniture/b020000), 离开花园, 地图, 背包,
     * 好友, 周刊. The others say they are not rebuilt yet.
     */
@@ -144,13 +145,13 @@ package mmo.house.b000247
          taskIconOverPicture(true);
          var fg:Sprite = Sprite(getChildByName("foreground"));
          // Things of the garden: walk there, then act.
-         spot(fg, 735, 95, 155, 140, 800, 266, "我的家", function():void { if (loader != null) loader.loadSubHouse(-1, "default"); });
+         spot(fg, 735, 95, 155, 140, 800, 266, isMine() ? "我的家" : owner() + "的小屋", function():void { if (loader != null) loader.loadSubHouse(-1, "default"); });
          spot(fg, 62, 168, 80, 70, 160, 286, "亚比仓库", function():void { panel("PetWareHouse"); });
          spot(fg, 0, 0, 0, 0, 548, 262, "植树盆", openPot, pot);
          spot(fg, 600, 336, 140, 92, 680, 400, "离开花园", leaveHome);
          // The era 亚比孵化器 panel (pet/pethatchegg; the server's PetEggExtension, eggs.ts).
          spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", function():void { if (isMine()) openHatcher(); else notYet(); });
-         spot(fg, 248, 198, 76, 94, 285, 300, "经验分配器", function():void { if (isMine()) ExpPanel.show(); else notYet(); });
+         spot(fg, 248, 198, 76, 94, 285, 300, "经验分配器", function():void { if (isMine()) RExpPanel.show(); else notYet(); });
          spot(fg, 128, 66, 116, 104, 200, 270, "我的荣誉", function():void { if (isMine()) HonourWall.show(); else notYet(); });
          spot(fg, 330, 20, 110, 172, 390, 270, "进入动物园", function():void { if (loader != null) loader.loadSubHouse(ZOO_ID, "fromGarden"); });
          spot(fg, 782, 288, 100, 84, 700, 335, "留言板", notYet);

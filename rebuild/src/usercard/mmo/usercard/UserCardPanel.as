@@ -33,6 +33,9 @@ package mmo.usercard
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.VersManager;
    import mmo.revival.RLog;
+   import mmo.revival.RUI;
+   import mmo.common.dialog.NewDialog;
+   import mmo.framework.comm.SocketClientEvent;
 
    /**
     * REBUILT player card, drawn: the avatar on a stand, name, number and 晶币,
@@ -162,6 +165,59 @@ package mmo.usercard
          closeBtn.name = "cardClose";
          closeBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); this_close(); });
          box.addChild(closeBtn);
+         if (!own) otherButtons();
+      }
+
+      /**
+       * Another 奥拉's card (a shared server): 加为好友, 去他家 (his 家园), 邀请组队 and 他的HELLO
+       * (robot/robotanothermes). Server: social.ts; the home: HouseLoader.loadHouse(his name).
+       */
+      private function otherButtons():void
+      {
+         var acts:Array = [
+            ["加为好友", function():void { ask("BuddyManagerExtension", "revival_friend_add", "revival_friend_add"); }],
+            ["去他家", function():void
+            {
+               close();
+               ServiceContainer.instance.tryGetService("HouseService", function(svc:*, o:Object = null):void
+               {
+                  try { Object(svc).houseLoader.loadHouse(userName); } catch (e:Error) { RLog.error("usercard home", e); }
+               });
+            }],
+            ["邀请组队", function():void { ask("TeamExtension", "revival_team_invite", "revival_team_invite"); }],
+            // 亚比对战 (a 切磋 on the revival's server, duel.ts): he answers, then both fight.
+            ["亚比对战", function():void { ask("PocketMonsterExtension", "revival_duel_invite", "revival_duel_invite"); }],
+            ["他的HELLO", function():void
+            {
+               close();
+               try { Object(ServiceContainer.getService("RobotDataService")).setSelectRobotId(userName); } catch (e:Error) {}
+               ServiceContainer.instance.tryGetService("RobotAnotherMes", function(svc:*, o:Object = null):void
+               {
+                  try { Object(svc).showPanel(); } catch (e:Error) { RLog.error("usercard hello", e); }
+               });
+            }]
+         ];
+         for (var i:int = 0; i < acts.length; i++)
+         {
+            var b:Sprite = RUI.button(acts[i][0], acts[i][1], 96, 30, i == 0 ? 0xFFC45A : 0x8FE3FF, i == 0 ? 0xF07812 : 0x1E8FE0, "cardAct" + i);
+            b.x = 248 + (i % 2) * 110;
+            b.y = 70 + int(i / 2) * 44;
+            box.addChild(b);
+         }
+      }
+
+      /** A request to the server whose reply {res, msg} is shown. */
+      private function ask(ext:String, cmd:String, answer:String):void
+      {
+         var sc:SocketClient = SocketClient.instance;
+         var onReply:Function = function(e:SocketClientEvent):void
+         {
+            sc.removeEventListener(answer, onReply);
+            if (int(e.params.res) == 1) NewDialog.showSucceedMessage(String(e.params.msg));
+            else NewDialog.showFailMessage(String(e.params.msg));
+         };
+         sc.addEventListener(answer, onReply);
+         sc.sendXtMessage(ext, cmd, {name: userName});
       }
 
       private function this_close():void

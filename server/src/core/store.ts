@@ -28,3 +28,82 @@ export class MemoryStore implements Store {
     return [...this.map.keys()].filter((k) => k.startsWith(prefix)).sort();
   }
 }
+
+/**
+ * A Store that keeps the records under some prefixes live: every get of such a key returns the
+ * same object, so handlers running at once for different players (a visitor picking fruit from
+ * one's tree while one fights a battle, both changing one's record) change one object, and the
+ * last save holds both changes; reading a copy each, the later save would undo the earlier.
+ * Writes go through at once. At most `max` records stay (the least recently used go).
+ */
+export class LiveRecordStore implements Store {
+  private readonly live = new Map<string, unknown>();
+  private readonly inner: Store;
+  private readonly prefixes: string[];
+  private readonly max: number;
+  private readonly pinned: (key: string) => boolean;
+  /** pinned: records never let go (the players in the game: their handlers hold them). */
+  constructor(inner: Store, prefixes: string[], max = 1000, pinned: (key: string) => boolean = () => false) {
+    this.inner = inner;
+    this.prefixes = prefixes;
+    this.max = max;
+    this.pinned = pinned;
+  }
+
+  private kept(key: string): boolean {
+    return this.prefixes.some((p) => key.startsWith(p));
+  }
+
+  private remember(key: string, value: unknown): void {
+    this.live.delete(key);
+    this.live.set(key, value);
+    if (this.live.size <= this.max) return;
+    for (const k of this.live.keys()) {
+      if (this.live.size <= this.max) break;
+      if (k !== key && !this.pinned(k)) this.live.delete(k);
+    }
+  }
+
+  async get<T>(key: string): Promise<T | undefined> {
+    if (!this.kept(key)) return this.inner.get<T>(key);
+    if (this.live.has(key)) {
+      const v = this.live.get(key) as T;
+      this.remember(key, v);
+      return v;
+    }
+    const before = this.changes.get(key) ?? 0;
+    const v = await this.inner.get<T>(key);
+    // Loaded by another get meanwhile: that one is the live one.
+    if (this.live.has(key)) return this.live.get(key) as T;
+    // Written or deleted meanwhile: what was read is old (a deleted record must not come back).
+    if ((this.changes.get(key) ?? 0) !== before) return this.get<T>(key);
+    if (v !== undefined) this.remember(key, v);
+    return v;
+  }
+
+  /** Writes and deletes of each kept key so far (a get in flight then reads again). */
+  private readonly changes = new Map<string, number>();
+
+  private changed(key: string): void {
+    this.changes.set(key, (this.changes.get(key) ?? 0) + 1);
+    if (this.changes.size > this.max * 4) this.changes.clear();
+  }
+
+  async set<T>(key: string, value: T): Promise<void> {
+    if (this.kept(key)) {
+      this.remember(key, value);
+      this.changed(key);
+    }
+    await this.inner.set(key, value);
+  }
+
+  async delete(key: string): Promise<void> {
+    this.live.delete(key);
+    this.changed(key);
+    await this.inner.delete(key);
+  }
+
+  keys(prefix = ""): Promise<string[]> {
+    return this.inner.keys(prefix);
+  }
+}

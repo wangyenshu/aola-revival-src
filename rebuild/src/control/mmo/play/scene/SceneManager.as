@@ -29,6 +29,9 @@ package mmo.play.scene
     */
    public class SceneManager extends EventDispatcher
    {
+      /** REVIVAL: the server room the next 沙盒 room is shown in (ModRun), or null: one's own. */
+      public static var sandboxRoom:String;
+
       public static const DEFAULT_SCENE:String = "starland";
       /** Tried in order when the first scene of a session cannot be entered. */
       public static const FALLBACK_SCENES:Array = ["starland", "yabiunion", "teambattleoutside"];
@@ -276,11 +279,14 @@ package mmo.play.scene
             return;
          }
          var room:String = cfg.getSceneRoom(sceneName) || sceneName;
-         // REVIVAL: the 沙盒 room shows each player's own 关卡: a server room of one's own.
-         if (sceneName == "sandboxroom") room += "_" + SocketClient.instance.myUserName;
+         // REVIVAL: the 沙盒 room shows each player's own 关卡: a server room of one's own; a team's
+         // mod room is the team's (ModRun.teamRoom: the same mod, version and room for all of it).
+         if (sceneName == "sandboxroom") room = sandboxRoom != null ? sandboxRoom : room + "_" + SocketClient.instance.myUserName;
          var info:SceneInfo;
          if (_nextFB != null)
          {
+            // REVIVAL: a 副本's (时空隧道's) room is one's own, "<room>@<name>": played alone, also in a team.
+            room += "@" + SocketClient.instance.myUserName;
             var fb:FBSceneInfo = new FBSceneInfo(sceneName, room, swf);
             fb.fbName = _nextFB.fbName;
             fb.teamKey = _nextFB.teamKey;

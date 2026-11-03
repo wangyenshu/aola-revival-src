@@ -159,7 +159,11 @@ test("catching needs a weak 亚比 and uses up a ball", async () => {
   assert.equal(early[0][1].pmId, 0);
   assert.equal(early[0][1].refused, true);
   assert.equal(owner.items["2"]["32"], 2, "no ball spent while it is too strong");
-  // Weaken it by hand and try again.
+  // A 体力糖 at full strength is refused (no turn passes); hurt, it is used up.
+  const full = await call("PocketMonsterExtension.1402", { itemId: 30 });
+  assert.equal(full[0][1].refused, true);
+  assert.equal(owner.items["2"]["30"], 1);
+  owner.pets![0].hp = 1;
   const out0 = await call("PocketMonsterExtension.1402", { itemId: 30 });
   assert.equal(out0[0][0], "onAmountUpdated");
   assert.equal(owner.items["2"]["30"], undefined);

@@ -9,7 +9,7 @@ package mmo.revival.mod
     */
    public interface IModGame
    {
-      /** The API version (2: music() and a room's music take a mod's own Sound). */
+      /** The API version (2: music() and a room's music take a mod's own Sound; 3: 组队). */
       function get apiVersion():int;
 
       /** The player's name. */
@@ -110,5 +110,27 @@ package mmo.revival.mod
 
       /** Write to the log (the browser's console). */
       function log(... parts):void;
+
+      // 组队 (API 3; a shared server). In a team, a room of the mod is one room for the whole
+      // team (members who run the same mod, of the same version), and the leader going into one
+      // takes the members along.
+
+      /** The team's members, the leader first; [] when one plays alone. */
+      function get team():Array;
+
+      /** The team's leader, or "" alone. */
+      function get teamLeader():String;
+
+      /** This player leads the team (or plays alone). */
+      function get isLeader():Boolean;
+
+      /** The other players in the room shown. */
+      function get playersHere():Array;
+
+      /** Tell the team's other members running this mod: their onTeam(event) get (name, data). data: JSON-like, 4 KB. */
+      function sendTeam(event:String, data:* = null):void;
+
+      /** f(from:String, data:*) when another member sends event. */
+      function onTeam(event:String, f:Function):void;
    }
 }

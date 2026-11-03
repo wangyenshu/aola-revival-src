@@ -110,12 +110,17 @@ package mmo.task135
             </config>;
       }
 
-      /** 麦哲伦 stands in the 指挥中心 with this conversation, and says it once on arrival. */
+      /**
+       * 麦哲伦 stands in the 指挥中心 with this conversation, and says it once: a moment
+       * after arriving (the room and he are drawn first), at once when the step before
+       * was just done in front of him.
+       */
       private function magellan(key:String, xml:XML):void
       {
          addNpc(MAGELLAN[0], MAGELLAN[1], MAGELLAN[2], MAGELLAN[3]);
          setTalk(9, xml);
-         delay(600, function():void { sayOnce(key, 9, xml); });
+         if (stepChanged) sayOnce(key, 9, xml);
+         else delay(600, function():void { sayOnce(key, 9, xml); });
       }
 
       private function backTo(key:String):void
@@ -135,7 +140,8 @@ package mmo.task135
                new StarterPanel(function(race:int):void
                {
                   PetClient.instance.addPM(race, 5);
-                  delay(800, function():void { finish(137); });
+                  // The server answers in order: the 亚比 is in the bag before the step is done.
+                  delay(100, function():void { finish(137); });
                }).show();
                break;
             case "t138_fight":

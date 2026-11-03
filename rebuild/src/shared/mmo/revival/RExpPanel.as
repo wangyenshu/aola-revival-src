@@ -1,4 +1,4 @@
-package mmo.house.b000247
+package mmo.revival
 {
    import flash.display.Sprite;
    import flash.text.TextField;
@@ -9,22 +9,21 @@ package mmo.house.b000247
    import mmo.interfaces.pet.data.IPetDataService;
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.loader.layer.LayerManager;
-   import mmo.revival.RLog;
-   import mmo.revival.RUI;
 
    /**
-    * REBUILT: the 家园's 经验分配器. The HELLO keeps the experience tasks
+    * REBUILT: the HELLO's 经验分配 (the 家园's 经验分配器, and the HELLO's own menu,
+    * init/robotmanager's 亚比经验分配). The HELLO keeps the experience tasks
     * reward (麦哲伦: "HELLO会帮你把奖励的经验分给亚比"); here it goes to the
     * 亚比 of the bag. The 2012 panel is lost; the commands are the era
     * RobotClient's: getExp (RobotExtension 2-12 -> {exp}) and giveExp
     * (2-13 {pi, e} -> {res, exp}), the 亚比 growing as in a battle. Drawn in
     * the look of the rebuilt panels.
     */
-   public class ExpPanel extends Sprite
+   public class RExpPanel extends Sprite
    {
       private static const W:int = 500;
       private static const H:int = 400;
-      private static var current:ExpPanel;
+      private static var current:RExpPanel;
 
       private var box:Sprite;
       private var pool:TextField;
@@ -35,11 +34,11 @@ package mmo.house.b000247
       public static function show():void
       {
          if (current != null) current.close();
-         current = new ExpPanel();
+         current = new RExpPanel();
          LayerManager.getBaseTop().addChild(current);
       }
 
-      public function ExpPanel()
+      public function RExpPanel()
       {
          super();
          name = "expPanel";

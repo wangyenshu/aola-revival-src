@@ -95,7 +95,7 @@ package mmo.house.b020000
          if (feeder != null) feeder.gotoAndStop(1);
          clickable(feeder, "饲料机：给动物喂食", feedAll);
          clickable(overlap.getChildByName("btnEco"), "生态园", function():void { SceneManager.getInstance().loadScene("ecologicalpark", "fromzoo"); });
-         clickable(overlap.getChildByName("btnHome"), "我的家园", function():void { if (loader != null) loader.loadSubHouse(GARDEN_ID, "fromZoo"); });
+         clickable(overlap.getChildByName("btnHome"), mine ? "我的家园" : owner + "的家园", function():void { if (loader != null) loader.loadSubHouse(GARDEN_ID, "fromZoo"); });
          // The fish tank's places (waterPoolMC.fishContainer.pointionMC_0..8).
          var pool:DisplayObjectContainer = background.getChildByName("waterPoolMC") as DisplayObjectContainer;
          var fc:DisplayObjectContainer = pool ? pool.getChildByName("fishContainer") as DisplayObjectContainer : null;

@@ -297,7 +297,37 @@ The fields of a room's `def`:
 | `after(seconds, f)` | call `f()` after `seconds`, unless the room has been left by then. Asked for before a room is shown (in `start`, a door's handler), the time counts from when it is |
 | `log(...parts)` | write to the browser's console |
 | `get playerName():String` | the player's name as the game shows it (as `#username#`) |
-| `get apiVersion():int` | 2 |
+| `get apiVersion():int` | 3 |
+
+**组队 (API 3)**
+
+On a shared server (联机模式), players in a team (the bar's 组队) can play a
+mod together, when every member has loaded the same mod (the same `id` and
+`version`):
+
+- In a team, each room of the mod is one room for the whole team: the members
+  in it see each other, and the leader going into a room of the mod takes the
+  members along (they follow the leader as they do from scene to scene). A
+  member who has not started the mod has it started, and goes into the
+  leader's room instead of the mod's first one. A member without the mod, or
+  with another version of it, is told so and stays behind. Alone, a mod's rooms
+  are one's own, as before.
+- Each player's page runs the mod by itself: fights, conversations and saved
+  data are each player's own. A fight is always one player's (there are no
+  team battles: the 2013 screen for them is lost). What the team should share,
+  the mod sends with `sendTeam` and hears with `onTeam` (a door the leader
+  opens, a turn in a game).
+
+| Member | |
+| --- | --- |
+| `get team():Array` | the team's members, the leader first; `[]` when the player plays alone |
+| `get teamLeader():String` | the leader, or `""` alone |
+| `get isLeader():Boolean` | this player leads the team (true alone) |
+| `get playersHere():Array` | the other players in the room shown |
+| `sendTeam(event, data = null)` | tell the team's other members who run this mod: their `onTeam(event)` functions get this player's name and `data` (JSON-like, at most 4 KB as JSON). Alone, nobody hears it |
+| `onTeam(event, f)` | `f(from:String, data)` when another member sends `event`. Call it in `start` (a room's `build` runs each time the room is shown, and would listen again each time) |
+
+The `hello` example has a door, in a team, that waves to the others.
 
 ### `IModRoom`
 

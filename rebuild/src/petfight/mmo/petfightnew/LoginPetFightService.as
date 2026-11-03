@@ -130,9 +130,10 @@ package mmo.petfightnew
          if (panel != null) panel.close();
       }
 
+      /** 亚比对战 with another player (the revival's server, duel.ts): an invitation he answers. */
       public function fightWithOther(name:String):void
       {
-         RLog.stub("LoginPetFightService.fightWithOther");
+         SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_duel_invite", {name: name});
       }
 
       public function matchArena(b:Boolean = false):Boolean

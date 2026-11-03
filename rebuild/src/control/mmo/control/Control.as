@@ -85,6 +85,8 @@ package mmo.control
          LayerManager.getBaseControl().addChild(bar);
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
+         // 好友 and 组队 of a shared server: invitations and the team following its leader.
+         Social.start();
          ToolboxPanel.watchMoney();
          watchSpinner();
          afterClothes(function():void { SceneManager.getInstance().loadDefaultScene(); });
@@ -204,10 +206,11 @@ package mmo.control
                goHome();
                break;
             case "friend":
-               showPanel("BuddyListService");
+               // The 2013 BuddyListService is lost (the 2025 copy needs later libraries): the revival's.
+               FriendPanel.show();
                break;
             case "team":
-               showPanel("TeamService");
+               TeamPanel.show();
                break;
             case "squad":
                showPanel("SquadService");
@@ -497,6 +500,12 @@ package mmo.control
                   case "map": openMap(); return "ok";
                   case "home": goHome(); return "ok";
                   case "scene": return sm.loadedSceneInfo ? sm.loadedSceneInfo.sceneName : "";
+                  case "room": return Social.currentRoom();
+                  case "visit":
+                     // "owner,houseId": a room of someone's home (247 家园, -1 小屋, 20000 动物园).
+                     var va:Array = String(arg).split(",");
+                     Social.visitHome(va[0], va.length > 1 ? int(va[1]) : 247);
+                     return "ok";
                   case "busy": return sm.isLoading ? "1" : "0";
                   case "unloadgame": sm.unloadGame(); return "ok";
                   case "top":
@@ -626,6 +635,15 @@ package mmo.control
                         outs.push(uc.join("<"));
                      }
                      return outs.join(" || ");
+                  case "player":
+                     // Another 奥拉's player here: where, shown or not, its parents, what it holds (tests/e2e).
+                     var op:PlayerBase = PlayerManager.getInstance().getPlayer(arg) as PlayerBase;
+                     if (op == null) return "none";
+                     var opc:Array = [];
+                     for (var opp:DisplayObject = op; opp != null && opp != opp.stage; opp = opp.parent) opc.push((opp.name || "?") + (opp.visible ? "" : "(hidden)") + (opp.alpha < 1 ? "(a" + opp.alpha + ")" : ""));
+                     var kids:Array = [];
+                     for (var oi:int = 0; oi < op.numChildren; oi++) kids.push(getQualifiedClassName(op.getChildAt(oi)).replace(/.*::/, "") + (op.getChildAt(oi).visible ? "" : "(hidden)"));
+                     return int(op.x) + "," + int(op.y) + " stage=" + (op.stage != null) + " " + opc.join("<") + " [" + kids.join(",") + "]";
                   case "pos":
                      // My player's scene position, and "moving" while walking (tests/e2e).
                      var mine:PlayerBase = PlayerManager.getInstance().myPlayer as PlayerBase;

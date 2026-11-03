@@ -167,6 +167,8 @@ export interface RobotRecord {
   born?: string;
   /** Its clothes (a robot clothes id; "" for the default look). */
   avatar?: string;
+  /** Its energy, 0–100 (its 营养饼干 and 能量晶石 fill it; the card shows it). */
+  energy?: number;
 }
 
 /**
@@ -314,6 +316,8 @@ export interface TaskDeps {
   dev?: boolean;
   /** A task finished: rewards beside the score (QUEST_REWARDS), as replies [cmd, body]. */
   onFinish?: (rec: TaskOwner, task: number) => Promise<[string, Record<string, unknown>][]>;
+  /** Another player's record by user name (their HELLO's card, RobotClient.getOtherRobot). */
+  byName?: (name: string) => Promise<TaskOwner | undefined>;
 }
 
 /**
@@ -434,7 +438,7 @@ export function installTasks(world: World, deps: TaskDeps): void {
   const robotView = (rec: TaskOwner) => {
     const r = rec.robot;
     const f = skillBits(rec);
-    return r ? { has: 1, n: r.name, a: r.avatar ?? "", b: r.born ?? "2012-08-15", e: 100, f, t: 0, exp: r.exp, fl: r.follow ? 1 : 0 } : { has: 0, f };
+    return r ? { has: 1, n: r.name, a: r.avatar ?? "", b: r.born ?? "2012-08-15", e: r.energy ?? 100, f, t: 0, exp: r.exp, fl: r.follow ? 1 : 0 } : { has: 0, f };
   };
   const today = () => new Date(deps.now()).toISOString().slice(0, 10);
   world.xt("RobotExtension.2-11", async (ctx) => {
@@ -446,9 +450,12 @@ export function installTasks(world: World, deps: TaskDeps): void {
     }
     ctx.reply({ res: 1, ...robotView(rec) });
   });
+  // 2-0 {un}: another player's HELLO (the era card robot/robotanothermes asks so); {} one's own.
   world.xt("RobotExtension.2-0", async (ctx) => {
-    const rec = await deps.load(ctx);
-    ctx.reply(robotView(rec));
+    const un = typeof ctx.params.un === "string" ? ctx.params.un : "";
+    const rec = un && un !== ctx.player?.name && deps.byName ? await deps.byName(un) : await deps.load(ctx);
+    const who = un || ctx.player?.name;
+    ctx.reply(rec ? { ...robotView(rec), ...(who ? { un: who } : {}) } : { has: 0, f: "00000", ...(un ? { un } : {}) });
   });
   world.xt("RobotExtension.2-1", async (ctx) => {
     const rec = await deps.load(ctx);

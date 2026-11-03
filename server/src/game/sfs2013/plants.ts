@@ -21,7 +21,8 @@
 // "健康值是有上限的，在到达下一等级之前已经不能增加了", "下次结果时间为今天…：00，
 // 还可以结果…次"). Result codes are that panel's: 0 done, 1 done and grown a
 // level, -1 no fruit, -2 too little 晶币, -5 twice today already, -9 top level,
-// -17 full until the next level, -19 no such tree, -21 the pot is taken.
+// -17 full until the next level, -19 no such tree, -21 the pot is taken, -22 (the revival's) a
+// visitor has picked of this fruiting already, or only the owner's last fruit is left.
 
 import type { World, XtContext } from "./server.ts";
 
@@ -71,9 +72,12 @@ export interface PlantRec {
   nextFruitTime: number;
   /** Care given today: {day, rain, fat}. */
   care: { day: string; rain: number; fat: number };
+  /** Visitors (ids) who picked of this fruiting: one fruit each, the last left to the owner. */
+  pickers?: number[];
 }
 
 export interface PlantOwner {
+  id?: number;
   name: string;
   score?: number;
   items?: Record<string, Record<string, number>>;
@@ -100,6 +104,7 @@ export function ripen(p: PlantRec, now: number): void {
   if (p.remainFruit > 0 || p.remainProductTime <= 0 || now < p.nextFruitTime) return;
   const n = Math.max(1, Math.ceil(p.fruitLeft / p.remainProductTime));
   p.remainFruit = n;
+  p.pickers = [];
   p.fruitLeft = Math.max(0, p.fruitLeft - n);
   p.remainProductTime -= 1;
 }
@@ -227,14 +232,19 @@ export function installPlants(world: World, deps: PlantDeps): void {
     const now = deps.now();
     ripen(p, now);
     if (p.remainFruit <= 0) return ctx.reply({ result: { result: -1, userPlant: plantView(p, now) } });
-    const picker = o.name === ctx.player.name ? o : await deps.me(ctx);
+    const visitor = o.name !== ctx.player.name;
+    const picker = visitor ? await deps.me(ctx) : o;
+    // 摘果子 at a friend's: one fruit a visitor a fruiting, never the last (RECONSTRUCTED).
+    if (visitor && (p.remainFruit <= 1 || (p.pickers ?? []).includes(picker.id ?? 0)))
+      return ctx.reply({ result: { result: -22, userPlant: plantView(p, now) } });
     const fruit = String(PLANTS[p.plantId].fruit);
     const items = ((picker.items ??= {})["2"] ??= {});
-    const n = Math.min(p.remainFruit, FRUIT_MAX - (items[fruit] ?? 0));
+    const n = Math.min(visitor ? 1 : p.remainFruit, FRUIT_MAX - (items[fruit] ?? 0));
     if (n <= 0) return ctx.reply({ result: { result: -16, userPlant: plantView(p, now) } });
     items[fruit] = (items[fruit] ?? 0) + n;
-    p.remainFruit = 0;
-    if (p.remainProductTime > 0) p.nextFruitTime = nextFruitAt(now);
+    p.remainFruit -= n;
+    if (visitor) (p.pickers ??= []).push(picker.id ?? 0);
+    if (p.remainFruit === 0 && p.remainProductTime > 0) p.nextFruitTime = nextFruitAt(now);
     await deps.save(o);
     if (picker !== o) await deps.save(picker);
     ctx.reply({ amount: `2_${fruit}_0_${n}` }, "onAmountUpdated");

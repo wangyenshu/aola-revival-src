@@ -9,8 +9,6 @@ package mmo.housemenu
    import flash.text.TextField;
    import mmo.common.utils.tips.TipsManager;
    import mmo.houseinterfaces.operate.HouseMenuEvent;
-   import mmo.loader.layer.LayerManager;
-   import mmo.revival.RNotice;
 
    /**
     * REBUILT. The home menu, bound to the menu symbol of the later
@@ -31,6 +29,7 @@ package mmo.housemenu
       private var _editable:Boolean;
       private var editing:Boolean;
       private var visitorCount:int;
+      private var owner:String;
 
       public function HouseMenu()
       {
@@ -39,6 +38,7 @@ package mmo.housemenu
 
       public function setUp(owner:String, visitors:int, editable:Boolean):void
       {
+         this.owner = owner;
          _editable = editable;
          visitorCount = visitors;
          if (mcVisitors) mcVisitors.stop();
@@ -98,7 +98,8 @@ package mmo.housemenu
                break;
             case "btnVisitors":
             case "mcVisitors":
-               RNotice.show(LayerManager.getBaseTop(), "最近访问还在修复中哦！");
+               e.stopImmediatePropagation();
+               VisitorPanel.show(owner);
                break;
          }
       }

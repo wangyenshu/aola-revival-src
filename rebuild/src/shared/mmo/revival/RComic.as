@@ -2,6 +2,7 @@ package mmo.revival
 {
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
+   import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.events.Event;
@@ -11,6 +12,7 @@ package mmo.revival
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
+   import flash.utils.Dictionary;
    import flash.utils.getDefinitionByName;
    import mmo.common.ProgressFullSprite;
    import mmo.loader.layer.LayerManager;
@@ -64,16 +66,57 @@ package mmo.revival
          box.graphics.drawRect(-200, -200, 1360, 960);
          box.graphics.endFill();
          box.addChild(mc);
+         var closed:Boolean = false;
          var close:Function = function():void
          {
+            if (closed) return;
+            closed = true;
+            box.removeEventListener(Event.ENTER_FRAME, onFrame);
             mc.stop();
             stopAll(mc);
             if (box.parent) box.parent.removeChild(box);
             finish();
          };
+         // The films stop on their pages and wait for their own buttons: the arrow (next)
+         // plays on to the next page, the close button (btnclose, end, ok …) ends the film.
+         var wired:Dictionary = new Dictionary(true);
+         var wire:Function = function(d:DisplayObject, depth:int):Boolean
+         {
+            var found:Boolean = false;
+            var c:DisplayObjectContainer = d as DisplayObjectContainer;
+            if (c == null) return false;
+            for (var i:int = 0; i < c.numChildren; i++)
+            {
+               var k:DisplayObject = c.getChildAt(i);
+               var kind:String = k is InteractiveObject ? BUTTONS[k.name] as String : null;
+               if (kind != null)
+               {
+                  found = found || k.visible;
+                  if (!wired[k])
+                  {
+                     wired[k] = true;
+                     k.addEventListener(MouseEvent.CLICK, kind == "next" ? function(e:MouseEvent):void
+                     {
+                        e.stopPropagation();
+                        if (mc.currentFrame >= mc.totalFrames) close();
+                        else mc.play();
+                     } : function(e:MouseEvent):void
+                     {
+                        e.stopPropagation();
+                        close();
+                     });
+                  }
+               }
+               if (depth > 1 && wire(k, depth - 1)) found = true;
+            }
+            return found;
+         };
+         var onFrame:Function = function(e:Event):void { wire(mc, 3); };
+         box.addEventListener(Event.ENTER_FRAME, onFrame);
          if (mc.totalFrames > 1)
          {
-            mc.addFrameScript(mc.totalFrames - 1, function():void { mc.stop(); close(); });
+            // The last frame waits for its button when it has one.
+            mc.addFrameScript(mc.totalFrames - 1, function():void { mc.stop(); if (!wire(mc, 3)) close(); });
          }
          if (skippable)
          {
@@ -103,6 +146,13 @@ package mmo.revival
          top.addChild(box);
          mc.gotoAndPlay(1);
       }
+
+      /** The films' own buttons by name: next plays on, the others end the film. */
+      private static const BUTTONS:Object = {
+         next: "next", btnNext: "next", btnnext: "next", nextBtn: "next",
+         end: "end", btnclose: "end", btnClose: "end", BTNCLOSE: "end", closeBtn: "end", cloBtn: "end",
+         btn_close: "end", ok: "end", btnOk: "end"
+      };
 
       private static function stopAll(d:DisplayObject):void
       {

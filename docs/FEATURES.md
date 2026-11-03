@@ -856,7 +856,13 @@ run pays 晶豆, as its end panel says.
   奇迹谷底, 生命之树, 水下广场, 烈焰洞穴) in 24 or 72 hours.
 - 天赋启迪 (the 天赋改造机 in 亚比研究中心): raising a 亚比's 天赋 with 启迪能量
   or 星币.
-- The 亚比图鉴.
+- The 亚比图鉴, with the 亚比 up to 1651 (those after January 2013 from the
+  later game's files, for the 工具箱).
+- 亚比道具 (the bag's 道具 tab): every item of 2013 that is used on a 亚比.
+- 战术卡 (the bag's 战术卡 tab): the 35 cards of 2013, one in each place
+  (A, B, C) of a 亚比, adding to its stats; a 亚比 BOSS beaten sometimes gives
+  one (RECONSTRUCTED). 亚比装扮 is not there: the 2013 files have no list of
+  the 亚比's clothes.
 
 ### Shops and money
 
@@ -877,6 +883,8 @@ run pays 晶豆, as its end panel says.
   decorating, storage.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn
   into 亚比; the 饲料机, the 手册, selling grown animals.
+- On a shared server: friends' homes (家园, 小屋, 动物园), 摘果子 there, and the
+  小屋's 足迹 (docs/MULTIPLAYER.md).
 
 ### Interface and world
 
@@ -898,11 +906,11 @@ run pays 晶豆, as its end panel says.
 
 ## Known gaps
 
-- Anything that needs other players: friends, teams, 战队, trading, player
-  battles, visiting homes. The in-page emulator has one player; the Node
-  server mode (`npm start`) connects several, but these services are not
-  rebuilt.
-- Daily tasks, the NPC guide, the HELLO's panel and ring menu.
+- With other players (联机模式, docs/MULTIPLAYER.md): 好友, 组队, visiting
+  homes, chat, 射击, 亚比对战 and mods together work; team battles (several
+  players against one boss, a team in a 副本 or 时空隧道: the 2013 screen for
+  them is lost), 战队, 兵团 and trading do not.
+- Daily tasks, the NPC guide.
 - Most time-limited activities of 2012–13 (their panels show
   这个功能还在修复中).
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,

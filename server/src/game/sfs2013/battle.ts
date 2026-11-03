@@ -52,9 +52,12 @@ import {
   type PetRecord,
   type PetTables,
 } from "./pets.ts";
+import { PET_CARD, PET_CARDS, cardDrop } from "./petcards.ts";
 import { installSandbox } from "./sandbox.ts";
 import { applyFate, dollLevel, gymOf, gymWon, installGyms, towerFloorWon, GYM_DARK, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
-import type { World, XtContext } from "./server.ts";
+import { sceneOfRoom, type World, type XtContext } from "./server.ts";
+import { installDuels, type Duel } from "./duel.ts";
+import type { Boosts, PetItemOwner } from "./petitems.ts";
 
 // ---------------------------------------------------------------- skill effects
 
@@ -169,6 +172,8 @@ export interface Fighter {
   bind: number;
   flinch: boolean;
   recharge: boolean;
+  /** A 强化药剂's points (stats[i] + add) until the round `until`. */
+  buff?: { i: number; add: number; until: number };
 }
 
 export interface Battle {
@@ -195,9 +200,14 @@ export interface Battle {
   copyId?: number;
   /** A 沙盒 fight (sandbox.ts): no experience, effort points or evolution for the win. */
   noAward?: boolean;
+  /** 亚比对战 with another player (duel.ts): the battle of both, its commands are the duel's. */
+  duel?: Duel;
 }
 
 export type Msg = [cmd: string, body: Record<string, unknown>];
+
+/** Rounds a 强化药剂 (petitems.ts) keeps its points: "在20回合内". */
+export const BUFF_ROUNDS = 20;
 
 /** A win's words for the end of the battle (onWin): 2403's note (the battle screen's result lines), not sent. */
 export const NOTE = "revival_note";
@@ -206,13 +216,22 @@ export interface Rng {
   (): number;
 }
 
-function fighter(slot: 0 | 1, pet: PetRecord, owner: number, t: PetTables): Fighter {
+export function fighter(slot: 0 | 1, pet: PetRecord, owner: number, t: PetTables): Fighter {
   const sp = speciesOf(t, pet.race);
+  const stats = statsOf(pet, t);
+  // A 强化药剂 used before (petitems.ts): its points for the first rounds of this battle.
+  let buff: Fighter["buff"];
+  if (slot === 0 && pet.buff) {
+    buff = { ...pet.buff, until: BUFF_ROUNDS };
+    stats[buff.i] += buff.add;
+    delete pet.buff;
+  }
   return {
     slot,
     pet,
     owner,
-    stats: statsOf(pet, t),
+    stats,
+    buff,
     types: sp ? sp.t : [0, 0],
     stages: noStages(),
     sleep: 0,
@@ -564,15 +583,15 @@ export interface WinResult {
 }
 
 /** Experience, effort points, levels, new skills and evolution for the 亚比 that won. */
-export function award(t: PetTables, pet: PetRecord, wildRace: number, wildLevel: number): WinResult {
+export function award(t: PetTables, pet: PetRecord, wildRace: number, wildLevel: number, boost: { exp?: number; ev?: number } = {}): WinResult {
   const wsp = speciesOf(t, wildRace);
-  const gained = expYield(wsp, wildLevel);
+  const gained = expYield(wsp, wildLevel) * (boost.exp ?? 1);
   if (wsp) {
     pet.ev ??= [0, 0, 0, 0, 0, 0];
     const total = pet.ev.reduce((a, b) => a + b, 0);
     let room = Math.max(0, 510 - total);
     wsp.ev.forEach((y, i) => {
-      const add = Math.min(y, room, 255 - pet.ev![i]);
+      const add = Math.min(y * (boost.ev ?? 1), room, 255 - pet.ev![i]);
       if (add > 0) {
         pet.ev![i] += add;
         room -= add;
@@ -593,7 +612,7 @@ export function gainExp(t: PetTables, pet: PetRecord, gained: number): WinResult
     const before = statsOf(pet, t);
     pet.level++;
     const sp = speciesOf(t, pet.race);
-    const next = sp ? evolutionAt(sp, pet.race, pet.level) : 0;
+    const next = sp && !pet.fixed ? evolutionAt(sp, pet.race, pet.level) : 0;
     if (next && speciesOf(t, next)) {
       pet.race = next;
       evolvedTo = next;
@@ -632,8 +651,10 @@ export function gainExp(t: PetTables, pet: PetRecord, gained: number): WinResult
 
 /** Balls (ItemData type 6) and recovery items (type 5) of the 2013 item table. */
 export const BALLS: Record<number, number> = { 32: 0.5, 67: 0.7, 68: 0.9, 64: 1 };
-export const POTIONS: Record<number, number> = { 30: 40, 60: 100, 61: 200 };
-export const PP_BEANS: Record<number, number> = { 31: 5, 103: 10, 104: 20 };
+export const POTIONS: Record<number, number> = { 30: 40, 60: 100, 61: 200, 102: 300, 263: 400, 390: 200 };
+export const PP_BEANS: Record<number, number> = { 31: 5, 103: 10, 104: 20, 391: 20 };
+/** 解除…药剂 (94–99) and 净化药剂 (100, 101): the status each takes away ("all" for the 净化药剂). */
+export const CURES: Record<number, StatusName | "寄生" | "all"> = { 94: "睡眠", 95: "混乱", 96: "寄生", 97: "烧伤", 98: "冰冻", 99: "中毒", 100: "all", 101: "all" };
 /** "当亚比剩下极少体力时，可用于捕捉野外亚比": a ball works once the wild 亚比 is down to a fifth. */
 export const CATCH_HP = 0.2;
 
@@ -676,6 +697,8 @@ export interface WildEntry {
 
 export interface BattleDeps {
   load: (ctx: XtContext) => Promise<PetOwner & { items?: Record<string, Record<string, number>> }>;
+  /** Another player's record (亚比对战). */
+  find?: (name: string) => Promise<(PetOwner & { items?: Record<string, Record<string, number>> }) | undefined>;
   save: (owner: PetOwner) => Promise<void>;
   tables: () => Promise<PetTables>;
   wild: () => Promise<Record<string, WildEntry[]>>;
@@ -821,11 +844,23 @@ export function installBattles(world: World, deps: BattleDeps): void {
   const send = (ctx: XtContext, msgs: Msg[]) => {
     for (const [cmd, body] of msgs) ctx.reply(body, cmd);
   };
+  // 亚比对战 between players (duel.ts).
+  const duels = installDuels(world, {
+    battles,
+    load: deps.load,
+    find: async (name) => deps.find?.(name),
+    tables: deps.tables,
+    rng: deps.rng,
+    nextId: () => nextBattle++,
+  });
 
   // Wild 亚比 of the room.
   world.xt("PetExtension.54_7", async (ctx) => {
-    const room = ctx.player.room?.name ?? "";
-    ctx.reply({ pms: (await deps.wild())[room] ?? [] });
+    const room = sceneOfRoom(ctx.player.room);
+    // auto (not of 2013): battles left of a 自动战斗仪 (petitems.ts); the wild 亚比 module then
+    // goes for the wild 亚比 of the room by itself.
+    const auto = ((await deps.load(ctx)) as PetItemOwner).boosts?.auto ?? 0;
+    ctx.reply({ pms: (await deps.wild())[room] ?? [], ...(auto ? { auto } : {}) });
   });
 
   const begin = async (
@@ -867,13 +902,23 @@ export function installBattles(world: World, deps: BattleDeps): void {
     }
     const engine = new BattleEngine(t, deps.rng);
     const canCatch = catchable && Number.isFinite(Number(speciesOf(t, race)!.c[0]));
-    const b = engine.start(nextBattle++, ctx.player.room?.name ?? "", o, active, wildPet, canCatch);
+    const b = engine.start(nextBattle++, sceneOfRoom(ctx.player.room), o, active, wildPet, canCatch);
     b.onWin = onWin;
     b.onLose = onLose;
     b.asked = asked;
     b.copyId = copyId;
     b.noAward = !!sandbox;
     adjust?.(b);
+    // 自动战斗仪 (44, petitems.ts): "开启后，在场景中会自动与野外怪对战。每个可使用100次": a wild
+    // battle while it lasts is fought by the battle screen itself (auto), one use each.
+    const boosts = (o as PetItemOwner).boosts;
+    // (A wild 亚比 of the room: the one battle that may be caught.)
+    const auto = !!boosts?.auto && catchable && !copyId && !sandbox;
+    if (auto && boosts) {
+      boosts.auto = (boosts.auto ?? 0) - 1;
+      if (boosts.auto <= 0) delete boosts.auto;
+      await deps.save(o);
+    }
     battles.set(o.id, b);
     engine.bag = o.pets;
     engine.ownerRef = o;
@@ -882,7 +927,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       ["2303", { esc: true, sw: true, ch: canCatch, cd: catchStars(speciesOf(t, race)!.c[0]), chp: catchHpLimit(t, race), pmmList: engine.views(b) }],
       // boss: the opponent's id as the fight was asked for (variant * 10000 + species for the
       // bosses), by which the battle screen finds the boss's films (bossfightmovie/boss<id>).
-      ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race }],
+      ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race, ...(auto ? { auto: true, autoLeft: boosts?.auto ?? 0 } : {}) }],
     ]);
     return true;
   };
@@ -908,11 +953,11 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
       return void (await begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id));
     }
-    const entry = ((await deps.wild())[ctx.player.room?.name ?? ""] ?? []).find((w) => w.raceId === id);
+    const entry = ((await deps.wild())[sceneOfRoom(ctx.player.room)] ?? []).find((w) => w.raceId === id);
     const rng = deps.rng ?? Math.random;
     const level = entry ? entry.min + Math.floor(rng() * (entry.max - entry.min + 1)) : asked > 0 ? asked : 5;
     // The items some rooms' wild 亚比 drop for the planets' activities (planetacts.ts WILD_DROPS).
-    const room = ctx.player.room?.name ?? "";
+    const room = sceneOfRoom(ctx.player.room);
     await begin(ctx, id, Math.max(1, Math.min(100, level)), true, (o) => [...onWin(o), ...wildDrop(o as ActsOwner, room, id)]);
   });
 
@@ -1189,7 +1234,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
   });
   const fbHere = (o: PetOwner, ctx: XtContext) => {
     const cur = fbOf(o).cur;
-    const room = ctx.player.room?.name ?? "";
+    const room = sceneOfRoom(ctx.player.room);
     const def = fbOfRoom(room);
     if (!cur || !def || def.name !== cur.name) return null;
     // The run of the day picks which of a list a fight takes (fbsiwude6's two statues).
@@ -1300,23 +1345,29 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const species = BOSS_SPECIES[asked] ?? (speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000);
     const egg = BOSS_EGGS[asked] ?? (asked === 14523 || asked === 11514 || !lastGuardianForm(asked, index) ? 0 : eggOfLine(t, species));
     const mark = BOSS_MARKS[asked];
-    const onWin: Battle["onWin"] =
-      egg || mark
-        ? (o) => {
-            let again = false;
-            if (mark) {
-              const marks = ((o as { bossMarks?: number[] }).bossMarks ??= []);
-              again = marks.includes(mark);
-              if (!again) marks.push(mark);
-            }
-            if (!egg || (again && FIRST_WIN_ONLY.has(asked))) return [];
-            const eggs = (((o as { items?: Record<string, Record<string, number>> }).items ??= {})["5"] ??= {});
-            eggs[String(egg)] = (eggs[String(egg)] ?? 0) + 1;
-            // The 2013 client is not told eggs by onAmountUpdated (server.ts leaves them out): the
-            // end of the battle says it.
-            return [["onAmountUpdated", { amount: `5_${egg}_0_1` }], [NOTE, { text: `获得了${nameOf(t, egg)}亚比蛋！` }]];
-          }
-        : undefined;
+    const onWin: Battle["onWin"] = (o) => {
+      const out: Msg[] = [];
+      const items = ((o as { items?: Record<string, Record<string, number>> }).items ??= {});
+      // A 战术卡, now and then (petcards.ts).
+      const card = cardDrop(deps.rng ?? Math.random);
+      if (card) {
+        const cards = (items[String(PET_CARD)] ??= {});
+        cards[String(card)] = (cards[String(card)] ?? 0) + 1;
+        out.push(["onAmountUpdated", { amount: `${PET_CARD}_${card}_0_1` }], [NOTE, { text: `获得了战术卡「${PET_CARDS[card].name}」！`, bn: { type: PET_CARD, id: card, num: 1 } }]);
+      }
+      let again = false;
+      if (mark) {
+        const marks = ((o as { bossMarks?: number[] }).bossMarks ??= []);
+        again = marks.includes(mark);
+        if (!again) marks.push(mark);
+      }
+      if (!egg || (again && FIRST_WIN_ONLY.has(asked))) return out;
+      const eggs = (items["5"] ??= {});
+      eggs[String(egg)] = (eggs[String(egg)] ?? 0) + 1;
+      // The 2013 client is not told eggs by onAmountUpdated (server.ts leaves them out): the
+      // end of the battle says it.
+      return [...out, ["onAmountUpdated", { amount: `5_${egg}_0_1` }], [NOTE, { text: `获得了${nameOf(t, egg)}亚比蛋！`, bn: { type: 5, id: egg, num: 1 } }]];
+    };
     await begin(ctx, species, guardianLevel(asked, index), false, onWin, asked);
   });
 
@@ -1331,6 +1382,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const o = await deps.load(ctx);
       const b = battles.get(o.id);
       if (!b || b.over) return ctx.reply({ msg: "战斗还没有开始" }, "2414");
+      if (b.duel) return duels.command(name, ctx, b);
       const t = await deps.tables();
       // The battle holds the pet records of an earlier load: point it at this one's.
       const rebind = (f: Fighter) => {
@@ -1362,18 +1414,42 @@ export function installBattles(world: World, deps: BattleDeps): void {
     if (b.wild.pet.hp > 0 && b.mine.pet.hp > 0) out.push(...e.endOfTurn(b));
     if (b.wild.pet.hp <= 0) {
       b.over = true;
+      let radarCoins = 0;
       const pet = b.mine.pet;
       const before = pet.race;
-      const r: WinResult = b.noAward ? { msgs: [] } : award(t, pet, b.wild.pet.race, b.wild.pet.level);
+      // The 经验器 and 学习器 of the bag (petitems.ts), each win one of their uses.
+      const boosts = (o as PetItemOwner).boosts ?? {};
+      const mult = { exp: boosts.exp3 ? 3 : boosts.exp2 ? 2 : 1, ev: boosts.ev2 ? 2 : 1 };
+      const r: WinResult = b.noAward ? { msgs: [] } : award(t, pet, b.wild.pet.race, b.wild.pet.level, mult);
       out.push(...r.msgs);
+      if (!b.noAward) {
+        const used: string[] = [];
+        for (const k of [mult.exp === 3 ? "exp3" : mult.exp === 2 ? "exp2" : "", mult.ev === 2 ? "ev2" : "", boosts.radar ? "radar" : ""] as (keyof Boosts | "")[]) {
+          if (!k) continue;
+          boosts[k] = Math.max(0, (boosts[k] ?? 0) - 1);
+          if (!boosts[k]) delete boosts[k];
+          used.push(k);
+        }
+        // 寻宝雷达: "战斗结束可获得很多晶币奖励"; how many is lost (RECONSTRUCTED: 50 and 5 a level of the wild 亚比).
+        if (used.includes("radar")) {
+          const rec = o as PetOwner & { score?: number };
+          const coins = 50 + 5 * b.wild.pet.level;
+          rec.score = Math.min(9_999_999, (rec.score ?? 0) + coins);
+          out.push(["onScoreUpdated", { score: rec.score }]);
+          radarCoins = coins;
+        }
+      }
       if (r.evolvedTo && o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
       // A win's own messages; NOTE ones are words for the end of the battle, not sent.
       const won = b.onWin ? b.onWin(o) : [];
       const notes = won.filter(([c]) => c === NOTE).map(([, m]) => String(m.text));
+      // What a win brought (a boss's 亚比蛋): the client shows the 2013 MaterialGetPanel for each
+      // once the battle is closed ("1 个 …亚比蛋 已经放入你的亚比孵化器").
+      const bn = won.filter(([c, m]) => c === NOTE && m.bn).map(([, m]) => m.bn);
       out.push(...won.filter(([c]) => c !== NOTE));
-      const desc = b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。`;
+      const desc = b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。${radarCoins ? `寻宝雷达找到了${radarCoins}晶币！` : ""}`;
       // myFinalRaceId: the 亚比 that ended it (PetFightEvent.myFinalRaceId; the 道馆 panels give their stone for their own).
-      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, myFinalRaceId: before, desc, ...(notes.length ? { note: notes.join("\n") } : {}), pmmList: e.views(b) }]);
+      out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, myFinalRaceId: before, desc, ...(notes.length ? { note: notes.join("\n") } : {}), ...(bn.length ? { bn } : {}), pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -1390,6 +1466,11 @@ export function installBattles(world: World, deps: BattleDeps): void {
       return out;
     }
     b.turn++;
+    const bf = b.mine.buff;
+    if (bf && b.turn > bf.until) {
+      b.mine.stats[bf.i] = Math.max(1, b.mine.stats[bf.i] - bf.add);
+      b.mine.buff = undefined;
+    }
     out.push(["2402", { turn: b.turn, pmmList: e.views(b) }]);
     return out;
   };
@@ -1410,15 +1491,32 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const id = Number(ctx.params.itemId);
     const pet = b.mine.pet;
     const name = pet.nick || nameOf(t, pet.race);
-    if (b.mustSwitch || !(bag[id] > 0) || (!POTIONS[id] && !PP_BEANS[id])) {
-      return { refused: [["2412", { reqSId: 0, itemId: id, res: -1, refused: true, desc: "这个道具现在不能使用。", pmmList: e.views(b) }]] };
-    }
+    const refuse = (desc: string): Outcome => ({ refused: [["2412", { reqSId: 0, itemId: id, res: -1, refused: true, desc, pmmList: e.views(b) }]] });
+    if (b.mustSwitch || !(bag[id] > 0) || (!POTIONS[id] && !PP_BEANS[id] && !CURES[id])) return refuse("这个道具现在不能使用。");
+    const f = b.mine;
+    const cure = CURES[id];
+    if (cure) {
+      // Which of the 亚比's troubles the 药剂 takes away (寄生 is not kept apart from the other statuses: none).
+      const has = cure === "all" ? !!f.status || f.sleep > 0 || f.confuse > 0 || f.bind > 0 || (id === 101 && Object.values(f.stages).some((v) => v < 0))
+        : cure === "睡眠" ? f.status === "睡眠" || f.sleep > 0
+        : cure === "混乱" ? f.status === "混乱" || f.confuse > 0
+        : cure === "寄生" ? false
+        : f.status === cure;
+      if (!has) return refuse(`${name}没有需要解除的状态。`);
+    } else if (POTIONS[id] && pet.hp >= f.stats[0]) return refuse(`${name}的体力是满的。`);
     bag[id]--;
     if (bag[id] <= 0) delete bag[id];
     ctx.reply({ amount: `2_${id}_0_-1` }, "onAmountUpdated");
     let hpInc = 0;
     let desc: string;
-    if (POTIONS[id]) {
+    if (cure) {
+      if (cure === "all" || f.status === cure || (cure === "睡眠" && f.sleep > 0) || (cure === "混乱" && f.confuse > 0)) f.status = undefined;
+      if (cure === "all" || cure === "睡眠") f.sleep = 0;
+      if (cure === "all" || cure === "混乱") f.confuse = 0;
+      if (cure === "all") f.bind = 0;
+      if (id === 101) for (const k of Object.keys(f.stages) as StatKey[]) f.stages[k] = Math.max(0, f.stages[k]);
+      desc = id === 101 ? `${name}的不利状态和能力下降都消除了！` : cure === "all" ? `${name}的不利状态都消除了！` : `${name}的${cure}状态解除了！`;
+    } else if (POTIONS[id]) {
       hpInc = Math.min(b.mine.stats[0] - pet.hp, POTIONS[id]);
       pet.hp += hpInc;
       desc = `${name}回复了${hpInc}点体力！`;
@@ -1495,7 +1593,15 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // Leaving the room ends a battle left open (the client was closed mid-fight).
   world.xt(`${PM}.1307`, async (ctx) => {
     const o = await deps.load(ctx);
-    battles.delete(o.id);
+    const b = battles.get(o.id);
+    if (b?.duel) duels.leave(b, o.id);
+    else battles.delete(o.id);
     ctx.reply({}, "2308");
+  });
+  // A player's game ends: his battle goes (a duel is given up, duel.ts).
+  world.onLeaveGame?.((s) => {
+    const p = world.player(s);
+    const b = p ? battles.get(p.id) : undefined;
+    if (p && b && !b.duel) battles.delete(p.id);
   });
 }

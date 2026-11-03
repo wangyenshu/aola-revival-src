@@ -3,11 +3,13 @@ package mmo.play.scene
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
+   import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.MouseEvent;
    import flash.geom.Point;
    import flash.geom.Rectangle;
+   import flash.utils.Dictionary;
    import mmo.common.utils.tips.TipsManager;
    import mmo.interfaces.IDispose;
    import mmo.play.player.PlayerManager;
@@ -71,6 +73,12 @@ package mmo.play.scene
             RLog.log("scene: entrance to " + sceneName + " has no hotspot");
             return;
          }
+         if (idleDoors[area])
+         {
+            delete idleDoors[area];
+            if (area is InteractiveObject) InteractiveObject(area).mouseEnabled = true;
+            if (area is DisplayObjectContainer) DisplayObjectContainer(area).mouseChildren = true;
+         }
          var clickable:DisplayObject = button != null ? button : area;
          if (clickable is Sprite) Sprite(clickable).buttonMode = true;
          if (button != null)
@@ -105,6 +113,59 @@ package mmo.play.scene
          _entrances.push({area: area, action: action});
          addWalkTarget(clickable, area);
       }
+
+      /**
+       * Door hotspots (et1, et2 …, drawn as half-clear orange shapes) that the
+       * scene did not make entrances of stay invisible and let clicks through,
+       * like those it did: the newbie copy of the 科学院 (sciencecopy, 2011)
+       * keeps the 2011 scene's et3 at the top without a way there.
+       */
+      private function hideIdleDoors():void
+      {
+         var used:Dictionary = new Dictionary(true);
+         for each (var en:Object in _entrances) used[en.area] = true;
+         idleDoors = new Dictionary(true);
+         for each (var layer:DisplayObjectContainer in [backGround, container, foreGround, topGround])
+         {
+            if (layer == null) continue;
+            for (var i:int = 0; i < layer.numChildren; i++)
+            {
+               var d:DisplayObject = layer.getChildAt(i);
+               if (!/^et\d+$/.test(d.name) || used[d] || !d.visible) continue;
+               if (!(d is MovieClip) || MovieClip(d).totalFrames > 1) continue;
+               d.alpha = 0;
+               if (d is InteractiveObject) InteractiveObject(d).mouseEnabled = false;
+               if (d is DisplayObjectContainer) DisplayObjectContainer(d).mouseChildren = false;
+               idleDoors[d] = true;
+            }
+         }
+      }
+
+      /**
+       * The gathering spots gather0, gather1 … that later copies of the planets' last rooms
+       * (siwude5, suolide5, inventisland5, bite4, feier4, haiwen5, woerte4, aixiscene4,
+       * leiming4, yishuzhidu4) carry for a later gathering of their own: no scene code
+       * registers them (the 2013 points have their items' names: fireIce, metal, lei …), and the
+       * crystals and orbs they draw are not of 2013. Put away.
+       */
+      private function hideLaterGathers():void
+      {
+         for each (var layer:DisplayObjectContainer in [backGround, container, foreGround, topGround])
+         {
+            if (layer == null) continue;
+            for (var i:int = 0; i < layer.numChildren; i++)
+            {
+               var d:DisplayObject = layer.getChildAt(i);
+               if (!/^gather\d+$/.test(d.name)) continue;
+               d.visible = false;
+               if (d is InteractiveObject) InteractiveObject(d).mouseEnabled = false;
+               if (d is DisplayObjectContainer) DisplayObjectContainer(d).mouseChildren = false;
+            }
+         }
+      }
+
+      /** The doors hideIdleDoors put away (a scene patch may make an entrance of one later). */
+      private var idleDoors:Dictionary = new Dictionary(true);
 
       /** Switch every walk target and entrance on or off (a home being decorated). */
       protected function setWalkTargetsEnabled(v:Boolean):void
@@ -357,6 +418,8 @@ package mmo.play.scene
          addEventListener(Event.ENTER_FRAME, onFrame);
          PlayerManager.getInstance().addEventListener(PlayerManagerEvent.ENTER_ROOM, onPlayerEnter);
          try { onJoinRoom(); } catch (e:Error) { RLog.error("scene: onJoinRoom", e); }
+         hideIdleDoors();
+         hideLaterGathers();
          _entered = true;
          follow();
       }

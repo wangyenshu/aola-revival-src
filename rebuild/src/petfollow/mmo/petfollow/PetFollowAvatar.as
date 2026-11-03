@@ -8,7 +8,15 @@ package mmo.petfollow
    import mmo.loader.scheduler.ResScheduler;
    import mmo.framework.comm.SocketClient;
    import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.avatar.SkinPosInfo;
+   import mmo.interfaces.avatar.SkinInfo;
+   import mmo.interfaces.avatar.skininfo.SkinInfoFactory;
    import mmo.interfaces.material.clothes.AvatarInfo;
+   import mmo.interfaces.material.clothes.Clothes;
+   import mmo.interfaces.material.clothes.ClothesParts;
+   import mmo.interfaces.material.clothes.ClothesSideTypes;
+   import mmo.interfaces.material.clothes.IClothesService;
+   import mmo.revival.RLog;
    import mmo.interfaces.pet.data.PetClothesMap;
    import mmo.interfaces.pet.data.PetDictionaryDataItem;
    import mmo.interfaces.pet.data.IPetDictionaryDataService;
@@ -51,6 +59,8 @@ package mmo.petfollow
       public function setPetView(dress:String = ""):void
       {
          var clothes:int = PetClothesMap.getClothesId(viewId);
+         // A 亚比 after the 2013 tables (PetClothesExtra): its later scene clothes, made known.
+         if (clothes == 0) clothes = extraClothes(viewId);
          if (clothes == 0)
          {
             showPicture();
@@ -59,6 +69,29 @@ package mmo.petfollow
          var info:AvatarInfo = new AvatarInfo();
          info.setAvatarInfoWithString(dress != null && dress != "" ? clothes + ";" + dress : String(clothes));
          setAvatar(info);
+      }
+
+      /** The later clothes of a 亚比 (PetClothesExtra), added to the 2013 clothes service once; 0: none. */
+      private static function extraClothes(race:int):int
+      {
+         var row:Array = null;
+         for each (var r:Array in PetClothesExtra.ROWS) if (int(r[0]) == race) { row = r; break; }
+         if (row == null) return 0;
+         var id:int = int(row[1]);
+         try
+         {
+            var svc:IClothesService = ServiceContainer.getService("ClothesService") as IClothesService;
+            if (svc == null) return 0;
+            if (svc.getClothesDataById(id) != null) return id;
+            var c:Clothes = new Clothes(id, String(row[2]), false, 0, false, 1, 0, 0);
+            var part:ClothesParts = new ClothesParts(String(row[3]), int(SkinPosInfo[row[4]]), SkinInfoFactory[row[5]] as SkinInfo, int(ClothesSideTypes[row[6]]), String(row[7]));
+            c.parts = [part];
+            c.fileName = String(row[8]);
+            svc.getClothesDatas()[id] = c;
+            return id;
+         }
+         catch (e:Error) { RLog.error("follow: clothes " + id + " of 亚比 " + race, e); }
+         return 0;
       }
 
       /** No scene clothes: the 亚比's large picture, its feet where the follower stands. */

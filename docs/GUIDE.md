@@ -19,16 +19,22 @@ The game runs at its original size of 960 × 560. Its clock starts on
 
 ## Saves
 
-Progress is saved automatically in the browser's IndexedDB, separately for
-each site address. Clearing the site's data in the browser deletes it, and a
-different browser or computer starts from the beginning.
+Progress is saved automatically. In 单机模式 it is in the browser's
+IndexedDB, separately for each site address: clearing the site's data in the
+browser deletes it, and a different browser or computer starts from the
+beginning. In 联机模式 it is on the server (docs/MULTIPLAYER.md).
 
-To keep or move a save, use 存档 in the 工具箱:
+To keep or move a save, use 存档 in the 工具箱. Both modes write the same kind
+of file (`aola-revival-save`), and either mode reads a file of either:
 
-- 导出存档 downloads a file (`aola-revival-save`) with every save of this
-  browser for this site.
-- 导入存档 reads such a file, replaces all saves of this site with it and
-  reloads the page.
+- 单机模式: 导出存档 downloads a file with every save of this browser for this
+  site. 导入存档 reads a file, replaces all saves of this site with it and
+  reloads the page (with the file's 奥拉, when the one you played is not in it).
+- 联机模式: 导出存档 asks for the password and downloads a file of your 奥拉.
+  导入存档 asks for the password and a file; a file with several 奥拉 (from
+  单机模式) asks which one. It replaces your 奥拉's game on the server (its
+  name, password and friends stay), ends your game and reloads the page: log
+  in again. A server's owner can close 导入存档 (`--no-toolbox`).
 
 ## The control bar
 
@@ -41,7 +47,7 @@ To keep or move a save, use 存档 in the 工具箱:
 | 射击 | Shooting with 射击卡. 光能射线 and 冰冻射线 are free; the other cards are bought in 道具店 and used up one per shot. |
 | Chat box | Type and send a message. The button beside it shows the recent chat. |
 | 信息卡 | Your player card with the wardrobe: click clothes to put them on or take them off. |
-| 好友, 组队, 战队 | Not available (they need other players). |
+| 好友, 组队, 战队 | 好友 and 组队 in 联机模式 (docs/MULTIPLAYER.md); 战队 is not available. |
 | 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, the 亚比仓库. In the 仓库 a click moves a 亚比 between the bag and the 仓库; 放生 (added by the revival), then a click on a 亚比, asks 是否放生该亚比？: 是 releases it for good, 否 does nothing. The last 亚比 of the bag cannot be released. |
 | 物品 | Everything collected: 道具, 亚比蛋, 种植, 射击卡. |
 | 回家 | Your 家园 (garden); 我的家 there leads into the 小屋. |
@@ -66,9 +72,22 @@ the screen.
 | 晶币, 星币, 晶豆 | Enter an amount and click 增加. Each total is capped at 9,999,999. 晶豆 is a later currency; the server keeps it but no 2013 shop uses it. |
 | 亚比经验 | Enter an amount and click 增加. The experience goes to the first 亚比 of the bag, which levels up, learns skills and evolves as after a battle. |
 | 成为蓝宝石 / 取消蓝宝石 | Switch the 蓝宝石 membership on or off. |
-| 领取亚比 | Enter the 亚比's 图鉴 number (编号) and a level from 1 to 100, then click 领取. The name appears next to the number. The 亚比 goes into the bag, or into the 亚比仓库 when the bag already holds six. It knows every skill its line learns up to that level. |
+| 领取亚比 | Enter the 亚比's 图鉴 number (编号, 1 to 1651) and a level from 1 to 100, then click 领取. The name appears next to the number. The 亚比 goes into the bag, or into the 亚比仓库 when the bag already holds six. It knows every skill its line learns up to that level. |
 | 传送 | Type a place's Chinese name (for example 艺术馆) or its room id and click 传送, or click 选地图 to pick from the places of the world map. 选地图 → 其他场景 lists every other room of the game, including the rooms of the story quests that were no longer on the map in 2013. |
 | 存档 | 导出存档 and 导入存档, see [Saves](#saves). |
+
+### 亚比 after January 2013 (1427–1651)
+
+The 2013 game had 亚比 up to 1426. The revival adds the next ones, up to 1651
+(223 more, 小炎 1427 to 路威杰 1651; 1476 and 1617 are not numbers of a 亚比), from the later game's tables: their 图鉴 rows,
+stats, skills and evolutions, battle sprites, small and large pictures, and
+walking figures. They are not found in the wild or given by any activity:
+领取亚比 in the 工具箱 is the way to get them. They fight, follow (in their own
+walking figures), evolve and learn skills as the others do. 320, 323, 605,
+1002 and 1423 of the 2013 亚比, which had no walking figure then, follow in
+the ones the later game gave them. The 坐骑 the later game added up to 1651
+(1101, 1122, 1350, 1423, 1426, 1430, 1448, 1461, 1599) can be ridden as the
+2013 坐骑 are.
 
 ### 亚比 marked 无法获得
 

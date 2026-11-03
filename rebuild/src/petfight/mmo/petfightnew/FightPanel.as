@@ -21,6 +21,7 @@ package mmo.petfightnew
    import mmo.framework.comm.PetClient;
    import mmo.interfaces.IService;
    import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.material.IMaterialGetPanel;
    import mmo.interfaces.material.item.IItemService;
    import mmo.interfaces.material.item.Item;
    import mmo.interfaces.material.item.UserItem;
@@ -110,6 +111,8 @@ package mmo.petfightnew
       private var catchHp:Number = 0.2;
       private var commandsOn:Boolean;
       private var forcedSwitch:Boolean;
+      /** 自动战斗仪 (server petitems.ts): the battle picks the skills by itself. */
+      private var auto:Boolean;
       private var turn:int = 1;
       /** The boss's films (BossFilmConfig) and those already played this fight. */
       private var films:Array;
@@ -143,8 +146,14 @@ package mmo.petfightnew
          refresh(false);
          showPage("fight");
          setCommands(false);
-         addLog("野生的<font color='#FFE66A'>" + petName(vs) + "</font>出现了！");
+         // 亚比对战 with another player (the revival's server, duel.ts): his name, not "野生的".
+         pvp = join.pvp ? String(join.pvp.vs || "") : null;
+         if (pvp != null) addLog("<font color='#7FE0FF'>" + pvp + "</font>派出了<font color='#FFE66A'>" + petName(vs) + "</font>！");
+         else addLog("野生的<font color='#FFE66A'>" + petName(vs) + "</font>出现了！");
       }
+
+      /** The other player's name in a 亚比对战, or null. */
+      private var pvp:String;
 
       // ---------------------------------------------------------------- data
 
@@ -556,6 +565,22 @@ package mmo.petfightnew
       {
          commandsOn = on;
          applyCommandState();
+         if (on && auto && !forcedSwitch) TweenLite.delayedCall(1.2, autoSkill);
+      }
+
+      /** 自动战斗仪: the first skill with uses left (the struggle with none), as if clicked. */
+      private function autoSkill():void
+      {
+         if (closed || !commandsOn || !auto || forcedSwitch) return;
+         var b:Object = brief(me);
+         var id:int = 0;
+         for each (var sk:Object in b ? (b.skills as Array) || [] : [])
+         {
+            if (sk != null && int(String(sk.pp || "0/0").split("/")[0]) > 0) { id = int(sk.id); break; }
+         }
+         hideTooltip();
+         setCommands(false);
+         PetClient.instance.useSkill(id, 1, true);
       }
 
       private function applyCommandState():void
@@ -882,12 +907,14 @@ package mmo.petfightnew
          switch (c)
          {
             case 2401:
+               auto = p.auto == true;
                films = BossFilmConfig.get(int(p.boss));
                var opening:String = filmOf(BossFilmConfig.OPENING) ? BossFilmConfig.OPENING : BossFilmConfig.REVIVE;
                playFilm(opening, function():void
                {
                   sound("x7011");
                   addLog("<font color='#FFE66A'>第1回合</font>");
+                  if (auto) addLog("<font color='#7FE0FF'>自动战斗仪开启中（还可以使用" + int(p.autoLeft) + "次）</font>");
                   setCommands(true);
                   later(0);
                });
@@ -1163,6 +1190,22 @@ package mmo.petfightnew
             later(0);
             return;
          }
+         // The other player's 亚比 (a 亚比对战): his next one comes out behind.
+         if (ext.foe == true || (p.playerInfo && p.playerInfo.battleView && int(p.playerInfo.battleView.slotId) == 1))
+         {
+            vs = p.playerInfo;
+            var gone:FightPetView = vsView;
+            vsView = makePetView(false, function():void
+            {
+               gone.dispose();
+               refresh(false);
+               sound("x7005");
+               later(0.4);
+            });
+            vsView.alpha = 0;
+            TweenLite.to(vsView, 0.4, {alpha: 1});
+            return;
+         }
          var wasForced:Boolean = forcedSwitch || ext.forced == true;
          forcedSwitch = false;
          me = p.playerInfo;
@@ -1235,7 +1278,12 @@ package mmo.petfightnew
          var win:Boolean = p.isWin == true;
          sound(win ? "x7009" : "x7010");
          // myFinalRaceId (PetFightEvent): the 亚比 that ended the fight; the 道馆 panels give their stone for their own.
-         var done:Function = function():void { close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), id: int(p.id), isEscape: false, myFinalRaceId: int(p.myFinalRaceId)}); };
+         var bonus:Array = win && p.bn is Array ? p.bn as Array : [];
+         var done:Function = function():void
+         {
+            close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), id: int(p.id), isEscape: false, myFinalRaceId: int(p.myFinalRaceId)});
+            showBonus(bonus);
+         };
          if (p.isCatched && caught)
          {
             showCaught(caught, done);
@@ -1243,9 +1291,28 @@ package mmo.petfightnew
          }
          var title:String = win ? "战斗胜利" : "战斗失败";
          var lines:Array = results.length ? results : (win ? ["战斗胜利！"] : ["你的亚比都倒下了……", "快打开亚比背包，带它们恢复体力吧！"]);
+         if (p.pvp) lines = [win ? "战斗胜利！" : "战斗失败！"];
          // note (the revival's server): what the win brought besides, a boss's 亚比蛋.
          if (win && p.note) lines = lines.concat(String(p.note).split("\n"));
          showResult(title, lines, done);
+      }
+
+      /**
+       * What the win brought (bn: [{type, id, num}], a boss's 亚比蛋) in the 2013 MaterialGetPanel
+       * of material/materialservice, after the battle is gone: "1 个 …亚比蛋 已经放入你的亚比孵化器".
+       */
+      private static function showBonus(bonus:Array):void
+      {
+         if (bonus.length == 0) return;
+         try
+         {
+            var panel:IMaterialGetPanel = ServiceContainer.getService(IMaterialGetPanel) as IMaterialGetPanel;
+            for each (var b:Object in bonus)
+            {
+               if (panel != null && int(b.num) > 0) panel.showPanel(int(b.type), int(b.id), int(b.num));
+            }
+         }
+         catch (e:Error) { RLog.error("fight bonus", e); }
       }
 
       /** A dialog in the style of the 2011 panels: blue frame, orange title, 知道了. */

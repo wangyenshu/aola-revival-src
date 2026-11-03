@@ -1,6 +1,7 @@
 package mmo.houseloader
 {
    import flash.events.EventDispatcher;
+   import flash.utils.setTimeout;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
    import mmo.framework.comm.house.HouseClient;
@@ -35,6 +36,8 @@ package mmo.houseloader
       private var pendingKey:String = "default";
       /** HouseInfo.GARDENHOUSEID. */
       private static const GARDEN_ID:int = 247;
+      /** The 动物园 (rebuilt furniture/b020000). */
+      private static const ZOO_ID:int = 20000;
 
       public function HouseLoader()
       {
@@ -63,16 +66,34 @@ package mmo.houseloader
 
       public function loadHouse(owner:String, reset:Boolean = false, loadType:int = 0, ext:SceneExtInfo = null):void
       {
+         visit(owner, GARDEN_ID, reset, ext);
+      }
+
+      /**
+       * REVIVAL: into one room of someone's home (找他 and a team's leader in a 小屋 or 动物园:
+       * the room "<owner>_<houseId>_Home"); -1 is the owner's main house (小屋).
+       */
+      public function visit(owner:String, houseId:int = 247, reset:Boolean = false, ext:SceneExtInfo = null):void
+      {
          var loaded:SceneInfo = SceneManager.getInstance().loadedSceneInfo;
          if (loading || owner == null) return;
-         if (!reset && loaded != null && loaded.inHouse && _houseInfo != null && _houseInfo.owner == owner) return;
+         if (!reset && loaded != null && loaded.inHouse && _houseInfo != null && _houseInfo.owner == owner)
+         {
+            var want:int = houseId == -1 ? _houseInfo.mainHouseId : houseId;
+            if (want != _houseInfo.currentHouseId) loadSubHouse(want, "default", "ld", ext);
+            return;
+         }
          loading = true;
          var sc:SocketClient = SocketClient.instance;
+         var answered:Boolean = false;
          var onInfo:Function = function(e:SocketClientEvent):void
          {
+            var p:Object = e.params;
+            // Another home's answer (a 信息卡 asking meanwhile): not this one.
+            if (p.un && String(p.un) != owner) return;
+            answered = true;
             sc.removeEventListener(HouseClient.onGetUserHouseInfo, onInfo);
             loading = false;
-            var p:Object = e.params;
             if (p.hid == undefined || int(p.hid) <= 0)
             {
                RLog.log("house: no house for " + owner);
@@ -80,10 +101,20 @@ package mmo.houseloader
             }
             _houseInfo = new HouseInfo(p.un || owner, int(p.hid), p.nn || owner);
             _houseInfo.extData = {count: int(p.count)};
-            loadSubHouse(GARDEN_ID, "default", "ld", ext);
+            // A house the owner no longer has (the 小屋 changed since): the main house.
+            var to:int = houseId == GARDEN_ID || houseId == ZOO_ID ? houseId : int(p.hid);
+            loadSubHouse(to, "default", "ld", ext);
          };
          sc.addEventListener(HouseClient.onGetUserHouseInfo, onInfo);
          HouseClient.instance.getUserHouseInfo(owner);
+         // No answer: other homes may still be visited.
+         setTimeout(function():void
+         {
+            if (answered) return;
+            sc.removeEventListener(HouseClient.onGetUserHouseInfo, onInfo);
+            loading = false;
+            RLog.log("house: no answer for " + owner);
+         }, 15000);
       }
 
       /** Enter another room of the home being visited (-1: its main house). */

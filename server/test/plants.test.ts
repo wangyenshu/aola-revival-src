@@ -71,3 +71,33 @@ test("digging the tree up empties the pot", async () => {
   assert.deepEqual(r[0], ["onAmountUpdated", { amount: "9_3_0_-1_1" }]);
   assert.equal(owner.plants!.length, 0);
 });
+
+test("摘果子 at a friend's: one fruit a visitor a fruiting, the last left to the owner", async () => {
+  const handlers = new Map<string, XtHandler>();
+  const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world) } as unknown as World;
+  const owner: PlantOwner = { id: 1, name: "主人", score: 5000, items: {} };
+  const guests: PlantOwner[] = [{ id: 2, name: "客人", items: {} }, { id: 3, name: "客人二", items: {} }];
+  const all = [owner, ...guests];
+  let now = Date.UTC(2013, 0, 20, 2, 0, 0);
+  installPlants(world, { me: async (ctx) => all.find((o) => o.name === ctx.player.name)!, find: async (n) => all.find((o) => o.name === n), save: async () => {}, now: () => now });
+  const call = async (who: string, key: string, params: Record<string, unknown> = {}) => {
+    const replies: [string | undefined, Record<string, any>][] = [];
+    const ctx = { params, player: { name: who }, reply: (o: Record<string, unknown>, c?: string) => replies.push([c, o]) } as unknown as XtContext;
+    await handlers.get(key)!(ctx, key);
+    return replies;
+  };
+  await call("主人", "SundriesExtension.revival_garden", { op: "buy", plantId: 5 });
+  const tree = owner.plants![0];
+  // Grown to bear: 2 fruit on the tree now.
+  Object.assign(tree, { level: 2, remainFruit: 0, remainProductTime: 2, fruitLeft: 4, nextFruitTime: now });
+  const pick = async (who: string) => (await call(who, "PlantExtension.80_5", { owner: "主人", userPlantId: tree.id })).at(-1)![1].result;
+  assert.equal((await pick("客人")).extData, 1);
+  assert.equal(guests[0].items!["2"]["449"], 1);
+  assert.equal(await pick("客人").then((r) => r.result), -22, "once a fruiting");
+  assert.equal(await pick("客人二").then((r) => r.result), -22, "the last is the owner's");
+  assert.equal((await pick("主人")).extData, 1);
+  assert.equal(tree.remainFruit, 0);
+  // The next fruiting: the guest may pick again.
+  now = tree.nextFruitTime;
+  assert.equal((await pick("客人")).result, 0);
+});

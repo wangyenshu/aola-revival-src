@@ -15,6 +15,7 @@ package mmo.play.scene
    import mmo.common.utils.movie.MovieManager;
    import mmo.common.utils.tips.TipsManager;
    import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.gather.IGatherService;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
    import mmo.loader.layer.LayerManager;
@@ -157,6 +158,8 @@ package mmo.play.scene
                   // 极限轰炸 (June 2013): the later 指挥中心 asks the later GameTable's GAME_LIMITBOMB
                   // (64), which the 2013 one lacks; the revival's GameManager knows its room.
                   takeOver(info, "btnlimitbomb", function():void { showGame(64); });
+                  // 王者之书 (btnlegendofkingsbook) on the pedestal is a promotion of a later year.
+                  hide(info, ["btnlegendofkingsbook"]);
                   break;
                case "maintown1":
                   // 异星传送枢纽: the later scene's door at the teleporter leads to 星际圈 (interstellar),
@@ -191,6 +194,14 @@ package mmo.play.scene
                   // on the right, 实战特训场 (whose 2011 scene leads back here as fromactualcombat).
                   spot(info, new Rectangle(395, 395, 170, 90), "yabistudy", "fromyabitrain", "亚比研究中心");
                   spot(info, new Rectangle(880, 235, 80, 100), "actualcombat", "default", "实战特训场");
+                  break;
+               case "woerte3":
+                  // 沃尔特海底 3 (a copy of 2015): its onJoinRoom first puts the player in the
+                  // diving suit (IMoveStateService.flyWithSuperClothes, which the 2013 interface
+                  // lacks) and stops there, before its three gathering points and its 滴滴回家
+                  // button: they are set up here (the game: GameTable 59, gameDidiGoHome).
+                  gather(info, [[39, "crystal"], [90, "water"], [91, "star"]]);
+                  takeOver(info, "gameDidi", function():void { showGame(59); });
                   break;
                case "aolatree":
                   for each (var hn:String in ["threeHerosBtn", "btnHistoryComic"]) takeOver(info, hn, showHistoryComic);
@@ -513,6 +524,18 @@ package mmo.play.scene
             e.stopImmediatePropagation();
             f();
          }, false, 100);
+      }
+
+      /** Gathering points ([itemId, clip name]) the scene's code could not register. */
+      private static function gather(info:SceneInfo, points:Array):void
+      {
+         var svc:IGatherService = ServiceContainer.getService("GatherService") as IGatherService;
+         if (svc == null) return;
+         for each (var p:Array in points)
+         {
+            var mc:MovieClip = find(info.scene, String(p[1]), 3) as MovieClip;
+            if (mc != null && !mc.buttonMode) svc.registerGatherMaterial(int(p[0]), mc);
+         }
       }
 
       private static function showGame(id:int):void

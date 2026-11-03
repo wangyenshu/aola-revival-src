@@ -3,6 +3,7 @@ package mmo.user.login
    import mmo.common.DateUtil;
    import flash.display.Sprite;
    import flash.events.Event;
+   import flash.external.ExternalInterface;
    import flash.net.SharedObject;
    import flash.text.TextField;
    import flash.text.TextFormat;
@@ -19,8 +20,9 @@ package mmo.user.login
     * This replacement keeps the original hand-off: it creates the socket
     * ServerClient, logs in to the zone, fills mmo.common.user.UserInfo and calls
     * LoaderFacade.loadPlay(), exactly where the original continued. The account
-    * and password form is skipped: an offline copy has one local player, whose
-    * name is kept in a SharedObject.
+    * and password form is the page's (web/boot.js, its start screen: 单机 or 联机, the
+    * 奥拉's name and, on a shared server, its password), asked for through
+    * ExternalInterface; without one (an old page) the name kept in a SharedObject.
     */
    public class Main extends Sprite
    {
@@ -57,13 +59,30 @@ package mmo.user.login
          RLog.log("login: connecting to", SERVER_HOST + ":" + SERVER_PORT, "zone", ZONE);
          try
          {
-            ServerClient.instance.login(SERVER_HOST, SERVER_PORT, ZONE, localName(), "");
+            var acc:Object = pageAccount();
+            ServerClient.instance.login(SERVER_HOST, SERVER_PORT, ZONE, acc ? String(acc.name) : localName(), acc && acc.pass ? String(acc.pass) : "");
          }
          catch (err:Error)
          {
             RLog.error("login.connect", err);
             say("连接失败：" + err.message);
          }
+      }
+
+      /**
+       * The 奥拉 the page's start screen chose (web/boot.js aolaRevivalAccount: {name, pass}): a
+       * name for the one-player page too, and on a shared server its password. null without one.
+       */
+      private static function pageAccount():Object
+      {
+         try
+         {
+            if (!ExternalInterface.available) return null;
+            var a:Object = ExternalInterface.call("aolaRevivalAccount");
+            return a != null && a.name ? a : null;
+         }
+         catch (err:Error) {}
+         return null;
       }
 
       private function localName():String

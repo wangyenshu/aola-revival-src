@@ -116,13 +116,23 @@ export GEN="$HERE/../gen/pmservice"
 build pmservice mmo/pm/service/DocPMService.as pmservice.swf "pet/pmservice.swf%3F130124"
 unset GEN
 # The following 亚比: rebuilt pet/petfollow (PetClient2 54_8 / 54_9, user variable "p").
+# (the later 亚比's scene clothes in rebuild/gen/petfollow from tools/gen_petclothes.py)
+export GEN="$HERE/../gen/petfollow"
 build petfollow mmo/petfollow/DocPetFollow.as petfollow.swf "pet/petfollow.swf%3F121213"
+unset GEN
 build petpackage mmo/pet/petpackage/DocPetPackage.as petpackage-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petpackage.swf)" --code "$OUT/petpackage-code.swf" --drop-art-abc \
   --bind 0=mmo.pet.petpackage.PetPackage --bind 243=mmo.pet.petpackage.PetPackagePanel \
   --bind 106=mmo.pet.petpackage.MessagePanel --bind 54=mmo.pet.petpackage.PPMovie --bind 27=mmo.pet.petpackage.HPMovie \
   --note "REBUILT pet/petpackage: rebuilt code (aola-revival) on the original 亚比背包 art" \
   --out "$W/pet/petpackage.swf%3F1210"
+# The bag's 道具 page: rebuilt pet/petitem (service PetItem; 14_12, server petitems.ts) on the
+# art of its later copy (the page, symbol 668, and its squares, 706).
+build petitem mmo/pet/petitem/DocPetItem.as petitem-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petitem.swf)" --code "$OUT/petitem-code.swf" --drop-art-abc \
+  --bind 0=mmo.pet.petitem.DocPetItem --bind 668=mmo.pet.petitem.PetItemPanel --bind 706=mmo.pet.petitem.ItemView \
+  --note "REBUILT pet/petitem (aola-revival) on the art of its later copy" \
+  --out "$W/pet/petitem.swf%3F130124"
 
 # 亚比 battles: rebuilt pet/wildpetservice (wild 亚比 walking in scenes; their
 # points in rebuild/gen/wildpet from tools/gen_wildpets.py) and
@@ -139,8 +149,23 @@ export GEN="$HERE/../gen/petfight"
 build petfight mmo/petfightnew/DocLoginPetFight.as petfight.swf "pet/loginpetfightnew.swf%3F1210"
 unset GEN
 
-# The HELLO in scenes: rebuilt init/robotmanager.
+# The HELLO in scenes: rebuilt init/robotmanager (its menu, the wheel of December 2012, drawn:
+# HelloWheel).
 build robotmanager mmo/robot/robotmanager/DocClass.as robotmanager.swf "init/robotmanager.swf%3F130103"
+# The HELLO's own panels: rebuilt robot/robotmes (基本资料) and robot/robotitem (HELLO物品)
+# on the art of their copies of 2015 and 2016.
+mkdir -p "$W/robot"
+build robotmes mmo/robot/robotmes/DocRobotMes.as robotmes-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art robot/robotmes.swf)" --code "$OUT/robotmes-code.swf" --drop-art-abc \
+  --bind 0=mmo.robot.robotmes.DocRobotMes --bind 132=mmo.robot.robotmes.RobotMesPanel --bind 76=mmo.robot.Robotskillicon \
+  --note "REBUILT robot/robotmes (aola-revival) on the art of its 2015 copy" \
+  --out "$W/robot/robotmes.swf%3F1210"
+build robotitem mmo/robot/robotitem/DocRobotItem.as robotitem-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art robot/robotitem.swf)" --code "$OUT/robotitem-code.swf" --drop-art-abc \
+  --bind 0=mmo.robot.robotitem.DocRobotItem --bind 36=mmo.robot.robotitem.RobotItemPanel \
+  --bind 6=mmo.robot.robotitem.robotmaterial.RobotItemView --bind 3=mmo.robot.robotitem.robotmaterial.FeedMaterial \
+  --note "REBUILT robot/robotitem (aola-revival) on the art of its 2016 copy" \
+  --out "$W/robot/robotitem.swf%3F1210"
 
 # Scene music: rebuilt init/sceneinit (the later copy calls later services).
 build sceneinit mmo/sceneinit/DocClass.as sceneinit.swf "init/sceneinit.swf%3F121220"

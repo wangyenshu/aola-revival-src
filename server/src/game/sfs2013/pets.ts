@@ -22,6 +22,7 @@ import {
   type PmSpecies,
 } from "./pmdata.ts";
 import type { World, XtContext } from "./server.ts";
+import { cardBonus } from "./petcards.ts";
 
 export interface PetSkill {
   id: number;
@@ -52,6 +53,12 @@ export interface PetRecord {
   mul?: number[];
   /** A mod's 亚比 (mods.ts): the id of the mod that made its species. */
   mod?: string;
+  /** 形态固化剂 (petitems.ts): levels no longer evolve it. */
+  fixed?: boolean;
+  /** 强化药剂 (petitems.ts) waiting for its next battle: stat index (hp first) and points. */
+  buff?: { i: number; add: number };
+  /** 战术卡 worn (petcards.ts): ids in the places A, B, C (0 none). */
+  cards?: number[];
 }
 
 /** Fields of UserRecord the pet code uses. */
@@ -93,10 +100,14 @@ export function nameOf(t: PetTables, race: number): string {
   return t.pm.species[String(race)]?.n ?? t.species[String(race)]?.n ?? `亚比${race}`;
 }
 
-export function statsOf(p: Pick<PetRecord, "race" | "level" | "iv" | "ev"> & { character?: string; mul?: number[] }, t?: PetTables): number[] {
+export function statsOf(p: Pick<PetRecord, "race" | "level" | "iv" | "ev"> & { character?: string; mul?: number[]; cards?: number[] }, t?: PetTables): number[] {
   const sp = t ? speciesOf(t, p.race) : undefined;
   const base = sp ? calcStats(sp, p.level, p.iv, p.ev, p.character) : GROWTH.map(([b, k]) => b + k * p.level);
-  return p.mul ? base.map((v, i) => Math.max(1, Math.round(v * (p.mul![i] ?? 1)))) : base;
+  const mul = p.mul ? base.map((v, i) => Math.max(1, Math.round(v * (p.mul![i] ?? 1)))) : base;
+  if (!p.cards?.some(Boolean)) return mul;
+  // 战术卡 worn (petcards.ts).
+  const add = cardBonus(p.cards);
+  return mul.map((v, i) => Math.max(1, v + add[i]));
 }
 
 export function maxHpOf(p: PetRecord, t: PetTables): number {
@@ -490,5 +501,20 @@ export function installPets(world: World, deps: PetDeps): void {
     await deps.save(o);
     world.setUserVars(ctx.session, { p: NO_FOLLOW });
     ctx.broadcast({ name: o.name }, "54_9", true);
+  });
+
+  // 亚比技能排序 (the HELLO menu's): PetClient2.setSortSkill 54_21 {id, sks} — the ids of the
+  // skills it carries in their new order ("," or "#" between them) -> 54_21 {res, id}. Only a
+  // new order of the same skills is taken. RECONSTRUCTED (the reply of 2013 is lost).
+  world.xt(`PetExtension.54_21`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const id = Number(ctx.params.id) | 0;
+    const pet = [...list(o), ...(o.storage ?? [])].find((p) => p.id === id);
+    const ids = String(ctx.params.sks ?? "").split(/[,#]/).filter(Boolean).map(Number);
+    const same = pet && ids.length === pet.skills.length && [...ids].sort().join() === pet.skills.map((s) => s.id).sort().join();
+    if (!pet || !same) return ctx.reply({ res: 0, id }, "54_21");
+    pet.skills = ids.map((sid) => pet.skills.find((s) => s.id === sid)!);
+    await deps.save(o);
+    ctx.reply({ res: 1, id }, "54_21");
   });
 }

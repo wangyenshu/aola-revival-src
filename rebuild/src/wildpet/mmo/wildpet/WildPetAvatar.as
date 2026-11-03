@@ -167,6 +167,12 @@ package mmo.wildpet
          addEventListener(Event.ENTER_FRAME, onChase);
       }
 
+      /** 自动战斗仪 (WildPetService): go for this 亚比 as a click would. */
+      public function engage():void
+      {
+         onClickPlayer(null);
+      }
+
       private function canFight():Boolean
       {
          var aa:IAntiAddiction = ServiceContainer.getService("AntiAddictionService") as IAntiAddiction;

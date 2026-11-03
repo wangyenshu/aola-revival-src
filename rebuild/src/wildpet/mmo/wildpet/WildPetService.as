@@ -1,9 +1,14 @@
 package mmo.wildpet
 {
+   import flash.display.DisplayObjectContainer;
    import flash.events.EventDispatcher;
    import flash.events.TimerEvent;
    import flash.geom.Point;
    import flash.utils.Timer;
+   import flash.utils.getQualifiedClassName;
+   import mmo.loader.layer.LayerManager;
+   import mmo.play.player.PlayerManager;
+   import mmo.play.player.sceneplayer.PlayerBase;
    import mmo.common.eventdispatcher.CommonEventDispatcher;
    import mmo.framework.comm.PetClient2;
    import mmo.framework.comm.SocketClient;
@@ -39,6 +44,13 @@ package mmo.wildpet
       private var infoScene:String;
       private var num:int;
       private var shown:Boolean = true;
+      /**
+       * 自动战斗仪 (item 44, server petitems.ts): "开启后，在场景中会自动与野外怪对战". The server's
+       * 54_7 says how many battles are left (auto, not of 2013); while there are, the player goes
+       * for the nearest wild 亚比 by itself when standing idle (RECONSTRUCTED: the 2013 code is lost).
+       */
+      private var autoLeft:int;
+      private var autoTimer:Timer = new Timer(4000);
 
       public function WildPetService()
       {
@@ -53,6 +65,7 @@ package mmo.wildpet
          SceneManager.getInstance().addEventListener(SceneManagerEvent.UNLOAD_SCENE, onUnloadScene);
          CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_START, onFightStart);
          CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_END, onFightEnd);
+         autoTimer.addEventListener(TimerEvent.TIMER, onAutoTime);
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
       }
 
@@ -72,6 +85,7 @@ package mmo.wildpet
       {
          appearTimer.stop();
          againTimer.stop();
+         autoTimer.stop();
          dispose();
          info = null;
       }
@@ -125,6 +139,11 @@ package mmo.wildpet
       private function onFightStart(e:PetFightEvent):void
       {
          againTimer.stop();
+         if (autoTimer.running)
+         {
+            autoTimer.stop();
+            autoLeft--;
+         }
          dispose();
       }
 
@@ -132,6 +151,35 @@ package mmo.wildpet
       {
          againTimer.reset();
          againTimer.start();
+         if (autoLeft > 0) autoTimer.start();
+      }
+
+      /** A panel (ModalDialogManager's container, on the top layer) is open. */
+      private static function panelOpen():Boolean
+      {
+         var top:DisplayObjectContainer = LayerManager.getBaseTop();
+         for (var i:int = 0; top != null && i < top.numChildren; i++)
+         {
+            var c:DisplayObjectContainer = top.getChildAt(i) as DisplayObjectContainer;
+            if (c != null && c.numChildren > 0 && getQualifiedClassName(c).indexOf("ModalDialogContainer") >= 0) return true;
+         }
+         return false;
+      }
+
+      /** 自动战斗仪: idle, with no panel open, the nearest wild 亚比 of the room. */
+      private function onAutoTime(e:TimerEvent):void
+      {
+         if (autoLeft <= 0 || pets.length == 0 || inFB()) return;
+         var me:PlayerBase = PlayerManager.getInstance().myPlayer as PlayerBase;
+         if (me == null || me.isMoving() || panelOpen()) return;
+         var best:WildPetAvatar = null, d:Number = Number.MAX_VALUE;
+         for each (var p:WildPetAvatar in pets)
+         {
+            if (p == null || p.parent == null || !p.visible) continue;
+            var dd:Number = (p.x - me.x) * (p.x - me.x) + (p.y - me.y) * (p.y - me.y);
+            if (dd < d) { d = dd; best = p; }
+         }
+         if (best != null) best.engage();
       }
 
       private function onAgainTime(e:TimerEvent):void
@@ -153,7 +201,10 @@ package mmo.wildpet
          SocketClient.instance.removeEventListener(PetClient2.cmdGetLocationPetInfo, onGetPetInfo);
          info = (e.params.pms as Array) || [];
          infoScene = sceneName();
+         autoLeft = int(e.params.auto);
          place();
+         if (autoLeft > 0) { autoTimer.reset(); autoTimer.start(); }
+         else autoTimer.stop();
       }
 
       /** Up to `num` 亚比 at random points: common ones, and a rare one at its rate. */

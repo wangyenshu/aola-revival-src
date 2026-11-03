@@ -42,7 +42,7 @@ package mmo.control
    public class ModRun
    {
       public static const ROOM:String = "sandboxroom";
-      public static const API_VERSION:int = 2;
+      public static const API_VERSION:int = 3;
       /** The largest mod file. */
       public static const MAX_BYTES:int = 16000000;
       /** Mods' own 亚比 numbers. */
@@ -269,13 +269,68 @@ package mmo.control
          if (shown != null && shown != g) shown.leftRooms();
          shown = g;
          g.willShow(roomId, def);
+         SceneManager.sandboxRoom = teamRoom(g, roomId);
          sm.loadScene(ROOM, spawn || "start", true);
+      }
+
+      /**
+       * REVIVAL 组队 in a mod: in a team, a mod's room is one server room for the team (the
+       * leader's name, the mod's id and version, the room's id), so its members see each other
+       * there, and the leader going into it takes them along (Social: revival_team_go). Alone:
+       * null (the room of one's own).
+       */
+      internal static function teamRoom(g:ModGame, roomId:String):String
+      {
+         var t:Object = Social.team;
+         if (t == null || !(t.members is Array) || t.members.length < 2) return null;
+         return TEAM_ROOM + [t.leader, g.info.id, g.info.version, roomId].map(function(s:*, i:int, a:Array):String { return encodeURIComponent(String(s)); }).join("|");
+      }
+
+      public static const TEAM_ROOM:String = "sandboxroom|";
+
+      /** A team's mod room ("sandboxroom|leader|mod|version|room"): {leader, mod, version, room}, or null. */
+      public static function parseTeamRoom(name:String):Object
+      {
+         if (name == null || name.indexOf(TEAM_ROOM) != 0) return null;
+         var p:Array = name.substr(TEAM_ROOM.length).split("|");
+         if (p.length != 4) return null;
+         try { return {leader: decodeURIComponent(p[0]), mod: decodeURIComponent(p[1]), version: decodeURIComponent(p[2]), room: decodeURIComponent(p[3])}; }
+         catch (e:Error) {}
+         return null;
+      }
+
+      /** Where a team's mod room is followed to: the mod, once started, enters it (ModGame.enter). */
+      internal var follow:Object;
+
+      /**
+       * Into a team's mod room (following the leader, 找他): only with the same mod, of the same
+       * version, loaded; it is started first if it was not. False if it is not loaded.
+       */
+      public function followInto(room:String):Boolean
+      {
+         var r:Object = parseTeamRoom(room);
+         if (r == null) return false;
+         var g:ModGame = gameOf(r.mod);
+         if (g == null || String(g.info.version) != r.version) return false;
+         if (g.roomFor(r.room) != null)
+         {
+            follow = null;
+            noteBack();
+            g.enter(r.room);
+            return true;
+         }
+         // Not started yet: its start() defines the rooms and enters one; this one instead.
+         follow = {game: g, room: r.room};
+         startMod(g.info.id);
+         return true;
       }
 
       /** Leave the mods' rooms: back to where the 沙盒 was started. */
       internal function leaveMods():void
       {
          pendingEnter = null;
+         follow = null;
+         SceneManager.sandboxRoom = null;
          if (shown != null) shown.leftRooms();
          shown = null;
          SandboxRun.reset();
@@ -331,6 +386,13 @@ package mmo.control
             }
          });
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_TASK_ACTION, onTalkAction);
+         // A team member's mod told the team something (ModGame.sendTeam, server social.ts).
+         SocketClient.instance.addEventListener("revival_team_mod", function(e:SocketClientEvent):void
+         {
+            var p:Object = e.params;
+            var g:ModGame = gameOf(String(p.mod));
+            if (g != null && String(g.info.version) == String(p.ver)) g.teamEvent(String(p.from), String(p.event), String(p.data));
+         });
       }
 
       /** A request of mod g to the server; then(reply). keep: answered even if g is removed meanwhile. */

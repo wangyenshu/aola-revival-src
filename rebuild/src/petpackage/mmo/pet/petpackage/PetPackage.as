@@ -7,6 +7,7 @@ package mmo.pet.petpackage
    import flash.events.Event;
    import flash.events.MouseEvent;
    import flash.filters.GlowFilter;
+   import flash.geom.Rectangle;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
@@ -47,6 +48,9 @@ package mmo.pet.petpackage
       private var data:IPetDataService;
       private var selected:int = -1;
       private var page:String = "skill";
+      private var tab:String = "info";
+      private var itemPage:DisplayObject;
+      private var cardPage:CardPage;
       private var skillButton:Sprite;
       private var pageText:TextField;
       private var titleText:TextField;
@@ -86,10 +90,12 @@ package mmo.pet.petpackage
          button(panel.btnshowskill, function():void { page = "skill"; showPage(); });
          button(panel.btnshowpropertity, function():void { page = "ability"; showPage(); });
          button(panel.btnshowinfo, function():void { page = "info"; showPage(); });
-         button(panel.btnInfo, function():void { page = "skill"; showPage(); });
-         button(panel.btnItem, notReady("亚比道具"));
+         button(panel.btnInfo, function():void { showTab("info"); page = "skill"; showPage(); });
+         // 道具: the rebuilt pet/petitem's page (service PetItem) in place of the 信息 page.
+         button(panel.btnItem, function():void { showTab("item"); });
          button(panel.btnCloth, notReady("亚比装扮"));
-         button(panel.btnCard, notReady("战术卡"));
+         // 战术卡: the revival's page (CardPage) in place of the 信息 page.
+         button(panel.btnCard, function():void { showTab("card"); });
          button(panel.btnBackWare, function():void
          {
             // 亚比仓库: the rebuilt pet/petwarehouse (service PetWareHouse).
@@ -149,6 +155,68 @@ package mmo.pet.petpackage
          if (o == null) return;
          if (o is Sprite) Sprite(o).buttonMode = true;
          o.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); f(); });
+      }
+
+      /** 信息 (the 技能 / 能力 / 信息 pages) or 道具 (the PetItem page) on the right. */
+      private function showTab(t:String):void
+      {
+         if (panel == null) return;
+         tab = t;
+         frame(panel.btnInfo, t == "info" ? 2 : 1);
+         frame(panel.btnItem, t == "item" ? 2 : 1);
+         frame(panel.btnCard, t == "card" ? 2 : 1);
+         var info:Boolean = t == "info";
+         for each (var n:String in ["btnshowskill", "btnshowpropertity", "btnshowinfo"]) if (panel[n]) DisplayObject(panel[n]).visible = info;
+         titleText.visible = info;
+         pageText.visible = info;
+         if (skillButton) skillButton.visible = info && page == "skill";
+         if (itemPage != null && itemPage.parent != null) itemPage.parent.removeChild(itemPage);
+         itemPage = null;
+         if (cardPage != null) cardPage.dispose();
+         cardPage = null;
+         if (info) return;
+         if (t == "card")
+         {
+            cardPage = new CardPage(function():int
+            {
+               var p:PetBriefInfo = pets[selected] as PetBriefInfo;
+               return p ? p.id : -1;
+            });
+            cardPage.x = pageText.x;
+            cardPage.y = panel.btnshowskill.y;
+            panel.addChild(cardPage);
+            return;
+         }
+         ServiceContainer.instance.tryGetService("PetItem", function(svc:IService, o:Object = null):void
+         {
+            if (panel == null || tab != "item" || itemPage != null) return;
+            try
+            {
+               itemPage = Object(svc).createPage(function():int
+               {
+                  var p:PetBriefInfo = pets[selected] as PetBriefInfo;
+                  return p ? p.id : -1;
+               }) as DisplayObject;
+            }
+            catch (e:Error) { RLog.error("petpackage item page", e); return; }
+            // Over the 信息 page's place: from its tabs down to the end of its text, at most full
+            // size. The art draws away from its origin (its squares lie at about 550,80 in it).
+            var top:Number = panel.btnshowskill.y;
+            var w:Number = 360, h:Number = pageText.y + pageText.height - top;
+            var b:Rectangle = itemPage.getBounds(itemPage);
+            var k:Number = Math.min(1, w / Math.max(1, b.width), h / Math.max(1, b.height));
+            itemPage.scaleX = itemPage.scaleY = k;
+            itemPage.x = pageText.x + (w - b.width * k) / 2 - b.x * k;
+            itemPage.y = top - b.y * k;
+            itemPage.name = "petItemPage";
+            panel.addChild(itemPage);
+         });
+      }
+
+      /** For PetItem.showPanel: the bag opened on its 道具 page. */
+      public function showItemPage():void
+      {
+         showTab("item");
       }
 
       private function selectFn(i:int):Function
@@ -234,6 +302,7 @@ package mmo.pet.petpackage
             if (hl) hl.visible = k == i;
          }
          if (data) data.setSelectPetId(p.id);
+         if (cardPage != null) cardPage.refresh();
          var big:MovieClip = panel.bigiconcontainer;
          if (big)
          {
@@ -285,7 +354,7 @@ package mmo.pet.petpackage
          var d:PetDetailedInfo = data ? data.getPetDetailedInfoById(p.id) : null;
          titleText.htmlText = "<font face='SimSun'>" + (p.nickname || p.name) + "    <font color='#E8641B'>Lv." + p.level + "</font></font>";
          var s:String = "";
-         if (skillButton) skillButton.visible = page == "skill";
+         if (skillButton) skillButton.visible = page == "skill" && tab == "info";
          if (page == "skill")
          {
             for each (var sk:SkillInfo in p.skills || []) s += "◆ " + sk.name + "    PP " + sk.canUseTimes + "/" + sk.maxUseTimes + "\n";
@@ -388,6 +457,10 @@ package mmo.pet.petpackage
          CommonEventDispatcher.instance.removeEventListener(PetFollowEvent.SET_UNFOLLOW, onFollowChanged);
          if (panel && panel.parent) ModalDialogManager.getInstance().removeModalDialog(panel);
          panel = null;
+         itemPage = null;
+         if (cardPage != null) cardPage.dispose();
+         cardPage = null;
+         tab = "info";
       }
    }
 }

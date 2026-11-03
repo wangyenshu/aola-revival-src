@@ -3,11 +3,16 @@
 // every unhandled extension call is logged with its parameters.
 
 import type { Emulator } from "../../core/emulator.ts";
-import { installPets, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
+import { installPets, maxHpOf, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
 import { installBattles, gainExp, type WildEntry } from "./battle.ts";
-import { installTasks, registerTaskTables, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
+import { installPetItems, type Boosts } from "./petitems.ts";
+import { checkPass, hashPass, nameProblem, LOCKED, PassGuard, type AccountOptions, type PassRec } from "./accounts.ts";
+import { adoptRecord, fileProblem, jsonBytes, playerFile, rolesOf, SAVE_RECORD_MAX, type SaveFile } from "./saves.ts";
+import { installSocial } from "./social.ts";
+import { installTasks, registerTaskTables, robotVar, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
 import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
-import { installHouse, houseOf, usedUp, type HouseRecord } from "./house.ts";
+import { installPetCards } from "./petcards.ts";
+import { installHouse, houseOf, usedUp, type HouseRecord, type Visits } from "./house.ts";
 import { installShoot, type CardRow } from "./shoot.ts";
 import { installPlants, plantTree, type PlantRec } from "./plants.ts";
 import { installEggs, type HatchRec } from "./eggs.ts";
@@ -57,6 +62,17 @@ export interface UserRecord {
   jingdou?: number;
   /** 蓝宝石 (member), set with the toolbox. */
   vip?: boolean;
+  /** 亚比 of the 仓库 the HELLO trains (亚比训练, 2-14 / 2-15 / 2-16): lesson and start (ms). */
+  training?: { pi: number; c: number; since: number }[];
+  /** Friends and asks to be friends (social.ts), by player id. */
+  friends?: number[];
+  friendAsks?: number[];
+  /** A shared server's password (accounts.ts). */
+  pass?: PassRec;
+  /** Mini games that open their levels one by one: game name -> the last level finished. */
+  gameLevels?: Record<string, number>;
+  /** Wins left of the 经验器, 学习器, 寻宝雷达 and 自动战斗仪 used (petitems.ts). */
+  boosts?: Boosts;
   /** The trees of the 家园 (plants.ts). */
   plants?: PlantRec[];
   nextPlantId?: number;
@@ -117,6 +133,13 @@ export interface Sfs2013Options {
   loadJson?: (path: string) => Promise<unknown>;
   /** Test commands for the automated walk-throughs (PocketMonsterExtension.revival_give). Never on for players. */
   dev?: boolean;
+  /** A shared server: names with passwords (accounts.ts). Off for the one-player page. */
+  accounts?: AccountOptions;
+  /**
+   * The 工具箱 (晶币, 亚比 … for nothing) and the 亚比 a mod gives: on (default), as in the page's
+   * own game; a shared server's owner may close them (fair play: the others, 亚比对战).
+   */
+  toolbox?: boolean;
 }
 
 /**
@@ -127,11 +150,8 @@ export interface Sfs2013Options {
  */
 const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
   "MaterialExtension.61_5": { pd: [] }, // PetClothesService
-  "MaterialExtension.61_6": { clothes: [] }, // RobotClothesService
-  "MaterialExtension.61_7": { cards: [] }, // PetCardService
   "MaterialExtension.61-8": { cards: [] }, // PetCard2Service
   "PlantItemExtension.81_2": { items: [] }, // PlantItemService
-  "RobotExtension.2-6": { i: [] }, // RobotItemService
   "SundriesExtension.70-1": { b: [] }, // BadgeService
 };
 
@@ -140,6 +160,43 @@ export const HOT_SPRING_SECONDS = 900;
 export const HOT_SPRING_EXP = 20;
 
 const userKey = (name: string) => `user/${encodeURIComponent(name)}`;
+
+const queues = new WeakMap<Emulator, Promise<unknown>>();
+/** After an import ends an 奥拉's game: a moment for its requests still running to finish. */
+export const IMPORT_SETTLE_MS = 300;
+/** Wrong passwords per name, whichever way they are tried (accounts.ts PassGuard). */
+const guards = new WeakMap<Emulator, PassGuard>();
+const guardOf = (emu: Emulator) => {
+  let g = guards.get(emu);
+  if (!g) guards.set(emu, (g = new PassGuard()));
+  return g;
+};
+/**
+ * The password of an 奥拉 of a shared server, tried from the client address addr: null if right,
+ * else what to say. Wrong ones count towards the lock of that name from that address
+ * (PassGuard), right ones clear it.
+ */
+async function passProblem(emu: Emulator, rec: UserRecord, pass: string | undefined, addr = ""): Promise<string | null> {
+  const g = guardOf(emu);
+  const key = `${rec.name}\u0000${addr}`;
+  if (g.locked(key)) return LOCKED;
+  if (!rec.pass || !pass || !(await checkPass(pass, rec.pass))) {
+    g.failed(key);
+    return "密码不对哦。";
+  }
+  g.passed(key);
+  return null;
+}
+
+/**
+ * Logins and renames of one server one after another: two at once could take one new player
+ * id, sign one name up twice, or rename an 奥拉 as it logs in.
+ */
+function oneAtATime<T>(emu: Emulator, f: () => Promise<T>): Promise<T> {
+  const r = (queues.get(emu) ?? Promise.resolve()).then(f, f);
+  queues.set(emu, r.catch(() => {}));
+  return r;
+}
 
 async function userRecord(emu: Emulator, name: string): Promise<UserRecord | undefined> {
   const rec = await emu.store.get<UserRecord>(userKey(name));
@@ -207,27 +264,48 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   const wild = () => (wildTable ??= json<Record<string, WildEntry[]>>("revival/wildpets.json", {}));
 
   const world = new World(emu, {
-    login: async (_zone, user) => {
-      const name = user || "小奥拉";
-      let rec = await userRecord(emu, name);
-      if (!rec) {
-        const next = ((await emu.store.get<number>("meta/nextUserId")) ?? 10000) + 1;
-        await emu.store.set("meta/nextUserId", next);
-        rec = normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
-      }
-      // A mod's 亚比 the game does not know now (their mod not started yet in this page): aside.
-      const known = await tables();
-      stashModPets(rec as UserRecord & ModRec, (race) => !!speciesOf(known, race));
-      await emu.store.set(userKey(name), rec);
-      // The 2013 client reads the worn clothes as "avatar" (SocketClient) and "c" (ClothesService).
-      const follow = rec.pets?.find((p) => p.id === rec!.followPet);
-      return {
-        id: rec.id,
-        name: rec.name,
-        vars: { avatar: rec.avatar, c: rec.avatar, nn: rec.name, mtype: rec.vip ? 4 : 0, p: follow ? followVar(follow) : NO_FOLLOW },
-      };
-    },
+    login: (zone, user, pass, s) => oneAtATime(emu, () => login(zone, user, pass, s.link.remote)),
+    refuseDelayMs: opts.accounts?.required ? 1000 : 0,
   });
+  async function login(_zone: string, user: string, pass: string, addr: string) {
+    const name = (user || "小奥拉").trim();
+    let rec = await userRecord(emu, name);
+    // A shared server (accounts.ts): the name must be a fit one, and its password the one it
+    // signed up with (the first login of a new name signs it up, when the server lets it).
+    const acc = opts.accounts;
+    if (acc?.required) {
+      const bad = nameProblem(name);
+      if (bad) return { id: 0, name, error: bad };
+      if (!rec && !acc.register) return { id: 0, name, error: "没有这个奥拉，请先注册。" };
+      if (!pass) return { id: 0, name, error: "请输入密码。" };
+      if (rec?.pass) {
+        const wrong = await passProblem(emu, rec, pass, addr);
+        if (wrong) return { id: 0, name, error: wrong };
+      } else if (rec) {
+        if (!acc.adopt) return { id: 0, name, error: "这个奥拉还没有密码，请服务器的主人打开 --adopt 后再登录一次。" };
+        rec.pass = await hashPass(pass);
+      }
+    }
+    if (!rec) {
+      const next = ((await emu.store.get<number>("meta/nextUserId")) ?? 10000) + 1;
+      await emu.store.set("meta/nextUserId", next);
+      rec = normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
+      if (acc?.required && pass) rec.pass = await hashPass(pass);
+    }
+    // A mod's 亚比 the game does not know now (their mod not started yet in this page): aside.
+    const known = await tables();
+    stashModPets(rec as UserRecord & ModRec, (race) => !!speciesOf(known, race));
+    await emu.store.set(userKey(name), rec);
+    // id -> name, for the records that keep other players by id (social.ts friends).
+    await emu.store.set(`uid/${rec.id}`, rec.name);
+    // The 2013 client reads the worn clothes as "avatar" (SocketClient) and "c" (ClothesService).
+    const follow = rec.pets?.find((p) => p.id === rec!.followPet);
+    return {
+      id: rec.id,
+      name: rec.name,
+      vars: { avatar: rec.avatar, c: rec.avatar, nn: rec.name, mtype: rec.vip ? 4 : 0, p: follow ? followVar(follow) : NO_FOLLOW },
+    };
+  }
 
   const save = (rec: UserRecord) => emu.store.set(userKey(rec.name), rec);
   const me = async (ctx: XtContext) => (await userRecord(emu, ctx.player.name))!;
@@ -339,6 +417,11 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     }
     rec.gameCoins.n += coins;
     rec.score = (rec.score ?? 0) + coins;
+    // The level a game ended (or was finished) at, for the games that open their levels one by
+    // one (极速3D赛车 gameMyCat: endGame(score, the level finished) when won, 0 when lost; 89_5).
+    const game = String(ctx.params.gameName ?? "");
+    const lv = Number(ctx.params.level) | 0;
+    if (game && lv > 0) (rec.gameLevels ??= {})[game] = Math.max(rec.gameLevels[game] ?? 0, lv);
     await save(rec);
     if (coins > 0) ctx.reply({ score: rec.score }, "onScoreUpdated");
     ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? "") }, "increaseScore");
@@ -490,9 +573,15 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //                                  first 亚比 of the bag, with its levels and evolutions)
   //   {raceId, level}                a new 亚比 (to the bag, or the 亚比仓库 when the bag is full)
   //   -> revival_toolbox {score, xingbi, jingdou, msg}, onScoreUpdated, and the 亚比 replies
+  const toolbox = opts.toolbox ?? true;
   world.xt("SundriesExtension.revival_toolbox", async (ctx) => {
     const rec = await me(ctx);
     const p = ctx.params;
+    // Closed (a shared server): the totals only (the game asks them at the start), no gifts.
+    const gifts = ["score", "xingbi", "jingdou", "exp", "raceId", "vip"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
+    if (!toolbox && gifts) {
+      return ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, vip: !!rec.vip, msg: "这个服务器关闭了工具箱。" }, "revival_toolbox");
+    }
     const t = await tables();
     const add = (v: unknown) => Math.max(0, Math.min(9_999_999, Number(v) | 0));
     const said: string[] = [];
@@ -549,7 +638,35 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
 
   const today = () => emu.clock.now().toISOString().slice(0, 10);
   installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today });
-  installBattles(world, { load: me, save: (o) => save(o as UserRecord), tables, wild, today, now: () => emu.clock.now().getTime() });
+  installBattles(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    tables,
+    wild,
+    today,
+    now: () => emu.clock.now().getTime(),
+    find: (name) => userRecord(emu, name),
+  });
+  installSocial(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    byName: (name) => userRecord(emu, name),
+    nameOf: (id) => emu.store.get<string>(`uid/${id}`),
+  });
+  // 战术卡 (petcards.ts).
+  installPetCards(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    maxHp: async (o, pet) => maxHpOf(pet as PetRecord, await tables()),
+  });
+  installPetItems(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    tables,
+    changedRace: (ctx, o, pet) => {
+      if (o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+    },
+  });
 
   const taskTables = json<TaskTables>("revival/tasks.json", { defines: {}, starters: {} }).then(registerTaskTables);
   // A new 亚比 for the player: into the bag (2201 tells the client), or the 亚比仓库 when it is full.
@@ -566,6 +683,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   };
   installTasks(world, {
     load: me,
+    byName: (name) => userRecord(emu, name),
     save: (o) => save(o as UserRecord),
     now: () => emu.clock.now().getTime(),
     ready: taskTables,
@@ -593,9 +711,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   });
 
   // 坐骑 (the rebuilt pet/petride; PetClient2): 54_12 {pmId, cId} ride, 54_20 {} get off, 54_11 {pmId}
-  // train. The 34 亚比 of the 2013 PetRideInfosMap (race: [ride clothes, speed, level]); only a 蓝宝骑士
-  // rides. The ride clothes join the worn ones in the "avatar" user variable while riding (not saved:
-  // a new login walks).
+  // train. The 34 亚比 of the 2013 PetRideInfosMap and the 9 the later one adds up to 1651
+  // (race: [ride clothes, speed, level]); only a 蓝宝骑士 rides. The ride clothes join the worn
+  // ones in the "avatar" user variable while riding (not saved: a new login walks).
   const RIDE: Record<number, [number, number, number]> = {
     30: [10049, 1.2, 36], 45: [10047, 1.3, 36], 105: [10048, 1.2, 40], 141: [10051, 1.2, 36], 278: [10052, 1.5, 40], 138: [10050, 1.2, 36],
     198: [10053, 1.3, 36], 300: [10054, 1.2, 36], 189: [10055, 1.2, 40], 299: [10056, 1.3, 40], 153: [10057, 1.2, 40], 24: [10058, 1.2, 32],
@@ -603,6 +721,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     388: [10065, 1.4, 40], 75: [10066, 1.25, 40], 215: [10067, 1.3, 40], 111: [10068, 1.3, 40], 624: [10069, 1.3, 40], 653: [10070, 1.4, 40],
     654: [10071, 1.3, 36], 741: [10072, 1.3, 40], 775: [10073, 1.3, 40], 794: [10074, 1.5, 40], 180: [10075, 1.3, 40], 838: [10076, 1.4, 40],
     1082: [10077, 1.4, 40], 1126: [10078, 1.4, 40], 1240: [10079, 1.3, 40], 1356: [10080, 1.3, 40],
+    // The later client's 坐骑 up to 1651 (the revival's 亚比 go that far: the 工具箱).
+    1101: [10089, 1.5, 40], 1122: [10087, 1.5, 42], 1350: [10086, 1.5, 40], 1423: [10083, 1.3, 40], 1426: [10088, 1.5, 40],
+    1430: [10081, 1.3, 40], 1448: [10082, 1.3, 40], 1461: [10084, 1.3, 40], 1599: [10085, 1.3, 40],
   };
   const riding = new Map<string, { pmId: number; cloth: number }>();
   const wornWithRide = (rec: UserRecord) => {
@@ -645,6 +766,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     me,
     find: (name) => userRecord(emu, name),
     save: (o) => save(o as UserRecord),
+    visits: {
+      get: (id) => emu.store.get<Visits>(`visits/${id}`),
+      set: (id, v) => emu.store.set(`visits/${id}`, v),
+      nameOf: (id) => emu.store.get<string>(`uid/${id}`),
+    },
+    now: () => emu.clock.now().getTime(),
   });
 
   installPlants(world, {
@@ -660,6 +787,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     save: (o) => save(o),
     tables,
     today,
+    gifts: toolbox,
   });
 
   // 亚比融合 and 天赋启迪 (亚比研究中心): yabistudy.ts.
@@ -855,6 +983,120 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ res: 1, pi, e: want, exp: rec.robot.exp, lv: pet.level }, "2-13");
   });
 
+  // 亚比训练 (the HELLO menu's; era pet/pettraining of 2010 picks a 亚比 of the 亚比仓库 and a
+  // lesson, pet/petbetraining shows the ones in training): the HELLO trains at most two at once.
+  //   2-15 train {pi, c}    -> 2-15 {res, pi, c}   res 1, -1 no such 亚比 in the 仓库, -2 two in training
+  //   2-14 getTrain {}      -> 2-14 {ps: [{pi, c, lt}]}   lt: seconds of the lesson left (0 done)
+  //   2-16 trainStop {pi}   -> 2-16 {res, pi, exp, lv}   the experience of the time trained
+  // The lessons' lengths and experience are lost: RECONSTRUCTED as TRAIN_LESSONS.
+  const TRAIN_LESSONS: Record<number, [seconds: number, exp: number]> = { 1: [3600, 1500], 2: [4 * 3600, 5000], 3: [8 * 3600, 9000] };
+  const trainView = (rec: UserRecord) => {
+    const now = emu.clock.now().getTime();
+    return (rec.training ?? []).map((t) => ({ pi: t.pi, c: t.c, lt: Math.max(0, Math.ceil((t.since + TRAIN_LESSONS[t.c][0] * 1000 - now) / 1000)) }));
+  };
+  world.xt("RobotExtension.2-15", async (ctx) => {
+    const rec = await me(ctx);
+    const pi = Number(ctx.params.pi) | 0;
+    const c = TRAIN_LESSONS[Number(ctx.params.c) | 0] ? Number(ctx.params.c) | 0 : 1;
+    const list = (rec.training ??= []);
+    if (!(rec.storage ?? []).some((p) => p.id === pi) || list.some((t) => t.pi === pi)) return ctx.reply({ res: -1, pi, c }, "2-15");
+    if (list.length >= 2) return ctx.reply({ res: -2, pi, c }, "2-15");
+    list.push({ pi, c, since: emu.clock.now().getTime() });
+    await save(rec);
+    ctx.reply({ res: 1, pi, c }, "2-15");
+  });
+  world.xt("RobotExtension.2-14", async (ctx) => ctx.reply({ ps: trainView(await me(ctx)) }, "2-14"));
+  world.xt("RobotExtension.2-16", async (ctx) => {
+    const rec = await me(ctx);
+    const pi = Number(ctx.params.pi) | 0;
+    const at = (rec.training ?? []).findIndex((t) => t.pi === pi);
+    const pet = (rec.storage ?? []).find((p) => p.id === pi) ?? (rec.pets ?? []).find((p) => p.id === pi);
+    if (at < 0 || !pet) return ctx.reply({ res: -1, pi, exp: 0 }, "2-16");
+    const [t0] = rec.training!.splice(at, 1);
+    const [secs, full] = TRAIN_LESSONS[t0.c];
+    const done = Math.min(1, (emu.clock.now().getTime() - t0.since) / (secs * 1000));
+    const exp = Math.floor(full * done);
+    if (exp > 0) gainExp(await tables(), pet, exp);
+    await save(rec);
+    ctx.reply({ res: 1, pi, exp, lv: pet.level }, "2-16");
+  });
+
+  // ---------------------------------------------------------------- the HELLO's things
+  // RobotClient (era library) and MaterialClient, for the HELLO's 基本资料 and HELLO物品 panels
+  // (robot/robotmes, robot/robotitem; their January 2013 code is lost: these follow the 2015–16
+  // copies). The HELLO's 道具 are materials of type 3 (RobotItemData: 1 能量晶石, 2 经验分配晶石,
+  // 5 经验加成晶石, 6 亚比训练晶石, 7 技能唤醒晶石), its clothes of type 7 (RobotClothes 40001 …).
+  //   2-6 getItems {}            -> {i: [{ItemId, Quantity}]}           RobotItemService at start
+  //   61_6 {}                    -> {clothes: [{id, qt, uq}]}            RobotClothesService at start
+  //   2-10 reName {n}            -> {res, n}                             1–14 characters
+  //   2-5 useItem {ii}           -> {res, ii, e, f, msg}, onAmountUpdated "3_ii_0_-1"
+  //   2-17 changeRobotAvatar {clothId} -> {result, clothId}, user variable r (members only, as the
+  //                                  2016 RobotClothView: "只有蓝宝骑士才可以使用蓝宝石道具")
+  //   2-18 addEnergy {}          -> {res, e, msg}                        the 营养饼干: back to 100
+  // RECONSTRUCTED: what each 晶石 does (能量晶石 +20 energy, 技能唤醒晶石 wakes 技能替换, the
+  // others are skills every HELLO of 2013 has, so they are not used up) and that 营养饼干 are free.
+  const HELLO_ENERGY_ITEM = 20;
+  world.xt("RobotExtension.2-6", async (ctx) => {
+    const rec = await me(ctx);
+    ctx.reply({ i: Object.entries(rec.items?.["3"] ?? {}).filter(([, q]) => q > 0).map(([id, q]) => ({ ItemId: Number(id), Quantity: q })) });
+  });
+  world.xt("MaterialExtension.61_6", async (ctx) => {
+    const rec = await me(ctx);
+    const worn = rec.robot?.avatar ?? "";
+    ctx.reply({ clothes: Object.entries(rec.items?.["7"] ?? {}).filter(([, q]) => q > 0).map(([id, q]) => ({ id: Number(id), qt: q, uq: id === worn ? 1 : 0 })) });
+  });
+  world.xt("RobotExtension.2-10", async (ctx) => {
+    const rec = await me(ctx);
+    const n = String(ctx.params.n ?? "").trim();
+    if (!rec.robot || n.length < 1 || [...n].length > 14) return ctx.reply({ res: 0, n: rec.robot?.name ?? "" });
+    rec.robot.name = n;
+    await save(rec);
+    ctx.reply({ res: 1, n });
+  });
+  world.xt("RobotExtension.2-5", async (ctx) => {
+    const rec = await me(ctx);
+    const ii = String(Number(ctx.params.ii) | 0);
+    const r = rec.robot;
+    const have = rec.items?.["3"]?.[ii] ?? 0;
+    const view = (res: number, msg: string) => ({ res, ii: Number(ii), e: r?.energy ?? 100, f: "", msg });
+    if (!r || have < 1) return ctx.reply(view(0, "你没有这个道具哦。"));
+    let msg = "";
+    if (ii === "1") {
+      if ((r.energy ?? 100) >= 100) return ctx.reply(view(0, "HELLO现在饱饱的，一点儿也不饿哦！"));
+      r.energy = Math.min(100, (r.energy ?? 100) + HELLO_ENERGY_ITEM);
+      msg = "主人对HELLO最好了，HELLO最喜欢主人了！";
+    } else if (ii === "7") {
+      const area = ((rec as UserRecord & AreaRec).area ??= {});
+      const hello = (area.hello ??= { sc: [], pt: [], woken: [] });
+      const woken = (hello.woken ??= []);
+      if (woken.includes(4)) return ctx.reply(view(0, "HELLO已经会亚比技能替换了。"));
+      woken.push(4);
+      msg = "HELLO现在拥有了亚比技能替换了。";
+    } else return ctx.reply(view(0, "HELLO已经拥有这个技能了。"));
+    rec.items!["3"]![ii] = have - 1;
+    if (rec.items!["3"]![ii] <= 0) delete rec.items!["3"]![ii];
+    await save(rec);
+    ctx.reply({ amount: `3_${ii}_0_-1` }, "onAmountUpdated");
+    ctx.reply(view(1, msg));
+  });
+  world.xt("RobotExtension.2-17", async (ctx) => {
+    const rec = await me(ctx);
+    const id = String(Number(ctx.params.clothId) | 0);
+    if (!rec.robot || !rec.vip || !((rec.items?.["7"]?.[id] ?? 0) > 0)) return ctx.reply({ result: false, clothId: Number(id) });
+    rec.robot.avatar = id;
+    await save(rec);
+    if (rec.robot.follow) world.setUserVars(ctx.session, { r: robotVar(rec.robot) });
+    ctx.reply({ result: true, clothId: Number(id) });
+  });
+  world.xt("RobotExtension.2-18", async (ctx) => {
+    const rec = await me(ctx);
+    if (!rec.robot) return ctx.reply({ res: 0, e: 0, msg: "你还没有HELLO哦！" });
+    if ((rec.robot.energy ?? 100) >= 100) return ctx.reply({ res: 0, e: 100, msg: "HELLO现在饱饱的，一点儿也不饿哦！" });
+    rec.robot.energy = 100;
+    await save(rec);
+    ctx.reply({ res: 1, e: 100 });
+  });
+
   installShoot(world, {
     me,
     save: (o) => save(o as UserRecord),
@@ -918,6 +1160,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // 343) go then. The 2013 prize table is lost: RECONSTRUCTED after the 2015 rules panel (things for
   // 1–3 points, better things or a 亚比蛋 for 4–6, rarer ones for 7 and more).
   world.xt("UserGameExtension.89_2", () => {});
+  // 极速3D赛车 (game/mycat, GameTable 34 gameMyCat, the 极速俱乐部's btn_mycat): 89_5 {name} -> 89_5
+  // {level}, the last of its three tracks open (0 the first; a track finished opens the next).
+  world.xt("UserGameExtension.89_5", async (ctx) => {
+    const rec = await me(ctx);
+    const done = rec.gameLevels?.[String(ctx.params.name ?? "")] ?? 0;
+    ctx.reply({ level: Math.min(2, done), name: String(ctx.params.name ?? "") }, "89_5");
+  });
   world.xt("UserGameExtension.89_1", async (ctx) => {
     const rec = await me(ctx);
     const items = ((rec.items ??= {})["2"] ??= {});
@@ -950,4 +1199,126 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   });
 
   return world;
+}
+
+/**
+ * Give an 奥拉 another name (the page's start screen: 改名字). The name is the record's key
+ * (user/<name>) and the player's name everywhere, so the record moves; the newer social
+ * records (friends, visits) keep ids, not names. On a shared server the password must be
+ * the account's, and the 奥拉 must not be in the game at the time. null if done, else why not.
+ */
+export async function renameUser(
+  emu: Emulator,
+  from: string,
+  to: string,
+  opts: { pass?: string; addr?: string; accounts?: AccountOptions; online?: (name: string) => boolean } = {},
+): Promise<string | null> {
+  return oneAtATime(emu, () => rename(emu, from, to, opts));
+}
+
+async function rename(
+  emu: Emulator,
+  from: string,
+  to: string,
+  opts: { pass?: string; addr?: string; accounts?: AccountOptions; online?: (name: string) => boolean },
+): Promise<string | null> {
+  const a = from.trim(), b = to.trim();
+  const bad = nameProblem(b);
+  if (bad) return bad;
+  if (a === b) return null;
+  const rec = await userRecord(emu, a);
+  if (!rec) return "没有这个奥拉。";
+  if (opts.accounts?.required) {
+    const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
+    if (wrong) return wrong;
+  }
+  if (opts.online?.(a)) return "请先退出游戏，再改名字。";
+  if (await userRecord(emu, b)) return "这个名字已经有奥拉用了，换一个吧。";
+  rec.name = b;
+  await emu.store.set(userKey(b), rec);
+  await emu.store.delete(userKey(a));
+  await emu.store.set(`uid/${rec.id}`, b);
+  return null;
+}
+
+/**
+ * 导出存档 on a shared server: the 奥拉 as a 存档 file (saves.ts), the password asked. The file is
+ * the page's format, so 单机模式 takes it in too. { save } if done, else { error }.
+ */
+export async function exportSave(
+  emu: Emulator,
+  name: string,
+  opts: { pass?: string; addr?: string; accounts?: AccountOptions },
+): Promise<{ save?: SaveFile; error?: string }> {
+  return oneAtATime(emu, async () => {
+    const rec = await userRecord(emu, name.trim());
+    if (!rec) return { error: "没有这个奥拉。" };
+    if (opts.accounts?.required) {
+      const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
+      if (wrong) return { error: wrong };
+    }
+    return { save: playerFile(rec as UserRecord & Record<string, unknown>, userKey(rec.name), emu.clock.now().toISOString()) };
+  });
+}
+
+/**
+ * 导入存档 on a shared server: an 奥拉 of a 存档 file (either mode's) becomes this 奥拉's game,
+ * the password asked. A file of several 奥拉 needs `from` (one of its names: { names } when
+ * missing). The 奥拉's game ends first if it is on (end); its id, name, password and friends
+ * stay the server's (saves.ts adoptRecord). Allowed only where the server lets players
+ * (imports: a file can hold any 亚比 and items, as the 工具箱 gives). {} if done.
+ */
+export async function importSave(
+  emu: Emulator,
+  name: string,
+  file: unknown,
+  opts: { pass?: string; addr?: string; from?: string; accounts?: AccountOptions; imports?: boolean; end?: (name: string) => boolean },
+): Promise<{ error?: string; names?: string[] }> {
+  if (!opts.imports) return { error: "这个服务器没有打开导入存档。" };
+  const bad = fileProblem(file);
+  if (bad) return { error: bad };
+  const roles = rolesOf(file as SaveFile);
+  if (!roles.size) return { error: "这个存档里没有奥拉。" };
+  const from = opts.from ? roles.get(opts.from) : roles.size === 1 ? [...roles.values()][0] : undefined;
+  if (!from) return { error: opts.from ? `存档里没有${opts.from}。` : "存档里有好几个奥拉，请选一个。", names: [...roles.keys()] };
+  if (jsonBytes(from) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
+  return oneAtATime(emu, async () => {
+    const rec = await userRecord(emu, name.trim());
+    if (!rec) return { error: "没有这个奥拉。" };
+    if (opts.accounts?.required) {
+      const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
+      if (wrong) return { error: wrong };
+    }
+    const { id, name: as } = rec;
+    const key = userKey(as);
+    // Made and checked before anything changes: a file the game cannot read changes nothing.
+    let next: UserRecord;
+    try {
+      next = normalise(adoptRecord(from, rec as UserRecord & Record<string, unknown>) as unknown as UserRecord);
+      if (jsonBytes(next) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
+    } catch {
+      return { error: "这个存档读不了。" };
+    }
+    // Its game ends (the page reloads after the import and logs in again); what its requests
+    // still running do comes first.
+    if (opts.end?.(as)) await new Promise((ok) => setTimeout(ok, IMPORT_SETTLE_MS));
+    // In place: the live record (store.ts LiveRecordStore) is the object a handler still
+    // running for the game just ended holds; its save then writes the imported one. Undone if
+    // the write fails, so what is kept and what is live stay one.
+    const live = rec as unknown as Record<string, unknown>;
+    const before = structuredClone(live);
+    const fill = (o: Record<string, unknown>) => {
+      for (const k of Object.keys(live)) delete live[k];
+      Object.assign(live, o);
+    };
+    fill(next as unknown as Record<string, unknown>);
+    try {
+      await emu.store.set(key, live);
+    } catch {
+      fill(before);
+      return { error: "存档没有存好，请再试一次。" };
+    }
+    await emu.store.set(`uid/${id}`, as);
+    return {};
+  });
 }

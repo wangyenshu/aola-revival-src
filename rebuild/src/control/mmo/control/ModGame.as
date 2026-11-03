@@ -81,6 +81,8 @@ package mmo.control
             data = {};
             try { if (p.data) data = RJson.decode(String(p.data)) || {}; } catch (e:Error) { data = {}; }
             musicSet = null;
+            // Started again: its start() listens anew.
+            teamHandlers = {};
             try { mod.start(self); }
             catch (err:Error)
             {
@@ -95,6 +97,7 @@ package mmo.control
       {
          saveNow();
          gone = true;
+         teamHandlers = {};
          for each (var race:int in races)
          {
             RDef.forget("mmo.pet.peticon" + race + "_");
@@ -191,6 +194,14 @@ package mmo.control
       public function enter(roomId:String, spawn:String = null):void
       {
          if (gone) return;
+         // Following the team into a room of this mod (ModRun.followInto): that room, not the start's.
+         var f:Object = run.follow;
+         if (f != null && f.game == this && rooms[f.room] != null)
+         {
+            run.follow = null;
+            roomId = f.room;
+            spawn = null;
+         }
          var def:Object = rooms[roomId];
          if (def == null)
          {
@@ -514,6 +525,81 @@ package mmo.control
             if (_room != r || gone) return;
             try { f(); } catch (err:Error) { RLog.error("mod after", err); }
          }, Math.max(0, seconds) * 1000);
+      }
+
+      // ---------------------------------------------------------------- 组队 (API 3)
+
+      /** Team events this mod listens to: event -> [function(from:String, data:*)]. */
+      private var teamHandlers:Object = {};
+
+      /** The team's members (the leader first), or [] when one plays alone. */
+      public function get team():Array
+      {
+         var t:Object = Social.team;
+         if (t == null || !(t.members is Array) || t.members.length < 2) return [];
+         var out:Array = [String(t.leader)];
+         for each (var m:String in t.members) if (m != t.leader) out.push(m);
+         return out;
+      }
+
+      /** The team's leader, or "" when one plays alone. */
+      public function get teamLeader():String
+      {
+         var t:Array = team;
+         return t.length > 0 ? String(t[0]) : "";
+      }
+
+      /** Whether this player leads the team (or plays alone). */
+      public function get isLeader():Boolean
+      {
+         var l:String = teamLeader;
+         return l == "" || l == SocketClient.instance.myUserName;
+      }
+
+      /** The other players in this room (in a team, the members who are here). */
+      public function get playersHere():Array
+      {
+         var out:Array = [];
+         var me:String = SocketClient.instance.myUserName;
+         try { for (var n:String in PlayerManager.getInstance().playerList) if (n != me) out.push(n); } catch (e:Error) {}
+         return out.sort();
+      }
+
+      /**
+       * Tell the other members of the team who run this mod (the same id and version) that
+       * something happened: their onTeam(event) functions get (this player's name, data).
+       * data: JSON-like, at most 4 KB as JSON. Alone, nobody hears it.
+       */
+      public function sendTeam(event:String, data:* = null):void
+      {
+         if (gone || !event || team.length == 0) return;
+         var text:String = data === undefined ? "null" : RJson.encode(data);
+         if (text.length > 4096)
+         {
+            RLog.log("mod " + info.id + ": sendTeam " + event + " too big (" + text.length + " characters), not sent");
+            return;
+         }
+         SocketClient.instance.sendXtMessage("TeamExtension", "revival_team_mod", {mod: info.id, ver: String(info.version), event: String(event).substr(0, 64), data: text});
+      }
+
+      /** f(from:String, data:*) when another member sends event (sendTeam). Several may listen. */
+      public function onTeam(event:String, f:Function):void
+      {
+         if (gone || !event || f == null) return;
+         (teamHandlers[event] ||= []).push(f);
+      }
+
+      /** ModRun: a member's sendTeam to this mod. */
+      internal function teamEvent(from:String, event:String, text:String):void
+      {
+         var fns:Array = teamHandlers[event] as Array;
+         if (fns == null || gone) return;
+         var data:* = null;
+         try { data = RJson.decode(text); } catch (e:Error) { data = null; }
+         for each (var f:Function in fns.concat())
+         {
+            try { f(from, data); } catch (err:Error) { RLog.error("mod " + info.id + " onTeam " + event, err); }
+         }
       }
 
       public function log(... parts):void

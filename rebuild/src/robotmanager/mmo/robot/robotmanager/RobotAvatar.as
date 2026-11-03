@@ -15,10 +15,10 @@ package mmo.robot.robotmanager
     * scene, a scene player dressed in robot clothes. Its look is the one the
     * era HELLO card (robot/robotmes, RobotMesPanel.refreshHello) gives: for a
     * member his HELLO's clothes, or 40001 (skin/a300000); for everyone else
-    * clothes 23 (skin/a000033, the plain HELLO). Clicking a HELLO shows its
-    * card (era robot/robotanothermes); the 2013 panel of one's own HELLO
-    * (robot/robotmes) survives only as a later copy, so one's own shows the
-    * same card.
+    * clothes 23 (skin/a000033, the plain HELLO). Clicking another player's
+    * HELLO shows its card (era robot/robotanothermes); one's own opens its
+    * menu, the wheel of December 2012 (HelloWheel), whose 资料 is its 基本资料
+    * (robot/robotmes, rebuilt on its 2015 copy).
     */
    public class RobotAvatar extends ScenePlayer
    {
@@ -34,12 +34,23 @@ package mmo.robot.robotmanager
          setNickNameVisible(false);
       }
 
+      /** The look last given (the menu's HELLO wears the same). */
+      private var lastA:String = "";
+      private var lastMember:Boolean;
+
       /** a: the HELLO's clothes from the user variable r ("" for the default look). */
       public function setView(a:String, member:Boolean):void
       {
+         lastA = a;
+         lastMember = member;
          var info:AvatarInfo = new AvatarInfo();
          info.setAvatarInfoWithString(member ? (a == null || a == "" ? HELLO_MEMBER_DEFAULT : a) : HELLO_DEFAULT);
          setAvatar(info);
+      }
+
+      private function get mine():Boolean
+      {
+         return owner == SocketClient.instance.myUserName;
       }
 
       override protected function onClickPlayer(e:MouseEvent):void
@@ -49,7 +60,9 @@ package mmo.robot.robotmanager
          {
             var rs:IRobotService = ServiceContainer.getService("RobotDataService") as IRobotService;
             if (rs != null) rs.setSelectRobotId(owner);
-            ServiceContainer.instance.tryGetService("RobotAnotherMes", function(svc:IService, o:Object):void
+            // One's own HELLO: its menu (HelloWheel); another's: its card (robot/robotanothermes).
+            if (mine) HelloWheel.show(owner, lastA, lastMember);
+            else ServiceContainer.instance.tryGetService("RobotAnotherMes", function(svc:IService, o:Object):void
             {
                Object(svc).showPanel();
             });

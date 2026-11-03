@@ -35,6 +35,11 @@ export function frameRecord(
   return r;
 }
 
+/** Keeps nothing: a shared server (its frames would pile up, the passwords of logins among them). */
+export class NullRecorder implements Recorder {
+  record(): void {}
+}
+
 export class MemoryRecorder implements Recorder {
   readonly records: FrameRecord[] = [];
   record(r: FrameRecord): void {

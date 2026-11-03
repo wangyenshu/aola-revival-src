@@ -11,13 +11,15 @@ package
 
    /**
     * The smallest mod: one room drawn in code, a character who talks and asks a
-    * question, and a door out. Build it with
+    * question, and a door out; in a team, a wave to the others. Build it with
     *   node tools/mod-sdk/build.mjs tools/mod-sdk/examples/hello
     * and load bin/hello.swf in the game's 沙盒 → 模组 → 导入模组.
     */
    public class HelloMod extends Sprite implements IMod
    {
       private var game:IModGame;
+      /** The gardener of the room shown. */
+      private var guide:IModNpc;
 
       public function get info():Object
       {
@@ -37,12 +39,15 @@ package
             spawns: {start: [200, 450]},
             build: buildGarden
          });
+         // A team member's wave (listen once, in start: a room's build runs each time it is shown).
+         if (game.apiVersion >= 3)
+            game.onTeam("wave", function(from:String, data:*):void { if (guide != null) guide.say(from + "向大家挥手：" + data.text, 4); });
          game.enter("garden");
       }
 
       private function buildGarden(room:IModRoom):void
       {
-         var guide:IModNpc = room.npc({
+         guide = room.npc({
             name: "园丁小星",
             look: Gardener,
             x: 620,
@@ -51,6 +56,16 @@ package
          });
          guide.say("欢迎来到我的小花园！", 4);
          room.door(840, 340, 110, 150, "离开", function():void { game.leave(); });
+         // 组队 (API 3, a shared server): a team plays this room together. The whole team is in
+         // it, and a wave is seen by everyone who is.
+         if (game.apiVersion >= 3 && game.team.length > 0)
+         {
+            room.door(40, 360, 110, 120, "向队友挥手", function():void
+            {
+               guide.say(game.playerName + "向大家挥手！", 4);
+               game.sendTeam("wave", {text: "你们好！"});
+            });
+         }
       }
 
       private function talkToGuide(guide:IModNpc):void

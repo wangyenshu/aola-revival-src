@@ -58,6 +58,8 @@ export interface ModDeps<R extends ModRec> {
   save: (rec: R) => Promise<void>;
   tables: () => Promise<PetTables>;
   today: () => string;
+  /** A mod may give 亚比 (off where the 工具箱 is closed: game.ts toolbox). */
+  gifts?: boolean;
 }
 
 export const isModRace = (race: number) => race >= MOD_RACE_MIN && race <= MOD_RACE_MAX;
@@ -171,6 +173,7 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       return reply({ res: 1, back: back.length, def: JSON.stringify(def) });
     }
     if (op === "give") {
+      if (deps.gifts === false) return reply({ res: 0, msg: "这个服务器上，模组不能送亚比。" });
       const t = await deps.tables();
       const race = Math.floor(Number(p.race));
       const level = Math.max(1, Math.min(MOD_LEVEL_MAX, Math.floor(Number(p.level)) || 1));

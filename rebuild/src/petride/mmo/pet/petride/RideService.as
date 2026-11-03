@@ -57,9 +57,22 @@ package mmo.pet.petride
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
       }
 
+      /**
+       * The 坐骑 the later client added for 亚比 up to 1651 (its PetRideInfosMap: race -> ride
+       * clothes, speed, level), which the 2013 map lacks: [race, clothes, speed, level].
+       */
+      private static const LATER_RIDES:Array = [[1101, 10089, 1.5, 40], [1122, 10087, 1.5, 42], [1350, 10086, 1.5, 40],
+         [1423, 10083, 1.3, 40], [1426, 10088, 1.5, 40], [1430, 10081, 1.3, 40], [1448, 10082, 1.3, 40], [1461, 10084, 1.3, 40], [1599, 10085, 1.3, 40]];
+
       private static function infoOf(race:int):PetRideInfo
       {
-         try { return PetRideInfosMap.instance.getPetRideInfo(race); } catch (e:Error) {}
+         try
+         {
+            var info:PetRideInfo = PetRideInfosMap.instance.getPetRideInfo(race);
+            if (info != null) return info;
+         }
+         catch (e:Error) {}
+         for each (var r:Array in LATER_RIDES) if (int(r[0]) == race) return new PetRideInfo(race, 1, int(r[1]), Number(r[2]), int(r[3]));
          return null;
       }
 
@@ -75,7 +88,8 @@ package mmo.pet.petride
 
       public function validateRidePetRace():Array
       {
-         return [30, 45, 105, 141, 278, 138, 198, 300, 189, 299, 153, 24, 90, 481, 506, 290, 493, 391, 388, 75, 215, 111, 624, 653, 654, 741, 775, 794, 180, 838, 1082, 1126, 1240, 1356];
+         return [30, 45, 105, 141, 278, 138, 198, 300, 189, 299, 153, 24, 90, 481, 506, 290, 493, 391, 388, 75, 215, 111, 624, 653, 654, 741, 775, 794, 180, 838, 1082, 1126, 1240, 1356,
+            1101, 1122, 1350, 1423, 1426, 1430, 1448, 1461, 1599];
       }
 
       public function validateRideReady(p:PetBriefInfo):Boolean
