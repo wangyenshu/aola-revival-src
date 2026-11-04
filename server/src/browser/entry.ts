@@ -43,7 +43,18 @@ export function startInPage(cfg: InPageConfig) {
     installInPageSockets(host.emulator, {
       match: (url) => (url.startsWith(cfg.proxyPrefix) ? Number(url.slice(cfg.proxyPrefix.length)) || 0 : undefined),
     });
-    return { emulator: host.emulator, frames: memory.records, rename: host.rename };
+    // What the page asks of its game (boot.js, accounts.js, saves.js): its 奥拉, their names, their files.
+    return {
+      emulator: host.emulator,
+      frames: memory.records,
+      rename: (from: string, to: string, now = false) => host.rename(from, to, undefined, undefined, now),
+      users: host.users,
+      createUser: host.createUser,
+      deleteUser: host.deleteUser,
+      addUser: host.addUser,
+      exportSave: (name: string) => host.exportSave(name),
+      importSave: (name: string, file: unknown, from?: string) => host.importSave(name, undefined, file, from),
+    };
   }
   const emu = new Emulator({
     framing: sfs ? SFS2013_FRAMING : parseFraming(cfg.framing ?? "raw"),

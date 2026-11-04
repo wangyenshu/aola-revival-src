@@ -88,6 +88,10 @@ invite.
 - **Saving** is the server's, as one plays: each change is written at once
   (Node: one JSON file a key in `--data`, `user/<name>.json` an 奥拉;
   Cloudflare: the Durable Object's storage). Back up `--data`.
+- **改名字 and 改密码 in the game** (one's own 信息卡): a rename asks for the
+  password, ends the game and comes back into it with the new name (no other
+  奥拉 may have it); 改密码 asks for the password now and the new one, and the
+  game goes on. 改名字 on the start screen works too (out of the game).
 - **存档** (the 工具箱's 导出存档 / 导入存档, with the password): the same file
   as 单机模式's, so a save goes from one mode to the other and back. An import
   keeps the 奥拉's name, password and friends on this server, ends its game

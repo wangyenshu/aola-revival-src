@@ -1,12 +1,14 @@
 // The start screen, before the game: 单机模式 (the game runs inside this page, the saves stay
-// in this browser) or 联机模式 (a shared server, src/node/multi.ts or the Cloudflare worker:
-// its address, the 奥拉's name and its password). The 奥拉's name is the name in the game
-// (the rebuilt login asks the page for it: aolaRevivalAccount), so 我的家, the 信息卡 and the
-// other players show it; 改名字 changes it (one's save moves with it).
+// in this browser; its 奥拉 are chosen after 开始, accounts.js 选择奥拉) or 联机模式 (a shared
+// server, src/node/multi.ts or the Cloudflare worker: its address, the 奥拉's name and its
+// password). The 奥拉's name is the name in the game (the rebuilt login asks the page for it:
+// aolaRevivalAccount), so 我的家, the 信息卡 and the other players show it; 改名字 changes it
+// (one's save moves with it).
 //
-// Remembered in this browser (localStorage): mode, server, each mode's name; the password only with
-// 记住密码. Skipped (single, the remembered name) with ?bare=1 (the automated walk-throughs);
-// ?mode=server&server=…&name=…&pass=… chooses from the address (tests).
+// Remembered in this browser (localStorage): mode, server, 联机模式's name, the 单机 奥拉 played
+// last; the password only with 记住密码. Skipped (single, the remembered name) with ?bare=1 (the
+// automated walk-throughs); ?mode=server&server=…&name=…&pass=… chooses from the address
+// (tests); a resume (an 奥拉 renamed or imported in the game) once, after its reload.
 (function () {
   const KEY = "aolaRevivalStart";
   const load = () => {
@@ -55,9 +57,31 @@
     document.head.appendChild(st);
   }
 
+  // A game the page just ended to come back to at once (an 奥拉 renamed or imported in the game:
+  // saves.js): its mode, server, name and, on a shared server, password. Kept in this tab only
+  // (sessionStorage) and taken at the next start, so it is there once.
+  const RESUME = "aolaRevivalResume";
+  function resume(o) {
+    try {
+      sessionStorage.setItem(RESUME, JSON.stringify(o));
+    } catch (e) {}
+  }
+  function takeResume() {
+    try {
+      const v = sessionStorage.getItem(RESUME);
+      sessionStorage.removeItem(RESUME);
+      const o = v ? JSON.parse(v) : null;
+      return o && (o.mode === "inpage" || o.mode === "server") && o.name ? o : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   function choose(cfg) {
     const q = new URLSearchParams(location.search);
     const saved = load();
+    const back = takeResume();
+    if (back) return Promise.resolve({ mode: back.mode, server: back.server || "", name: back.name, pass: back.pass || "" });
     if (q.get("mode") === "server" && q.get("server") && q.get("name"))
       return Promise.resolve({ mode: "server", server: q.get("server"), name: q.get("name"), pass: q.get("pass") || "" });
     if (q.get("bare") === "1" || q.get("mode") === "inpage")
@@ -72,11 +96,11 @@
           <div class="modes"><button data-mode="inpage">单机模式</button><button data-mode="server">联机模式</button></div>
           <div class="hint" id="asHint"></div>
           <div id="asServerRow"><label for="asServer">服务器地址</label><input type="text" id="asServer" placeholder="例如 192.168.1.5:8080 或 https://aola.example.com"></div>
-          <label for="asName">奥拉的名字</label><input type="text" id="asName" maxlength="12">
+          <div id="asNameRow"><label for="asName">奥拉的名字</label><input type="text" id="asName" maxlength="12"></div>
           <div id="asPassRow"><label for="asPass">密码</label><input type="password" id="asPass" maxlength="32">
             <div class="row"><input type="checkbox" id="asRemember"><label for="asRemember" style="display:inline;font-weight:normal;margin:0">记住密码</label>
               <span style="flex:1"></span><button class="link" id="asCheck">检查服务器</button></div></div>
-          <div class="row"><button class="link" id="asRenameLink">改名字</button></div>
+          <div class="row" id="asRenameLinkRow"><button class="link" id="asRenameLink">改名字</button></div>
           <div id="asRenameRow" class="hidden"><label for="asNewName">新名字</label><input type="text" id="asNewName" maxlength="12">
             <div class="row"><button class="link" id="asRenameGo">确定改名</button><span style="flex:1"></span><button class="link" id="asRenameCancel">取消</button></div></div>
           <div class="msg" id="asMsg"></div>
@@ -103,6 +127,10 @@
         for (const b of el.querySelectorAll(".modes button")) b.classList.toggle("on", b.dataset.mode === mode);
         $("asServerRow").classList.toggle("hidden", mode !== "server");
         $("asPassRow").classList.toggle("hidden", mode !== "server");
+        // 单机模式's 奥拉 are chosen after 开始 (accounts.js 选择奥拉): here only the mode.
+        $("asNameRow").classList.toggle("hidden", mode !== "server");
+        $("asRenameLinkRow").classList.toggle("hidden", mode !== "server");
+        if (mode !== "server") $("asRenameRow").classList.add("hidden");
         $("asHint").textContent = mode === "server"
           ? "和别的奥拉一起玩：存档在服务器上。第一次用这个名字登录，就会用这个密码注册。"
           : "一个人玩：游戏在这个页面里运行，存档留在这个浏览器里。";
@@ -135,12 +163,6 @@
       $("asRenameGo").onclick = async () => {
         const from = $("asName").value.trim(), to = $("asNewName").value.trim();
         if (!to) return msg("请输入新名字。");
-        if (mode === "inpage") {
-          // The page's own save is renamed as the game starts (boot.js, before the login).
-          el.remove();
-          finish({ renameTo: to });
-          return;
-        }
         const base = httpBase($("asServer").value);
         if (!base) return msg("请先填写服务器地址。");
         try {
@@ -154,10 +176,11 @@
           msg("连不上这个服务器。");
         }
       };
-      function finish(extra) {
-        const name = $("asName").value.trim() || (mode === "inpage" ? "小奥拉" : "");
-        const out = { mode, server: $("asServer").value.trim(), name, pass: mode === "server" ? $("asPass").value : "", ...(extra || {}) };
-        names[mode] = out.renameTo || name;
+      function finish() {
+        // 单机模式: no name here (the 选择奥拉 screen after 开始 asks).
+        const name = mode === "server" ? $("asName").value.trim() : "";
+        const out = { mode, server: $("asServer").value.trim(), name, pass: mode === "server" ? $("asPass").value : "" };
+        if (mode === "server") names.server = name;
         store({
           mode,
           server: out.server,
@@ -170,13 +193,14 @@
       $("asGo").onclick = () => {
         if (mode === "server" && !wsBase($("asServer").value)) return msg("请填写服务器地址。");
         if (mode === "server" && !$("asPass").value) return msg("请输入密码。");
-        if (!$("asName").value.trim()) return msg("请输入奥拉的名字。");
-        el.remove();
+        if (mode === "server" && !$("asName").value.trim()) return msg("请输入奥拉的名字。");
+        // The fields are read before the screen goes (once it is gone, they are not found).
         finish();
+        el.remove();
       };
       el.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.id !== "asNewName") $("asGo").click(); });
     });
   }
 
-  window.AolaStart = { choose, wsBase };
+  window.AolaStart = { choose, wsBase, resume };
 })();

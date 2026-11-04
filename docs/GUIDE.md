@@ -24,17 +24,46 @@ IndexedDB, separately for each site address: clearing the site's data in the
 browser deletes it, and a different browser or computer starts from the
 beginning. In 联机模式 it is on the server (docs/MULTIPLAYER.md).
 
-To keep or move a save, use 存档 in the 工具箱. Both modes write the same kind
-of file (`aola-revival-save`), and either mode reads a file of either:
+### 选择奥拉 (单机模式)
 
-- 单机模式: 导出存档 downloads a file with every save of this browser for this
-  site. 导入存档 reads a file, replaces all saves of this site with it and
-  reloads the page (with the file's 奥拉, when the one you played is not in it).
-- 联机模式: 导出存档 asks for the password and downloads a file of your 奥拉.
-  导入存档 asks for the password and a file; a file with several 奥拉 (from
-  单机模式) asks which one. It replaces your 奥拉's game on the server (its
-  name, password and friends stay), ends your game and reloads the page: log
-  in again. A server's owner can close 导入存档 (`--no-toolbox`).
+In 单机模式 the start screen only asks for the mode. After 开始, the 选择奥拉
+screen shows this browser's 奥拉: up to three, each with its own name (no two
+the same).
+
+| On a card | |
+| --- | --- |
+| 进入 | play this 奥拉 (the one played last is marked 上次玩的) |
+| 改名 | a new name, written in the card; refused if another 奥拉 here has it |
+| 导出 | a file of this 奥拉 |
+| 删除 | asked in the card (删除 / 取消, with 先导出一份); it cannot be undone |
+| 新建奥拉 (an empty place) | a new 奥拉: write its name |
+
+导入奥拉 takes a 存档 file (of either mode) as one more 奥拉: a file with several
+asks which one; a name this browser already has asks whether to replace that
+奥拉's game with the file's (替换) or to bring it in under a new name. With three
+奥拉 here, delete one first. 全部导出 writes every 奥拉 of this browser into one
+file.
+
+### Name and password in the game
+
+Your own 信息卡 (the bar's 信息卡) has 改名字 and, in 联机模式, 改密码. 改名字
+takes a new name (refused if another 奥拉 has it; in 联机模式 the password is
+asked), ends the game and comes back into it with the new name. 改密码 asks for
+the password now and the new one twice; the game goes on.
+
+### 存档 in the 工具箱
+
+To keep or move this 奥拉's save, use 存档 in the 工具箱. Both modes write the
+same kind of file (`aola-revival-save`), and either mode reads a file of
+either:
+
+- 导出存档 downloads a file of the 奥拉 you play (in 联机模式 the password is
+  asked).
+- 导入存档 reads a file and replaces this 奥拉's game with the file's (its name,
+  and in 联机模式 its password and friends, stay); a file with several 奥拉 asks
+  which one. The game ends and comes back. A server's owner can close 导入存档
+  (`--no-toolbox`). To bring a file in as another 奥拉 of this browser, use
+  导入奥拉 on the 选择奥拉 screen.
 
 ## The control bar
 

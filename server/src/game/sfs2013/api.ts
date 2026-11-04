@@ -1,7 +1,9 @@
 // The small JSON API of a shared server (Node: src/node/multi.ts, Cloudflare:
 // src/cloudflare/worker.ts), for the page's start screen:
 //   GET  /__api/status                       -> {ok, online, name, imports}
-//   POST /__api/rename {name, pass, to}      -> {ok} or {ok: false, error}   (改名字)
+//   POST /__api/rename {name, pass, to, now?} -> {ok} or {ok: false, error}   (改名字; now: in the
+//                                              game, which ends: the page logs in again)
+//   POST /__api/password {name, pass, to}    -> {ok} or {ok: false, error}   (改密码, in the game)
 // and for the 工具箱's 存档 (web/saves.js), one 奥拉's save as a file (saves.ts):
 //   POST /__api/save/export {name, pass}     -> {ok, save} or {ok: false, error}
 //   POST /__api/save/import {name, pass, save, from?}  -> {ok} or {ok: false, error, names?}
@@ -31,10 +33,10 @@ const later = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 export async function handleApi(host: GameHost, pathname: string, method: string, body: string, addr = ""): Promise<ApiResult> {
   if (method === "OPTIONS") return { status: 204, body: {} };
   if (pathname === "/__api/status") return { status: 200, body: { ok: true, online: host.online(), name: "aola-revival", imports: host.imports } };
-  if (method !== "POST" || !["/__api/rename", "/__api/save/export", "/__api/save/import"].includes(pathname)) {
+  if (method !== "POST" || !["/__api/rename", "/__api/password", "/__api/save/export", "/__api/save/import"].includes(pathname)) {
     return { status: 404, body: { ok: false, error: "not found" } };
   }
-  let p: { name?: unknown; pass?: unknown; to?: unknown; save?: unknown; from?: unknown };
+  let p: { name?: unknown; pass?: unknown; to?: unknown; save?: unknown; from?: unknown; now?: unknown };
   try {
     p = JSON.parse(body || "{}");
   } catch {
@@ -47,7 +49,11 @@ export async function handleApi(host: GameHost, pathname: string, method: string
     return { status: 400, body: { ok: false, error, ...extra } };
   };
   if (pathname === "/__api/rename") {
-    const error = await host.rename(name, String(p.to ?? ""), pass, addr);
+    const error = await host.rename(name, String(p.to ?? ""), pass, addr, p.now === true);
+    return error ? refused(error) : { status: 200, body: { ok: true } };
+  }
+  if (pathname === "/__api/password") {
+    const error = await host.changePassword(name, pass, String(p.to ?? ""), addr);
     return error ? refused(error) : { status: 200, body: { ok: true } };
   }
   if (pathname === "/__api/save/export") {

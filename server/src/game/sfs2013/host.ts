@@ -8,7 +8,7 @@ import { Emulator, type Link, type Session } from "../../core/emulator.ts";
 import { MemoryRecorder, type Recorder } from "../../core/recorder.ts";
 import { LiveRecordStore, type Store } from "../../core/store.ts";
 import type { AccountOptions } from "./accounts.ts";
-import { exportSave, importSave, installSfs2013, renameUser } from "./game.ts";
+import { addUserFromFile, changePassword, createUser, deleteUser, exportSave, importSave, installSfs2013, listUsers, renameUser, type LocalRole } from "./game.ts";
 import type { SaveFile } from "./saves.ts";
 import { SFS2013_FRAMING, sfs2013Codec, type World } from "./server.ts";
 
@@ -37,8 +37,18 @@ export interface GameHost {
   /** A new connection; the host feeds it what arrives and closes it when the client goes. */
   attach(link: Link, port?: number): Session;
   detach(session: Session): void;
-  /** 改名字 (the start screen): null if done, else why not. addr: the client's address (the password lock's). */
-  rename(from: string, to: string, pass?: string, addr?: string): Promise<string | null>;
+  /**
+   * 改名字 (the start screen; in the game, now: its game ends first and the page logs in again):
+   * null if done, else why not. addr: the client's address (the password lock's).
+   */
+  rename(from: string, to: string, pass?: string, addr?: string, now?: boolean): Promise<string | null>;
+  /** 改密码 (a shared server, in the game): the 奥拉's own password, then the new one; null if done. */
+  changePassword(name: string, pass: string, to: string, addr?: string): Promise<string | null>;
+  /** The page's own 奥拉 (单机模式's 选择奥拉: web/accounts.js). */
+  users(): Promise<LocalRole[]>;
+  createUser(name: string): Promise<string | null>;
+  deleteUser(name: string): Promise<string | null>;
+  addUser(file: unknown, opts?: { from?: string; as?: string; replace?: boolean }): Promise<{ name?: string; error?: string; names?: string[]; conflict?: string }>;
   /** 导出存档: the 奥拉 as a 存档 file (saves.ts). */
   exportSave(name: string, pass?: string, addr?: string): Promise<{ save?: SaveFile; error?: string }>;
   /** 导入存档: an 奥拉 of a 存档 file over this one (its game ended first). */
@@ -87,7 +97,12 @@ export function createGameHost(o: GameHostOptions): GameHost {
     world: w,
     attach: (link, port = 9339) => emulator.attach(link, port),
     detach: (s) => emulator.detach(s),
-    rename: (from, to, pass, addr) => renameUser(emulator, from, to, { pass, addr, accounts: o.accounts, online: playing }),
+    rename: (from, to, pass, addr, now) => renameUser(emulator, from, to, { pass, addr, accounts: o.accounts, online: playing, end: now ? end : undefined }),
+    changePassword: (name, pass, to, addr) => changePassword(emulator, name, pass, to, { addr, accounts: o.accounts }),
+    users: () => listUsers(emulator),
+    createUser: (name) => createUser(emulator, name),
+    deleteUser: (name) => deleteUser(emulator, name, end),
+    addUser: (file, a = {}) => addUserFromFile(emulator, file, { ...a, end }),
     exportSave: (name, pass, addr) => exportSave(emulator, name, { pass, addr, accounts: o.accounts }),
     importSave: (name, pass, file, from, addr) => importSave(emulator, name, file, { pass, addr, from, accounts: o.accounts, imports, end }),
     imports,

@@ -1,15 +1,14 @@
-// 存档: the 工具箱's 导出存档 / 导入存档 (the revival's, not of 2013), in both modes, one file
-// format (server/src/game/sfs2013/saves.ts):
-//   {format: "aola-revival-save", version: 1, saved, data: {<store key>: value}}
-// 单机模式: the in-page emulator keeps every save in this browser's IndexedDB ("aola-revival",
-// store "kv", JSON values: server/src/browser/idbStore.ts); its file holds all of them.
-// 联机模式: the server keeps the saves; its file holds the one 奥拉 (/__api/save/export and
-// /__api/save/import, with the password, asked in the panel). Either file goes into either mode.
-// The toolbox calls aolaSaveExport / aolaSaveImport through ExternalInterface; both open a
-// small panel over the game, so the file download and the file chooser start from a click on
-// the page itself.
+// 存档 and the 奥拉's name and password, in the game, for both modes:
+// - the 工具箱's 导出存档 / 导入存档 (the revival's, not of 2013) on the 奥拉 that plays: its file
+//   (server/src/game/sfs2013/saves.ts, the same in both modes), and a file's 奥拉 (either mode's;
+//   a file of several asks which) over its game, which ends: the page comes back to it;
+// - the 信息卡's 改名字 (both) and 改密码 (联机模式): aolaAccountRename, aolaAccountPassword.
+// 单机模式 asks the page's own game (window.aola: server/src/browser/entry.ts); 联机模式 the
+// server's API (/__api/…, with the password, asked in the panel). Its other 奥拉 the page keeps
+// on the 选择奥拉 screen (accounts.js). The toolbox and the 信息卡 call these through
+// ExternalInterface; each opens a small panel over the game, so a file's download or choice
+// starts from a click on the page itself. No browser dialogs.
 (() => {
-  const DB = "aola-revival";
   const FORMAT = "aola-revival-save";
 
   const CSS = `
@@ -25,48 +24,9 @@
 #aolaSaves button { margin: 10px 8px 0; padding: 6px 20px; border-radius: 14px; border: 2px solid #fff; cursor: pointer;
   background: linear-gradient(#ffc45a, #f07812); color: #fff; font: bold 15px "Microsoft YaHei", sans-serif; }
 #aolaSaves .said { color: #8a3b00; min-height: 1.6em; }
-#aolaSaves input.pass { width: 200px; margin: 6px 0 0; padding: 4px 8px; border: 2px solid #8cc8ef; border-radius: 10px; font: 14px SimSun, sans-serif; }
+#aolaSaves input.pass { display: block; width: 200px; margin: 2px auto 0; padding: 4px 8px; border: 2px solid #8cc8ef; border-radius: 10px; font: 14px SimSun, sans-serif; }
+#aolaSaves label.field { display: block; margin: 6px auto 0; width: 220px; text-align: left; color: #1a4e7c; font-size: 12px; }
 `;
-
-  function db() {
-    return new Promise((resolve, reject) => {
-      const r = indexedDB.open(DB, 1);
-      r.onupgradeneeded = () => r.result.createObjectStore("kv");
-      r.onsuccess = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
-    });
-  }
-
-  async function readAll() {
-    const d = await db();
-    return new Promise((resolve, reject) => {
-      const out = {};
-      const req = d.transaction("kv").objectStore("kv").openCursor();
-      req.onsuccess = () => {
-        const c = req.result;
-        if (!c) return resolve(out);
-        try {
-          out[String(c.key)] = JSON.parse(c.value);
-        } catch {
-          out[String(c.key)] = c.value;
-        }
-        c.continue();
-      };
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async function writeAll(data) {
-    const d = await db();
-    return new Promise((resolve, reject) => {
-      const t = d.transaction("kv", "readwrite");
-      const s = t.objectStore("kv");
-      s.clear();
-      for (const [k, v] of Object.entries(data)) s.put(JSON.stringify(v), k);
-      t.oncomplete = resolve;
-      t.onerror = () => reject(t.error);
-    });
-  }
 
   function close() {
     document.getElementById("aolaSaves")?.remove();
@@ -74,7 +34,9 @@
 
   /**
    * A panel: a title, a line, buttons ([label, fn(said, fields)]); opts.password adds a
-   * password field (fields.pass). said is the line under the buttons, for what happened.
+   * password field (fields.pass), opts.inputs others ([{key, type, placeholder, maxLength}]:
+   * fields[key]). said is the line under the buttons, for what happened. Enter in the last
+   * field is the first button.
    */
   function panel(title, text, buttons, opts = {}) {
     close();
@@ -92,33 +54,50 @@
     d.querySelector("h1").textContent = title;
     d.querySelector(".text").textContent = text;
     d.querySelector(".close").addEventListener("click", close);
-    let pass = null;
-    if (opts.password) {
-      pass = document.createElement("input");
-      pass.type = "password";
-      pass.className = "pass";
-      pass.maxLength = 32;
-      pass.placeholder = "密码";
-      pass.autocomplete = "current-password";
-      d.querySelector(".fields").appendChild(pass);
+    const specs = [...(opts.inputs || []), ...(opts.password ? [{ key: "pass", type: "password", label: "密码", maxLength: 32 }] : [])];
+    const inputs = {};
+    for (const f of specs) {
+      const i = document.createElement("input");
+      i.type = f.type || "text";
+      i.className = "pass";
+      i.maxLength = f.maxLength || 32;
+      // The label says what goes in (a placeholder too would say it twice).
+      i.placeholder = f.label ? f.placeholder || "" : "";
+      if (f.value) i.value = f.value;
+      if (i.type === "password") i.autocomplete = f.key === "pass" ? "current-password" : "new-password";
+      // A label over each field (a placeholder goes once something is typed).
+      const row = document.createElement("label");
+      row.className = "field";
+      row.textContent = f.label || f.placeholder || "";
+      row.appendChild(i);
+      d.querySelector(".fields").appendChild(row);
+      inputs[f.key] = i;
     }
     const said = d.querySelector(".said");
-    const fields = () => ({ pass: pass ? pass.value : "" });
+    const fields = () => Object.fromEntries(Object.entries({ pass: null, ...inputs }).map(([k, i]) => [k, i ? i.value : ""]));
+    let first = null;
     const setButtons = (list) => {
       const box = d.querySelector(".buttons");
       box.textContent = "";
+      first = null;
       for (const [label, fn] of list) {
         const b = document.createElement("button");
         b.textContent = label;
         b.addEventListener("click", () => fn(said, fields()));
         box.appendChild(b);
+        first = first || b;
       }
     };
     setButtons(buttons);
     // Keys typed in the panel are the panel's, not the game's.
-    d.addEventListener("keydown", (e) => e.stopPropagation());
+    d.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter" && e.target.tagName === "INPUT" && first) first.click();
+      if (e.key === "Escape") close();
+    });
     stage.appendChild(d);
-    if (pass) pass.focus();
+    const firstInput = Object.values(inputs)[0];
+    if (firstInput) firstInput.focus();
     return { said, setButtons, text: (t) => (d.querySelector(".text").textContent = t) };
   }
 
@@ -195,16 +174,6 @@
     }
   }
 
-  /** The start screen opens with this 奥拉 next time (start.js keeps its choices here). */
-  function rememberName(name) {
-    try {
-      const k = "aolaRevivalStart";
-      const o = JSON.parse(localStorage.getItem(k) || "{}") || {};
-      o.name = name;
-      localStorage.setItem(k, JSON.stringify(o));
-    } catch (e) {}
-  }
-
   const inPage = () => session().mode === "inpage";
   const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
   // A file name of letters a browser keeps as they are (some save a Chinese one as "download").
@@ -213,55 +182,68 @@
   window.aolaSaveExport = () => (inPage() ? exportHere() : exportServer());
   window.aolaSaveImport = () => (inPage() ? importHere() : importServer());
 
+  /** The page comes back to this 奥拉 after its reload (start.js resume), and remembers it. */
+  function comeBack(name, pass) {
+    const s = session();
+    if (window.AolaStart && window.AolaStart.resume) window.AolaStart.resume({ mode: s.mode, server: s.server, name, pass: pass || "" });
+    try {
+      const k = "aolaRevivalStart";
+      const o = JSON.parse(localStorage.getItem(k) || "{}") || {};
+      if (s.mode === "inpage") o.name = name;
+      else o.serverName = name;
+      localStorage.setItem(k, JSON.stringify(o));
+    } catch (e) {}
+    setTimeout(() => location.reload(), 600);
+  }
+
   function exportHere() {
-    panel("导出存档", "把这个浏览器里的存档存成一个文件（联机模式也能导入）。", [
+    const name = session().name;
+    panel("导出存档", "", [
       [
         "保存文件",
         async (said) => {
-          try {
-            const data = await readAll();
-            download({ format: FORMAT, version: 1, saved: new Date().toISOString(), data }, `aola-save-${stamp()}.json`);
-            // One file holds every save: each role ("user/<name>") and the
-            // emulator's own counter ("meta/nextUserId").
-            const roles = Object.keys(data).filter((k) => k.startsWith("user/")).length;
-            said.textContent = roles > 1 ? `已保存（${roles} 个角色）。` : "已保存。";
-          } catch (e) {
-            said.textContent = "保存失败：" + e.message;
-          }
+          const r = window.aola && window.aola.exportSave ? await window.aola.exportSave(name) : { error: "这个页面不能导出存档。" };
+          if (r.error || !r.save) return void (said.textContent = r.error || "没有导出。");
+          download(r.save, `aola-save-${fileTag(name)}${stamp()}.json`);
+          said.textContent = "已保存。";
         },
       ],
     ]);
   }
 
   function importHere() {
-    panel("导入存档", "选一个导出的存档文件（单机模式或联机模式的都可以）。它会替换这个浏览器里现在的存档，然后重新载入游戏。", [
-      [
-        "选择文件",
-        (said) =>
-          chooseFile(async (j) => {
-            const bad = fileProblem(j);
-            if (bad) return void (said.textContent = "导入失败：" + bad);
-            // A file of no 奥拉 would leave this browser with none (the saves here are replaced).
-            if (!rolesOf(j).length) return void (said.textContent = "导入失败：这个存档里没有奥拉");
-            try {
-              await writeAll(j.data);
-              // The game starts with the file's 奥拉 (the one of a server's file; one of a page's).
-              const names = rolesOf(j).map((r) => r.name);
-              const now = session().name;
-              if (names.length && !names.includes(now)) rememberName(names[0]);
-              said.textContent = "已导入，正在重新载入……";
-              setTimeout(() => location.reload(), 600);
-            } catch (e) {
-              said.textContent = "导入失败：" + e.message;
-            }
-          }),
-      ],
-    ]);
+    const name = session().name;
+    const p = panel("导入存档", `导入的存档会替换${name}现在的存档。`, []);
+    const send = async (said, role) => {
+      said.textContent = "正在导入……";
+      const save = { format: FORMAT, version: 1, saved: new Date().toISOString(), data: { [role.key]: role.rec } };
+      const r = window.aola && window.aola.importSave ? await window.aola.importSave(name, save) : { error: "这个页面不能导入存档。" };
+      if (r.error) return void (said.textContent = "导入失败：" + r.error);
+      said.textContent = "正在重新进入……";
+      comeBack(name);
+    };
+    p.setButtons([["选择文件", (said) => pickRole(p, said, name, (s2, role) => send(s2, role))]]);
+  }
+
+  /**
+   * A file chosen, one of its 奥拉 to become this one: then(said, role) (a file of several asks which,
+   * with the fields as they are when one is chosen).
+   */
+  function pickRole(p, said, name, then) {
+    chooseFile((j) => {
+      const bad = fileProblem(j);
+      if (bad) return void (said.textContent = "导入失败：" + bad);
+      const roles = rolesOf(j);
+      if (!roles.length) return void (said.textContent = "导入失败：这个存档里没有奥拉");
+      if (roles.length === 1) return void then(said, roles[0], null);
+      p.text("选一个奥拉：");
+      p.setButtons(roles.map((role) => [role.name, (s2, f2) => then(s2, role, f2)]));
+    });
   }
 
   function exportServer() {
     const name = session().name;
-    panel("导出存档", `把服务器上${name}的存档存成一个文件（单机模式也能导入）。请输入密码：`, [
+    panel("导出存档", "", [
       [
         "保存文件",
         async (said, f) => {
@@ -284,35 +266,101 @@
       p.text("这个服务器关闭了导入存档。");
       return;
     }
-    p.text(`选一个存档文件（单机模式或联机模式的都可以）。它会替换服务器上${name}现在的存档，然后重新载入游戏。请输入密码：`);
+    p.text(`导入的存档会替换${name}现在的存档。`);
     const send = async (said, pass, role) => {
       said.textContent = "正在导入……";
       // The one 奥拉 only (a page's file may hold several, and the page's boards).
       const save = { format: FORMAT, version: 1, saved: new Date().toISOString(), data: { [role.key]: role.rec } };
       const r = await api("/__api/save/import", { name, pass, save });
       if (!r.ok) return void (said.textContent = "导入失败：" + (r.error || ""));
-      said.textContent = "已导入，正在重新载入……";
-      setTimeout(() => location.reload(), 600);
+      said.textContent = "正在重新进入……";
+      comeBack(name, pass);
     };
     p.setButtons([
       [
         "选择文件",
         (said, f) => {
           if (!f.pass) return void (said.textContent = "请输入密码。");
-          const pass = f.pass;
-          chooseFile((j) => {
-            const bad = fileProblem(j);
-            if (bad) return void (said.textContent = "导入失败：" + bad);
-            const roles = rolesOf(j);
-            if (!roles.length) return void (said.textContent = "导入失败：这个存档里没有奥拉");
-            if (roles.length === 1) return void send(said, pass, roles[0]);
-            // A page's file of several 奥拉: which one becomes this one.
-            p.text(`这个存档里有 ${roles.length} 个奥拉，选一个导入成${name}：`);
-            // The password as it is in the field when one is chosen (it may have been put right).
-            p.setButtons(roles.map((role) => [role.name, (s2, f2) => (f2.pass ? send(s2, f2.pass, role) : void (s2.textContent = "请输入密码。"))]));
+          // The password as it is in the field when the 奥拉 is chosen (it may have been put right).
+          pickRole(p, said, name, (s2, role, f2) => {
+            const pass = f2 ? f2.pass : f.pass;
+            if (!pass) return void (s2.textContent = "请输入密码。");
+            send(s2, pass, role);
           });
         },
       ],
     ]);
   }
+
+  // ---------------------------------------------------------------- the 信息卡's 改名字 / 改密码
+
+  window.aolaAccountRename = () => {
+    const s = session();
+    const server = !inPage();
+    panel(
+      "改名字",
+      "",
+      [
+        [
+          "确定",
+          async (said, f) => {
+            const to = String(f.to || "").trim();
+            if (!to) return void (said.textContent = "请输入新名字。");
+            if (to === s.name) return close();
+            if (server && !f.pass) return void (said.textContent = "请输入密码。");
+            said.textContent = "正在改名……";
+            let err = null;
+            if (server) {
+              const r = await api("/__api/rename", { name: s.name, pass: f.pass, to, now: true });
+              err = r.ok ? null : r.error || "没有改成。";
+            } else {
+              err = window.aola && window.aola.rename ? await window.aola.rename(s.name, to, true) : "这个页面不能改名字。";
+            }
+            if (err) return void (said.textContent = err);
+            said.textContent = "正在重新进入……";
+            comeBack(to, server ? f.pass : "");
+          },
+        ],
+      ],
+      { inputs: [{ key: "to", label: "新名字", maxLength: 12 }], password: server },
+    );
+  };
+
+  window.aolaAccountPassword = () => {
+    const s = session();
+    if (inPage()) return void panel("改密码", "单机模式的奥拉没有密码。", []);
+    panel(
+      "改密码",
+      "",
+      [
+        [
+          "确定",
+          async (said, f) => {
+            if (!f.pass) return void (said.textContent = "请输入现在的密码。");
+            if (!f.to) return void (said.textContent = "请输入新密码。");
+            if (f.to !== f.again) return void (said.textContent = "两次输入的新密码不一样。");
+            said.textContent = "正在改……";
+            const r = await api("/__api/password", { name: s.name, pass: f.pass, to: f.to });
+            if (!r.ok) return void (said.textContent = r.error || "没有改成。");
+            // A remembered password (记住密码) is the new one now.
+            try {
+              const k = "aolaRevivalStart";
+              const o = JSON.parse(localStorage.getItem(k) || "{}") || {};
+              if (o.pass) o.pass = f.to;
+              localStorage.setItem(k, JSON.stringify(o));
+            } catch (e) {}
+            said.textContent = "改好了。";
+          },
+        ],
+      ],
+      {
+        inputs: [
+          { key: "pass", type: "password", label: "现在的密码", maxLength: 32 },
+          { key: "to", type: "password", label: "新密码", maxLength: 32 },
+          { key: "again", type: "password", label: "再输一次新密码", maxLength: 32 },
+        ],
+      },
+    );
+  };
+
 })();

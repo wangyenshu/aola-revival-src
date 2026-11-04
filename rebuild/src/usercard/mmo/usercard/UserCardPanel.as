@@ -10,6 +10,7 @@ package mmo.usercard
    import flash.events.MouseEvent;
    import flash.events.SecurityErrorEvent;
    import flash.events.TimerEvent;
+   import flash.external.ExternalInterface;
    import flash.net.URLLoader;
    import flash.net.URLLoaderDataFormat;
    import flash.utils.ByteArray;
@@ -120,6 +121,7 @@ package mmo.usercard
          info.x = 40;
          info.y = 318;
          box.addChild(info);
+         if (own) accountButtons();
 
          var title:TextField = text(16, 0x1A5FA8, true);
          title.text = own ? "我的衣橱" : nickName() + "的名片";
@@ -204,6 +206,41 @@ package mmo.usercard
             b.y = 70 + int(i / 2) * 44;
             box.addChild(b);
          }
+      }
+
+      /**
+       * One's own card: 改名字 (both modes) and, on a shared server, 改密码. Their forms are the
+       * page's (web/saves.js aolaAccountRename / aolaAccountPassword): a rename ends the game,
+       * and the page logs in again with the new name.
+       */
+      private function accountButtons():void
+      {
+         var acts:Array = [["改名字", "aolaAccountRename"]];
+         if (pageMode() == "server") acts.push(["改密码", "aolaAccountPassword"]);
+         for (var i:int = 0; i < acts.length; i++)
+         {
+            var fn:String = acts[i][1];
+            var b:Sprite = RUI.button(acts[i][0], pageCall(fn), 80, 24, 0x8FE3FF, 0x1E8FE0, "cardAccount" + i);
+            b.x = (acts.length == 1 ? 76 : 32 + i * 88);
+            b.y = H - 46;
+            box.addChild(b);
+         }
+      }
+
+      /** The page's mode: "inpage" (单机模式) or "server" (联机模式); "" without a page. */
+      private static function pageMode():String
+      {
+         try { if (ExternalInterface.available) return String(ExternalInterface.call("aolaRevivalMode") || ""); } catch (e:Error) {}
+         return "";
+      }
+
+      private function pageCall(fn:String):Function
+      {
+         return function():void
+         {
+            close();
+            try { if (ExternalInterface.available) ExternalInterface.call(fn); } catch (e:Error) { RLog.error("usercard " + fn, e); }
+         };
       }
 
       /** A request to the server whose reply {res, msg} is shown. */

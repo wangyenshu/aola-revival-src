@@ -198,6 +198,13 @@ function oneAtATime<T>(emu: Emulator, f: () => Promise<T>): Promise<T> {
   return r;
 }
 
+/** A new 奥拉 (the first login of a name, a new local 奥拉): the next id, the defaults; not saved yet. */
+async function newUser(emu: Emulator, name: string): Promise<UserRecord> {
+  const next = ((await emu.store.get<number>("meta/nextUserId")) ?? 10000) + 1;
+  await emu.store.set("meta/nextUserId", next);
+  return normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
+}
+
 async function userRecord(emu: Emulator, name: string): Promise<UserRecord | undefined> {
   const rec = await emu.store.get<UserRecord>(userKey(name));
   if (rec) normalise(rec);
@@ -287,9 +294,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       }
     }
     if (!rec) {
-      const next = ((await emu.store.get<number>("meta/nextUserId")) ?? 10000) + 1;
-      await emu.store.set("meta/nextUserId", next);
-      rec = normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
+      rec = await newUser(emu, name);
       if (acc?.required && pass) rec.pass = await hashPass(pass);
     }
     // A mod's 亚比 the game does not know now (their mod not started yet in this page): aside.
@@ -1211,16 +1216,25 @@ export async function renameUser(
   emu: Emulator,
   from: string,
   to: string,
-  opts: { pass?: string; addr?: string; accounts?: AccountOptions; online?: (name: string) => boolean } = {},
+  opts: RenameOptions = {},
 ): Promise<string | null> {
   return oneAtATime(emu, () => rename(emu, from, to, opts));
+}
+
+export interface RenameOptions {
+  pass?: string;
+  addr?: string;
+  accounts?: AccountOptions;
+  online?: (name: string) => boolean;
+  /** In the game (the 信息卡's 改名字): its game ends first (whether it was on); else an 奥拉 in the game is not renamed. */
+  end?: (name: string) => boolean;
 }
 
 async function rename(
   emu: Emulator,
   from: string,
   to: string,
-  opts: { pass?: string; addr?: string; accounts?: AccountOptions; online?: (name: string) => boolean },
+  opts: RenameOptions,
 ): Promise<string | null> {
   const a = from.trim(), b = to.trim();
   const bad = nameProblem(b);
@@ -1232,8 +1246,10 @@ async function rename(
     const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
     if (wrong) return wrong;
   }
-  if (opts.online?.(a)) return "请先退出游戏，再改名字。";
   if (await userRecord(emu, b)) return "这个名字已经有奥拉用了，换一个吧。";
+  if (opts.end) {
+    if (opts.end(a)) await new Promise((ok) => setTimeout(ok, IMPORT_SETTLE_MS));
+  } else if (opts.online?.(a)) return "请先退出游戏，再改名字。";
   rec.name = b;
   await emu.store.set(userKey(b), rec);
   await emu.store.delete(userKey(a));
@@ -1289,36 +1305,186 @@ export async function importSave(
       const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
       if (wrong) return { error: wrong };
     }
-    const { id, name: as } = rec;
-    const key = userKey(as);
-    // Made and checked before anything changes: a file the game cannot read changes nothing.
+    return replaceGame(emu, rec, from, opts.end);
+  });
+}
+
+/**
+ * An 奥拉's game becomes the file's (its id, name, password and friends stay: saves.ts
+ * adoptRecord); its game ends first if it is on. {} if done.
+ */
+async function replaceGame(emu: Emulator, rec: UserRecord, from: Record<string, unknown>, end?: (name: string) => boolean): Promise<{ error?: string }> {
+  const { id, name: as } = rec;
+  const key = userKey(as);
+  // Made and checked before anything changes: a file the game cannot read changes nothing.
+  let next: UserRecord;
+  try {
+    next = normalise(adoptRecord(from, rec as UserRecord & Record<string, unknown>) as unknown as UserRecord);
+    if (jsonBytes(next) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
+  } catch {
+    return { error: "这个存档读不了。" };
+  }
+  // Its game ends (the page reloads after the import and logs in again); what its requests
+  // still running do comes first.
+  if (end?.(as)) await new Promise((ok) => setTimeout(ok, IMPORT_SETTLE_MS));
+  // In place: the live record (store.ts LiveRecordStore) is the object a handler still
+  // running for the game just ended holds; its save then writes the imported one. Undone if
+  // the write fails, so what is kept and what is live stay one.
+  const live = rec as unknown as Record<string, unknown>;
+  const before = structuredClone(live);
+  const fill = (o: Record<string, unknown>) => {
+    for (const k of Object.keys(live)) delete live[k];
+    Object.assign(live, o);
+  };
+  fill(next as unknown as Record<string, unknown>);
+  try {
+    await emu.store.set(key, live);
+  } catch {
+    fill(before);
+    return { error: "存档没有存好，请再试一次。" };
+  }
+  await emu.store.set(`uid/${id}`, as);
+  return {};
+}
+
+/**
+ * 改密码 (the 信息卡, in the game): a shared server's 奥拉 takes a new password, its own asked
+ * first (wrong ones count towards the lock, as at the login). The game goes on. null if done.
+ */
+export async function changePassword(
+  emu: Emulator,
+  name: string,
+  pass: string,
+  to: string,
+  opts: { addr?: string; accounts?: AccountOptions },
+): Promise<string | null> {
+  if (!opts.accounts?.required) return "单机模式没有密码。";
+  const bad = passwordProblem(to);
+  if (bad) return bad;
+  return oneAtATime(emu, async () => {
+    const rec = await userRecord(emu, name.trim());
+    if (!rec) return "没有这个奥拉。";
+    const wrong = await passProblem(emu, rec, pass, opts.addr);
+    if (wrong) return wrong;
+    // The live record: a game that is on saves it with the new password too.
+    rec.pass = await hashPass(to);
+    await emu.store.set(userKey(rec.name), rec);
+    return null;
+  });
+}
+
+/** Whether a password may be one: 1 to 32 characters. null if fine. */
+export function passwordProblem(pass: string): string | null {
+  if (!pass) return "请输入新密码。";
+  if ([...pass].length > 32) return "密码最多32个字。";
+  return null;
+}
+
+// ---------------------------------------------------------------- the page's own 奥拉 (单机模式)
+
+/** The 奥拉 of a page (单机模式), at most: its 选择奥拉 screen (web/accounts.js). */
+export const LOCAL_ROLES_MAX = 3;
+
+export interface LocalRole {
+  name: string;
+  id: number;
+  score: number;
+  /** 亚比 in the bag and the 仓库. */
+  pets: number;
+  /** The first 亚比 of the bag: its race and level (0 none). */
+  race: number;
+  level: number;
+  createdAt?: string;
+}
+
+/** The 奥拉 kept here, oldest first. */
+export async function listUsers(emu: Emulator): Promise<LocalRole[]> {
+  const out: LocalRole[] = [];
+  for (const k of await emu.store.keys("user/")) {
+    const rec = await emu.store.get<UserRecord>(k);
+    if (!rec || typeof rec !== "object" || !rec.name) continue;
+    const first = rec.pets?.[0];
+    out.push({
+      name: rec.name,
+      id: rec.id,
+      score: rec.score ?? 0,
+      pets: (rec.pets?.length ?? 0) + (rec.storage?.length ?? 0),
+      race: first?.race ?? 0,
+      level: first?.level ?? 0,
+      createdAt: rec.createdAt,
+    });
+  }
+  return out.sort((a, b) => a.id - b.id);
+}
+
+/** A new 奥拉 of this page: a fit name nobody here has, while there are fewer than max. null if done. */
+export async function createUser(emu: Emulator, name: string, max = LOCAL_ROLES_MAX): Promise<string | null> {
+  const n = name.trim();
+  const bad = nameProblem(n);
+  if (bad) return bad;
+  return oneAtATime(emu, async () => {
+    if (await userRecord(emu, n)) return `已经有一个叫${n}的奥拉了。`;
+    if ((await emu.store.keys("user/")).length >= max) return `最多${max}个奥拉，先删除一个吧。`;
+    const rec = await newUser(emu, n);
+    await emu.store.set(userKey(n), rec);
+    await emu.store.set(`uid/${rec.id}`, n);
+    return null;
+  });
+}
+
+/** An 奥拉 of this page goes, with its 足迹 (its game ends first if it is on). null if done. */
+export async function deleteUser(emu: Emulator, name: string, end?: (name: string) => boolean): Promise<string | null> {
+  return oneAtATime(emu, async () => {
+    const rec = await userRecord(emu, name.trim());
+    if (!rec) return "没有这个奥拉。";
+    end?.(rec.name);
+    await emu.store.delete(userKey(rec.name));
+    await emu.store.delete(`uid/${rec.id}`);
+    await emu.store.delete(`visits/${rec.id}`);
+    return null;
+  });
+}
+
+/**
+ * 导入奥拉 (the page's 选择奥拉 screen): an 奥拉 of a 存档 file becomes one of this page's, as
+ * `as` (default: its name in the file). A name one here already has is { conflict } unless
+ * replace: then that 奥拉's game becomes the file's. A file of several needs `from` ({ names }).
+ * Not more than max 奥拉. { name } (the 奥拉 it became) if done.
+ */
+export async function addUserFromFile(
+  emu: Emulator,
+  file: unknown,
+  opts: { from?: string; as?: string; replace?: boolean; max?: number; end?: (name: string) => boolean } = {},
+): Promise<{ name?: string; error?: string; names?: string[]; conflict?: string }> {
+  const bad = fileProblem(file);
+  if (bad) return { error: bad };
+  const roles = rolesOf(file as SaveFile);
+  if (!roles.size) return { error: "这个存档里没有奥拉。" };
+  const fromName = opts.from ?? (roles.size === 1 ? [...roles.keys()][0] : undefined);
+  const from = fromName === undefined ? undefined : roles.get(fromName);
+  if (!from || fromName === undefined) return { error: opts.from ? `存档里没有${opts.from}。` : "存档里有好几个奥拉，请选一个。", names: [...roles.keys()] };
+  if (jsonBytes(from) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
+  const as = (opts.as ?? fromName).trim();
+  const badName = nameProblem(as);
+  if (badName) return { error: badName, conflict: as };
+  return oneAtATime(emu, async () => {
+    const here = await userRecord(emu, as);
+    if (here) {
+      if (!opts.replace) return { conflict: as };
+      const r = await replaceGame(emu, here, from, opts.end);
+      return r.error ? r : { name: as };
+    }
+    const max = opts.max ?? LOCAL_ROLES_MAX;
+    if ((await emu.store.keys("user/")).length >= max) return { error: `最多${max}个奥拉，先删除一个吧。` };
+    const rec = await newUser(emu, as);
     let next: UserRecord;
     try {
       next = normalise(adoptRecord(from, rec as UserRecord & Record<string, unknown>) as unknown as UserRecord);
-      if (jsonBytes(next) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
     } catch {
       return { error: "这个存档读不了。" };
     }
-    // Its game ends (the page reloads after the import and logs in again); what its requests
-    // still running do comes first.
-    if (opts.end?.(as)) await new Promise((ok) => setTimeout(ok, IMPORT_SETTLE_MS));
-    // In place: the live record (store.ts LiveRecordStore) is the object a handler still
-    // running for the game just ended holds; its save then writes the imported one. Undone if
-    // the write fails, so what is kept and what is live stay one.
-    const live = rec as unknown as Record<string, unknown>;
-    const before = structuredClone(live);
-    const fill = (o: Record<string, unknown>) => {
-      for (const k of Object.keys(live)) delete live[k];
-      Object.assign(live, o);
-    };
-    fill(next as unknown as Record<string, unknown>);
-    try {
-      await emu.store.set(key, live);
-    } catch {
-      fill(before);
-      return { error: "存档没有存好，请再试一次。" };
-    }
-    await emu.store.set(`uid/${id}`, as);
-    return {};
+    await emu.store.set(userKey(as), next);
+    await emu.store.set(`uid/${next.id}`, as);
+    return { name: as };
   });
 }

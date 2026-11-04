@@ -7,6 +7,7 @@ package mmo.user.login
    import flash.net.SharedObject;
    import flash.text.TextField;
    import flash.text.TextFormat;
+   import flash.utils.setTimeout;
    import mmo.SSLEvent;
    import mmo.ServerClient;
    import mmo.common.user.UserInfo;
@@ -22,7 +23,9 @@ package mmo.user.login
     * LoaderFacade.loadPlay(), exactly where the original continued. The account
     * and password form is the page's (web/boot.js, its start screen: 单机 or 联机, the
     * 奥拉's name and, on a shared server, its password), asked for through
-    * ExternalInterface; without one (an old page) the name kept in a SharedObject.
+    * ExternalInterface; without one (an old page) the name kept in a SharedObject. In
+    * 单机模式 the page shows its 选择奥拉 screen (web/accounts.js) here, after 开始: until
+    * one is chosen its answer is {wait: true}, and the login asks again.
     */
    public class Main extends Sprite
    {
@@ -57,9 +60,22 @@ package mmo.user.login
          }
          ServerClient.instance.addEventListener(SSLEvent.onLogin, onLogin);
          RLog.log("login: connecting to", SERVER_HOST + ":" + SERVER_PORT, "zone", ZONE);
+         connect();
+      }
+
+      /** Logs in as the page's 奥拉; while the page's 选择奥拉 screen is up, asks again a moment later. */
+      private function connect():void
+      {
          try
          {
             var acc:Object = pageAccount();
+            if (acc != null && acc.wait)
+            {
+               say("请选择一个奥拉……");
+               setTimeout(connect, 300);
+               return;
+            }
+            say("正在连接奥拉星……");
             ServerClient.instance.login(SERVER_HOST, SERVER_PORT, ZONE, acc ? String(acc.name) : localName(), acc && acc.pass ? String(acc.pass) : "");
          }
          catch (err:Error)
@@ -79,7 +95,7 @@ package mmo.user.login
          {
             if (!ExternalInterface.available) return null;
             var a:Object = ExternalInterface.call("aolaRevivalAccount");
-            return a != null && a.name ? a : null;
+            return a != null && (a.name || a.wait) ? a : null;
          }
          catch (err:Error) {}
          return null;
