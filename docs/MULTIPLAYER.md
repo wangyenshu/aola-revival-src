@@ -200,10 +200,14 @@ invite.
   owner (only while in that 家园). The 小屋's **最近访问** (足迹) lists the last 20 visitors, with
   去他家; the footprints count every visit.
 - **组队** (the bar's 组队, or 邀请组队 on a 信息卡): up to 3. The leader
-  invites (an invitation holds 5 minutes; nobody joins uninvited); the
-  members follow the leader from room to room (scenes, homes, 模组 rooms);
-  队伍聊天 speaks to the team only; a leader who leaves passes the team on.
-  Teams last while their members are on.
+  invites (an invitation holds 5 minutes; nobody joins uninvited). As in
+  the 2013 game, a member walks after the leader on his own (a click does not
+  move him) and goes only where the leader takes the team, from room to room
+  (scenes, homes, 模组 rooms): another map, 回家 or 找他 says
+  只有队长才能决定去哪里哦！ While the leader is in a place the team does not
+  follow him to (a 副本 or 时空隧道), the members wait where they are. 队伍聊天
+  speaks to the team only; a leader who leaves passes the team on; one who
+  leaves the team goes his own way again. Teams last while their members are on.
 - **亚比对战** (亚比对战 on another 奥拉's 信息卡, both in the same place):
   the other agrees within a minute, and both fight on their own battle screens, each with his
   own 亚比 in front. Each turn waits for both (45 seconds, then a skill is
