@@ -310,6 +310,25 @@ test("亚比对战: an invitation, turns both choose, one wins; nothing of their
   assert.equal((await a.wait("revival_duel_invite"))?.res, 0, "asked again too soon");
 });
 
+test("亚比对战: one waits (1406) while the other's skill acts; the turn goes on", async () => {
+  const { a, b } = await twoPlayers(true);
+  await pets(a, b);
+  a.xt("PocketMonsterExtension", "revival_duel_invite", { name: "奥拉B" });
+  await a.wait("revival_duel_invite");
+  await b.wait("revival_duel_ask");
+  b.xt("PocketMonsterExtension", "revival_duel_answer", { from: "奥拉A", ok: true });
+  await a.wait("2401");
+  await b.wait("2401");
+  a.xts();
+  b.xts();
+  a.xt("PocketMonsterExtension", "1406", { isAuto: true });
+  b.xt("PocketMonsterExtension", "1401", { skillId: 0 });
+  assert.ok(await a.wait("2402"), "the next turn");
+  const bs = b.xts();
+  const acts = bs.filter((o) => o._cmd === "2411");
+  assert.equal(acts.length, 1, "only B's 亚比 acted");
+});
+
 test("亚比对战: giving up, and asking someone in another room", async () => {
   const { a, b } = await twoPlayers(true);
   await pets(a, b);

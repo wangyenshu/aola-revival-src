@@ -843,6 +843,10 @@ run pays 晶豆, as its end panel says.
 
 - Battles against wild 亚比 in 123 rooms, task 亚比, bosses and NPCs: skills,
   attributes, statuses, items, switching, escaping, the boss films.
+  A turn has 30 seconds (counted at the top of the battle screen); when they
+  run out the screen uses the first skill with uses left, or waits if none
+  has (the next 亚比 when a fallen one is to be replaced). The battle screen's
+  聊天 page and chat line speak to the room.
 - Catching with 亚比球 (the 2013 balls and their rules).
 - Experience, levels, effort points, learning skills, evolution.
 - The 亚比 bag: details, healing, 更换技能 (choose four of the learnt skills).

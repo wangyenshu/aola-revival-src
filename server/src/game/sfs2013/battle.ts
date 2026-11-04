@@ -12,6 +12,9 @@
 //   1403 switchPM {pmId}                  -> 2413 SWITCH_PM {playerInfo, extInfo: {desc}}
 //   1404 escape {}                        -> 2414 ESCAPE {reqSId, isEscape}
 //   1405 catchPM {tarSId, itemId}         -> 2415 CATCH_PM {reqId, tarSId, pmId (0 failed), lv, lc}
+//   1406 standby {isAuto}                 -> 2421 (the 亚比 does nothing this turn), then the wild 亚比's
+//                                            turn: the battle screen's turn time ran out with no skill
+//                                            that has uses left
 //   after a turn: 2421 STATUS_UPDATE (burns, poison), then 2402 BATTLE_NEXT_TURN,
 //   2422 BATTLE_PM_DYING (choose another 亚比) or 2403 FIN_BATTLE; a win also
 //   sends 2241 PM_GAIN_EXP, 2242 PM_LEVELUP and 2234 PM_GAIN_NEW_SKILL.
@@ -1486,6 +1489,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const usable = b.mine.pet.skills.filter((s) => s.pp > 0);
     const chosen = usable.find((s) => s.id === id) ? id : usable.length ? usable[0].id : 0;
     return e.skillTurn(b, chosen);
+  });
+
+  // standby {isAuto, reqPSId} (PetClient.standby): the turn's time ran out and no skill has uses left
+  // (the later FightPanel's petAutoUseSkill): the 亚比 waits, the wild 亚比 acts.
+  turn("1406", (_ctx, b, e, _o, t) => {
+    if (b.mustSwitch) return { refused: [["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]] };
+    const pet = b.mine.pet;
+    return [["2421", { slotId: 0, hpInc: 0, desc: `${pet.nick || nameOf(t, pet.race)}什么也没有做。`, pmmList: e.views(b) }], ...e.wildTurn(b)];
   });
 
   // useItem {itemId, tarSId}: 体力糖 heal, 活力豆 give PP back; then the wild 亚比 acts.

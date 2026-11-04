@@ -211,8 +211,9 @@ invite.
   leaves the team goes his own way again. Teams last while their members are on.
 - **亚比对战** (亚比对战 on another 奥拉's 信息卡, both in the same place):
   the other agrees within a minute, and both fight on their own battle screens, each with his
-  own 亚比 in front. Each turn waits for both (45 seconds, then a skill is
-  chosen for whoever has not); a fallen 亚比 is replaced by its player; the
+  own 亚比 in front. Each turn waits for both: 30 seconds on each screen, then
+  it chooses for its player (the first skill with uses left, else he waits);
+  a fallen 亚比 is replaced by its player (in 30 seconds the next one); the
   side with none left loses, and 逃跑 gives up. Nothing is won or lost: both
   fight with copies of their bag, 体力 and PP full, for no experience or items.
   The battle screen's chat line (bottom right, its 聊天 page) speaks to the

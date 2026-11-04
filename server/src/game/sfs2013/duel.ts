@@ -5,8 +5,9 @@
 // are turned round for the invited side. Each turn waits for both choices (a skill, or another
 // 亚比), then the faster acts first, as against a wild 亚比. A 亚比 that falls is replaced by
 // its player before the next turn; the side with none left loses. 逃跑 gives the fight up, as
-// leaving the room or the game does. A player who does not choose within CHOOSE_MS has a
-// skill (or the next 亚比) chosen for him.
+// leaving the room or the game does. The battle screen gives a turn 30 seconds and then chooses
+// itself (the first skill with uses left, else 1406 to wait; the next 亚比 for a fallen one); a
+// player whose page does not (gone) has the same chosen by the server after CHOOSE_MS.
 //
 // It is a 切磋: both fight with copies of their bag, 体力 and PP full, and nothing they have
 // changes (no experience, nothing lost, no items, no catching).
@@ -15,7 +16,7 @@
 //   revival_duel_invite {name}       -> {res, msg}; the other: revival_duel_ask {from}
 //   revival_duel_answer {from, ok}   -> both: the battle (2303, 2401 {pvp: true}); refused: the
 //                                       inviter gets revival_duel_said {msg}
-//   the battle commands as for wild 亚比: 1401 (skill), 1403 (switch), 1404 (give up);
+//   the battle commands as for wild 亚比: 1401 (skill), 1403 (switch), 1404 (give up), 1406 (wait);
 //   1402 and 1405 refused.
 
 import type { Session } from "../../core/emulator.ts";
@@ -23,12 +24,12 @@ import { BattleEngine, fighter, type Battle, type Fighter, type Msg, type Rng } 
 import { nameOf, statsOf, type PetOwner, type PetRecord, type PetTables } from "./pets.ts";
 import { sceneOfRoom, type World, type XtContext } from "./server.ts";
 
-/** A choice not made in this long is made for the player. */
+/** A choice not made in this long is made for the player (the page's own 30 seconds, and the time its films take). */
 export const CHOOSE_MS = 45_000;
 /** An invitation holds this long. */
 export const DUEL_INVITE_MS = 60_000;
 
-type Choice = { kind: "skill"; id: number } | { kind: "switch"; pid: number };
+type Choice = { kind: "skill"; id: number } | { kind: "switch"; pid: number } | { kind: "wait" };
 
 interface Side {
   id: number;
@@ -162,7 +163,7 @@ export function installDuels(world: World, deps: DuelDeps) {
     d.timer = setTimeout(() => safely(d, timeUp(d)), CHOOSE_MS);
   };
 
-  /** The choices not made in time are made: a skill with PP left, or the next 亚比. */
+  /** The choices not made in time are made: the first skill with PP left (none: wait), or the next 亚比. */
   const timeUp = async (d: Duel) => {
     if (d.over) return;
     const t = await deps.tables();
@@ -173,8 +174,8 @@ export function installDuels(world: World, deps: DuelDeps) {
         const next = healthy(s)[0];
         if (next) s.choice = { kind: "switch", pid: next.id };
       } else if (!d.sides.some((x) => x.must)) {
-        const usable = fighterOf(d, i).pet.skills.filter((k) => k.pp > 0);
-        s.choice = { kind: "skill", id: usable.length ? usable[Math.floor((deps.rng ?? Math.random)() * usable.length)].id : 0 };
+        const first = fighterOf(d, i).pet.skills.find((k) => k.pp > 0);
+        s.choice = first ? { kind: "skill", id: first.id } : { kind: "wait" };
       }
     }
     step(d, t);
@@ -372,10 +373,10 @@ export function installDuels(world: World, deps: DuelDeps) {
         return me([["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: "这只亚比现在不能出战。", res: -1, refused: true } }]]);
       }
       s.choice = { kind: "switch", pid };
-    } else if (name === "1401") {
+    } else if (name === "1401" || name === "1406") {
       if (s.must) return me([["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: viewsFor(d, i, e) }]]);
       if (s.choice || d.sides[1 - i].must) return;
-      s.choice = { kind: "skill", id: Number(ctx.params.skillId) };
+      s.choice = name === "1401" ? { kind: "skill", id: Number(ctx.params.skillId) } : { kind: "wait" };
     } else return;
     const waiting = d.sides.some((x) => x.must) ? d.sides.some((x) => x.must && !x.choice) : !d.sides[1 - i].choice;
     if (waiting) me([notice(d, i, e, `等待${d.sides[1 - i].name}……`)]);

@@ -21,6 +21,7 @@ package mmo.petfightnew
    import flash.ui.Keyboard;
    import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
+   import flash.utils.getTimer;
    import mmo.framework.comm.PetClient;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -70,6 +71,13 @@ package mmo.petfightnew
       private static const FAR:Array = [238, 242];
       private static const NEAR:Array = [626, 368];
       private static const PANEL_X:int = 816;
+      /**
+       * A turn's time: 30 seconds, as against the game in the later FightConfig (getTurnOperateSeconds,
+       * PVE) and as players of 2012 remember it; when it runs out the screen chooses itself: the first
+       * skill with uses left (none: it waits, PetClient.standby), or the next 亚比 for a fallen one
+       * (the later FightPanel's onAttTimesUp / handleAutoSwitchPM). The same in a 亚比对战.
+       */
+      private static const TURN_SECONDS:int = 30;
       private static const PANEL_Y:int = 118;
 
       private var svc:LoginPetFightService;
@@ -123,6 +131,11 @@ package mmo.petfightnew
       /** From what part of its HP a ball works (the revival server's chp; a fifth otherwise). */
       private var catchHp:Number = 0.2;
       private var commandsOn:Boolean;
+      /** The turn's end (getTimer ms; 0 none): TURN_SECONDS from its start, then the screen acts. */
+      private var deadline:int;
+      private var clock:Sprite;
+      private var clockText:TextField;
+      private var clockTimer:Timer;
       private var forcedSwitch:Boolean;
       /** 自动战斗仪 (server petitems.ts): the battle picks the skills by itself. */
       private var auto:Boolean;
@@ -240,6 +253,80 @@ package mmo.petfightnew
          buildPanel();
          buildLog();
          buildVsTag();
+         buildClock();
+      }
+
+      /** Top middle: the seconds left of the turn (red for the last 5). */
+      private function buildClock():void
+      {
+         clock = new Sprite();
+         clock.name = "fightClock";
+         clock.mouseEnabled = clock.mouseChildren = false;
+         FightSkin.darkPanel(clock.graphics, 0, 0, 64, 40, 14);
+         clockText = FightSkin.label("", 24, 0xFFFFFF, 0x15457A, true, TextFormatAlign.CENTER);
+         clockText.autoSize = TextFieldAutoSize.NONE;
+         clockText.width = 64;
+         clockText.height = 34;
+         clockText.y = 4;
+         clock.addChild(clockText);
+         clock.x = 448;
+         clock.y = 12;
+         clock.visible = false;
+         ui.addChild(clock);
+         clockTimer = new Timer(250);
+         clockTimer.addEventListener(TimerEvent.TIMER, onClock);
+         clockTimer.start();
+      }
+
+      /** A turn begins (or a fallen 亚比 is to be replaced): its time starts. */
+      private function newTurnClock():void
+      {
+         deadline = auto ? 0 : getTimer() + TURN_SECONDS * 1000;
+         onClock(null);
+      }
+
+      private function onClock(e:TimerEvent):void
+      {
+         var waiting:Boolean = deadline > 0 && (commandsOn || forcedSwitch) && !closed;
+         clock.visible = waiting;
+         if (!waiting) return;
+         var left:int = Math.max(0, Math.ceil((deadline - getTimer()) / 1000));
+         clockText.text = String(left);
+         clockText.textColor = left <= 5 ? 0xFF5A3C : 0xFFFFFF;
+         if (left <= 0) timesUp();
+      }
+
+      /** The turn's time ran out: the next 亚比 for a fallen one, else the first skill with uses left, else wait. */
+      private function timesUp():void
+      {
+         deadline = 0;
+         clock.visible = false;
+         hideTooltip();
+         if (forcedSwitch)
+         {
+            if (current != "pet") showPage("pet");
+            for (var i:int = 0; i < page.numChildren; i++)
+            {
+               var row:PetRow = page.getChildAt(i) as PetRow;
+               if (row == null || row.data == null || row.data.pick != true) continue;
+               addLog("<font color='#FF9A3C'>时间到了！</font>");
+               setCommands(false);
+               PetClient.instance.switchPM(int(row.data.i));
+               return;
+            }
+            return;
+         }
+         if (!commandsOn) return;
+         var b:Object = brief(me);
+         var id:int = 0;
+         for each (var sk:Object in b ? (b.skills as Array) || [] : [])
+         {
+            if (sk != null && int(String(sk.pp || "0/0").split("/")[0]) > 0) { id = int(sk.id); break; }
+         }
+         addLog("<font color='#FF9A3C'>时间到了！</font>");
+         setCommands(false);
+         if (id > 0) PetClient.instance.useSkill(id, 1, true);
+         else PetClient.instance.standby(true);
       }
 
       /** Top right: HP bar with "cur/max", the name plate, LV badge and the portrait ring. */
@@ -1052,6 +1139,7 @@ package mmo.petfightnew
                   sound("x7011");
                   addLog("<font color='#FFE66A'>第1回合</font>");
                   if (auto) addLog("<font color='#7FE0FF'>自动战斗仪开启中（还可以使用" + int(p.autoLeft) + "次）</font>");
+                  newTurnClock();
                   setCommands(true);
                   later(0);
                });
@@ -1092,6 +1180,7 @@ package mmo.petfightnew
                {
                   turn++;
                   addLog("<font color='#FFE66A'>第" + turn + "回合</font>");
+                  newTurnClock();
                   setCommands(hpOf(me) > 0);
                   if (current == "catch") showPage("catch");
                   later(0);
@@ -1103,6 +1192,7 @@ package mmo.petfightnew
                forcedSwitch = true;
                setCommands(false);
                showPage("pet");
+               newTurnClock();
                later(0);
                break;
             case 2241:
@@ -1353,7 +1443,8 @@ package mmo.petfightnew
             refresh(false);
             showPage("fight");
             sound("x7005");
-            if (wasForced) setCommands(true);
+            // A fallen 亚比 replaced: the turn begins for the new one (its time anew).
+            if (wasForced) { newTurnClock(); setCommands(true); }
             later(0.4);
          });
          myView.alpha = 0;
@@ -1552,6 +1643,7 @@ package mmo.petfightnew
       {
          if (closed) return;
          closed = true;
+         if (clockTimer != null) clockTimer.stop();
          SocketClient.instance.removeEventListener(SocketClientEvent.onPublicMessage, onChatHeard);
          TweenLite.killDelayedCallsTo(next);
          if (myView) myView.dispose();

@@ -151,6 +151,17 @@ test("a wild battle from the scene to the win", async () => {
   assert.equal((await call("PocketMonsterExtension.1401", { skillId: 1016 }))[0][0], "2414");
 });
 
+test("standby (1406, the turn's time ran out with no skill that has uses left): the 亚比 waits, the wild 亚比 acts", async () => {
+  const { owner, call } = harness(() => 0.3);
+  await call("PetExtension.54_2", { raceId: 43, level: -1, sw: true, id: -1 });
+  const hp = owner.pets![0].hp;
+  const out = await call("PocketMonsterExtension.1406", { isAuto: true });
+  assert.equal(out[0][0], "2421");
+  assert.match(String(out[0][1].desc), /什么也没有做/);
+  assert.ok(out.some(([c]) => c === "2402" || c === "2411" || c === "2421"), "the wild 亚比's turn follows");
+  assert.ok(owner.pets![0].hp <= hp);
+});
+
 test("catching needs a weak 亚比 and uses up a ball", async () => {
   const { owner, call } = harness(() => 0.1);
   await call("PetExtension.54_2", { raceId: 43 });
