@@ -87,8 +87,9 @@ the site there and run only the game on the Worker:
 1. In `web/config.js` set `server` to the address the Worker will have (for
    example `"https://aola-revival.<you>.workers.dev"`; the start screen's
    服务器地址 then starts filled in), and build: `npm run build:swf && npm run
-   build`. `dist/` is the site, with a `_headers` file (long caching of the
-   game files, no indexing) that Netlify and Cloudflare Pages read.
+   build`. `dist/` is the site, with a `_headers` file (files checked again on
+   use, since rebuilt ones change under the same names; no indexing) that
+   Netlify and Cloudflare Pages read.
 2. Netlify: make a site from `dist/` (drag the folder onto the Netlify app, or
    `npx netlify-cli deploy --prod --dir=dist`). Take its address
    (`https://<name>.netlify.app`). The free plan allows 100 GB of bandwidth a

@@ -96,7 +96,8 @@ package mmo.revival.book
          bar.x = (960 - 420) / 2;
          bar.y = 514;
          bar.filters = [new DropShadowFilter(2, 90, 0, 0.4, 4, 4)];
-         addChild(bar);
+         // A book of one page has nothing to turn to (the 收费亚比蛋商品册: its page turns itself).
+         if (book.pageCount > 1) addChild(bar);
 
          var prev:Sprite = button("◀ 上一页", function():void { go(index - 1); });
          prev.name = "bookPrev";

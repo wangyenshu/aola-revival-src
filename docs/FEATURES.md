@@ -874,8 +874,9 @@ run pays 晶豆, as its end panel says.
   HELLO's 经验分配器 (the lists are RECONSTRUCTED from the bags' 2013
   descriptions and catalog pages; a 亚比服装, HELLO服装 or 家园种植 thing in a
   bag is left out).
-- The 收费亚比蛋商品册's first page (its January 2013 page is lost): every
-  2013 亚比蛋 that has a price, six to a page, on the art of its 2016 copy.
+- The 收费亚比蛋商品册 (its January 2013 first page is lost): one page with
+  every 2013 亚比蛋 that has a price, six at a time over 13 pages of its own,
+  on the art of its 2016 copy.
 - The 兜兜回收器 (buy-back) in 道具店, 服装店, 家具店 and 种植园.
 - The shops' lift (点我前往其他楼层) between 种植园, 家具店 and 服装店.
 - The 财富小管家 (晶币 savings with interest) in 奥拉广场.

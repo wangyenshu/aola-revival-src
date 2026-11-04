@@ -310,8 +310,8 @@ export interface TaskDeps {
   load(ctx: XtContext): Promise<TaskOwner>;
   save(rec: TaskOwner): Promise<void>;
   now(): number;
-  /** Resolves once the story quests' tables are in (registerTaskTables). */
-  ready?: Promise<unknown>;
+  /** Resolves once the story quests' tables are in (registerTaskTables); a function is asked each time (game.ts siteTable). */
+  ready?: Promise<unknown> | (() => Promise<unknown>);
   /** Answer the test command revival_task (web/?dev=1). */
   dev?: boolean;
   /** A task finished: rewards beside the score (QUEST_REWARDS), as replies [cmd, body]. */
@@ -365,7 +365,7 @@ export function skipTo(rec: TaskOwner, step: number, now: number): TaskResult {
 
 export function installTasks(world: World, deps: TaskDeps): void {
   const load = async (ctx: XtContext) => {
-    await deps.ready?.catch(() => undefined);
+    await (typeof deps.ready === "function" ? deps.ready() : deps.ready)?.catch(() => undefined);
     return deps.load(ctx);
   };
   const push = (ctx: XtContext, r: TaskResult) => {

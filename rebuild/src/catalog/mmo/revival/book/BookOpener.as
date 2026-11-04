@@ -18,6 +18,8 @@ package mmo.revival.book
     */
    public class BookOpener
    {
+      private static const EGG_BOOK:String = "catalog201006";
+
       private static function member():Boolean
       {
          try { return MemberManager.instance.isMember(); } catch (e:Error) {}
@@ -30,6 +32,10 @@ package mmo.revival.book
          r.loadConfig();
          var book:BookInfo = catalog ? r.getCatalog(no) : r.getBook(no);
          if (book == null) book = catalog ? r.getBook(no) : r.getCatalog(no);
+         // The 收费亚比蛋商品册: its rebuilt first page lists every egg of 2013 that has a price
+         // (catalog/egg1, its own pages), so the book is that page alone (its other pages sell
+         // some of the same eggs again).
+         if (book != null && book.no == EGG_BOOK && book.page.length > 1) book.page = book.page.slice(0, 1);
          if (book == null || book.pageCount == 0)
          {
             RLog.log("book: " + no + " has no era pages");

@@ -73,9 +73,17 @@ export interface Env {
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
-    if (url.pathname.startsWith("/__socket/") || url.pathname.startsWith("/__api/")) {
+    const api = url.pathname.startsWith("/__api/");
+    if (url.pathname.startsWith("/__socket/") || api) {
+      // Neither the site here nor its address: the game would have no tables.
+      if (!env.ASSETS && !env.AOLA_TABLES_URL) return apiError(api, 500, "AOLA_TABLES_URL is not set (wrangler.toml): the game has no tables");
       // One world: every connection and request to the same Durable Object.
-      return env.GAME.get(env.GAME.idFromName("world")).fetch(req);
+      try {
+        return await env.GAME.get(env.GAME.idFromName("world")).fetch(req);
+      } catch {
+        // (A page on another site sees an answer without CORS headers as no answer at all.)
+        return apiError(api, 503, "the game is not reachable now");
+      }
     }
     if (!env.ASSETS) return new Response("this server has only the game: open the page on its own site and give it this address\n", { status: 404 });
     return env.ASSETS.fetch(req);
@@ -108,6 +116,16 @@ export class DurableStore implements Store {
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" };
 
+/** A failure: JSON with the CORS headers for the API (the page reads its error), plain text otherwise. */
+function apiError(api: boolean, status: number, text: string): Response {
+  return api
+    ? new Response(JSON.stringify({ ok: false, error: "服务器出错了，请稍后再试。" }), { status, headers: JSON_HEADERS })
+    : new Response(text + "\n", { status });
+}
+
+/** How long a table may take to come from the site (the split setup), at most. */
+const TABLE_FETCH_MS = 20_000;
+
 export class AolaGame {
   private readonly host: GameHost;
   private readonly maxPlayers: number;
@@ -123,7 +141,7 @@ export class AolaGame {
         const res = env.ASSETS
           ? await env.ASSETS.fetch(new Request(`https://assets.local/files/www.9aola.com/${p}`))
           : site
-            ? await fetch(`${site}/files/www.9aola.com/${p}`)
+            ? await fetch(`${site}/files/www.9aola.com/${p}`, { signal: AbortSignal.timeout(TABLE_FETCH_MS) })
             : undefined;
         return res?.ok ? res.json() : undefined;
       },
@@ -143,8 +161,13 @@ export class AolaGame {
         return new Response(JSON.stringify({ ok: false, error: "这个存档太大了。" }), { status: 413, headers: JSON_HEADERS });
       }
       const addr = `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`;
-      const out = await handleApi(this.host, url.pathname, req.method, new TextDecoder().decode(bytes), addr);
-      return new Response(out.status === 204 ? null : JSON.stringify(out.body), { status: out.status, headers: JSON_HEADERS });
+      try {
+        const out = await handleApi(this.host, url.pathname, req.method, new TextDecoder().decode(bytes), addr);
+        return new Response(out.status === 204 ? null : JSON.stringify(out.body), { status: out.status, headers: JSON_HEADERS });
+      } catch (e) {
+        console.error("[aola] api", url.pathname, e);
+        return apiError(true, 500, "");
+      }
     }
     const m = /^\/__socket\/(\d+)/.exec(url.pathname);
     if (!m || req.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("not found\n", { status: 404 });

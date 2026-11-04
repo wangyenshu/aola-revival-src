@@ -259,21 +259,49 @@ export function decryptScore(code: number): number {
   return Number(d.join(""));
 }
 
-export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World {
-  let materials: Promise<MaterialTable> | undefined;
-  const table = () =>
-    (materials ??= (opts.loadJson ? opts.loadJson("revival/materials.json") : Promise.resolve({}))
-      .then((t) => (t ?? {}) as MaterialTable)
-      .catch(() => ({}) as MaterialTable));
+/** How long after a table the site did not give it is asked again (siteTable). */
+export const TABLE_RETRY_MS = 30_000;
 
-  const json = <T>(path: string, empty: T) => (opts.loadJson ? opts.loadJson(path) : Promise.resolve(empty)).then((t) => (t ?? empty) as T).catch(() => empty);
-  let petTables: Promise<PetTables> | undefined;
-  const tables = () =>
-    (petTables ??= Promise.all([json<SpeciesTable>("revival/pets.json", {}), json<PmData>("revival/pmdata.json", EMPTY_PMDATA)]).then(
-      ([species, pm]) => ({ species, pm }),
-    ));
-  let wildTable: Promise<Record<string, WildEntry[]>> | undefined;
-  const wild = () => (wildTable ??= json<Record<string, WildEntry[]>>("revival/wildpets.json", {}));
+/**
+ * A table of the site (revival/*.json), kept once had. One not had (missing, or the site out of
+ * reach a moment: the split setup reads the tables over the network) is the empty one meanwhile
+ * and is asked again after retryMs, rather than kept empty until the server restarts.
+ */
+export function siteTable<T>(load: () => Promise<unknown>, empty: T, retryMs = TABLE_RETRY_MS, now = Date.now): () => Promise<T> {
+  let kept: T | undefined;
+  let asking: Promise<T> | undefined;
+  let missedAt = -Infinity;
+  return () => {
+    if (kept !== undefined) return Promise.resolve(kept);
+    if (asking) return asking;
+    if (now() - missedAt < retryMs) return Promise.resolve(empty);
+    asking = load()
+      .then((t) => {
+        if (t == null || typeof t !== "object") throw new Error("no table");
+        return (kept = t as T);
+      })
+      .catch(() => {
+        missedAt = now();
+        return empty;
+      })
+      .finally(() => (asking = undefined));
+    return asking;
+  };
+}
+
+export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World {
+  const site = (path: string): Promise<unknown> => (opts.loadJson ? opts.loadJson(path) : Promise.resolve(undefined));
+  const table = siteTable<MaterialTable>(() => site("revival/materials.json"), {});
+  const species = siteTable<SpeciesTable>(() => site("revival/pets.json"), {});
+  const pmData = siteTable<PmData>(() => site("revival/pmdata.json"), EMPTY_PMDATA);
+  // One object for the 亚比 tables (mods add their species to it, mods.ts), its parts as they come.
+  const petTables: PetTables = { species: {}, pm: EMPTY_PMDATA };
+  const tables = async (): Promise<PetTables> => {
+    petTables.species = await species();
+    petTables.pm = await pmData();
+    return petTables;
+  };
+  const wild = siteTable<Record<string, WildEntry[]>>(() => site("revival/wildpets.json"), {});
 
   const world = new World(emu, {
     login: (zone, user, pass, s) => oneAtATime(emu, () => login(zone, user, pass, s.link.remote)),
@@ -691,7 +719,15 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     },
   });
 
-  const taskTables = json<TaskTables>("revival/tasks.json", { defines: {}, starters: {} }).then(registerTaskTables);
+  const taskTables = siteTable<TaskTables>(
+    () =>
+      site("revival/tasks.json").then((t) => {
+        if (t && typeof t === "object") registerTaskTables(t as TaskTables);
+        return t;
+      }),
+    { defines: {}, starters: {} },
+  );
+  void taskTables();
   // A new 亚比 for the player: into the bag (2201 tells the client), or the 亚比仓库 when it is full.
   const givePetTo = async (rec: UserRecord, race: number, level: number): Promise<[string, Record<string, unknown>][]> => {
     const t = await tables();
