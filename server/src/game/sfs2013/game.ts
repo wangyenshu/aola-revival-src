@@ -24,6 +24,7 @@ import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
 import { installMods, stashModPets, type ModRec } from "./mods.ts";
 import { World, type XtContext } from "./server.ts";
+import { isGiftBag, openGiftBag, openHeldGiftBags } from "./giftbags.ts";
 
 export interface UserRecord {
   id: number;
@@ -92,6 +93,9 @@ export interface UserRecord {
   hotSpring?: { day: string; used: number; extra: number; adds: number; double: boolean };
   /** 财富小管家's boxes: 晶币 put away (sc) on sd (ms) for d days. */
   fortune?: ({ sc: number; sd: number; d: number } | null)[];
+  /** 礼包 (giftbags.ts): the ones bought at least once, and 经验 waiting for the HELLO. */
+  giftBags?: number[];
+  helloExp?: number;
 }
 
 /**
@@ -227,6 +231,7 @@ function normalise(rec: UserRecord): UserRecord {
     rec.kit = true;
   }
   houseOf(rec);
+  openHeldGiftBags(rec);
   return rec;
 }
 
@@ -461,6 +466,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // onXingBiUpdate) and onAmountUpdated (the original AmountUpdateService adds the item on the client).
   // Goods of real money (rmb) cost their price in 星币, half for 蓝宝石 (the "蓝宝石价" the era pages
   // print); the 星币 come from the toolbox (RECONSTRUCTED: the 2013 payment server is lost).
+  // A 礼包 is opened at once (giftbags.ts): what it held comes through onAmountUpdated and the
+  // reply's got ("三倍经验器×2、…") says it.
   world.xt("MaterialExtension.buyMaterial", async (ctx) => {
     const tp = String(ctx.params.tp ?? "0");
     const mi = String(ctx.params.mi ?? "0");
@@ -482,26 +489,37 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     }
     const [price, buyback, rmb, maxQ, vipOnly] = row;
     const unit = price > 0 ? price : buyback * 2;
+    const tab = await table();
+    // The bought thing into the bag (a 礼包: what it holds); the onAmountUpdated parts, what a bag gave.
+    const deliver = (): { amount: string; got?: string; score?: boolean } => {
+      if (!isGiftBag(tp, mi)) {
+        owned[mi] = (owned[mi] ?? 0) + qt;
+        return { amount: `${tp}_${mi}_0_${qt}` };
+      }
+      const op = openGiftBag(rec, Number(mi), qt, (t, id) => (t === "2" ? (tab["2"]?.[id]?.[3] ?? 9999) : 9999))!;
+      return { amount: op.amounts.join("#"), got: op.got.join("、"), score: op.score };
+    };
     if (vipOnly && !rec.vip) return fail(-6);
     if ((owned[mi] ?? 0) + qt > Math.max(1, maxQ)) return fail(-4);
     if (unit <= 0 && rmb > 0) {
       const coins = (rec.vip ? Math.ceil(rmb / 2) : rmb) * qt;
       if ((rec.xingbi ?? 0) < coins) return fail(-5);
       rec.xingbi = (rec.xingbi ?? 0) - coins;
-      owned[mi] = (owned[mi] ?? 0) + qt;
+      const d = deliver();
       await save(rec);
       ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
-      ctx.reply({ amount: `${tp}_${mi}_0_${qt}` }, "onAmountUpdated");
-      return ctx.reply({ res: 1, tp: Number(tp), mi: Number(mi), qt, xingbi: rec.xingbi });
+      if (d.score) ctx.reply({ score: rec.score }, "onScoreUpdated");
+      if (d.amount) ctx.reply({ amount: d.amount }, "onAmountUpdated");
+      return ctx.reply({ res: 1, tp: Number(tp), mi: Number(mi), qt, xingbi: rec.xingbi, ...(d.got !== undefined ? { got: d.got } : {}) });
     }
     const cost = unit * qt;
     if (rec.score! < cost) return fail(-2);
     rec.score! -= cost;
-    owned[mi] = (owned[mi] ?? 0) + qt;
+    const d = deliver();
     await save(rec);
     ctx.reply({ score: rec.score }, "onScoreUpdated");
-    ctx.reply({ amount: `${tp}_${mi}_0_${qt}` }, "onAmountUpdated");
-    ctx.reply({ res: 1, result: 1, tp: Number(tp), mi: Number(mi), qt, score: rec.score });
+    if (d.amount) ctx.reply({ amount: d.amount }, "onAmountUpdated");
+    ctx.reply({ res: 1, result: 1, tp: Number(tp), mi: Number(mi), qt, score: rec.score, ...(d.got !== undefined ? { got: d.got } : {}) });
   });
 
   // ---------------------------------------------------------------- gathering

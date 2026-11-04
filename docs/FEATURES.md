@@ -870,6 +870,12 @@ run pays 晶豆, as its end panel says.
   种植手册, 射击卡手册, 收费亚比蛋商品册, and the 收费 books of the 商城.
 - 晶币 for ordinary goods; 星币 for the real-money goods (half price for
   蓝宝石).
+- 礼包 open when bought: what each held goes into the bag, its 经验 to the
+  HELLO's 经验分配器 (the lists are RECONSTRUCTED from the bags' 2013
+  descriptions and catalog pages; a 亚比服装, HELLO服装 or 家园种植 thing in a
+  bag is left out).
+- The 收费亚比蛋商品册's first page (its January 2013 page is lost): every
+  2013 亚比蛋 that has a price, six to a page, on the art of its 2016 copy.
 - The 兜兜回收器 (buy-back) in 道具店, 服装店, 家具店 and 种植园.
 - The shops' lift (点我前往其他楼层) between 种植园, 家具店 and 服装店.
 - The 财富小管家 (晶币 savings with interest) in 奥拉广场.

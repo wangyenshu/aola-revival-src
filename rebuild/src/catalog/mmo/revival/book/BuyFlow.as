@@ -95,7 +95,9 @@ package mmo.revival.book
                SocketClient.instance.removeEventListener(MaterialClient.cmdBuyMaterial, onReply);
                var res:int = int(e.params.res);
                if (e.params.xingbi != undefined) UserInfo.xingbi = int(e.params.xingbi);
-               if (res == 1) message("购买成功！" + material.name + "已经放进你的" + (info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包") + "。");
+               // A 礼包 is opened at once: got says what it held (server giftbags.ts).
+               if (res == 1 && e.params.got != undefined) message("购买成功！打开了" + material.name + "，得到：" + String(e.params.got) + "。" + (String(e.params.got).indexOf("经验") >= 0 ? "经验放进了家园的经验分配器。" : ""));
+               else if (res == 1) message("购买成功！" + material.name + "已经放进你的" + (info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包") + "。");
                else if (res == -2) message("你的晶币不够哦！");
                else if (res == -5) message("你的星币不够哦！（工具箱里可以增加星币）");
                else if (res == -6) message("只有蓝宝石才能购买哦！");
@@ -170,18 +172,20 @@ package mmo.revival.book
 
       public static function message(s:String):void
       {
-         var box:Sprite = panel(320, 130);
          var t:TextField = text(14, 0x333333, true);
          t.wordWrap = true;
          t.width = 280;
          t.text = s;
          t.x = 20;
          t.y = 24;
+         // As tall as the text needs (a 礼包's list runs to several lines).
+         var okY:int = Math.max(84, int(t.y + t.height + 14));
+         var box:Sprite = panel(320, okY + 46);
          box.addChild(t);
          var ok:Sprite = pill("确 定", 0x3A8FD9, function():void { remove(box); });
          ok.name = "msgOk";
          ok.x = 115;
-         ok.y = 84;
+         ok.y = okY;
          box.addChild(ok);
          show(box);
       }

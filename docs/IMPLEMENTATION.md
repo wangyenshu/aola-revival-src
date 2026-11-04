@@ -170,7 +170,7 @@ extension name and command (`PetExtension.54_16`).
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
-| `petcards.ts`, `petitems.ts` | 战术卡, 亚比道具 |
+| `petcards.ts`, `petitems.ts`, `giftbags.ts` | 战术卡, 亚比道具, what each 礼包 holds |
 | `host.ts`, `accounts.ts`, `api.ts`, `saves.ts` | the game for any host; names and passwords (the lock on wrong ones); the shared server's small API; 存档 files, and the page's own 奥拉 |
 | `social.ts`, `duel.ts` | 好友, 组队, where a friend is; 亚比对战 between players |
 
@@ -200,6 +200,8 @@ The 2013 server's rules are lost. The main reconstructions:
   1,000 a day); 副本 levels, chests, pay and rating; the 道馆 skill stones;
   the 财富小管家's interest (from 百田's guide); prices in 星币 for
   real-money goods (half for 蓝宝石).
+- **礼包**: opened when bought (the 2013 client has no command to open
+  one); what each holds comes from its 2013 description or catalog page.
 
 Each rule carries a RECONSTRUCTED comment with its source in the code.
 
@@ -252,6 +254,7 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 | `fbservice`, `fbteam`, `fbchoosepanel` | the 四大副本 (later code on the 2013 interfaces) |
 | `spacetime` | 时空隧道 (later code) |
 | `catalog`, `bconfig`, `buyback`, `rmbmall` | the catalog books, the buy flow, the 兜兜回收器, the 商城 |
+| `catalogpages` | the 收费亚比蛋商品册's first page (catalog/egg1), on its 2016 art |
 | `house`, `housecommon`, `garden`, `zoo` | the 小屋, the 家园, the 动物园 |
 | `gamemanager`, `parkour` | mini games; 酷跑星世界 |
 | `shoot`, `shooteffect` | 射击 (later code on the 2013 interfaces) |

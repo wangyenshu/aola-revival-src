@@ -131,6 +131,15 @@ test("the 动物园 grows the animals put in it, feeds them, and 收获 gives th
   assert.deepEqual([sold.res, sold.got], [1, 500]);
   const info = (await call("ZooExtension.97_1", {})).at(-1)![1];
   assert.deepEqual([info.lv, info.exp, info.n], [zooLevel(8).lv, 8, 0]);
+  // A 饲料 the bag holds (from a 礼包) is used before one is bought.
+  (owner.items!["13"] ??= {})["5"] = 1;
+  const third = (await call("ZooExtension.97_5", { raceId: 2 })).at(-1)![1].animal.id;
+  const score = owner.score;
+  const used = await call("ZooExtension.97_12", { id: third, itemId: 5 });
+  assert.equal(used.at(-1)![1].res, 1);
+  assert.equal(owner.score, score);
+  assert.equal(owner.items!["13"]["5"], undefined);
+  assert.ok(used.some(([c, o]) => c === "onAmountUpdated" && o.amount === "13_5_0_-1"));
   roll = 0;
 });
 

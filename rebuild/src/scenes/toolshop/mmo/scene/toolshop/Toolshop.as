@@ -20,6 +20,7 @@ package mmo.scene.toolshop
    import mmo.interfaces.game.GameTable;
    import mmo.interfaces.game.IGameManager;
    import mmo.interfaces.rmbshoppingmall.IRmbShoppingMall;
+   import mmo.interfaces.rmbshoppingmall.RmbShoppingMallTab;
    import mmo.interfaces.scenearrow.ISceneArrowService;
    import mmo.interfaces.shoot.IShootService;
    import mmo.interfaces.task.ITaskService;
@@ -142,7 +143,7 @@ package mmo.scene.toolshop
          ServiceContainer.instance.tryGetService("RmbShoppingMallService",function(param1:IRmbShoppingMall, param2:Object):void
          {
             ProgressFullSprite.close();
-            param1.showRmbShoppingPanel(1);
+            param1.showRmbShoppingPanel(RmbShoppingMallTab.PETEGG_TAB);
          });
       }
       
@@ -269,7 +270,7 @@ package mmo.scene.toolshop
          ServiceContainer.instance.tryGetService("RmbShoppingMallService",function(param1:IRmbShoppingMall, param2:Object):void
          {
             ProgressFullSprite.close();
-            param1.showRmbShoppingPanel(2);
+            param1.showRmbShoppingPanel(RmbShoppingMallTab.ITEM_TAB);
          });
       }
       

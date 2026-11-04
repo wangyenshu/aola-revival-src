@@ -95,7 +95,7 @@
           <h1>进入奥拉星</h1>
           <div class="modes"><button data-mode="inpage">单机模式</button><button data-mode="server">联机模式</button></div>
           <div class="hint" id="asHint"></div>
-          <div id="asServerRow"><label for="asServer">服务器地址</label><input type="text" id="asServer" placeholder="例如 https://aola.example.com"></div>
+          <div id="asServerRow"><label for="asServer">服务器地址</label><input type="text" id="asServer"></div>
           <div id="asNameRow"><label for="asName">奥拉的名字</label><input type="text" id="asName" maxlength="12"></div>
           <div id="asPassRow"><label for="asPass">密码</label><input type="password" id="asPass" maxlength="32">
             <div class="row"><input type="checkbox" id="asRemember"><label for="asRemember" style="display:inline;font-weight:normal;margin:0">记住密码</label>

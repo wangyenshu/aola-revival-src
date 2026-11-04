@@ -59,3 +59,6 @@ pet/newpetpackage
 pet/peticon
 # PMService: rebuilt (src/pmservice; PMSearchService stays a stand-in there).
 pet/pmservice
+# The pet bag's 道具 page and the HELLO物品 page: rebuilt (all.sh).
+pet/petitem
+robot/robotitem

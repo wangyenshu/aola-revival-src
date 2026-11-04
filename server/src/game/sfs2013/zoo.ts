@@ -38,7 +38,8 @@
 // hours off, 普通变异饲料 adds 10 percent (once an animal), the 一星…四星变异饲料
 // make 变异 certain for animals of that many stars or fewer. The zoo's levels,
 // room, the 晶币 prices (the era sold most 饲料 for 星币) and the free 喂食 of the
-// 饲料机 (an hour off, every half hour) are RECONSTRUCTED.
+// 饲料机 (an hour off, every half hour) are RECONSTRUCTED. A 饲料 the bag holds (type 13, from
+// a 礼包) is used before one is bought.
 //
 // The game SWFs in game/ are later copies (2017, 2020); the 2013 server is lost:
 // the rewards (晶币 for a won stage), the catch odds when the game leaves them to
@@ -59,6 +60,8 @@ export const CATCH_RATE = 40;
 /** 能源石 and 普通糖果 (items 424, 425; CatchAnimalClient keeps itemId - 424) one gets for a game when one has none (RECONSTRUCTED). */
 export const FREE_TOOLS = 5;
 export const ANIMAL_TYPE = "12";
+/** ZooItemData 饲料 kept in the bag (material type 13). */
+export const FODDER_TYPE = "13";
 
 export interface ZooAnimalRec {
   id: number;
@@ -449,9 +452,17 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
       const [price, hours, stars, extra] = f;
       const def = ANIMAL.get(a.race)!;
       if (extra > 0 && (a.boost >= 100 || (stars === 0 && a.boost > 0) || (stars > 0 && def[3] > stars))) return reply(-3);
-      if ((o.score ?? 0) < price) return reply(-2);
-      o.score = (o.score ?? 0) - price;
-      ctx.reply({ score: o.score }, "onScoreUpdated");
+      // One of the bag's (type 13, from a 礼包: giftbags.ts) first, else bought.
+      const bag = ((o.items ??= {})[FODDER_TYPE] ??= {});
+      if ((bag[item] ?? 0) > 0) {
+        bag[item] -= 1;
+        if (bag[item] <= 0) delete bag[item];
+        ctx.reply({ amount: `${FODDER_TYPE}_${item}_0_-1` }, "onAmountUpdated");
+      } else {
+        if ((o.score ?? 0) < price) return reply(-2);
+        o.score = (o.score ?? 0) - price;
+        ctx.reply({ score: o.score }, "onScoreUpdated");
+      }
       a.cut += hours * HOUR;
       if (extra > 0) a.boost = Math.min(100, a.boost + extra);
     }

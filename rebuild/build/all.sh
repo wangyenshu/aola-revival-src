@@ -193,6 +193,13 @@ build gamemanager mmo/game/DocGameManager.as gamemanager.swf "game/gamemanager.s
 
 # 商城: rebuilt rmbshoppingmallservice (the era 收费 catalog books in a drawn chooser).
 build rmbmall mmo/rmbshoppingmallservice/DocRmbMall.as rmbmall.swf "rmbshoppingmallservice/rmbshoppingmallservice.swf%3F130124"
+# The 收费亚比蛋商品册's first page (catalog/egg1; the January 2013 page is lost): the 2013 eggs
+# that have a price, on the art of its 2016 copy.
+build catalogpages mmo/itemcatalog/DocEggPage.as eggpage-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art catalog/egg1.swf)" --code "$OUT/eggpage-code.swf" --drop-art-abc \
+  --bind 165=mmo.itemcatalog.Egg1_1 --bind 25=mmo.itemcatalog.PetEggPanel --bind 6=mmo.itemcatalog.BuyBtn --bind 107=mmo.itemcatalog.EggPageBar \
+  --note "REBUILT catalog/egg1 (aola-revival) on the art of its 2016 copy" \
+  --out "$W/catalog/egg1.swf%3F130117"
 
 # Scene chat: rebuilt baseservice/scenetalk (the chat box is in the rebuilt control bar).
 build scenetalk mmo/scenetalk/DocClass.as scenetalk.swf "baseservice/scenetalk.swf%3F1210"
