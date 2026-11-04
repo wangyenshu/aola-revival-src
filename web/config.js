@@ -32,6 +32,9 @@ window.AOLA_CONFIG = {
   // "inpage": the emulator runs inside this page (fully offline, saves in IndexedDB).
   // "server": sockets go to the Node server's WebSocket bridge (/__socket/<port>).
   mode: "inpage",
+  // A site made for one shared server (the split setup, docs/MULTIPLAYER.md): the start screen's
+  // 服务器地址 starts as this ("" asks the player). Set it before npm run build.
+  server: "",
 
   // Game clock anchor (China time) and stream framing, as in the Node server.
   date: "2012-08-15",

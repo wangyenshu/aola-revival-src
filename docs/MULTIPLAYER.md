@@ -78,6 +78,60 @@ Durable Object, which holds the world and keeps the saves in its storage.
    time). Keep `wrangler.toml` out of commits if it holds anything of yours.
 4. Open the address it prints, choose 联机模式 and give it that address.
 
+### The split setup: the site on a static host, the game on Cloudflare
+
+The Worker's free plan serves at most 20,000 static files, and the site has
+about 22,000; Netlify, GitHub Pages and the like have no such limit. So put
+the site there and run only the game on the Worker:
+
+1. In `web/config.js` set `server` to the address the Worker will have (for
+   example `"https://aola-revival.<you>.workers.dev"`; the start screen's
+   服务器地址 then starts filled in), and build: `npm run build:swf && npm run
+   build`. `dist/` is the site, with a `_headers` file (long caching of the
+   game files, no indexing) that Netlify and Cloudflare Pages read.
+2. Netlify: make a site from `dist/` (drag the folder onto the Netlify app, or
+   `npx netlify-cli deploy --prod --dir=dist`). Take its address
+   (`https://<name>.netlify.app`). The free plan allows 100 GB of bandwidth a
+   month and stops the site for the rest of the month beyond that (a player's
+   first visit loads a few hundred MB, cached after); newer accounts are on
+   credits instead (about 15 GB a month): check yours.
+3. Cloudflare: copy `server/src/cloudflare/wrangler.split.example.toml` to
+   `wrangler.toml` at the repository's root, set `AOLA_TABLES_URL` to the
+   Netlify address (the game reads its tables from the site), and
+   `npx wrangler deploy`. Take the Worker's address.
+4. If the two addresses are not what you wrote in step 1, set `server` in
+   `web/config.js` to the Worker's address and build and deploy the site
+   again (or players write it in 服务器地址 themselves).
+5. Players open the Netlify address, choose 联机模式, keep the address, give
+   the 奥拉's name and a password, and 进入.
+
+A page on one address may talk to a game on another: the Worker answers the
+page's requests for any origin, and WebSockets are not bound by one. What
+costs: Netlify is free within its bandwidth; the Worker's free plan may be
+too slow for logins (below), the paid plan is 5 USD a month.
+
+What the platform's limits mean here (checked against Cloudflare's
+documentation; they may change):
+
+- **The site has about 22,000 files**, and a Worker on the free plan may
+  serve at most 20,000 static assets (100,000 on the paid plan). On the free
+  plan the deploy is refused: either take the paid plan, or serve the site
+  from elsewhere (GitHub Pages, any static host, the Node server with
+  `--web`) and run only the game on the Worker: then the start screen's
+  服务器地址 is the Worker's address while the page is the other host's (the
+  split setup above). A file may be at most 25 MiB (none is).
+- **The game lives in one Durable Object in memory** (its players, rooms,
+  teams, battles). With the WebSocket API used here the object stays in
+  memory while anyone is connected, and is evicted when idle: the saves are
+  in its storage and come back, but teams, invitations, battles in progress
+  and the password lock's counts are gone with it. That is also what a new
+  deploy does (connections are cut; players log in again). Running time is
+  billed while the object is active, so an empty server costs nothing and a
+  busy one is a long-running object.
+- **CPU time**: the free plan allows 10 ms of CPU per request; a login
+  (PBKDF2, 60,000 rounds) or a 存档 import may take more. Use the paid plan
+  for a server people play on.
+
 The Durable Object must be SQLite-backed (`new_sqlite_classes`, as in the
 example): a player's save can be larger than the 128 KB a value of the older
 storage may be. `AOLA_CLOSED`, `AOLA_DATE`, `AOLA_MAX_PLAYERS` and `AOLA_ADOPT` under

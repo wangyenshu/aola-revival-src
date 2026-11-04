@@ -115,7 +115,9 @@
         inpage: saved.name || "小奥拉",
         server: saved.serverName ?? (saved.mode === "server" ? saved.name || "" : ""),
       };
-      $("asServer").value = saved.server || "";
+      // The address last written, else the site's own (config.js server: a site made for one
+      // shared server fills it in).
+      $("asServer").value = saved.server || cfg.server || "";
       $("asName").value = names[mode];
       $("asPass").value = saved.pass || "";
       $("asRemember").checked = !!saved.pass;

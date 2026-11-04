@@ -3,11 +3,14 @@
 // and the built site (npm run build's dist/) as the Worker's static assets.
 //
 //   /__socket/9339   the game (WebSocket), handed to the Durable Object
-//   /__api/…          the start screen's 改名字 and the status (src/game/sfs2013/api.ts)
-//   everything else   the static site (the ASSETS binding)
+//   /__api/…          the start screen's 改名字, the 存档 and the status (src/game/sfs2013/api.ts)
+//   everything else   the static site (the ASSETS binding), when the Worker serves it
 //
-// The saves are the Durable Object's storage (SQLite-backed: one value may be up to 2 MB).
-// wrangler.example.toml is a configuration to start from; docs/MULTIPLAYER.md has the steps.
+// Two ways to deploy (docs/MULTIPLAYER.md): the whole site on the Worker (wrangler.example.toml,
+// the ASSETS binding), or the site on a static host and only the game here
+// (wrangler.split.example.toml: no ASSETS; the game's tables are read from AOLA_TABLES_URL, the
+// site's address). The saves are the Durable Object's storage (SQLite-backed: one value may be
+// up to 2 MB).
 // The game code is the same as on Node (src/game/sfs2013/host.ts); only this file knows of
 // Cloudflare, and it declares the little of its runtime it uses (no @cloudflare/workers-types).
 
@@ -46,7 +49,13 @@ declare const WebSocketPair: { new (): { 0: WorkerSocket; 1: WorkerSocket } };
 
 export interface Env {
   GAME: DurableObjectNamespace;
-  ASSETS: Fetcher;
+  /** The built site (dist/), when the Worker serves it; none in the split setup. */
+  ASSETS?: Fetcher;
+  /**
+   * The split setup: where the site is (its address, "https://aola.example.netlify.app"), for
+   * the game's tables (<site>/files/www.9aola.com/revival/*.json). Without ASSETS, required.
+   */
+  AOLA_TABLES_URL?: string;
   /** "1": no new names, only 奥拉 the server has may log in. */
   AOLA_CLOSED?: string;
   /** The game clock's anchor, China time (default 2012-08-15). */
@@ -68,6 +77,7 @@ export default {
       // One world: every connection and request to the same Durable Object.
       return env.GAME.get(env.GAME.idFromName("world")).fetch(req);
     }
+    if (!env.ASSETS) return new Response("this server has only the game: open the page on its own site and give it this address\n", { status: 404 });
     return env.ASSETS.fetch(req);
   },
 };
@@ -106,10 +116,16 @@ export class AolaGame {
     this.maxPlayers = Number(env.AOLA_MAX_PLAYERS) || 200;
     this.host = createGameHost({
       store: new DurableStore(state.storage),
-      // The tables the game reads (www.9aola.com/revival/*.json), from the site's files.
+      // The tables the game reads (www.9aola.com/revival/*.json): the site's files, served here
+      // (ASSETS) or elsewhere (AOLA_TABLES_URL: the split setup).
       loadJson: async (p) => {
-        const res = await env.ASSETS.fetch(new Request(`https://assets.local/files/www.9aola.com/${p}`));
-        return res.ok ? res.json() : undefined;
+        const site = (env.AOLA_TABLES_URL ?? "").replace(/\/+$/, "");
+        const res = env.ASSETS
+          ? await env.ASSETS.fetch(new Request(`https://assets.local/files/www.9aola.com/${p}`))
+          : site
+            ? await fetch(`${site}/files/www.9aola.com/${p}`)
+            : undefined;
+        return res?.ok ? res.json() : undefined;
       },
       date: env.AOLA_DATE || "2012-08-15",
       accounts: { required: true, register: env.AOLA_CLOSED !== "1", adopt: env.AOLA_ADOPT === "1" },

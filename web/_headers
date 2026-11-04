@@ -1,0 +1,10 @@
+# Netlify / Cloudflare Pages headers for the built site (copied into dist/ by npm run build).
+# The game files never change under their versioned names: cached for a year. The page's own
+# files may change with each build: always checked.
+/files/*
+  Cache-Control: public, max-age=31536000, immutable
+/ruffle/*
+  Cache-Control: public, max-age=31536000, immutable
+/*
+  Cache-Control: no-cache
+  X-Robots-Tag: noindex, nofollow, noai, noimageai

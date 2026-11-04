@@ -12,3 +12,4 @@ __pycache__/
 
 # Mods built from tools/mod-sdk (build.mjs, VS Code)
 tools/mod-sdk/examples/*/bin/
+wrangler.toml

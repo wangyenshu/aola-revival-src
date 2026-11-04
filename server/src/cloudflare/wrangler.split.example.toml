@@ -1,0 +1,29 @@
+# The shared server on Cloudflare, the SPLIT setup: the site (dist/) is on a static host (Netlify,
+# GitHub Pages …: no limit of 20,000 files there), and this Worker runs only the game
+# (/__socket/ and /__api/). Copy to wrangler.toml at the repository's root, set AOLA_TABLES_URL
+# to the site's address, then `npx wrangler deploy`. docs/MULTIPLAYER.md has the whole of it.
+# Players open the site, choose 联机模式 and give it this Worker's address.
+name = "aola-revival"
+main = "server/src/cloudflare/worker.ts"
+compatibility_date = "2025-01-01"
+
+# The game: one Durable Object, its saves in its own (SQLite-backed) storage.
+[[durable_objects.bindings]]
+name = "GAME"
+class_name = "AolaGame"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AolaGame"]
+
+[vars]
+# The site's address: the game reads its tables (files/www.9aola.com/revival/*.json) from there.
+AOLA_TABLES_URL = "https://aola.example.netlify.app"
+# "1": no new names (only the 奥拉 already signed up may log in).
+AOLA_CLOSED = "0"
+AOLA_DATE = "2012-08-15"
+AOLA_MAX_PLAYERS = "200"
+# "0": the 工具箱, mods' gifts of 亚比 and 导入存档 closed to the players (open by default).
+AOLA_TOOLBOX = "1"
+# "1": a save copied in without a password takes the password of its first login.
+AOLA_ADOPT = "0"
