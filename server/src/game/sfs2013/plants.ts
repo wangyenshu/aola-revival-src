@@ -187,9 +187,16 @@ export function plantTree(o: PlantOwner, plantId: number): PlantRec | number {
 
 export function installPlants(world: World, deps: PlantDeps): void {
   const mine = (o: PlantOwner) => (o.plants ??= []);
+  /**
+   * Whose trees a command is about: one's own, or (a visit) the owner's of the home room one is
+   * in: not anyone's by name, or a player could pick from every tree on the server from his
+   * own garden.
+   */
   const target = async (ctx: XtContext) => {
     const owner = String(ctx.params.owner ?? "");
     if (!owner || owner === ctx.player.name) return deps.me(ctx);
+    const m = /^(.+)_(-?\d+)_Home$/.exec(ctx.player.room?.name ?? "");
+    if (!m || m[1] !== owner) return undefined;
     return deps.find(owner);
   };
   const byId = (o: PlantOwner | undefined, id: unknown) => o?.plants?.find((p) => p.id === (Number(id) | 0));

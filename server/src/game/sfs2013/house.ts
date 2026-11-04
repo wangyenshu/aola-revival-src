@@ -90,6 +90,20 @@ export const VISITS_KEPT = 20;
 /** The room of a home: "<owner>_<house id>_Home" (house/houseloader). */
 export const HOME_ROOM = /^(.+)_(-?\d+)_Home$/;
 
+/**
+ * A furniture's extData as the client gave it, made plain (JSON) and small: a client not the
+ * 2013 one could send a cyclic or huge object, and the record could then not be written.
+ */
+function plainExd(v: unknown): unknown {
+  if (v == null) return undefined;
+  try {
+    const text = JSON.stringify(v);
+    return text && text.length <= 2000 ? JSON.parse(text) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function installHouse(world: World, deps: HouseDeps): void {
   world.xt("HouseExtension.62_1", async (ctx) => {
     const un = String(ctx.params.un ?? ctx.player.name);
@@ -132,7 +146,7 @@ export function installHouse(world: World, deps: HouseDeps): void {
     for (const c of changes) {
       const fid = Number(c.fid), key = Number(c.key), op = Number(c.op);
       const at = list.findIndex((p) => p.fid === fid && p.key === key);
-      const p: Placement = { fid, key, x: Math.round(Number(c.x)), y: Math.round(Number(c.y)), a: Number(c.a) || 0, exd: c.exd ?? undefined };
+      const p: Placement = { fid, key, x: Math.round(Number(c.x)), y: Math.round(Number(c.y)), a: Number(c.a) || 0, exd: plainExd(c.exd) };
       if (op === 1) {
         if (at >= 0) return ctx.reply({ result: -3 });
         list.push(p);

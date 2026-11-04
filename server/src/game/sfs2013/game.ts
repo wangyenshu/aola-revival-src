@@ -642,7 +642,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // ---------------------------------------------------------------- pets
 
   const today = () => emu.clock.now().toISOString().slice(0, 10);
-  installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today });
+  installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today, anyPet: toolbox || !!opts.dev });
   installBattles(world, {
     load: me,
     save: (o) => save(o as UserRecord),

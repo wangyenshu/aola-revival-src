@@ -40,6 +40,7 @@ const { values: a } = parseArgs({
     "no-toolbox": { type: "boolean", default: process.env.AOLA_TOOLBOX === "0" },
     adopt: { type: "boolean", default: process.env.AOLA_ADOPT === "1" },
     "max-players": { type: "string", default: process.env.AOLA_MAX_PLAYERS ?? "200" },
+    "trust-proxy": { type: "boolean", default: process.env.AOLA_TRUST_PROXY === "1" },
     help: { type: "boolean", short: "h", default: false },
   },
 });
@@ -57,7 +58,10 @@ if (a.help) {
   --no-toolbox      close the 工具箱 (晶币, 亚比 … for nothing), mods' gifts of 亚比 and 导入存档
                     to the players (a fair server); open by default, as in 单机模式
   --adopt           a save with no password (copied in) takes the password of its first login
-  --max-players N   at most N in the game at once (default 200)`);
+  --max-players N   at most N in the game at once (default 200)
+  --trust-proxy     behind a reverse proxy or tunnel: the client's address is the X-Forwarded-For
+                    header's (the password lock is per address); off by default, when the header
+                    could be anyone's`);
   process.exit(0);
 }
 
@@ -138,8 +142,15 @@ async function serveStatic(req: http.IncomingMessage, res: http.ServerResponse, 
 process.on("unhandledRejection", (e) => console.error(`[aola] unhandled: ${(e as Error)?.stack ?? String(e)}`));
 
 const API_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" };
-/** The client's address as its game connection gives it (the password lock's: accounts.ts). */
-const clientAddr = (req: http.IncomingMessage) => `ws ${req.headers["x-forwarded-for"] ?? req.socket.remoteAddress}`;
+/**
+ * The client's address (the password lock's: accounts.ts): the connection's, or behind a proxy
+ * (--trust-proxy) the first of X-Forwarded-For. Not the header's otherwise: a client could set
+ * it to anything, a new one for every wrong password.
+ */
+const clientAddr = (req: http.IncomingMessage) => {
+  const fwd = a["trust-proxy"] ? String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim() : "";
+  return `ws ${fwd || req.socket.remoteAddress}`;
+};
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://x");

@@ -286,7 +286,7 @@ The fields of a room's `def`:
 | --- | --- |
 | `fight(team, done = null, heal = true)` | fight 1–10 opponents one after another. Each is `{race, level, hp, at, de, sa, sd, sp}`: `race` is a 亚比 of the game or of the mod, `level` is 1–999, and the six are 体力, 攻击, 防御, 特攻, 特防 and 速度 in percent of the normal value (1–10000, default 100). `done(win:Boolean)` (a team the server refuses counts as a loss). `heal`: the bag's 亚比 get their 体力 and PP back before each fight. A win brings nothing (no experience). More than 10 opponents: the first 10. While a fight is on, another `fight` is ignored (no `done`) |
 | `species(def, done = null)` | define a 亚比 of the mod (next section). `done(ok:Boolean)` |
-| `givePet(race, level = 1, done = null)` | give the player a 亚比: a 亚比 of the game, or one this mod has defined. `level`: 1–100. It goes to the bag, or to the 仓库 when the bag is full. `done(ok:Boolean)` |
+| `givePet(race, level = 1, done = null)` | give the player a 亚比: a 亚比 of the game, or one this mod has defined. `level`: 1–100. It goes to the bag, or to the 仓库 when the bag is full. `done(ok:Boolean)`: false on a shared server whose 工具箱 is closed (`--no-toolbox`: no gifts there) |
 
 **Saved data and the rest**
 
@@ -493,7 +493,8 @@ The runtime has the following parts:
   characters are `ModPerson`). When built, the room asks `ModRun` for the
   room to show and its mod. When shown, it hands itself to the room's
   `build` function.
-  Each player is in a server room of their own (`sandboxroom_<user>`).
+  Each player is in a server room of their own (`sandboxroom_<user>`; in a
+  team, the team's `sandboxroom|leader|mod|version|room`, 组队 above).
 - **Conversations.** They use the rebuilt NPC panel
   (`task/tasknpc`, `NpcTalkPanel.showAs`). Its choices come back as task
   actions `revival_mod:<n>:<i>`.

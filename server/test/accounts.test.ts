@@ -18,7 +18,7 @@ function page() {
 /** A connection logged in as name (pass on a shared server); its closed state. */
 async function play(host: ReturnType<typeof createGameHost>, store: MemoryStore, name: string, pass = "") {
   let closed = false;
-  const s = host.attach({ remote: "ws 10.0.0.2", send: () => {}, close: () => (closed = true) });
+  const s = host.attach({ remote: "ws test", send: () => {}, close: () => (closed = true) });
   s.receive(encodeClientFrame(nextPacketNum(-1), clientPayload(0, Up.Login, -1).utf("aola").utf(name).utf(pass).body()));
   for (let i = 0; i < 100 && !host.world.online(name); i++) await tick(10);
   void store;

@@ -8,8 +8,9 @@ The original client SWFs of the 25 January 2013 release run in
 TypeScript runs in the same page and answers the client with the 2013
 protocol. Client modules that did not survive are rebuilt in ActionScript 3
 against the surviving 2013 libraries and compiled into SWFs. The result is a
-static website: nothing runs on a server, and progress is saved in the
-browser.
+static website (单机模式: the server runs in the page, progress is saved in
+the browser) that can also connect to a shared server you run yourself
+(联机模式, [docs/MULTIPLAYER.md](docs/MULTIPLAYER.md)).
 
 The repository contains the archived game files (`game/`), the rebuilt
 sources and everything needed to build the site. Building downloads build
@@ -23,9 +24,10 @@ catching, the 守护者 and event bosses, the 四大副本, 85 mini games, shops
 the 小屋, 家园 and 动物园, the 亚比孵化器, riding, 射击, the 奥拉周刊 back
 issues and more. See [docs/FEATURES.md](docs/FEATURES.md) for the full lists.
 
-Not available: anything that needs other players (friends, teams, 战队,
-trading, player battles), daily tasks, the HELLO's own panel and most
-time-limited activities. Their buttons show 这个功能还在修复中.
+With other players, on a shared server: 好友, 组队 (up to 3), visiting homes,
+chat, 射击, 亚比对战, mods together. Not available: 战队, 兵团, trading, team
+battles, daily tasks, the HELLO's own panel and most time-limited activities.
+Their buttons show 这个功能还在修复中.
 
 Additions that were not in the 2013 game: the 工具箱 (currencies, any 亚比,
 teleport, save export) and the 沙盒 (custom battles, and mods written in
@@ -47,7 +49,8 @@ npm run serve       # serve dist/ at http://127.0.0.1:8080/
 The first `build:swf` downloads the compiler tools into `.toolchain/`. Open
 the page from `http://127.0.0.1`, `http://localhost` or an `https://`
 address; the page needs a service worker, which browsers allow only there.
-Click 开始游戏. You play as 小奥拉, and the newbie quest starts.
+Choose 单机模式 and 进入, click 开始游戏, then make an 奥拉 on the 选择奥拉
+screen (新建奥拉, up to three a browser): the newbie quest starts.
 
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) describes the build in detail.
 
@@ -110,6 +113,7 @@ Notes:
 | [docs/FEATURES.md](docs/FEATURES.md) | What is supported: places and NPCs, quests, bosses, the 四大副本, mini games, other systems, known gaps |
 | [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) | How it works: the page, the emulator, the rebuilt client, each subsystem |
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Building, testing, the folder structure, the tools |
+| [docs/MULTIPLAYER.md](docs/MULTIPLAYER.md) | 联机模式: running a shared server (Node or Cloudflare), accounts, saves and passwords, what works together |
 | [docs/MODDING.md](docs/MODDING.md) | Writing mods for the 沙盒: building with Apache Royale or VS Code, the API, the examples |
 | [docs/ARCHIVE.md](docs/ARCHIVE.md) | The archive of the game's CDN that `game/` was made from |
 
@@ -118,8 +122,8 @@ Notes:
 ```
 game/       archived game files at their 2013 URLs, listed in game/FILES.jsonl
 rebuild/    ActionScript sources (src/), generated sources (gen/), data (static/), build scripts (build/)
-server/     the server emulator, the in-page bundle, the service worker, the Node server, tests
-web/        the page, its boot script and settings, the theatre and save panels
+server/     the server emulator, the in-page bundle, the service worker, the Node and Cloudflare servers, tests
+web/        the page, its boot script and settings, the start and 选择奥拉 screens, the theatre and save panels
 scripts/    build-static.mjs (builds dist/), serve.mjs (local static server)
 tools/      archive, data generation and SWF tools (Python), the mod SDK
 tests/      Python tests and shared fixtures

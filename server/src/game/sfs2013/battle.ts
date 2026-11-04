@@ -953,12 +953,16 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
       return void (await begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id));
     }
+    // A wild 亚比 of this room: at the room's levels (the client's level is not taken), and
+    // catchable. Any other species (a scene's or quest's fightWithPetByRaceId, at its level) is
+    // fought but not caught: a client not the 2013 one could otherwise ask for any species at
+    // Lv1 and catch it.
     const entry = ((await deps.wild())[sceneOfRoom(ctx.player.room)] ?? []).find((w) => w.raceId === id);
     const rng = deps.rng ?? Math.random;
     const level = entry ? entry.min + Math.floor(rng() * (entry.max - entry.min + 1)) : asked > 0 ? asked : 5;
     // The items some rooms' wild 亚比 drop for the planets' activities (planetacts.ts WILD_DROPS).
     const room = sceneOfRoom(ctx.player.room);
-    await begin(ctx, id, Math.max(1, Math.min(100, level)), true, (o) => [...onWin(o), ...wildDrop(o as ActsOwner, room, id)]);
+    await begin(ctx, id, Math.max(1, Math.min(100, level)), !!entry, (o) => [...onWin(o), ...(entry ? wildDrop(o as ActsOwner, room, id) : [])]);
   });
 
   // NPC challenge (the era npcchallenge/npcchallengeservice, PetFightTypes.FIGHT_IN_NPCCHALLENGE 14):

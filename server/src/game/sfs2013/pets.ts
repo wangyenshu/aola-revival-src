@@ -291,7 +291,12 @@ export interface PetDeps {
   save: (owner: PetOwner) => Promise<void>;
   tables: () => Promise<PetTables>;
   today: () => string;
+  /** addPM (1201) may give any 亚比 (the 工具箱 open, or the walk-throughs' dev commands); else the starters only. */
+  anyPet?: boolean;
 }
+
+/** The first 亚比 (task 135's StarterPanel): 兔小子, 吉拉, 滴滴 at Lv5, to a player with none. */
+const STARTERS = new Set([1, 4, 7]);
 
 const EXT = "PocketMonsterExtension";
 
@@ -402,13 +407,20 @@ export function installPets(world: World, deps: PetDeps): void {
     ctx.reply({ pm: detailOf(p, o, t) }, "2211");
   });
 
-  // addPM {raceId, level, type}: tasks and the revival's first-亚比 choice give pets this way.
+  // addPM {raceId, level, type}: the revival's first-亚比 choice gives the starter this way (and
+  // the walk-throughs' dev commands, any 亚比). Where the 工具箱 is closed, nothing else: a client
+  // is not the 2013 one for sure, and this would give any 亚比 at any level.
   world.xt(`${EXT}.1201`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
     const race = Number(ctx.params.raceId);
     if (!t.species[String(race)] && !t.pm.species[String(race)]) return ctx.reply({ msg: "没有这种亚比" }, "2201");
     const pets = list(o);
-    const p = newPet(o, t, race, Math.max(1, Math.min(100, Number(ctx.params.level) || 5)), deps.today());
+    let level = Math.max(1, Math.min(100, Number(ctx.params.level) || 5));
+    if (!deps.anyPet) {
+      if (!STARTERS.has(race) || pets.length > 0 || (o.storage?.length ?? 0) > 0) return ctx.reply({ msg: "这个服务器关闭了工具箱。" }, "2201");
+      level = 5;
+    }
+    const p = newPet(o, t, race, level, deps.today());
     if (pets.length >= 6) {
       // A full bag: to the 亚比仓库, as a catch with a full bag goes (RECONSTRUCTED).
       (o.storage ??= []).push(p);

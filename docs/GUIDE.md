@@ -7,8 +7,9 @@ game contains is listed in [FEATURES.md](FEATURES.md).
 ## Starting
 
 Open the site. The page starts a service worker and the server emulator and
-shows the original start screen; click 开始游戏. You play as 小奥拉 (奥拉号
-10001) and arrive in 奥拉广场, where the newbie quest begins: the HELLO sends
+shows its own start screen (单机模式 / 联机模式: 进入), then the original
+one; click 开始游戏 and, in 单机模式, make an 奥拉 on the 选择奥拉 screen
+(新建奥拉). You arrive in 奥拉广场, where the newbie quest begins: the HELLO sends
 you to 司令官麦哲伦 in the 指挥中心, you choose your first 亚比 (滴滴, 吉拉 or
 兔小子), fight, buy 亚比球, catch a 朵朵兔 and receive the HELLO. After the
 quest the task panel (任务, top right) lists the story quests under 可接, and
@@ -26,7 +27,7 @@ beginning. In 联机模式 it is on the server (docs/MULTIPLAYER.md).
 
 ### 选择奥拉 (单机模式)
 
-In 单机模式 the start screen only asks for the mode. After 开始, the 选择奥拉
+In 单机模式 the start screen only asks for the mode. After 开始游戏, the 选择奥拉
 screen shows this browser's 奥拉: up to three, each with its own name (no two
 the same).
 

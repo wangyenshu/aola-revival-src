@@ -82,7 +82,8 @@ test("摘果子 at a friend's: one fruit a visitor a fruiting, the last left to 
   installPlants(world, { me: async (ctx) => all.find((o) => o.name === ctx.player.name)!, find: async (n) => all.find((o) => o.name === n), save: async () => {}, now: () => now });
   const call = async (who: string, key: string, params: Record<string, unknown> = {}) => {
     const replies: [string | undefined, Record<string, any>][] = [];
-    const ctx = { params, player: { name: who }, reply: (o: Record<string, unknown>, c?: string) => replies.push([c, o]) } as unknown as XtContext;
+    // The guests are in the owner's 家园 (a visitor's commands are about the home he is in).
+    const ctx = { params, player: { name: who, room: { name: "主人_247_Home" } }, reply: (o: Record<string, unknown>, c?: string) => replies.push([c, o]) } as unknown as XtContext;
     await handlers.get(key)!(ctx, key);
     return replies;
   };
@@ -100,4 +101,27 @@ test("摘果子 at a friend's: one fruit a visitor a fruiting, the last left to 
   // The next fruiting: the guest may pick again.
   now = tree.nextFruitTime;
   assert.equal((await pick("客人")).result, 0);
+});
+
+test("摘果子 from afar: a visitor's commands are about the home he is in, not anyone's by name", async () => {
+  const handlers = new Map<string, XtHandler>();
+  const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world) } as unknown as World;
+  const owner: PlantOwner = { id: 1, name: "主人", score: 5000, items: {} };
+  const guest: PlantOwner = { id: 2, name: "客人", items: {} };
+  const all = [owner, guest];
+  const now = Date.UTC(2013, 0, 20, 2, 0, 0);
+  installPlants(world, { me: async (ctx) => all.find((o) => o.name === ctx.player.name)!, find: async (n) => all.find((o) => o.name === n), save: async () => {}, now: () => now });
+  const call = async (who: string, room: string, key: string, params: Record<string, unknown> = {}) => {
+    const replies: [string | undefined, Record<string, any>][] = [];
+    const ctx = { params, player: { name: who, room: { name: room } }, reply: (o: Record<string, unknown>, c?: string) => replies.push([c, o]) } as unknown as XtContext;
+    await handlers.get(key)!(ctx, key);
+    return replies;
+  };
+  await call("主人", "主人_247_Home", "SundriesExtension.revival_garden", { op: "buy", plantId: 5 });
+  const tree = owner.plants![0];
+  Object.assign(tree, { level: 2, remainFruit: 0, remainProductTime: 2, fruitLeft: 4, nextFruitTime: now });
+  const ask = { owner: "主人", userPlantId: tree.id };
+  assert.equal((await call("客人", "maintown1", "PlantExtension.80_5", ask)).at(-1)![1].result.result, -19, "from a scene: no such tree");
+  assert.equal((await call("客人", "客人_247_Home", "PlantExtension.80_3", ask)).at(-1)![1].result.result, -19, "from his own garden");
+  assert.equal((await call("客人", "主人_247_Home", "PlantExtension.80_5", ask)).at(-1)![1].result.extData, 1, "in the owner's garden");
 });

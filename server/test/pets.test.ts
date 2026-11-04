@@ -22,7 +22,7 @@ function harness() {
   const owner: PetOwner = { id: 10001, name: "小奥拉", nextPetId: 0 };
   owner.pets = [1, 2, 3, 4, 5, 6].map((i) => makePet(tables, 1, 5 + i, "d", i));
   owner.nextPetId = 6;
-  installPets(world, { load: async () => owner, save: async () => {}, tables: async () => tables, today: () => "2013-01-25" });
+  installPets(world, { load: async () => owner, save: async () => {}, tables: async () => tables, today: () => "2013-01-25", anyPet: true });
   const call = async (key: string, params: Record<string, unknown> = {}) => {
     const out: [string, Record<string, unknown>][] = [];
     const ctx = { params, player: { name: owner.name }, reply: (o: Record<string, unknown>, cmd = key.split(".")[1]) => out.push([cmd, o]) } as unknown as XtContext;

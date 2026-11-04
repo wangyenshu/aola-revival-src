@@ -45,6 +45,8 @@ export interface PlayerState {
   vars: Map<string, SfsVar>;
   room?: Room;
   lastPacket: number;
+  /** When this player last chatted (pubMsg), ms. */
+  lastChat?: number;
 }
 
 /** The scene of a room (Room.scene; its name before "@"). */
@@ -99,6 +101,12 @@ const PLAYER = "sfs2013.player";
 export const ROOM_NAME_MAX = 200;
 /** Rooms at once, at most. */
 export const ROOMS_MAX = 5000;
+/** A chat line (pubMsg), at most. */
+export const CHAT_MAX = 300;
+/** A chat line from one session at most this often (ms). */
+export const CHAT_EVERY_MS = 300;
+/** A room variable's name and value, at most. */
+export const RVAR_MAX = 256;
 /** Rooms that go when their last member leaves: homes, 沙盒 rooms, a player's 副本 rooms. */
 const TEMP_ROOM = /_Home$|^sandboxroom[_|]|@/;
 
@@ -225,9 +233,15 @@ export class World {
         return;
       case "hit":
         return;
-      case "pubMsg":
-        if (p?.room) this.sendRoom(p.room, S.pubMsg(p.room.id, p.id, msg.message));
+      case "pubMsg": {
+        // Bounded: a long line, or many at once, would reach everyone in the room many times over.
+        if (!p?.room || msg.message.length > CHAT_MAX) return;
+        const now = Date.now();
+        if (now - (p.lastChat ?? 0) < CHAT_EVERY_MS) return;
+        p.lastChat = now;
+        this.sendRoom(p.room, S.pubMsg(p.room.id, p.id, msg.message));
         return;
+      }
       case "setUvars":
         if (!p) return;
         for (const v of msg.vars) {
@@ -236,14 +250,18 @@ export class World {
         }
         if (p.room) this.sendRoom(p.room, S.userVarsUpdate(p.room.id, p.id, msg.vars));
         return;
-      case "setRvars":
-        if (!p?.room) return;
-        for (const v of msg.vars) {
+      case "setRvars": {
+        // Only in a room the client made (a home's, a 沙盒's, a 副本's: temp rooms): a scene's
+        // variables are everyone's, and the 2013 client sets none there. Bounded in number and size.
+        if (!p?.room || !p.room.isTemp) return;
+        const vars = msg.vars.filter((v) => v.name.length <= RVAR_MAX && String(v.value ?? "").length <= RVAR_MAX);
+        for (const v of vars) {
           if (v.type === "x") p.room.vars.delete(v.name);
-          else p.room.vars.set(v.name, v);
+          else if (p.room.vars.size < 50 || p.room.vars.has(v.name)) p.room.vars.set(v.name, v);
         }
-        this.sendRoom(p.room, S.roomVarsUpdate(p.room.id, msg.vars));
+        if (vars.length) this.sendRoom(p.room, S.roomVarsUpdate(p.room.id, vars));
         return;
+      }
       case "xt":
         return this.dispatchXt(s, msg.ext, msg.cmd, msg.params);
       default:
@@ -302,8 +320,10 @@ export class World {
     }
     const from = p.room?.name ?? "";
     this.leave(s);
-    // The rooms a client may name: not too long, and not without end (an empty room of a home or
-    // a 沙盒, and any other a client made up, goes when its last member leaves).
+    // The rooms a client may name: not too long, and not without end. Any room goes when its last
+    // member leaves (a scene's holds nothing of its own: its variables are set only in temp
+    // rooms), so the rooms standing are those with someone in them, at most one a session plus
+    // what rooms the one-player page keeps; one client cannot fill the table for all.
     if (name.length > ROOM_NAME_MAX || (!this.rooms.has(name) && this.rooms.size >= ROOMS_MAX)) {
       s.sendBytes(S.joinKO("no such room"));
       return;
@@ -328,7 +348,7 @@ export class World {
     room.members.delete(s);
     p.room = undefined;
     this.sendRoom(room, S.userGone(room.id, p.id));
-    if (room.isTemp && room.members.size === 0) this.rooms.delete(room.name);
+    if (room.members.size === 0) this.rooms.delete(room.name);
     if (gone) s.data[PLAYER] = undefined;
   }
 

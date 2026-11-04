@@ -38,7 +38,8 @@ npm run build         # assemble the static site in dist/
 npm run serve         # serve dist/ at http://127.0.0.1:8080/
 npm test              # unit tests (Node) and tool tests (Python)
 npm run check         # TypeScript type check
-npm start             # Node server: game files, front end, WebSocket bridge, TCP ports
+npm start             # Node dev server (one player): game files, front end, WebSocket bridge, TCP ports
+node server/src/node/multi.ts   # the shared server of 联机模式 (docs/MULTIPLAYER.md)
 ```
 
 `npm run build` options (`scripts/build-static.mjs`):
@@ -100,7 +101,8 @@ web/
   index.html                  the page
   config.js                   settings (boot URL, hosts, socket address, mode, clock)
   boot.js                     starts the service worker, the emulator and Ruffle
-  saves.js, theatre.js        the save panel, the theatre panel
+  start.js, accounts.js       the start screen (单机模式 / 联机模式), the 选择奥拉 screen
+  saves.js, theatre.js        the 存档 and 改名字 / 改密码 panels, the theatre panel
   robots.txt                  asks all crawlers to stay out
 
 scripts/
@@ -200,6 +202,8 @@ picked up without running `npm run build`. Only changes to `web/` and
 | `shoot.test.ts`, `parkour.test.ts`, `minigames.test.ts`, `fb.test.ts`, `gyms.test.ts` | 射击, 酷跑星世界, 极限轰炸, the 四大副本, the 道馆 |
 | `planetacts.test.ts`, `areafuncs.test.ts`, `yabistudy.test.ts` | the planets' activities, the functions of the places, 亚比融合 and 天赋启迪 |
 | `sandbox.test.ts`, `mods.test.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
+| `petcards.test.ts`, `petitems.test.ts` | 战术卡, 亚比道具 |
+| `multiplayer.test.ts`, `accounts.test.ts`, `cloudflare.test.ts` | a shared server with two players; the page's 奥拉, 改名字, 改密码, 存档; the Cloudflare adapter |
 | `tests/test_tools.py` | URL mapping, the archive and game-root tools, `swfinfo`, `add_later`, `gen_tasks` |
 
 ### Browser tests

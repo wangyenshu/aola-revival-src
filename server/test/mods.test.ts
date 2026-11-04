@@ -106,7 +106,7 @@ test("mods: a 亚比 of a mod is checked, made known, given; put aside while unk
 test("mods: gifts go to the 仓库 when the bag is full", async () => {
   const rec: ModRec = { id: 1, name: "小奥拉", pets: Array.from({ length: BAG_MAX }, (_, i) => pet(i + 1, 1)), nextPetId: BAG_MAX };
   const { call } = setup(rec);
-  assert.equal((await call({ op: "give", race: 1, level: 3 })).res, 1);
+  assert.equal((await call({ op: "give", mod: "story", race: 1, level: 3 })).res, 1);
   assert.equal(rec.pets!.length, BAG_MAX);
   assert.equal(rec.storage![0].race, 1);
   assert.equal(rec.storage![0].level, 3);

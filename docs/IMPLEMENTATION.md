@@ -99,8 +99,11 @@ Ruffle runs with `openUrlMode: "deny"`, so the game's links to 百田's pages
 open nothing. `?dev=1` enables test commands in the emulator.
 
 `web/theatre.js` answers the client's video calls (`showVideoPlayer` and
-others) with a panel that plays the surviving films. `web/saves.js` exports
-and imports the IndexedDB saves for the 工具箱.
+others) with a panel that plays the surviving films. `web/start.js` is the
+start screen (单机模式 / 联机模式), `web/accounts.js` the 选择奥拉 screen of
+单机模式 (up to three 奥拉 a browser), and `web/saves.js` the 工具箱's 存档
+panels and the 信息卡's 改名字 / 改密码 panels, in both modes (the page's own
+game, or the shared server's `/__api/`).
 
 ### The service worker
 
@@ -132,7 +135,8 @@ esbuild into `dist/emulator.js`) and in Node (`npm start`).
 | `core/store.ts` | key-value store interface (IndexedDB in the page, JSON files in Node) |
 | `core/recorder.ts` | logs of the traffic for debugging |
 | `browser/entry.ts`, `idbStore.ts`, `shim.ts` | the in-page start, IndexedDB store, the socket proxy for Ruffle |
-| `node/main.ts`, `http.ts`, `transports.ts`, `fileStore.ts` | the Node server: HTTP mirror, WebSocket bridge, raw TCP ports, the policy file |
+| `node/main.ts`, `http.ts`, `transports.ts`, `fileStore.ts` | the Node dev server: HTTP mirror, WebSocket bridge, raw TCP ports, the policy file |
+| `node/multi.ts`, `cloudflare/worker.ts` | the shared server of 联机模式 on Node and on Cloudflare (docs/MULTIPLAYER.md) |
 
 ### The 2013 protocol
 
@@ -166,6 +170,9 @@ extension name and command (`PetExtension.54_16`).
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
+| `petcards.ts`, `petitems.ts` | 战术卡, 亚比道具 |
+| `host.ts`, `accounts.ts`, `api.ts`, `saves.ts` | the game for any host; names and passwords (the lock on wrong ones); the shared server's small API; 存档 files, and the page's own 奥拉 |
+| `social.ts`, `duel.ts` | 好友, 组队, where a friend is; 亚比对战 between players |
 
 Each player is one record: name, outfit, 晶币, 星币, 晶豆, items by type,
 亚比 (bag and 仓库), house and furniture, garden and zoo, quests, bosses

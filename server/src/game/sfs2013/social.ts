@@ -272,14 +272,29 @@ export function installSocial(world: World, deps: SocialDeps): { teamOf(name: st
     const me = ctx.player.name;
     const t = teamOf(me);
     if (!t || t.leader !== me) return;
-    const room = String(ctx.params.room ?? "").slice(0, 200);
-    if (!room || alone(room)) return;
+    // The room the leader is in (not any he names: a member could be sent into a stranger's
+    // home, or a mod room of a mod he does not run).
+    const room = ctx.player.room?.name ?? "";
+    if (!room || alone(room) || String(ctx.params.room ?? "") !== room) return;
     for (const m of t.members) if (m !== me) pushTo(m, "revival_team_go", { room, leader: me });
   });
   // A mod's team event (IModGame.sendTeam): to the other members; their page hands it to the
   // same mod (id and version), if it runs there.
+  /** Team events and lines one after another: at most this many a second from one member. */
+  const paced = new Map<string, { at: number; n: number }>();
+  const pace = (name: string, perSecond: number) => {
+    const now = Date.now();
+    const p = paced.get(name);
+    if (!p || now - p.at >= 1000) {
+      paced.set(name, { at: now, n: 1 });
+      if (paced.size > 10000) paced.clear();
+      return true;
+    }
+    return ++p.n <= perSecond;
+  };
   world.xt("TeamExtension.revival_team_mod", (ctx) => {
     const t = teamOf(ctx.player.name);
+    if (!t || !pace(ctx.player.name, 20)) return;
     const mod = String(ctx.params.mod ?? ""), ver = String(ctx.params.ver ?? "");
     const event = String(ctx.params.event ?? "").slice(0, 64), data = String(ctx.params.data ?? "null");
     if (!t || !mod || mod.length > 32 || ver.length > 20 || !event || data.length > MOD_EVENT_MAX) return;
@@ -288,7 +303,7 @@ export function installSocial(world: World, deps: SocialDeps): { teamOf(name: st
   world.xt("TeamExtension.revival_team_say", (ctx) => {
     const t = teamOf(ctx.player.name);
     const text = String(ctx.params.text ?? "").slice(0, 80);
-    if (!t || !text) return;
+    if (!t || !text || !pace(ctx.player.name, 3)) return;
     for (const m of t.members) pushTo(m, "revival_team_said", { name: ctx.player.name, text });
   });
 

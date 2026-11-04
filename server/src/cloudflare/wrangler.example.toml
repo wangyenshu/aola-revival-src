@@ -26,3 +26,7 @@ new_sqlite_classes = ["AolaGame"]
 AOLA_CLOSED = "0"
 AOLA_DATE = "2012-08-15"
 AOLA_MAX_PLAYERS = "200"
+# "0": the 工具箱, mods' gifts of 亚比 and 导入存档 closed to the players (open by default).
+AOLA_TOOLBOX = "1"
+# "1": a save copied in without a password takes the password of its first login.
+AOLA_ADOPT = "0"

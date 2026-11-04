@@ -141,7 +141,11 @@ test("组队: the leader invites, the member joins and follows the leader's room
   const team = a.xts().find((o) => o._cmd === "revival_team")?.team as Record<string, unknown>;
   assert.deepEqual(team, { leader: "奥拉A", members: ["奥拉A", "奥拉B"] });
   b.xts();
-  // The leader into his 小屋: the member is told to go there too.
+  // The leader into his 小屋: the member is told to go there too (the room the leader is in, not
+  // any he names: a stranger's home named is not sent on).
+  a.xt("TeamExtension", "revival_team_go", { room: "奥拉B_1_Home" });
+  a.join("奥拉A_1_Home");
+  await tick();
   a.xt("TeamExtension", "revival_team_go", { room: "奥拉A_1_Home" });
   await tick();
   assert.deepEqual(
@@ -223,6 +227,8 @@ test("a mod's team events go to the other members", async () => {
   assert.deepEqual(b.xts().find((o) => o._cmd === "revival_team_mod"), { _cmd: "revival_team_mod", from: "奥拉A", mod: "story", ver: "1.0", event: "door", data: '{"open":true}' });
   assert.equal(a.xts().some((o) => o._cmd === "revival_team_mod"), false, "not to oneself");
   // The leader goes into a room of the mod: the member is told to follow there.
+  a.join("sandboxroom|%E5%A5%A5%E6%8B%89A|story|1.0|hall");
+  await tick();
   a.xt("TeamExtension", "revival_team_go", { room: "sandboxroom|%E5%A5%A5%E6%8B%89A|story|1.0|hall" });
   await tick();
   assert.equal(b.xts().find((o) => o._cmd === "revival_team_go")?.room, "sandboxroom|%E5%A5%A5%E6%8B%89A|story|1.0|hall");
@@ -495,7 +501,50 @@ test("存档: an imported 亚比 is rebuilt from its known fields; the lock is a
   assert.equal((got.items["2"] as Record<string, number>)["1"], 3);
   assert.equal((got.items["2"] as Record<string, unknown>)["2"], undefined);
   // Five wrong from one address lock that one; the player from his own goes on.
-  for (let i = 0; i < 5; i++) await host.exportSave("奥拉A", "nope", "ws 10.0.0.9");
-  assert.equal((await host.exportSave("奥拉A", "pass-a", "ws 10.0.0.9")).error, "密码错了太多次，请过一分钟再试。");
-  assert.equal((await host.exportSave("奥拉A", "pass-a", "ws 10.0.0.1")).error, undefined);
+  for (let i = 0; i < 5; i++) await host.exportSave("奥拉A", "nope", "ws client-a");
+  assert.equal((await host.exportSave("奥拉A", "pass-a", "ws client-a")).error, "密码错了太多次，请过一分钟再试。");
+  assert.equal((await host.exportSave("奥拉A", "pass-a", "ws client-b")).error, undefined);
+});
+
+test("review: made-up rooms go when empty; chat is bounded; a client cannot catch any species or get one by addPM", async () => {
+  const { a, b, host } = await twoPlayers(true);
+  // 5000 rooms one client names, one after another: each goes when he leaves it, so the table
+  // does not fill, and the other player's joins go on.
+  for (let i = 0; i < 300; i++) a.join(`junk${i}`);
+  await tick(50);
+  assert.ok(host.world.rooms.size < 20, `rooms standing: ${host.world.rooms.size}`);
+  b.join("maintown2");
+  await tick();
+  assert.equal(b.xts().some((o) => o._cmd === `sys:${Down.joinKO}`), false, "others still join");
+  // Chat: a line too long, or two at once, is not sent on.
+  a.join("maintown2");
+  await tick();
+  a.frames();
+  b.frames();
+  const say = (t: string) => a.send(clientPayload(0, Up.PubMsg, 1).utf(t).body());
+  say("x".repeat(400));
+  say("你好");
+  say("再见");
+  await tick();
+  const chats = b.frames().filter((f) => f.handler === 0 && f.action === Down.pubMsg).length;
+  assert.equal(chats, 1, "one short line of the three");
+  // The 工具箱 closed: addPM gives only a starter to a player with none; a wild fight is at the
+  // room's levels and only its own species is catchable.
+  const srv = server(true);
+  const closed = createGameHost({ store: srv.store, loadJson: tables, accounts: { required: true, register: true }, toolbox: false });
+  const c = (() => {
+    const out: Uint8Array[] = [];
+    const s = closed.attach({ remote: "t", send: (x) => out.push(x), close: () => {} });
+    let pn = -1;
+    return { send: (payload: Uint8Array) => (pn = nextPacketNum(pn), s.receive(encodeClientFrame(pn, payload))) };
+  })();
+  c.send(clientPayload(0, Up.Login, -1).utf("aola").utf("奥拉Z").utf("pass-z").body());
+  for (let i = 0; i < 50 && !(await srv.store.get(`user/${encodeURIComponent("奥拉Z")}`)); i++) await tick(10);
+  c.send(clientPayload(0, Up.JoinRoom, -1).utf("maintown1").u8(49).i32(-1).u8(48).utf("").body());
+  const xt = (ext: number, cmd: string, params: Record<string, unknown>) => c.send(clientPayload(1, Up.XtReq, 1).i16(ext).utf(cmd).raw(amf3Encode(params)).body());
+  xt(13, "1201", { raceId: 1101, level: 100 });
+  xt(13, "1201", { raceId: 7, level: 5 });
+  await tick(100);
+  const rec = (await srv.store.get<{ pets: { race: number; level: number }[] }>(`user/${encodeURIComponent("奥拉Z")}`))!;
+  assert.deepEqual(rec.pets.map((p) => [p.race, p.level]), [[7, 5]], "the starter only");
 });

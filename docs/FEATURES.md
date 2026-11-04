@@ -23,7 +23,7 @@ were reconstructed; [IMPLEMENTATION.md](IMPLEMENTATION.md) explains how.
 | Bosses | 40 entries of 守护者 and event bosses, 11 NPC challenges, the 道馆 masters, 黑星堡垒, 时空隧道, the 四大副本 bosses |
 | 四大副本 | 幻影冰宫, 倒立金字塔, 蚁族王朝, 恐龙博物馆, three modes each |
 | Mini games | 85 of the 87 game rooms of the 2013 config |
-| 亚比 | 1,381 species in the 图鉴; battles, catching, skills, evolution, eggs, following, riding |
+| 亚比 | 1,604 species in the 图鉴 (1–1651); battles, catching, skills, evolution, eggs, following, riding |
 | Added by the revival | the 工具箱 and the 沙盒 ([GUIDE.md](GUIDE.md)) |
 
 ## Places and NPCs
@@ -337,7 +337,7 @@ The 功能 the 2012 world map lists for each place:
 | 蓝宝石要塞 | 亚比骑乘训练 | 不可用 (riding itself works, see below) |
 | 蓝宝石要塞 | 财富小管家、祈愿图腾 | 未验证 |
 | 奥拉之树 | 星愿气球、奥拉星历史漫画 | 可用 |
-| 战斗星域 | 亚比对战空间 | 不可用 (needs other players) |
+| 战斗星域 | 亚比对战空间 | 不可用 (the room's own function is lost; 亚比对战 is on the 信息卡 in 联机模式) |
 | 流星购物街 | 购买服装、家具、道具和树苗 | 可用 |
 | 亚比研究中心 | 亚比融合 (贝鲁特; the 元生体 hatch in their places' 孵化器)、神奇摇摇树 | 可用 |
 | 亚比研究中心 | 亚比天赋改造 | 部分 (the 天赋改造机 opens the 天赋启迪 of January 2013; the 天赋改造 panel itself is lost) |
