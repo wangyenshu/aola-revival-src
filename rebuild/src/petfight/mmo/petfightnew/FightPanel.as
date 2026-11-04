@@ -7,6 +7,7 @@ package mmo.petfightnew
    import flash.display.MovieClip;
    import flash.display.Shape;
    import flash.display.Sprite;
+   import flash.events.KeyboardEvent;
    import flash.events.MouseEvent;
    import flash.events.TimerEvent;
    import flash.filters.GlowFilter;
@@ -15,10 +16,14 @@ package mmo.petfightnew
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
+   import flash.text.TextFieldType;
    import flash.text.TextFormatAlign;
+   import flash.ui.Keyboard;
    import flash.utils.Timer;
    import flash.utils.getDefinitionByName;
    import mmo.framework.comm.PetClient;
+   import mmo.framework.comm.SocketClient;
+   import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.IService;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.material.IMaterialGetPanel;
@@ -97,6 +102,14 @@ package mmo.petfightnew
       private var wheel:Object = {};
       private var current:String = "fight";
       private var log:TextField;
+      /** The 聊天 page of the log (the room's chat, as the chat line under it speaks to the room). */
+      private var chatLog:TextField;
+      private var chatIn:TextField;
+      private var tabs:Shape;
+      private var tabFight:TextField;
+      private var tabChat:TextField;
+      private var showingChat:Boolean;
+      private var unread:Boolean;
       private var catchTip:Sprite;
       private var tooltip:Sprite;
 
@@ -328,14 +341,6 @@ package mmo.petfightnew
          var s:Shape = new Shape();
          var g:Graphics = s.graphics;
          FightSkin.darkPanel(g, 688, 438, 270, 96, 14);
-         // the two tabs down the left side
-         g.lineStyle(1, 0x7FC6F0);
-         FightSkin.vgrad(g, 20, 44, 0x6FC4F2, 0x2A78C6, 442);
-         g.drawRoundRectComplex(690, 442, 20, 44, 8, 0, 8, 0);
-         g.endFill();
-         FightSkin.vgrad(g, 20, 42, 0x2A5FB0, 0x173E86, 488);
-         g.drawRoundRectComplex(690, 488, 20, 42, 8, 0, 8, 0);
-         g.endFill();
          // the chat line
          g.lineStyle(1.5, 0x5AA7D6);
          FightSkin.vgrad(g, 270, 22, 0xD6EFFC, 0x9CD0EE, 536);
@@ -346,14 +351,19 @@ package mmo.petfightnew
          g.drawRoundRect(724, 539, 196, 16, 8, 8);
          g.endFill();
          ui.addChild(s);
-         var t1:TextField = FightSkin.label("对\n战", 11, 0xFFFFFF, 0x15457A, true);
-         t1.x = 693;
-         t1.y = 448;
-         ui.addChild(t1);
-         var t2:TextField = FightSkin.label("聊\n天", 11, 0xA9CBEF, 0x0F2C74, true);
-         t2.x = 693;
-         t2.y = 492;
-         ui.addChild(t2);
+         // the two tabs down the left side: 对战 (the battle) and 聊天 (the room's chat)
+         tabs = new Shape();
+         ui.addChild(tabs);
+         tabFight = FightSkin.label("对\n战", 11, 0xFFFFFF, 0x15457A, true);
+         tabFight.x = 693;
+         tabFight.y = 448;
+         ui.addChild(tabFight);
+         tabChat = FightSkin.label("聊\n天", 11, 0xA9CBEF, 0x0F2C74, true);
+         tabChat.x = 693;
+         tabChat.y = 492;
+         ui.addChild(tabChat);
+         tabButton("fightTabLog", 442, 44, false);
+         tabButton("fightTabChat", 488, 42, true);
          var cur:TextField = FightSkin.label("当前", 11, 0x1D4F7A, 0xFFFFFFFF, true);
          cur.x = 694;
          cur.y = 540;
@@ -367,6 +377,133 @@ package mmo.petfightnew
          log.width = 238;
          log.height = 88;
          ui.addChild(log);
+         chatLog = new TextField();
+         chatLog.defaultTextFormat = new TextFormat("宋体", 12, 0xFFFFFF);
+         chatLog.multiline = chatLog.wordWrap = true;
+         chatLog.selectable = false;
+         chatLog.x = log.x;
+         chatLog.y = log.y;
+         chatLog.width = log.width;
+         chatLog.height = log.height;
+         chatLog.visible = false;
+         ui.addChild(chatLog);
+         chatIn = new TextField();
+         chatIn.type = TextFieldType.INPUT;
+         chatIn.defaultTextFormat = new TextFormat("SimSun", 12, 0x333333);
+         chatIn.maxChars = 40;
+         chatIn.x = 726;
+         chatIn.y = 538;
+         chatIn.width = 192;
+         chatIn.height = 18;
+         chatIn.name = "fightChatInput";
+         chatIn.addEventListener(KeyboardEvent.KEY_DOWN, function(e:KeyboardEvent):void
+         {
+            e.stopPropagation();
+            if (e.keyCode == Keyboard.ENTER) sendChat();
+         });
+         chatIn.addEventListener(KeyboardEvent.KEY_UP, function(e:KeyboardEvent):void { e.stopPropagation(); });
+         ui.addChild(chatIn);
+         var send:Sprite = new Sprite();
+         send.name = "fightChatSend";
+         send.buttonMode = true;
+         send.graphics.lineStyle(1, 0x2A78C6);
+         FightSkin.vgrad(send.graphics, 30, 16, 0x6FC4F2, 0x2A78C6, 539);
+         send.graphics.drawRoundRect(924, 539, 30, 16, 8, 8);
+         send.graphics.endFill();
+         var st:TextField = FightSkin.label("发送", 11, 0xFFFFFF, 0x15457A, true);
+         st.x = 927;
+         st.y = 539;
+         st.mouseEnabled = false;
+         send.addChild(st);
+         send.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); sendChat(); });
+         ui.addChild(send);
+         drawTabs();
+         // What was said in the room just before, then each line heard.
+         try
+         {
+            var talk:Object = ServiceContainer.getService("SceneTalkService");
+            for each (var r:Object in (talk ? talk.getTalkMessageRec() : [])) addChat(String(r.userName), String(r.message), false);
+         }
+         catch (e:Error) {}
+         SocketClient.instance.addEventListener(SocketClientEvent.onPublicMessage, onChatHeard);
+      }
+
+      private function tabButton(name:String, y:int, h:int, chat:Boolean):void
+      {
+         var b:Sprite = new Sprite();
+         b.name = name;
+         b.buttonMode = true;
+         b.graphics.beginFill(0xFFFFFF, 0);
+         b.graphics.drawRect(690, y, 20, h);
+         b.graphics.endFill();
+         b.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+         {
+            e.stopPropagation();
+            showChat(chat);
+         });
+         ui.addChild(b);
+      }
+
+      /** The tab shown is the light one; 聊天 glows yellow while it has lines not read. */
+      private function drawTabs():void
+      {
+         var g:Graphics = tabs.graphics;
+         g.clear();
+         g.lineStyle(1, 0x7FC6F0);
+         if (showingChat) FightSkin.vgrad(g, 20, 44, 0x2A5FB0, 0x173E86, 442);
+         else FightSkin.vgrad(g, 20, 44, 0x6FC4F2, 0x2A78C6, 442);
+         g.drawRoundRectComplex(690, 442, 20, 44, 8, 0, 8, 0);
+         g.endFill();
+         if (showingChat) FightSkin.vgrad(g, 20, 42, 0x6FC4F2, 0x2A78C6, 488);
+         else FightSkin.vgrad(g, 20, 42, 0x2A5FB0, 0x173E86, 488);
+         g.drawRoundRectComplex(690, 488, 20, 42, 8, 0, 8, 0);
+         g.endFill();
+         tabFight.textColor = showingChat ? 0xA9CBEF : 0xFFFFFF;
+         tabChat.textColor = showingChat ? 0xFFFFFF : unread ? 0xFFE066 : 0xA9CBEF;
+      }
+
+      private function showChat(chat:Boolean):void
+      {
+         showingChat = chat;
+         if (chat) unread = false;
+         log.visible = !chat;
+         chatLog.visible = chat;
+         drawTabs();
+      }
+
+      /** A line to the room (SceneTalkService, as the chat line of the scene says it). */
+      private function sendChat():void
+      {
+         var text:String = chatIn.text.replace(/[\r\n]/g, "").replace(/^\s+|\s+$/g, "");
+         chatIn.text = "";
+         if (text == "") return;
+         try
+         {
+            var talk:Object = ServiceContainer.getService("SceneTalkService");
+            if (talk != null) talk.say(text);
+            else SocketClient.instance.sendPublicMessage(text);
+         }
+         catch (e:Error) { RLog.error("fight chat", e); }
+         showChat(true);
+      }
+
+      private function onChatHeard(e:SocketClientEvent):void
+      {
+         var u:Object = e.params.sender;
+         if (u == null || closed) return;
+         addChat(String(u.getName()), String(e.params.message), true);
+      }
+
+      private function addChat(name:String, text:String, fresh:Boolean):void
+      {
+         var esc:Function = function(t:String):String { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); };
+         chatLog.htmlText = chatLog.htmlText + "<font face='宋体' size='12' color='#FFFFFF'><font color='#7FE0FF'>" + esc(name) + "</font>：" + esc(text) + "</font>";
+         chatLog.scrollV = chatLog.maxScrollV;
+         if (fresh && !showingChat)
+         {
+            unread = true;
+            drawTabs();
+         }
       }
 
       /** The wild 亚比's label: HP bar, attribute icon and "Lv3小冰犬". */
@@ -1415,6 +1552,7 @@ package mmo.petfightnew
       {
          if (closed) return;
          closed = true;
+         SocketClient.instance.removeEventListener(SocketClientEvent.onPublicMessage, onChatHeard);
          TweenLite.killDelayedCallsTo(next);
          if (myView) myView.dispose();
          if (vsView) vsView.dispose();

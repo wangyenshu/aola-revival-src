@@ -976,6 +976,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //   100_20 {id} (the revival's purchase: 1 增加时长 +5 min, 3 a day, 2 星币; 2 双倍经验, once, 11 星币,
   //   HotSpringPropConfig's 星币 prices) -> {res (1, -1 used up, -5 星币), id, lt, db}
   // The experience per 3 seconds is RECONSTRUCTED (HOT_SPRING_EXP; the 2020 module gives 1000).
+  // While one is in the spring, the user variable hs is his costume (1–5), so the others in the room
+  // draw him in it (the scene's code); 100_12 clears it.
   const hotSpring = (rec: UserRecord) => {
     const day = today();
     if (rec.hotSpring?.day !== day) rec.hotSpring = { day, used: 0, extra: 0, adds: 0, double: false };
@@ -986,6 +988,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const rec = await me(ctx);
     const h = hotSpring(rec);
     await save(rec);
+    // In the spring: the 更衣室's costume (1–5) for the others in the room to see (user variable hs).
+    if (left(h) > 0) world.setUserVars(ctx.session, { hs: Math.min(5, Math.max(1, Number(ctx.params.id) | 0)) });
     ctx.reply({ res: left(h) > 0 ? 1 : 0, lt: left(h), db: h.double ? 1 : 0 });
   });
   world.xt("HotSpringExtension.100_5", async (ctx) => {
@@ -1002,6 +1006,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     h.used += sec;
     if (exp > 0) (rec.robot ??= { name: "HELLO", exp: 0, follow: true, born: today() }).exp += exp;
     await save(rec);
+    world.setUserVars(ctx.session, { hs: null });
     ctx.reply({ res: 1, exp, robotExp: rec.robot?.exp ?? 0, lt: left(h) });
   });
   world.xt("HotSpringExtension.100_20", async (ctx) => {

@@ -185,7 +185,8 @@ invite.
 - **Seeing each other**: everyone in a scene sees the others walk, speak
   (发言, 表情, 动作) and shoot (射击); the name above each is the 奥拉's
   name. A click on another 奥拉 opens its 信息卡 (and its HELLO's own
-  panel).
+  panel). In 欢乐岛 the others in the spring are seen in the costume they
+  chose in the 更衣室.
 - **好友** (the bar's 好友): ask by name or from a 信息卡 (加为好友); the
   other answers 同意 or 拒绝, at once or later from the list (100 friends at
   most). The list shows
@@ -214,6 +215,8 @@ invite.
   chosen for whoever has not); a fallen 亚比 is replaced by its player; the
   side with none left loses, and 逃跑 gives up. Nothing is won or lost: both
   fight with copies of their bag, 体力 and PP full, for no experience or items.
+  The battle screen's chat line (bottom right, its 聊天 page) speaks to the
+  room, so the two read each other while they fight; it works in any battle.
 - **模组 together**: a team whose members have loaded the same mod (the same
   id and version) plays its rooms together: in a team a mod's room is one room
   for the team, and the leader going into one takes the others along. A mod

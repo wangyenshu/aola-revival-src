@@ -18,12 +18,14 @@ package mmo.scene.hotspringscene
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.play.player.PlayerManager;
+   import mmo.play.player.PlayerManagerEvent;
    import mmo.play.player.movable.strategy.MouseControlStrategy;
    import mmo.play.player.sceneplayer.Player;
    import mmo.play.scene.SceneBase;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
    import mmo.revival.RUI;
+   import mmo.socketserver.data.User;
 
    /**
     * LATER scene/summerhotspring (欢乐岛): the January 2013 scene is lost;
@@ -44,6 +46,10 @@ package mmo.scene.hotspringscene
     * 增效道具 sells the two HotSpringPropConfig goods for 星币 (甜甜牛奶 +5
     * minutes, 3 a day; 章鱼烧 double experience for the day). The experience
     * per 3 seconds is the server's (RECONSTRUCTED).
+    *
+    * The others in the spring are drawn in their costumes too: the server keeps one's costume in
+    * the user variable hs while one soaks (game.ts), and the steps in and out of the water are
+    * jumps the others see.
     */
    public class SummerHotSpringRevived extends SceneBase
    {
@@ -71,6 +77,9 @@ package mmo.scene.hotspringscene
       private var lastStep:int;
       private var wantedCostume:int;
       private var pool:DisplayObject;
+      /** The others in the spring, in their costumes: name -> {n, p (the player), mc}. */
+      private var others:Object = {};
+      private var othersTick:int;
 
       public function SummerHotSpringRevived()
       {
@@ -85,6 +94,12 @@ package mmo.scene.hotspringscene
          SocketClient.instance.addEventListener("100_10", onIn);
          SocketClient.instance.addEventListener("100_12", onOut);
          SocketClient.instance.addEventListener("100_20", onBought);
+         SocketClient.instance.addEventListener(SocketClientEvent.onUserVariablesUpdate, onVars);
+         PlayerManager.getInstance().addEventListener(PlayerManagerEvent.ENTER_ROOM, onPlayerIn);
+         PlayerManager.getInstance().addEventListener(PlayerManagerEvent.LEAVE_ROOM, onPlayerOut);
+         addEventListener(Event.ENTER_FRAME, keepOthers);
+         var list:Object = PlayerManager.getInstance().playerList;
+         for (var name:String in list) dressOther(name);
       }
 
       override protected function onLeaveRoom():void
@@ -94,6 +109,11 @@ package mmo.scene.hotspringscene
          SocketClient.instance.removeEventListener("100_10", onIn);
          SocketClient.instance.removeEventListener("100_12", onOut);
          SocketClient.instance.removeEventListener("100_20", onBought);
+         SocketClient.instance.removeEventListener(SocketClientEvent.onUserVariablesUpdate, onVars);
+         PlayerManager.getInstance().removeEventListener(PlayerManagerEvent.ENTER_ROOM, onPlayerIn);
+         PlayerManager.getInstance().removeEventListener(PlayerManagerEvent.LEAVE_ROOM, onPlayerOut);
+         removeEventListener(Event.ENTER_FRAME, keepOthers);
+         for (var name:String in others) undressOther(name);
          removeEventListener(Event.ENTER_FRAME, onTick);
          if (hud != null && hud.parent) hud.parent.removeChild(hud);
          super.onLeaveRoom();
@@ -202,8 +222,7 @@ package mmo.scene.hotspringscene
          exp = 0;
          me.stop();
          me.setStrategy(null);
-         me.x = JOIN_X;
-         me.y = JOIN_Y;
+         me.jumpTo(JOIN_X, JOIN_Y);
          loadCostume(wantedCostume, function(mc:MovieClip, into:Sprite):void
          {
             if (!soaking) return;
@@ -351,8 +370,7 @@ package mmo.scene.hotspringscene
          hidden = null;
          if (me != null && tell)
          {
-            me.x = OUT_X;
-            me.y = OUT_Y;
+            me.jumpTo(OUT_X, OUT_Y);
             me.setStrategy(new MouseControlStrategy());
          }
          else if (me != null) me.setStrategy(new MouseControlStrategy());
@@ -362,6 +380,79 @@ package mmo.scene.hotspringscene
       {
          var got:int = int(e.params.exp);
          RNotice.show(LayerManager.getBaseTop(), got > 0 ? "此次泡温泉共获得" + got + "经验，已经将经验放入亚比经验分配器。" : "泡了一会儿温泉，真舒服！", 5);
+      }
+
+      // ---------------------------------------------------------------- the others in the spring
+
+      /** A player's costume, as the server keeps it (user variable hs), 0 out of the water. */
+      private static function costumeOf(name:String):int
+      {
+         try
+         {
+            var u:User = SocketClient.instance.activeRoom.getUser(name);
+            return u != null ? int(u.getVariable("hs")) : 0;
+         }
+         catch (e:Error) {}
+         return 0;
+      }
+
+      /** Another player drawn as he is: in his costume while in the spring, else as himself. */
+      private function dressOther(name:String):void
+      {
+         if (name == SocketClient.instance.myUserName) return;
+         var p:Player = PlayerManager.getInstance().getPlayer(name) as Player;
+         var n:int = p != null ? costumeOf(name) : 0;
+         var o:Object = others[name];
+         if (o != null && (o.p != p || o.n != n)) undressOther(name);
+         if (p == null || n <= 0 || others[name] != null) return;
+         var now:Object = others[name] = {n: n, p: p, mc: null};
+         loadCostume(n, function(mc:MovieClip, into:Sprite):void
+         {
+            if (others[name] !== now) return;
+            now.mc = mc;
+            mc.name = "hotSpringCostume";
+            mc.mouseEnabled = mc.mouseChildren = false;
+            mc.play();
+            p.addChild(mc);
+            if (p.avatarSprite != null) p.avatarSprite.visible = false;
+         }, null);
+      }
+
+      private function undressOther(name:String):void
+      {
+         var o:Object = others[name];
+         delete others[name];
+         if (o == null) return;
+         if (o.mc != null && o.mc.parent != null) o.mc.parent.removeChild(o.mc);
+         var a:DisplayObject = Player(o.p).avatarSprite;
+         if (a != null) a.visible = true;
+      }
+
+      private function onVars(e:SocketClientEvent):void
+      {
+         var u:User = e.params.user as User;
+         if (u != null) dressOther(u.getName());
+      }
+
+      private function onPlayerIn(e:PlayerManagerEvent):void
+      {
+         dressOther(e.userName);
+      }
+
+      private function onPlayerOut(e:PlayerManagerEvent):void
+      {
+         undressOther(e.userName);
+      }
+
+      /** An avatar drawn (or redrawn) after the costume went on stays hidden under it. */
+      private function keepOthers(e:Event):void
+      {
+         if (++othersTick % 10 != 0) return;
+         for each (var o:Object in others)
+         {
+            var a:DisplayObject = o.mc != null ? Player(o.p).avatarSprite : null;
+            if (a != null && a.visible) a.visible = false;
+         }
       }
 
       // ---------------------------------------------------------------- 增效道具

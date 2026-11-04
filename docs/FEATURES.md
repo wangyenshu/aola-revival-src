@@ -907,7 +907,8 @@ run pays 晶豆, as its end panel says.
   图书馆.
 - The 百田大剧场 with the films that survive: 奥拉星2周年 (July 2012) and the
   战队 film.
-- 欢乐岛's hot spring with its costumes and experience.
+- 欢乐岛's hot spring with its costumes (seen by the others in the room) and
+  experience.
 - The 生态园 games 动物保卫战, 天空保卫战 and 海底保卫战, with their progress.
 - 战斗星域's rooms (试炼平台, 挑战平台, 亚比精英赛场, 时空隧道, 堡垒外沿).
 
