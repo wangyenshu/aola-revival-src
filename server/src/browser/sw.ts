@@ -3,7 +3,9 @@
 // files served next to the page, so the SWFs see their real URLs: domain
 // checks pass with no hosts-file edit and no network. Requests for other
 // sites (百田's statistics, video and picture hosts the 2013 client names) are
-// answered as missing: nothing goes out but to the page's own origin.
+// answered as missing: nothing goes out but to the page's own origin and to a
+// shared server's API (/__api/…: the page's 存档, 改名字 and 改密码, on the server
+// the start screen named, which may be another site: the split setup).
 //
 // Static hosting (GitHub Pages, any file server): the build writes the files
 // under files/ with "%" in their names turned into "~" and lists them in
@@ -58,7 +60,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   // Nothing goes out to other sites (百田's statistics, video and picture hosts the
-  // 2013 client names): only the page's own origin is fetched.
+  // 2013 client names): only the page's own origin is fetched, and a shared server's API
+  // (saves.js, start.js), which the 2013 client never asks for.
+  if (url.pathname.startsWith("/__api/")) return;
   if (url.origin !== self.location.origin && /^https?:$/.test(url.protocol)) event.respondWith(missing(event.request.url));
 });
 

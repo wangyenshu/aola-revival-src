@@ -105,8 +105,16 @@ the site there and run only the game on the Worker:
 5. Players open the Netlify address, choose 联机模式, keep the address, give
    the 奥拉's name and a password, and 进入.
 
+After an update: build the site and put `dist/` on Netlify again, then
+`npx wrangler deploy` (the Worker is deployed from the source folder, no build
+needed for it; its deploy restarts the game, which then reads the new tables
+from the site). Players reload the page once so the new service worker takes
+over.
+
 A page on one address may talk to a game on another: the Worker answers the
-page's requests for any origin, and WebSockets are not bound by one. What
+page's requests for any origin, WebSockets are not bound by one, and the
+page's service worker (which keeps the 2013 client off other sites) lets the
+server's `/__api/` through. What
 costs: Netlify is free within its bandwidth; the Worker's free plan may be
 too slow for logins (below), the paid plan is 5 USD a month.
 
