@@ -201,7 +201,11 @@ invite.
   other answers 同意 or 拒绝, at once or later from the list (100 friends at
   most). The list shows
   who is on and where (a scene, someone's 家园, 小屋 or 动物园, a 模组);
-  **找他** goes there, **他家** to his 家园, **删除** ends the friendship.
+  **找他** goes there, **他家** to his 家园, **删除** ends the friendship;
+  a name opens his 名片. **私聊** talks with a friend who is on: a window over
+  the game, a tab for each friend talked with; a line that comes while it is
+  not open is shown for a moment, with a dot on his 私聊. Lines are kept for
+  this game only.
   Where someone is, only friends and teammates are told; an ask to the same
   奥拉 again waits 10 seconds.
 - **Homes**: a friend's 家园 (去他家 on a 信息卡, 他家 in the list), from

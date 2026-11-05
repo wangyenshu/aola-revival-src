@@ -16,6 +16,7 @@ house/furnituredecorator
 house/housemenu
 house/housestorage
 baseservice/scenetalk
+talk/talk
 antiaddiction/antiaddiction
 shoot/shoot
 shoot/shooteffectservice

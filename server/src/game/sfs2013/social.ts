@@ -9,6 +9,9 @@
 //   revival_friend_answer {id, ok}  -> {res, msg}; both friends then (ok); the asker: revival_friend_added
 //   revival_friend_del {id}         -> {res}
 //   revival_where {name}            -> {name, online, room}   where a friend or teammate is (找他); others: not on
+//   privateMsg {to, msg}            私聊 (the 2013 SocketClient.sendPrivateMessage: msg "[1]" + text), to a
+//                                   friend in the game: he gets onPrivateMsg {from, msg}; not delivered:
+//                                   privateMsg {res: 0, to, msg} (why) to the sender
 // TeamExtension (组队: up to TEAM_MAX, in memory: a team ends with its last member's game)
 //   revival_team {}                 -> {team}                  team: {leader, members: [name]} or null
 //   revival_team_make {}            -> {team}
@@ -37,6 +40,8 @@ export const INVITE_MS = 5 * 60 * 1000;
 export const ASK_EVERY_MS = 10 * 1000;
 /** A mod's team event: its data, as JSON text, at most (ModGame.sendTeam: 4096). */
 export const MOD_EVENT_MAX = 4096;
+/** A 私聊 line, at most (the rebuilt talk/talk: 100). */
+export const PRIVATE_MAX = 100;
 
 export interface SocialOwner {
   id: number;
@@ -292,6 +297,19 @@ export function installSocial(world: World, deps: SocialDeps): { teamOf(name: st
     }
     return ++p.n <= perSecond;
   };
+  world.xt("BuddyManagerExtension.privateMsg", async (ctx) => {
+    const to = String(ctx.params.to ?? "").slice(0, 64);
+    const text = String(ctx.params.msg ?? "").replace(/^\[1\]/, "").trim().slice(0, PRIVATE_MAX);
+    const fail = (msg: string) => ctx.reply({ res: 0, to, msg }, "privateMsg");
+    if (!to || !text) return;
+    if (!pace(`pm\u0000${ctx.player.name}`, 2)) return fail("说得太快了，歇一会儿再说吧。");
+    const o = await deps.load(ctx);
+    const other = to === o.name ? undefined : await deps.byName(to);
+    if (!other || !(o.friends ?? []).includes(other.id)) return fail("只能和好友私聊哦。");
+    if (!world.online(other.name)) return fail(`${other.name}不在线，没有发出去。`);
+    pushTo(other.name, "onPrivateMsg", { from: o.name, msg: "[1]" + text });
+  });
+
   world.xt("TeamExtension.revival_team_mod", (ctx) => {
     const t = teamOf(ctx.player.name);
     if (!t || !pace(ctx.player.name, 20)) return;

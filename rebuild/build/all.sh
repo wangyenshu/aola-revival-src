@@ -446,3 +446,8 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art otherpanel/yakestarrarepetpanel.
 # game/jumpfirering): their start panel game/jumpfireringstartpanel is lost. Rebuilt: it opens
 # the game (whose start page has 开始, 规则 and 关闭), and its notice for a player in a team.
 build jumpfireringstartpanel mmo/game/jumpfirering/start/DocStartPanel.as jumpfireringstartpanel.swf "game/jumpfireringstartpanel.swf%3F1210"
+
+# 私聊 (talk/talk, the January 2013 module lost; the later copy needs later libraries):
+# rebuilt TalkService and its window, at both names the client may ask for.
+build talk mmo/talk/DocTalk.as talk.swf "talk/talk.swf%3F1301251"
+cat "$OUT/talk.swf" > "$W/talk/talk.swf%3F1210"

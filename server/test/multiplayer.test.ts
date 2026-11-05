@@ -131,6 +131,33 @@ test("好友: an ask, an answer, the list with where the friend is", async () =>
   assert.deepEqual(list.map((f) => [f.name, f.online, f.room]), [["奥拉B", true, "maintown1"]]);
 });
 
+test("私聊: a line to a friend in the game; to anyone else, or when he is gone, the sender is told", async () => {
+  const { a, b } = await twoPlayers();
+  // Not friends yet.
+  a.xt("BuddyManagerExtension", "privateMsg", { to: "奥拉B", msg: "[1]你好" });
+  assert.match(String((await a.wait("privateMsg"))?.msg), /只能和好友私聊/);
+  assert.equal(await b.wait("onPrivateMsg", 200), undefined);
+  a.xt("BuddyManagerExtension", "revival_friend_add", { name: "奥拉B" });
+  const ask = (await b.wait("revival_friend_ask"))!;
+  b.xt("BuddyManagerExtension", "revival_friend_answer", { id: ask.id, ok: true });
+  await b.wait("revival_friend_answer");
+  a.xt("BuddyManagerExtension", "privateMsg", { to: "奥拉B", msg: "[1]你好<b>" });
+  assert.deepEqual(await b.wait("onPrivateMsg"), { _cmd: "onPrivateMsg", from: "奥拉A", msg: "[1]你好<b>" });
+  assert.equal(await a.wait("privateMsg", 200), undefined, "delivered: no answer");
+  // Two lines a second at most.
+  a.xt("BuddyManagerExtension", "privateMsg", { to: "奥拉B", msg: "[1]再说" });
+  assert.match(String((await a.wait("privateMsg"))?.msg), /太快/);
+  await tick(1100);
+  // Bounded in length.
+  a.xt("BuddyManagerExtension", "privateMsg", { to: "奥拉B", msg: "[1]" + "长".repeat(300) });
+  assert.equal(String((await b.wait("onPrivateMsg"))?.msg).length, 3 + 100);
+  // B leaves the game: not delivered, A is told.
+  b.s.close();
+  await tick(50);
+  a.xt("BuddyManagerExtension", "privateMsg", { to: "奥拉B", msg: "[1]还在吗" });
+  assert.match(String((await a.wait("privateMsg"))?.msg), /不在线/);
+});
+
 test("组队: the leader invites, the member joins and follows the leader's rooms", async () => {
   const { a, b } = await twoPlayers();
   a.xt("TeamExtension", "revival_team_invite", { name: "奥拉B" });

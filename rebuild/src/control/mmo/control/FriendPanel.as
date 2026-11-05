@@ -10,6 +10,7 @@ package mmo.control
    import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.IService;
    import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.talk.PrivateTalkEvent;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
 
@@ -28,6 +29,9 @@ package mmo.control
       private var rows:Sprite = new Sprite();
       private var list:Array = [];
       private var asks:Array = [];
+      /** 私聊 (talk/talk's TalkService): what each friend said that is not read. */
+      private var talk:Object;
+      private var shut:Boolean;
       private var page:int;
       private var nameInput:TextField;
       private var pageText:TextField;
@@ -84,7 +88,20 @@ package mmo.control
          again.y = 357;
          box.addChild(again);
          SocketClient.instance.addEventListener("revival_friends", onList);
+         ServiceContainer.instance.tryGetService("TalkService", function(svc:IService, o:Object):void
+         {
+            if (shut || !Object(svc).hasOwnProperty("unreadOf")) return;
+            talk = svc;
+            svc.addEventListener(PrivateTalkEvent.NEW_UNREAD_MSG, onTalk);
+            svc.addEventListener(PrivateTalkEvent.UNREAD_MSG_READ, onTalk);
+            draw();
+         });
          refresh();
+      }
+
+      private function onTalk(e:Event):void
+      {
+         draw();
       }
 
       public function refresh():void
@@ -137,6 +154,11 @@ package mmo.control
             state.text = f.ask ? "想加你为好友" : f.online ? "在线" + (f.room ? "：" + place(String(f.room)) : "") : "离线";
             state.x = 120;
             state.y = y + 8;
+            if (state.width > 108)
+            {
+               state.autoSize = "none";
+               state.width = 108;
+            }
             rows.addChild(state);
             if (f.ask)
             {
@@ -144,9 +166,20 @@ package mmo.control
                rows.addChild(at(RUI.smallButton("拒绝", answerFn(int(f.id), false), 48, 26, "friendNo" + i), 352, y + 3));
                continue;
             }
-            if (f.online) rows.addChild(at(RUI.smallButton("找他", findFn(String(f.name)), 46, 26, "friendFind" + i), 262, y + 3));
-            rows.addChild(at(RUI.smallButton("他家", homeFn(String(f.name)), 46, 26, "friendHome" + i), 312, y + 3));
-            rows.addChild(at(RUI.smallButton("删除", delFn(int(f.id)), 46, 26, "friendDel" + i), 362, y + 3));
+            if (f.online || (talk && talk.unreadOf(String(f.name)) > 0))
+            {
+               var pm:Sprite = at(RUI.smallButton("私聊", talkFn(String(f.name)), 42, 26, "friendTalk" + i), 232, y + 3);
+               if (talk && talk.unreadOf(String(f.name)) > 0)
+               {
+                  pm.graphics.beginFill(0xE8341B);
+                  pm.graphics.drawCircle(40, 2, 5);
+                  pm.graphics.endFill();
+               }
+               rows.addChild(pm);
+            }
+            if (f.online) rows.addChild(at(RUI.smallButton("找他", findFn(String(f.name)), 42, 26, "friendFind" + i), 278, y + 3));
+            rows.addChild(at(RUI.smallButton("他家", homeFn(String(f.name)), 42, 26, "friendHome" + i), 324, y + 3));
+            rows.addChild(at(RUI.smallButton("删除", delFn(int(f.id)), 42, 26, "friendDel" + i), 370, y + 3));
          }
       }
 
@@ -189,6 +222,15 @@ package mmo.control
          {
             close();
             Social.find(name);
+         };
+      }
+
+      private function talkFn(name:String):Function
+      {
+         return function():void
+         {
+            close();
+            if (talk) talk.showTalkPanel(name);
          };
       }
 
@@ -250,9 +292,15 @@ package mmo.control
       public function close():void
       {
          // Forgotten first: taking it away below tells onRemoved, which must not close it again.
+         shut = true;
          if (current == this) current = null;
          removeEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
          SocketClient.instance.removeEventListener("revival_friends", onList);
+         if (talk)
+         {
+            talk.removeEventListener(PrivateTalkEvent.NEW_UNREAD_MSG, onTalk);
+            talk.removeEventListener(PrivateTalkEvent.UNREAD_MSG_READ, onTalk);
+         }
          if (parent != null) ModalDialogManager.getInstance().removeModalDialog(this);
       }
    }
