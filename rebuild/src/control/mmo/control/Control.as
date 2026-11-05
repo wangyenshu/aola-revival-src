@@ -86,6 +86,8 @@ package mmo.control
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
          TheatrePanel.install();
+         // The 图鉴: a grey 亚比's page opens too.
+         PetDicPeek.install(LayerManager.stage);
          // 好友 and 组队 of a shared server: invitations and the team following its leader.
          Social.start();
          ToolboxPanel.watchMoney();
