@@ -1609,6 +1609,12 @@ export class BattleEngine {
   /** A whole turn in which the player uses a skill. */
   skillTurn(b: Battle, mySkill: number): Msg[] {
     this.startTurn(b);
+    // Out of PP, the computer's 亚比 takes a 高级活力豆 (items before skills); the player's skill comes after.
+    if (this.needsBean(b.wild)) {
+      const out: Msg[] = [this.useBean(b, b.wild)];
+      if (b.mine.pet.hp > 0 && b.wild.pet.hp > 0) out.push(this.act(b, b.mine, b.wild, mySkill));
+      return out;
+    }
     const wildSkill = this.wildChoice(b);
     const first = this.firstMover(b, mySkill, wildSkill);
     const second = first === b.mine ? b.wild : b.mine;
@@ -1624,7 +1630,24 @@ export class BattleEngine {
   wildTurn(b: Battle): Msg[] {
     this.startTurn(b);
     if (b.wild.pet.hp <= 0 || b.mine.pet.hp <= 0) return [];
+    if (this.needsBean(b.wild)) return [this.useBean(b, b.wild)];
     return [this.act(b, b.wild, b.mine, this.wildChoice(b))];
+  }
+
+  /**
+   * The computer's 亚比 (wild ones, bosses, 副本, 时空隧道, quests, 道馆) with no PP left on any
+   * skill: it has 高级活力豆 without end (RECONSTRUCTED: the 2013 server's rule is lost), so it
+   * never falls back on 挣扎. Not when a skill goes on by itself (蓄力, 连续攻击: no PP needed).
+   */
+  needsBean(f: Fighter): boolean {
+    return f.pet.skills.length > 0 && f.pet.skills.every((s) => s.pp <= 0) && this.forcedOf(f) === undefined;
+  }
+
+  /** It takes a 高级活力豆 (104: 可恢复战斗中的亚比技能使用次数20次): its turn goes on it. The 2412 report. */
+  useBean(b: Battle, f: Fighter): Msg {
+    for (const s of f.pet.skills) s.pp = Math.min(s.max, s.pp + PP_BEANS[BEAN]);
+    const name = petName(this.t, f);
+    return ["2412", { reqSId: f.slot, itemId: BEAN, res: 1, hpInc: 0, desc: `${name}使用了高级活力豆！\n${name}的技能次数回复了！`, pmmList: this.views(b) }];
   }
 
   /** PlayerBattleInfo of both sides. */
@@ -1738,6 +1761,8 @@ export function gainExp(t: PetTables, pet: PetRecord, gained: number): WinResult
 export const BALLS: Record<number, number> = { 32: 0.5, 67: 0.7, 68: 0.9, 64: 1 };
 export const POTIONS: Record<number, number> = { 30: 40, 60: 100, 61: 200, 102: 300, 263: 400, 390: 200 };
 export const PP_BEANS: Record<number, number> = { 31: 5, 103: 10, 104: 20, 391: 20 };
+/** 高级活力豆, which the computer's 亚比 take when out of PP. */
+const BEAN = 104;
 /** 解除…药剂 (94–99) and 净化药剂 (100, 101): the status each takes away ("all" for the 净化药剂). */
 export const CURES: Record<number, StatusName | "寄生" | "all"> = { 94: "睡眠", 95: "混乱", 96: "寄生", 97: "烧伤", 98: "冰冻", 99: "中毒", 100: "all", 101: "all" };
 /** "当亚比剩下极少体力时，可用于捕捉野外亚比": a ball works once the wild 亚比 is down to a fifth. */

@@ -1274,7 +1274,8 @@ package mmo.petfightnew
                addLines(p.desc);
                if (p.refused) { setCommands(true); later(0); break; }
                takeViews(p.pmmList as Array);
-               if (int(p.hpInc) > 0) float(0, "+" + int(p.hpInc), 0x3CC21E);
+               // Mine, or the computer's 亚比 (its 高级活力豆 when out of PP: reqSId 1).
+               if (int(p.hpInc) > 0) float(int(p.reqSId), "+" + int(p.hpInc), 0x3CC21E);
                refresh(true);
                later(0.8);
                break;

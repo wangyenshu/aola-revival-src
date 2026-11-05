@@ -392,3 +392,19 @@ test("the quest opponents 邪恶霹雳, 组合机器人, 苹果智能炮, 风筝
   assert.deepEqual(names(361), ["激发力量", "噼啪乱击", "合击"]);
   assert.equal(makePet(tables, 360, 30, "d").skills.length, 3);
 });
+
+test("the computer's 亚比 out of PP takes a 高级活力豆 (its turn), then fights on; never 挣扎", () => {
+  const { e, b } = sturdy();
+  b.wild.pet.skills = [{ id: 1016, name: "噼啪乱击", pp: 0, max: 30 }];
+  const hp = b.mine.pet.hp;
+  const [bean, mine] = e.skillTurn(b, skillNamed("冲击腿"));
+  assert.equal(bean[0], "2412");
+  assert.equal(bean[1].reqSId, 1);
+  assert.match(String(bean[1].desc), /使用了高级活力豆/);
+  assert.equal(b.wild.pet.skills[0].pp, 20, "可恢复战斗中的亚比技能使用次数20次");
+  assert.equal(mine[0], "2411", "the player's skill still comes");
+  assert.equal(b.mine.pet.hp, hp, "the bean was its turn: no blow");
+  const [next] = e.wildTurn(b);
+  assert.equal(next[1].name, "噼啪乱击");
+  assert.equal(b.wild.pet.skills[0].pp, 19);
+});

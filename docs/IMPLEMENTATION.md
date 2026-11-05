@@ -204,7 +204,10 @@ The 2013 server's rules are lost. The main reconstructions:
   the next blows. A 蓄力 or 连续攻击N回合 skill goes on by itself (the player
   chooses nothing on those turns); a 连续攻击N回合 skill's power grows each
   turn of the N, starts again with its next use, and a miss takes the growth
-  back (save 不管命中与否); "使用千军万马后威力大大提升" doubles it.
+  back (save 不管命中与否); "使用千军万马后威力大大提升" doubles it. With no PP
+  left, the player's 亚比 uses 挣扎; the computer's (wild ones, bosses, 副本,
+  时空隧道, quests, 道馆) take a 高级活力豆 instead, of which they have no end:
+  their turn goes on it (20 uses back on every skill) and they fight on.
 - **Catching**: an ordinary 亚比球 works once a wild 亚比 is down to a fifth
   of its HP, earlier for easy species, at any HP for the 朵朵兔 (as the 2011
   walkthrough says); better balls raise the chance.
