@@ -23,13 +23,9 @@ What it does:
      only if its SHA-1 matches; it is written next to its place and renamed
      in, so an interrupted run leaves no broken file and can simply be run
      again.
-  2. Makes the few files that were made here, not downloaded (the theatre
-     films as MP4 and WebM, and a frame of each), with FFmpeg from the film
-     it downloaded. Their bytes differ from the revival's copy (encoders
-     differ), so they are not checked.
-  3. Writes game/FILES.jsonl (the list of what game/ holds) if it is missing.
-  4. Writes a report (default work/fetch-game-report.json) and prints a
-     summary: files fetched, already there, made, changed, failed.
+  2. Writes game/FILES.jsonl (the list of what game/ holds) if it is missing.
+  3. Writes a report (default work/fetch-game-report.json) and prints a
+     summary: files fetched, already there, changed, failed.
 
 Changed files: 百田 replaces files on its CDN from time to time, and its edge
 servers do not all hold the same version, so a copy that does not match is
@@ -51,8 +47,6 @@ import concurrent.futures
 import hashlib
 import json
 import os
-import shutil
-import subprocess
 import sys
 import threading
 import time
@@ -163,25 +157,6 @@ class Fetcher:
         os.replace(part, dest)
 
 
-def derive(a: argparse.Namespace, row: dict) -> dict:
-    dest = local(a.out, row["path"])
-    if os.path.isfile(dest) and os.path.getsize(dest) > 0:
-        return {"path": row["path"], "status": "present"}
-    d = row["derive"]
-    src = local(a.out, d["from"])
-    if not os.path.isfile(src):
-        return {"path": row["path"], "status": "failed", "tried": [f"its source {d['from']} is missing"]}
-    if a.no_derive or not shutil.which(a.ffmpeg):
-        return {"path": row["path"], "status": "skipped", "tried": [f"needs FFmpeg ({a.ffmpeg})"]}
-    os.makedirs(os.path.dirname(dest), exist_ok=True)
-    args = [x.replace("{in}", src).replace("{out}", dest) for x in d["args"]]
-    try:
-        subprocess.run([a.ffmpeg, *args], check=True)
-    except subprocess.CalledProcessError as e:
-        return {"path": row["path"], "status": "failed", "tried": [f"ffmpeg: {e}"]}
-    return {"path": row["path"], "status": "made"}
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sources", default=os.path.join(HERE, "data", "game-sources.jsonl"))
@@ -196,8 +171,6 @@ def main(argv=None) -> int:
     ap.add_argument("--wayback-delay", type=float, default=1.5, help="seconds between Wayback Machine requests")
     ap.add_argument("--keep-changed", action="store_true", help="keep files whose server copy no longer matches")
     ap.add_argument("--verify-only", action="store_true", help="check the files already in game/, download nothing")
-    ap.add_argument("--ffmpeg", default="ffmpeg")
-    ap.add_argument("--no-derive", action="store_true", help="do not make the theatre's MP4, WebM and pictures")
     ap.add_argument("--report", default=os.path.join(ROOT, "work", "fetch-game-report.json"))
     a = ap.parse_args(argv)
 
@@ -206,10 +179,9 @@ def main(argv=None) -> int:
         rows = [r for r in rows if any(r["path"].startswith(p) for p in a.only)]
     if a.limit:
         rows = rows[: a.limit]
-    plain = [r for r in rows if not r.get("derive")]
-    made = [r for r in rows if r.get("derive")]
+    plain = rows
     total = sum(r["size"] for r in plain)
-    print(f"{len(plain)} files to check ({total / 1e6:.0f} MB), {len(made)} to make; into {a.out}")
+    print(f"{len(plain)} files to check ({total / 1e6:.0f} MB); into {a.out}")
 
     results: list[dict] = []
     if a.verify_only:
@@ -236,12 +208,6 @@ def main(argv=None) -> int:
                         print(f"  {one['status']}: {one['path']}")
                     if done % 500 == 0:
                         print(f"  {done}/{len(plain)} ({time.time() - start:.0f} s)")
-    for r in made:
-        res = {"path": r["path"], "status": "present"} if a.verify_only and os.path.isfile(local(a.out, r["path"])) else (
-            {"path": r["path"], "status": "skipped"} if a.verify_only else derive(a, r))
-        results.append(res)
-        if res["status"] not in ("present", "made"):
-            print(f"  {res['status']}: {r['path']}")
 
     files_jsonl = os.path.join(a.out, "FILES.jsonl")
     if not a.verify_only and not a.only and not a.limit and not os.path.exists(files_jsonl):
@@ -254,7 +220,7 @@ def main(argv=None) -> int:
     counts: dict[str, int] = {}
     for r in results:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
-    problems = [r for r in results if r["status"] not in ("present", "fetched", "made")]
+    problems = [r for r in results if r["status"] not in ("present", "fetched")]
     os.makedirs(os.path.dirname(os.path.abspath(a.report)), exist_ok=True)
     with open(a.report, "w", encoding="utf-8") as fh:
         json.dump({"counts": counts, "problems": problems}, fh, ensure_ascii=False, indent=1)

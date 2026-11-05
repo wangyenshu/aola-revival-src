@@ -62,7 +62,6 @@ manifest (`versiondata.swf?201301241`) or the loader's default, `1210`.
 | `era` | 15,215 | 933 MB | uploaded to the CDN on or before the release, or found to be unchanged older files |
 | `later` | 4,073 | 426 MB | uploaded after the release, used where no older copy survives |
 | `capture` | 142 | 17 MB | Wayback Machine captures: the boot chain, the 2013 site's pictures, the November 2012 map |
-| `derived` | 6 | 64 MB | made here: the theatre films converted to WebM and MP4, and a frame of each |
 
 The files come from an archive of the live CDN
 ([ARCHIVE.md](ARCHIVE.md)) and earlier Wayback captures, selected by
@@ -99,7 +98,8 @@ Ruffle runs with `openUrlMode: "deny"`, so the game's links to 百田's pages
 open nothing. `?dev=1` enables test commands in the emulator.
 
 `web/theatre.js` answers the client's video calls (`showVideoPlayer` and
-others) with a panel that plays the surviving films. `web/start.js` is the
+others) by opening the game's 百田大剧场 (`control/TheatrePanel`, which plays
+the surviving FLVs). `web/start.js` is the
 start screen (单机模式 / 联机模式), `web/accounts.js` the 选择奥拉 screen of
 单机模式 (up to three 奥拉 a browser), and `web/saves.js` the 工具箱's 存档
 panels and the 信息卡's 改名字 / 改密码 panels, in both modes (the page's own
@@ -112,7 +112,7 @@ the configured hosts and answers them from `dist/files/` using
 `index.json`: the file with the requested version if it is listed, else the
 file of that path without a version. It sets the content type from the
 file's real extension (a static host cannot tell it from
-`aola.js~3F20121227`), passes range requests on for the theatre's videos and
+`aola.js~3F20121227`), passes range requests on and
 answers `crossdomain.xml` itself. Requests for other origins are answered as
 missing, so nothing is fetched from other sites. Without an index (the Node
 server), it tries each file root in turn.

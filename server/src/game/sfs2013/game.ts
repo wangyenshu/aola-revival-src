@@ -5,6 +5,7 @@
 import type { Emulator } from "../../core/emulator.ts";
 import { installPets, maxHpOf, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
 import { installBattles, gainExp, type WildEntry } from "./battle.ts";
+import { installPetDic } from "./petdic.ts";
 import { installPetItems, type Boosts } from "./petitems.ts";
 import { checkPass, hashPass, nameProblem, LOCKED, PassGuard, type AccountOptions, type PassRec } from "./accounts.ts";
 import { adoptRecord, fileProblem, jsonBytes, playerFile, rolesOf, SAVE_RECORD_MAX, type SaveFile } from "./saves.ts";
@@ -713,6 +714,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
 
   const today = () => emu.clock.now().toISOString().slice(0, 10);
   installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today, anyPet: toolbox || !!opts.dev });
+  installPetDic(world, { load: me, save: (o) => save(o as UserRecord), tables });
   installBattles(world, {
     load: me,
     save: (o) => save(o as UserRecord),

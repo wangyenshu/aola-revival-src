@@ -85,6 +85,7 @@ package mmo.control
          LayerManager.getBaseControl().addChild(bar);
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
+         TheatrePanel.install();
          // 好友 and 组队 of a shared server: invitations and the team following its leader.
          Social.start();
          ToolboxPanel.watchMoney();
@@ -225,6 +226,14 @@ package mmo.control
                   try { Object(svc).showRmbShoppingPanel(0); } catch (e:Error) { RLog.error("control mall", e); }
                });
                break;
+            case "petdic":
+               // The later client's 图鉴 on the 2013 libraries: its 收集 (a 2017 event's rewards) goes.
+               showPanel("PetDictionary", function():void
+               {
+                  var c:DisplayObject = findNamed(LayerManager.stage, "btnCollection");
+                  if (c != null) c.visible = false;
+               });
+               break;
             case "toolbox":
                ToolboxPanel.toggle();
                break;
@@ -360,14 +369,20 @@ package mmo.control
          });
       }
 
-      private static function showPanel(service:String):void
+      private static function showPanel(service:String, then:Function = null):void
       {
          ServiceContainer.instance.tryGetService(service, function(svc:IService, o:Object):void
          {
             var p:Object = svc;
             if (p != null && p.hasOwnProperty("showPanel"))
             {
-               try { p.showPanel(); return; } catch (e:Error) { RLog.error("control " + service, e); }
+               try
+               {
+                  p.showPanel();
+                  if (then != null) then();
+                  return;
+               }
+               catch (e:Error) { RLog.error("control " + service, e); }
             }
             RNotice.show(LayerManager.getBaseTop(), "这个功能还在修复中哦！");
          });
@@ -525,6 +540,10 @@ package mmo.control
                      // The name of the first shown object matching "prefix*" (tests/e2e).
                      var nm:DisplayObject = LayerManager.stage ? findNamed(LayerManager.stage, arg) : null;
                      return nm ? nm.name : "none";
+                  case "text":
+                     // The text of a shown text field of that name (tests/e2e).
+                     var tf:Object = LayerManager.stage ? findNamed(LayerManager.stage, arg) : null;
+                     return tf != null && tf.hasOwnProperty("text") ? String(tf.text) : "none";
                   case "fight": PetClient2.instance.startPKWithRobot(int(arg)); return "ok";
                   case "xt":
                      // A raw extension command "Extension.cmd k=v k=v" (tests/e2e: the 工具箱's revival_toolbox …); numbers stay numbers.

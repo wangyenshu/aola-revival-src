@@ -65,8 +65,7 @@ sh tools/bootstrap.sh              # the same, then npm ci, build:swf and build
 
 `tools/fetch_game.py` reads `tools/data/game-sources.jsonl`, which gives the
 download URLs of every file and its SHA-1; a file is kept only if it matches.
-The six files made here (the two theatre films as MP4 and WebM, and a
-picture of each) are made again with FFmpeg if it is installed. 百田 replaces files on its CDN from time to time; files that no
+百田 replaces files on its CDN from time to time; files that no
 longer match are listed in `work/fetch-game-report.json`, and
 `--keep-changed` keeps the newer copies instead. The whole archive
 (more files than the game uses) can be downloaded with
@@ -123,7 +122,7 @@ Notes:
 game/       archived game files at their 2013 URLs, listed in game/FILES.jsonl
 rebuild/    ActionScript sources (src/), generated sources (gen/), data (static/), build scripts (build/)
 server/     the server emulator, the in-page bundle, the service worker, the Node and Cloudflare servers, tests
-web/        the page, its boot script and settings, the start and 选择奥拉 screens, the theatre and save panels
+web/        the page, its boot script and settings, the start and 选择奥拉 screens, the save panels
 scripts/    build-static.mjs (builds dist/), serve.mjs (local static server)
 tools/      archive, data generation and SWF tools (Python), the mod SDK
 tests/      Python tests and shared fixtures

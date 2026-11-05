@@ -136,7 +136,7 @@
         document.head.appendChild(s);
       });
     }
-    // The 百田大剧场 overlay in place of the page script's (theatre.js).
+    // The 百田大剧场: the page script's video functions open the game's own (theatre.js).
     if (window.AolaTheatre) window.AolaTheatre.install();
     if (cfg.beforeRuffle) cfg.beforeRuffle();
 

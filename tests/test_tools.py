@@ -423,7 +423,7 @@ class GameSourcesTest(unittest.TestCase):
         for line in files.read_text(encoding="utf-8").splitlines():
             r = json.loads(line)
             s = listed.get(r["path"])
-            if s is None or s.get("sha1") != r.get("sha1") or not (s.get("urls") or s.get("derive")):
+            if s is None or s.get("sha1") != r.get("sha1") or not s.get("urls"):
                 missing.append(r["path"])
         self.assertEqual(missing[:5], [], f"{len(missing)} files of game/ have no source: run tools/game_sources.py build")
 

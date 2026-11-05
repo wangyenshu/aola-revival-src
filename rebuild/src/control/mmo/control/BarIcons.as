@@ -36,6 +36,7 @@ package mmo.control
             case "mall": mall(g); break;
             case "toolbox": toolbox(g); break;
             case "sandbox": sandbox(g); break;
+            case "petdic": petdic(g); break;
             case "items": items(g); break;
          }
          s.filters = [new DropShadowFilter(1.5, 90, 0x0B3F70, 0.45, 3, 3, 1)];
@@ -321,6 +322,32 @@ package mmo.control
          g.endFill();
          g.lineStyle();
          BarSkin.shine(g, -5, -10, 12, 5, 0.6);
+      }
+
+      /** The 图鉴: an open book with a paw print, on a green ball. */
+      private static function petdic(g:Graphics):void
+      {
+         BarSkin.ball(g, 0, 0, 17, 0x9BE86A, 0x2F9E3A, 0xFFFFFF, 2);
+         g.lineStyle(1.5, 0x1F5E2A);
+         g.beginFill(0xFFFDF2);
+         g.moveTo(0, -6); g.curveTo(-6, -10, -13, -8); g.lineTo(-13, 9); g.curveTo(-6, 7, 0, 11);
+         g.curveTo(6, 7, 13, 9); g.lineTo(13, -8); g.curveTo(6, -10, 0, -6);
+         g.endFill();
+         g.moveTo(0, -6); g.lineTo(0, 11);
+         g.lineStyle();
+         g.beginFill(0xE0702A);
+         g.drawEllipse(-9.5, 1, 6, 5);
+         g.drawCircle(-10.5, -2.5, 1.5);
+         g.drawCircle(-8, -4, 1.5);
+         g.drawCircle(-5, -4, 1.5);
+         g.drawCircle(-3.5, -1.5, 1.4);
+         g.endFill();
+         g.lineStyle(1, 0x7FA88A);
+         g.moveTo(3, -2); g.lineTo(10, -3);
+         g.moveTo(3, 2); g.lineTo(10, 1.5);
+         g.moveTo(3, 6); g.lineTo(9, 5.5);
+         g.lineStyle();
+         BarSkin.shine(g, -6, -11, 12, 5, 0.5);
       }
 
       /** The 沙盒: a sand castle with its flag and a little spade, on a sand-coloured ball. */

@@ -13,7 +13,6 @@ which tools it uses. How the parts work is described in
 | Python | 3.10 or newer, standard library only | the build helpers and the data and archive tools |
 | A POSIX shell, `curl`, `unzip` | any | `rebuild/build/*.sh` and the toolchain download (Linux, macOS or WSL) |
 | Chromium for Playwright | `npx playwright install chromium` | the browser tests only |
-| FFmpeg | any recent | `tools/theatre.py` only (converting the theatre films) |
 | JPEXS FFDec (standalone) | 26.x | regenerating the data in `rebuild/gen` only; the build fetches its own copy |
 
 The first `npm run build:swf` runs `rebuild/build/setup-toolchain.sh`, which
@@ -102,7 +101,8 @@ web/
   config.js                   settings (boot URL, hosts, socket address, mode, clock)
   boot.js                     starts the service worker, the emulator and Ruffle
   start.js, accounts.js       the start screen (单机模式 / 联机模式), the 选择奥拉 screen
-  saves.js, theatre.js        the 存档 and 改名字 / 改密码 panels, the theatre panel
+  saves.js                    the 存档 and 改名字 / 改密码 panels
+  theatre.js                  the page's video functions, which open the game's 百田大剧场
   robots.txt                  asks all crawlers to stay out
 
 scripts/
@@ -300,13 +300,13 @@ of each file explains its inputs.
 | `extract_archive.py` | unpack the archive pieces and verify every file |
 | `archive_additions.py` | add the files `game/` took later to the archive's indexes |
 | `make_game_root.py` | select the files the revival serves into `game/` and list them in `FILES.jsonl` (`select`), or rebuild `game/` from the list and an archive (`assemble`) |
-| `fetch_game.py` | download every file of `game/` again from 百田's CDN and the Wayback Machine, checking each SHA-1, and make the theatre's videos with FFmpeg (for a checkout without `game/`) |
+| `fetch_game.py` | download every file of `game/` again from 百田's CDN and the Wayback Machine, checking each SHA-1 (for a checkout without `game/`) |
 | `game_sources.py` | keep `tools/data/game-sources.jsonl`, the download URLs of every file of `game/` (`build`), and check it against `game/FILES.jsonl` (`check`) |
 | `bootstrap.sh` | `fetch_game.py`, then `npm ci`, `build:swf` and `build` |
 | `add_later.py` | add live CDN copies of files the 2013 client asks for (from the CDN, or `--archive` from a copy of the archive) |
 | `story_files.py` | find and add the files the 2012 story quests need |
 | `weeklies.py` | add the 奥拉周刊 back issues |
-| `theatre.py` | add the theatre films and convert them to WebM and MP4 (FFmpeg) |
+| `theatre.py` | add the theatre films (FLV) and write their list, `revival/theatre.xml` |
 | `fetch_refs.sh` | fetch the November 2012 world map from 百田's guide page |
 | `wayback.py` | capture 2012-era files from the Wayback Machine |
 | `manifest.py` | turn the client's version manifests and code into a list of wanted URLs |

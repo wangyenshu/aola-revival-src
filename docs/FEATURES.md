@@ -862,8 +862,12 @@ run pays 晶豆, as its end panel says.
   奇迹谷底, 生命之树, 水下广场, 烈焰洞穴) in 24 or 72 hours.
 - 天赋启迪 (the 天赋改造机 in 亚比研究中心): raising a 亚比's 天赋 with 启迪能量
   or 星币.
-- The 亚比图鉴, with the 亚比 up to 1651 (those after January 2013 from the
-  later game's files, for the 工具箱).
+- The 亚比图鉴 (the 图鉴 button under 任务): the later game's panel (2017) on
+  the 2013 files, with the 亚比 up to 1651 (those after January 2013 from the
+  later game's files, for the 工具箱). A 亚比 is 发现 once fought and 收集 once
+  owned ("亚比图鉴有了新的记录" over the player after the fight); 最新发现 shows
+  the 亚比 of the 24 January 2013 update. Its 收集 rewards (a 2017 event) are
+  not there.
 - 亚比道具 (the bag's 道具 tab): every item of 2013 that is used on a 亚比.
 - 战术卡 (the bag's 战术卡 tab): the 35 cards of 2013, one in each place
   (A, B, C) of a 亚比, adding to its stats; a 亚比 BOSS beaten sometimes gives
@@ -912,7 +916,7 @@ run pays 晶豆, as its end panel says.
 - The 奥拉周刊 of every week from July 2010 (126 issues) and the 亚比手册 in the
   图书馆.
 - The 百田大剧场 with the films that survive: 奥拉星2周年 (July 2012) and the
-  战队 film.
+  战队 film, played in the game (their FLVs).
 - 欢乐岛's hot spring with its costumes (seen by the others in the room) and
   experience.
 - The 生态园 games 动物保卫战, 天空保卫战 and 海底保卫战, with their progress.

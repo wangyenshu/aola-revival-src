@@ -3,8 +3,8 @@
 
 game/ holds 百田's files. To publish the code without them, a checkout needs a
 way to get them back: tools/data/game-sources.jsonl lists every file of
-game/FILES.jsonl with the URLs it can be downloaded from, and how the few
-files made here are made again. tools/fetch_game.py reads it.
+game/FILES.jsonl with the URLs it can be downloaded from. tools/fetch_game.py
+reads it.
 
 Each line is the file's FILES.jsonl entry (path, size, sha1, origin, lm, src,
 added, from) plus:
@@ -12,9 +12,6 @@ added, from) plus:
   urls     URLs to try in order: the live CDN (http://aola.100bt.com/play/…),
            a Wayback Machine capture in its raw form (https://web.archive.org/
            web/<timestamp>id_/<original URL>), or another 百田 host
-  derive   for files made here (origin "derived"): {"tool": "ffmpeg", "from":
-           <path of the source file>, "args": [...]} where the args are those
-           tools/theatre.py used, with {in} and {out} for the two files
   note     why the file may not download as listed (its CDN copy was replaced
            and the revival does not need it); tools/fetch_game.py then warns
            instead of failing
@@ -58,18 +55,6 @@ sys.path.insert(0, HERE)
 from mirrorpath import url_to_relpath  # noqa: E402
 DEFAULT_SOURCES = os.path.join(HERE, "data", "game-sources.jsonl")
 CDN = "http://aola.100bt.com/play/"
-
-# The conversions tools/theatre.py made of the theatre films (FLV, VP6 and MP3),
-# by the extension of the file made. {in} and {out} are the two paths.
-DERIVE = {
-    ".mp4": ["-v", "error", "-y", "-i", "{in}", "-map", "0:v:0", "-map", "0:a:0?",
-             "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
-             "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", "{out}"],
-    ".webm": ["-v", "error", "-y", "-i", "{in}", "-map", "0:v:0", "-map", "0:a:0?",
-              "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "34", "-deadline", "realtime", "-cpu-used", "8", "-row-mt", "1",
-              "-c:a", "libopus", "-b:a", "80k", "{out}"],
-    ".jpg": ["-v", "error", "-y", "-ss", "12", "-i", "{in}", "-frames:v", "1", "-vf", "scale=240:-2", "-q:v", "4", "{out}"],
-}
 
 WAYBACK_RE = re.compile(r"^https?://web\.archive\.org/web/(\d+)(?:[a-z]{2}_)?/(.+)$")
 
@@ -131,15 +116,8 @@ def build(a: argparse.Namespace) -> int:
     for f in files:
         row = dict(f)
         prev = previous.get(f["path"])
-        if prev and prev.get("sha1") == f["sha1"] and (prev.get("urls") or prev.get("derive")):
-            if prev.get("urls"):
-                row["urls"] = prev["urls"]
-            if prev.get("derive"):
-                row["derive"] = prev["derive"]
-        elif f.get("origin") == "derived":
-            ext = os.path.splitext(f["path"])[1]
-            if f.get("from") and ext in DERIVE:
-                row["derive"] = {"tool": "ffmpeg", "from": f["from"], "args": DERIVE[ext]}
+        if prev and prev.get("sha1") == f["sha1"] and prev.get("urls"):
+            row["urls"] = prev["urls"]
         else:
             urls = []
             if f.get("src"):
@@ -156,7 +134,7 @@ def build(a: argparse.Namespace) -> int:
             row["note"] = notes[f["path"]]
         elif prev and prev.get("sha1") == f["sha1"] and prev.get("note"):
             row["note"] = prev["note"]
-        if not row.get("urls") and not row.get("derive"):
+        if not row.get("urls"):
             unresolved.append(f["path"])
         out.append(row)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
@@ -167,7 +145,7 @@ def build(a: argparse.Namespace) -> int:
     os.replace(tmp, a.out)
     kinds: dict[str, int] = {}
     for r in out:
-        k = "derive" if r.get("derive") else (r["urls"][0].split("/")[2] if r.get("urls") else "none")
+        k = r["urls"][0].split("/")[2] if r.get("urls") else "none"
         kinds[k] = kinds.get(k, 0) + 1
     print(f"{len(out)} files -> {a.out}")
     for k, n in sorted(kinds.items(), key=lambda kv: -kv[1]):
@@ -190,7 +168,7 @@ def check(a: argparse.Namespace) -> int:
             bad.append(f"not listed: {f['path']}")
         elif s.get("sha1") != f["sha1"]:
             bad.append(f"other SHA-1: {f['path']}")
-        elif not s.get("urls") and not s.get("derive"):
+        elif not s.get("urls"):
             bad.append(f"no source: {f['path']}")
     gone = set(sources) - {f["path"] for f in files}
     bad += [f"listed but not in FILES.jsonl: {p}" for p in sorted(gone)]

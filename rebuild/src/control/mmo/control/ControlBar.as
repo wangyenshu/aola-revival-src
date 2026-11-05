@@ -76,10 +76,11 @@ package mmo.control
          addButton(mall, 938, 512);
          // 副本 mode: the way out (IControl.fbLeaveButton; the 四大副本's FBButtonManager listens on it), where 回家 is.
          addButton(new BarButton("btn_fbleave", BarIcons.make("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
-         // The revival's 工具箱 (not of 2013), under the task icon.
-         addButton(new BarButton("btn_toolbox", BarIcons.make("toolbox"), "工具箱", 0, 20, click), 936, 114);
-         // and its 沙盒 (fights the player sets up), under it.
-         addButton(new BarButton("btn_sandbox", BarIcons.make("sandbox"), "沙盒", 0, 20, click), 936, 168);
+         // The 亚比图鉴 (pet/petdictionary), under the task icon.
+         addButton(new BarButton("btn_petdic", BarIcons.make("petdic"), "图鉴", 0, 20, click), 936, 114);
+         // The revival's 工具箱 (not of 2013), and its 沙盒 (fights the player sets up), under it.
+         addButton(new BarButton("btn_toolbox", BarIcons.make("toolbox"), "工具箱", 0, 20, click), 936, 176);
+         addButton(new BarButton("btn_sandbox", BarIcons.make("sandbox"), "沙盒", 0, 20, click), 936, 238);
          buildChat();
          buildSound();
          buildClock();

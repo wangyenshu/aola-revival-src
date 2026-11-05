@@ -60,6 +60,7 @@ import { installSandbox } from "./sandbox.ts";
 import { applyFate, dollLevel, gymOf, gymWon, installGyms, towerFloorWon, GYM_DARK, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
 import { sceneOfRoom, type World, type XtContext } from "./server.ts";
 import { registerFights } from "./fighting.ts";
+import { markDic, MET, NEW_RECORD, OWNED } from "./petdic.ts";
 import { installDuels, type Duel } from "./duel.ts";
 import type { Boosts, PetItemOwner } from "./petitems.ts";
 
@@ -958,6 +959,11 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // bosses), by which the battle screen finds the boss's films (bossfightmovie/boss<id>).
       ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race, ...(auto ? { auto: true, autoLeft: boosts?.auto ?? 0 } : {}) }],
     ]);
+    // The 图鉴 (petdic.ts): the species met (not the 沙盒's).
+    if (!sandbox && markDic(o, t, race, MET)) {
+      await deps.save(o);
+      send(ctx, [NEW_RECORD]);
+    }
     return true;
   };
 
@@ -1638,6 +1644,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     send(ctx, [
       ["2415", { reqId: o.id, tarSId: 1, itemId: ball, pmId: caught.id, raceId: caught.race, lv, lc: inBag ? 1 : 2, pet: briefOf(caught, o, t), desc: `捕捉成功！${nameOf(t, caught.race)}${inBag ? "进入了你的亚比背包" : "被送进了亚比仓库"}。` }],
       ["2403", { isWin: true, isCatched: true, raceId: caught.race, desc: "捕捉成功！", pmmList: e.views(b) }],
+      ...(markDic(o, t, caught.race, OWNED) ? [NEW_RECORD] : []),
     ]);
     return "end";
   });

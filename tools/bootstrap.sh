@@ -1,8 +1,7 @@
 #!/bin/sh
 # From a checkout without 百田's game files: download them, then build the site.
 #   sh tools/bootstrap.sh [options of tools/fetch_game.py, e.g. --keep-changed]
-# Needs Python 3, Node 22.18+, Java 11+, curl and unzip (docs/DEVELOPMENT.md);
-# FFmpeg makes the theatre's films playable in the page (optional).
+# Needs Python 3, Node 22.18+, Java 11+, curl and unzip (docs/DEVELOPMENT.md).
 set -e
 cd "$(dirname "$0")/.."
 python3 tools/fetch_game.py "$@" || {

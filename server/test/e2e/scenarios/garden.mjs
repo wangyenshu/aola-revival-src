@@ -1,8 +1,8 @@
 // The 家园 and the 百田大剧场, as a player: 回家 leads to the garden; the
 // 植树盆 offers the eight trees; plant a 月亮树, give it 雨露 and 养料 (it
 // grows a level) and see it in the pot; 我的家 leads into the 小屋 with the
-// control bar back; the theatre scene opens the films over the game and one
-// plays. npm run e2e:garden
+// control bar back; the theatre scene opens its films and one plays (FLV).
+// npm run e2e:garden
 import { closeTalk } from "./lib.mjs";
 
 async function where(h, name) {
@@ -53,17 +53,14 @@ export default async function (h) {
   h.log("in the 小屋");
   await h.shot("house");
   await h.hook("goto", "theatre");
-  for (let i = 0; i < 40 && !(await h.page.evaluate(() => !!document.getElementById("aolaTheatre"))); i++) await h.sleep(500);
-  if (!(await h.page.evaluate(() => !!document.getElementById("aolaTheatre")))) throw new Error("the theatre did not open its films");
-  await h.page.evaluate(() => document.querySelector("#aolaTheatre .film")?.click());
-  await h.sleep(6000);
-  const playing = await h.page.evaluate(() => {
-    const v = document.querySelector("#aolaTheatre video");
-    return v ? v.currentTime : -1;
-  });
-  h.log(`theatre: the film at ${playing.toFixed(1)} s`);
+  await waitFor(h, "film_anniversary2", 20);
+  await click(h, "film_anniversary2");
+  await h.sleep(8000);
+  const time = String(await h.hook("text", "theatreTime"));
+  const playing = /^(\d+):(\d+)/.exec(time);
+  h.log(`theatre: ${time}`);
   await h.shot("theatre");
-  if (!(playing > 0)) throw new Error("the film does not play");
-  await h.page.evaluate(() => window.clearDiv());
+  if (!playing || Number(playing[1]) * 60 + Number(playing[2]) <= 0) throw new Error("the film does not play");
+  await click(h, "theatreClose");
   h.log("garden scenario passed");
 }

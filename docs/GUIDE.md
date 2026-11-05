@@ -84,6 +84,7 @@ either:
 | 商城 (cart) | The 收费 catalogs (服装, 道具, 家具, 亚比蛋), bought with 星币. |
 | ♪ | Music on or off. |
 | 任务 (top right) | The task panel. |
+| 图鉴 (under 任务) | The 亚比图鉴: every 亚比, by 属性 or by name; those you have fought (发现) and owned (收集) show their details. |
 | 工具箱, 沙盒 (right) | The revival's tools, described below. |
 
 Money: 晶币 are earned in the game (battles, mini games, quests). 星币 stand

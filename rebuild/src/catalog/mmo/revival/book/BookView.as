@@ -46,6 +46,10 @@ package mmo.revival.book
       private var moneyText:TextField;
       private var loading:TextField;
       private var token:int;
+      /** The drawn 上一页 / 下一页 bar, 晶币 and close button: for pages without their own (btnback, btnnext, btnclose). */
+      private var bar:Sprite;
+      private var money:Sprite;
+      private var closeBtn:Sprite;
 
       public static function open(book:BookInfo, index:int):BookView
       {
@@ -59,7 +63,8 @@ package mmo.revival.book
          super();
          this.book = book;
          build();
-         LayerManager.getBaseTop().addChild(this);
+         // Over what is shown: a panel that took the layers over (the 图鉴's 属性克制 opens a handbook) is on the fight layer.
+         (LayerManager.getCurrentLayer() == LayerManager.BASE_LAYER ? LayerManager.getBaseTop() : LayerManager.getFightingTop()).addChild(this);
          if (PlayerManager.getInstance().myPlayer) PlayerManager.getInstance().myPlayer.stop();
          SocketClient.instance.addEventListener("onScoreUpdated", onMoney);
          SocketClient.instance.addEventListener(SocketClientEvent.onGetTotalScore, onMoney);
@@ -86,7 +91,7 @@ package mmo.revival.book
          loading.y = 260;
          addChild(loading);
 
-         var bar:Sprite = new Sprite();
+         bar = new Sprite();
          var m:Matrix = new Matrix();
          m.createGradientBox(420, 36, Math.PI / 2);
          bar.graphics.lineStyle(2, 0xFFFFFF);
@@ -113,7 +118,7 @@ package mmo.revival.book
          next.y = 8;
          bar.addChild(next);
 
-         var money:Sprite = new Sprite();
+         money = new Sprite();
          money.graphics.lineStyle(2, 0xFFFFFF);
          money.graphics.beginFill(0xF6B21B);
          money.graphics.drawRoundRect(0, 0, 230, 30, 26, 26);
@@ -141,6 +146,7 @@ package mmo.revival.book
          close.y = 36;
          close.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); close_(); });
          addChild(close);
+         closeBtn = close;
       }
 
       private function close_():void
@@ -236,6 +242,22 @@ package mmo.revival.book
          }
          holder.addChild(page);
          page.addEventListener(MouseEvent.CLICK, onClick, true);
+         // A page with its own 上一页 / 下一页 or close (the 2013 book frame used them): not the drawn ones.
+         var own:DisplayObjectContainer = page as DisplayObjectContainer;
+         // (Those are the handbooks and the 周刊, which sell nothing: the 晶币 would cover their 上一页.)
+         bar.visible = money.visible = !(own && hasNamed(own, ["btnback", "btnnext"]));
+         closeBtn.visible = !(own && hasNamed(own, ["btnclose"]));
+      }
+
+      private static function hasNamed(c:DisplayObjectContainer, names:Array):Boolean
+      {
+         for (var i:int = 0; i < c.numChildren; i++)
+         {
+            var d:DisplayObject = c.getChildAt(i);
+            if (names.indexOf(d.name) >= 0) return true;
+            if (d is DisplayObjectContainer && hasNamed(DisplayObjectContainer(d), names)) return true;
+         }
+         return false;
       }
 
       private static function inStage(b:Rectangle):Boolean
@@ -264,7 +286,9 @@ package mmo.revival.book
          {
             if (t.name && t.name.indexOf("instance") != 0)
             {
-               if (t.name.indexOf("btnClose") == 0) { e.stopImmediatePropagation(); close(); return; }
+               if (t.name.indexOf("btnClose") == 0 || t.name == "btnclose") { e.stopImmediatePropagation(); close(); return; }
+               // The page's own turning buttons (the later BookManagerBase: btnnext, btnback).
+               if (t.name == "btnnext" || t.name == "btnback") { e.stopImmediatePropagation(); go(index + (t.name == "btnnext" ? 1 : -1)); return; }
                if (onPageClick != null && onPageClick(t.name) === true) { e.stopImmediatePropagation(); return; }
             }
             t = t.parent;

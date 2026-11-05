@@ -59,7 +59,6 @@ class GameFetchTest(unittest.TestCase):
                 {"path": "www.9aola.com/b.swf%3F1210", "size": 8, "sha1": sha(b"original"), "origin": "later", "src": "b.swf"},
                 {"path": "www.9aola.com/c.png", "size": 8, "sha1": sha(b"captured"), "origin": "capture"},
                 {"path": "www.9aola.com/gone.swf", "size": 3, "sha1": sha(b"???"), "origin": "capture"},
-                {"path": "www.9aola.com/revival/x.mp4", "size": 1, "sha1": sha(b"x"), "origin": "derived", "from": "www.9aola.com/a.swf%3F1210"},
             ]
             with open(files, "w", encoding="utf-8") as f:
                 f.write("".join(json.dumps(r) + "\n" for r in rows))
@@ -73,7 +72,6 @@ class GameFetchTest(unittest.TestCase):
             src = {json.loads(line)["path"]: json.loads(line) for line in open(out, encoding="utf-8")}
             self.assertEqual(src["www.9aola.com/a.swf%3F1210"]["urls"], ["http://aola.100bt.com/play/a.swf"])
             self.assertEqual(src["www.9aola.com/c.png"]["urls"], ["https://web.archive.org/web/20130101000000id_/http://x/c.png"])
-            self.assertIn("derive", src["www.9aola.com/revival/x.mp4"])
             self.assertNotIn("urls", src["www.9aola.com/gone.swf"])
             self.assertEqual(game_sources.main(["check", "--files", files, "--sources", out]), 1)  # gone.swf has no source
 
@@ -85,12 +83,11 @@ class GameFetchTest(unittest.TestCase):
                 f.write("".join(json.dumps(r) + "\n" for r in src.values()))
             game = os.path.join(d, "game")
             report = os.path.join(d, "report.json")
-            args = ["--sources", out, "--out", game, "--report", report, "--retries", "1", "--mismatch-retries", "0", "--no-derive"]
+            args = ["--sources", out, "--out", game, "--report", report, "--retries", "1", "--mismatch-retries", "0"]
             self.assertEqual(fetch_game.main(args), 1)
             got = {p["path"]: p["status"] for p in json.load(open(report, encoding="utf-8"))["problems"]}
             self.assertEqual(got["www.9aola.com/b.swf%3F1210"], "changed-skipped")
             self.assertEqual(got["www.9aola.com/gone.swf"], "failed")
-            self.assertEqual(got["www.9aola.com/revival/x.mp4"], "skipped")
             self.assertEqual(open(os.path.join(game, "www.9aola.com", "a.swf%3F1210"), "rb").read(), b"era file")
             self.assertTrue(os.path.exists(os.path.join(game, "www.9aola.com", "c.png")))
             self.assertFalse(os.path.exists(os.path.join(game, "www.9aola.com", "b.swf%3F1210")))
