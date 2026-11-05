@@ -209,7 +209,7 @@ const petById = (o: ActsOwner, id: unknown) => (o.pets ?? []).find((p) => p.id =
 /** Evolve a 亚比 into `to` (its follow variable updated when it follows). */
 function evolve(world: World, ctx: XtContext, o: ActsOwner, pet: PetRecord, to: number): void {
   pet.race = to;
-  if (o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+  if (o.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
 }
 
 /** Rewards [{type, id, num}] of 100 (晶币) and 101 (experience for the first 亚比). */

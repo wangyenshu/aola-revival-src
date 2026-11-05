@@ -25,6 +25,7 @@ function setup(opts: { rng?: number[]; pets?: PetRecord[] } = {}) {
   const world = {
     xt: (k: string, h: XtHandler) => (handlers.set(k, h), world),
     setUserVars: (_s: unknown, v: Record<string, unknown>) => userVars.push(v),
+    setUserVarOnce: (_s: unknown, k: string, v: unknown) => userVars.push({ [k]: v }),
   } as unknown as World;
   const owner: ActsOwner = { name: "小奥拉", score: 0, xingbi: 100, items: {}, pets: opts.pets ?? [pet(1, 651)] };
   const friend: ActsOwner = { name: "朋友", score: 0, items: {}, pets: [] };

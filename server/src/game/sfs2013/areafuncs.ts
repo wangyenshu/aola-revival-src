@@ -286,7 +286,7 @@ export function installAreaFuncs(world: World, deps: AreaDeps): void {
     const p = rec.pets?.find((x) => x.id === pmId);
     if (!p || p.race !== KNIGHT_PET || p.level < KNIGHT_LEVEL || !KNIGHTS.includes(race)) return false;
     p.race = race;
-    if (rec.followPet === p.id) world.setUserVars(ctx.session, { p: followVar(p as PetRecord) });
+    if (rec.followPet === p.id) world.setUserVarOnce(ctx.session, "p", followVar(p as PetRecord));
     return true;
   };
   world.xt(`${PA}.knight_2`, async (ctx) => {
@@ -480,7 +480,7 @@ export function installAreaFuncs(world: World, deps: AreaDeps): void {
     if (!p || !form || (bag(rec)[form[0]] ?? 0) < 1) return ctx.reply({ res: -1 });
     give(ctx, rec, form[0], -1);
     p.race = form[1];
-    if (rec.followPet === p.id) world.setUserVars(ctx.session, { p: followVar(p as PetRecord) });
+    if (rec.followPet === p.id) world.setUserVarOnce(ctx.session, "p", followVar(p as PetRecord));
     await deps.save(rec);
     ctx.reply({ res: 0 });
   });

@@ -157,7 +157,38 @@ package mmo.petfightnew
             into.addChild(d);
          };
          if (RDef.has(cls)) put();
-         else ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});
+         else if (attr >= 0 && attr <= 21) ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});
+         else badge(into, attr, box);
+      }
+
+      private static const LATER_NAMES:Object = {23: "超数码", 24: "超木", 25: "超水", 26: "超火", 27: "超土", 28: "超电", 29: "超光", 30: "超暗",
+         31: "超龙", 32: "超上古", 33: "超圣灵", 34: "超王", 999: "超"};
+
+      /**
+       * The 属性 of the later 亚比 the tools give (超暗 30 …): petattribute has icons for 0–21 only, so
+       * a round badge with its name, as the 亚比's skill tips show it (PetSkillMesService).
+       */
+      private static function badge(into:DisplayObjectContainer, attr:int, box:int):void
+      {
+         var name:String = LATER_NAMES[attr] ? String(LATER_NAMES[attr]) : "";
+         while (into.numChildren) into.removeChildAt(0);
+         if (!name) return;
+         var r:Number = box / 2 - 1;
+         var s:Sprite = new Sprite();
+         s.graphics.lineStyle(1, 0xFFFFFF);
+         s.graphics.beginFill(0x6A2BB5);
+         s.graphics.drawCircle(0, 0, r);
+         s.graphics.endFill();
+         var t:TextField = new TextField();
+         t.defaultTextFormat = new TextFormat("宋体", Math.max(7, Math.round(box * (name.length > 1 ? 0.36 : 0.55))), 0xFFFFFF, true);
+         t.autoSize = TextFieldAutoSize.LEFT;
+         t.selectable = false;
+         t.mouseEnabled = false;
+         t.text = name;
+         t.x = -t.width / 2;
+         t.y = -t.height / 2;
+         s.addChild(t);
+         into.addChild(s);
       }
 
       /** item/view<id>.swf: mmo.item.view<id> (what the 2013 ItemViewCreator loads), fitted into a box. */

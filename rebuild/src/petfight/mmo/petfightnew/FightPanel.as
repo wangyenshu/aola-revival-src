@@ -295,7 +295,7 @@ package mmo.petfightnew
       /** A turn begins (or a fallen 亚比 is to be replaced): its time starts. */
       private function newTurnClock():void
       {
-         deadline = auto ? 0 : getTimer() + TURN_SECONDS * 1000;
+         deadline = auto || forcedSkill() > 0 ? 0 : getTimer() + TURN_SECONDS * 1000;
          onClock(null);
       }
 
@@ -825,24 +825,54 @@ package mmo.petfightnew
       {
          var n:int = list.length;
          var gap:Number = n > 8 ? 50 / 24 / n : 8 / 24;
+         // The count of hits so far, over the 亚比, as each one lands (the later MultipleTimesMovie).
+         var count:TextField = new TextField();
+         count.defaultTextFormat = new TextFormat("Arial Black", 30, 0xFFE66A, true);
+         count.autoSize = TextFieldAutoSize.LEFT;
+         count.selectable = false;
+         count.filters = [new GlowFilter(0xFFFFFF, 1, 3, 3, 10), new GlowFilter(0x5A0A00, 1, 2, 2, 6)];
+         var at:Array = holder(slot == 0);
          var hit:Function = function(i:int):void
          {
             TweenLite.delayedCall(gap * i, function():void
             {
                var d:int = int(list[i]);
                var c:Boolean = cri != null && int(cri[i]) == 1;
-               var dx:Number = (i % 3 - 1) * 22;
-               if (d > 0) float(slot, (c ? "暴击" : "") + "-" + d, c ? 0xFFB01E : 0xE8301E, c, dx, -8 * (i % 2));
-               else float(slot, "MISS", 0xFFFFFF, false, dx);
+               // Each hit its own place, round the 亚比, so that no number covers the last.
+               var dx:Number = ((i * 3) % 5 - 2) * 30;
+               var dy:Number = (i % 2) * -26 + 20;
+               if (d > 0) hitFloat(slot, (c ? "暴击" : "") + "-" + d, c ? 0xFFB01E : 0xE8301E, dx, dy);
+               else hitFloat(slot, "MISS", 0xFFFFFF, dx, dy);
+               count.text = (i + 1) + "连击";
+               count.x = at[0] - count.width / 2 - (slot == 0 ? 0 : 20);
+               count.y = at[1] - 206;
+               if (count.parent == null) floatLayer.addChild(count);
+               count.scaleX = count.scaleY = 1;
             });
          };
          for (var i:int = 0; i < n; i++) hit(i);
          TweenLite.delayedCall(gap * n + 0.2, function():void
          {
-            float(slot, n + "连击", 0xFFE66A, true, 0, -56);
+            TweenLite.to(count, 1.0, {alpha: 0, delay: 0.8, onComplete: function():void { if (count.parent) count.parent.removeChild(count); }});
             if (total < 0) float(slot, (eff > 1 ? "克制" : (eff < 1 ? "微弱" : "")) + total, 0xE8301E, true, 0, 4);
             done();
          });
+      }
+
+      /** One hit's number of a 连击: small, quick, where it is put. */
+      private function hitFloat(slot:int, value:String, color:uint, dx:Number, dy:Number):void
+      {
+         var t:TextField = new TextField();
+         t.defaultTextFormat = new TextFormat("Arial Black", 22, color, true);
+         t.autoSize = TextFieldAutoSize.LEFT;
+         t.selectable = false;
+         t.text = value;
+         t.filters = [new GlowFilter(0xFFFFFF, 1, 3, 3, 10), new GlowFilter(0x5A0A00, 1, 2, 2, 6)];
+         var at:Array = holder(slot == 0);
+         t.x = at[0] - t.width / 2 - (slot == 0 ? 0 : 20) + dx;
+         t.y = at[1] - 150 + dy;
+         floatLayer.addChild(t);
+         TweenLite.to(t, 0.8, {y: t.y - 24, alpha: 0, delay: 0.25, onComplete: function():void { if (t.parent) t.parent.removeChild(t); }});
       }
 
       /** The skill's name called out by the 亚比 that uses it ("龙牙剑!!"). */
@@ -863,7 +893,25 @@ package mmo.petfightnew
          commandsOn = on;
          if (on) switchSent = false;
          applyCommandState();
-         if (on && auto && !forcedSwitch) TweenLite.delayedCall(1.2, autoSkill);
+         if (on && !forcedSwitch && forcedSkill() > 0) TweenLite.delayedCall(1.2, useForced);
+         else if (on && auto && !forcedSwitch) TweenLite.delayedCall(1.2, autoSkill);
+      }
+
+      /** The skill my 亚比 uses this turn by itself (蓄力, 连续攻击N回合: battleView.forced), or 0. */
+      private function forcedSkill():int
+      {
+         try { return int(me.battleView.forced); } catch (e:Error) {}
+         return 0;
+      }
+
+      /** It goes on with that skill: nothing is chosen this turn. */
+      private function useForced():void
+      {
+         var id:int = forcedSkill();
+         if (closed || !commandsOn || forcedSwitch || id <= 0) return;
+         hideTooltip();
+         setCommands(false);
+         PetClient.instance.useSkill(id, 1, true);
       }
 
       /** 自动战斗仪: the first skill with uses left (the struggle with none), as if clicked. */
@@ -883,7 +931,7 @@ package mmo.petfightnew
 
       private function applyCommandState():void
       {
-         var on:Boolean = commandsOn && !forcedSwitch;
+         var on:Boolean = commandsOn && !forcedSwitch && forcedSkill() <= 0;
          WheelButton(wheel.fight).enabled = on || current != "fight";
          WheelButton(wheel.item).enabled = on;
          WheelButton(wheel.catch).enabled = on && canCatch;

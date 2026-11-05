@@ -199,7 +199,12 @@ The 2013 server's rules are lost. The main reconstructions:
   points), draining, healing, PP, shields and counters, effects that last
   some turns, charging and multi-turn skills. Every description of the
   图鉴's 亚比 is read to the last word; how much a "一定概率" is, or how
-  strong "越少越大" grows, is a guess.
+  strong "越少越大" grows, is a guess. A 回复 is shown whole, though the 体力
+  stops at its maximum; 嗜血之矛's heal past it becomes 护盾 points, which take
+  the next blows. A 蓄力 or 连续攻击N回合 skill goes on by itself (the player
+  chooses nothing on those turns); a 连续攻击N回合 skill's power grows each
+  turn of the N, starts again with its next use, and a miss takes the growth
+  back (save 不管命中与否); "使用千军万马后威力大大提升" doubles it.
 - **Catching**: an ordinary 亚比球 works once a wild 亚比 is down to a fifth
   of its HP, earlier for easy species, at any HP for the 朵朵兔 (as the 2011
   walkthrough says); better balls raise the chance.

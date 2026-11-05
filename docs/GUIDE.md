@@ -134,8 +134,11 @@ Following and battles work for all 55:
   game files and follow you as their large 图鉴 picture.
 - **战斗**: all 55 have battle sprites and battle data, so they can fight in
   every kind of battle. Their skills are the ones the 2013 tables list. As
-  enemies they needed few: many know only one to three skills, and 360
-  苹果智能炮 and 361 风筝雷电射线 have none, so they cannot attack.
+  enemies they needed few: many know only one to three skills. Four of them
+  have the skills they fought with in their quests, from the tables' battle
+  rows (10332 …): 332 邪恶霹雳 and 334 组合机器人, whose own rows carry the 烈火鸟
+  line's 16 skills (copied with its numbers), and 360 苹果智能炮 and 361
+  风筝雷电射线, whose own rows list none.
 
 They cannot be caught in the wild or in the 副本 (the tables give them no
 catch rate), and the column 可学技能 counts the skills their line learns.
@@ -175,12 +178,12 @@ catch rate), and the column 可学技能 counts the skills their line learns.
 | 327 | 月魔 | — | 月亮之殿的考官，无法获得。 | 1 | 图鉴大图 |
 | 328 | SR战士 | — | 达斯特军队的亚比，无法获得。 | 16 | 图鉴大图 |
 | 329 | 强袭SR | — | 达斯特军队的亚比，无法获得。 | 16 | 图鉴大图 |
-| 332 | 邪恶霹雳 | 比特区 | 多克特研制出的霹雳，在“神奇的霹雳”任务中出现过，无法获得。 | 16 | 图鉴大图 |
+| 332 | 邪恶霹雳 | 比特区 | 多克特研制出的霹雳，在“神奇的霹雳”任务中出现过，无法获得。 | 4 | 图鉴大图 |
 | 333 | 钢铁科克 | — | 无法获得。 | 2 | 图鉴大图 |
-| 334 | 组合机器人 | 比特区 | 多克特组装出的机械人，在“神奇的霹雳”任务中出现过，无法获得。 | 16 | 图鉴大图 |
+| 334 | 组合机器人 | 比特区 | 多克特组装出的机械人，在“神奇的霹雳”任务中出现过，无法获得。 | 3 | 图鉴大图 |
 | 340 | 机械木乃伊 | 索里德区 | 奥拉战记——倒立金字塔里的亚比，无法获得。 | 4 | 图鉴大图 |
-| 360 | 苹果智能炮 | — | 发明岛的纽顿的亚比，无法获得。 | 0 | 图鉴大图 |
-| 361 | 风筝雷电射线 | — | 发明岛的弗朗科林的亚比，无法获得。 | 0 | 图鉴大图 |
+| 360 | 苹果智能炮 | — | 发明岛的纽顿的亚比，无法获得。 | 3 | 图鉴大图 |
+| 361 | 风筝雷电射线 | — | 发明岛的弗朗科林的亚比，无法获得。 | 3 | 图鉴大图 |
 | 369 | 暗影甲龙 | — | 达斯特军团的先锋将领，无法获得。 | 16 | 图鉴大图 |
 | 400 | 迅猛龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |
 | 401 | 梁龙 | 艺术之都 | 奥拉战记——恐龙博物馆里的亚比，无法获得。 | 1 | 图鉴大图 |

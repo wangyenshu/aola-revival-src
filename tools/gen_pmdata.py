@@ -29,6 +29,13 @@ they learn, the attribute table and the experience curves, and writes
 
   tools/gen_pmdata.py --pmdata out/scripts/mmo/pm/data/PMDataList.as \\
       --pets rebuilt/www.9aola.com/revival/pets.json --out rebuilt/www.9aola.com/revival/pmdata.json
+
+Quest opponents fought in the story (邪恶霹雳 332 and 组合机器人 334 of 神奇的霹雳, 苹果智能炮
+360 and 风筝雷电射线 361 of the 发明岛 quests) were fought as their battle rows, 10000, 20000
+or 30000 plus their number (pmDataMap2, 10332 …): those carry the skills they fought with.
+Their own rows do not: 360 and 361 list none, and 332 and 334 the 16 of the 烈火鸟 line (whose
+numbers 332 copies too), so for these (--battle-skills) the skills are their battle rows', in
+the rows' order, all from level 1.
 """
 from __future__ import annotations
 
@@ -71,10 +78,17 @@ def main(argv=None) -> None:
     ap.add_argument("--story", default="869,998",
                     help="species fought only in story quests, not in the era's 亚比 list: the 通灵巫师 (869, tasks 2451–2583, "
                          "2681–2764) and the 黑化病毒 (998, task 1294); they cannot be caught")
+    ap.add_argument("--battle-skills", default="332,334,360,361",
+                    help="species whose skills are those of their battle rows (10000/20000/30000 + id)")
     a = ap.parse_args(argv)
+    battle = {x for x in a.battle_skills.split(",") if x}
     era = set(json.load(open(a.pets, encoding="utf-8")).keys()) | {x for x in a.story.split(",") if x}
 
     species, skills, chart, exp = {}, {}, {}, {}
+    forms: dict[str, str] = {}
+    for section, key, cls, p in rows(a.pmdata):
+        if cls == "PMData" and len(p) > 29 and key.isdigit() and int(key) > 10000:
+            forms[key] = p[29]
     for section, key, cls, p in rows(a.pmdata):
         if cls == "PMData" and section == "pmDataMap" and key in era:
             p += [""] * (40 - len(p))
@@ -83,6 +97,13 @@ def main(argv=None) -> None:
                 m = re.match(r"(\d+)-(\d+)$", part)
                 if m:
                     learn.append([int(m.group(1)), int(m.group(2))])
+            if key in battle:
+                learn = []
+                for f in (str(10000 + int(key)), str(20000 + int(key)), str(30000 + int(key))):
+                    for part in forms.get(f, "").split("#"):
+                        m = re.match(r"(\d+)-(\d+)$", part)
+                        if m and [0, int(m.group(2))] not in learn:
+                            learn.append([0, int(m.group(2))])
             species[key] = {
                 "n": p[1],
                 "s": [int(num(x)) for x in p[4:10]],

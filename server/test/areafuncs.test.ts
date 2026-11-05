@@ -31,6 +31,7 @@ function setup(names = ["小奥拉", "小星"]) {
   const world = {
     xt: (k: string, h: XtHandler) => (handlers.set(k, h), world),
     setUserVars: (_s: unknown, v: Record<string, unknown>) => vars.push(v),
+    setUserVarOnce: (_s: unknown, k: string, v: unknown) => vars.push({ [k]: v }),
   } as unknown as World;
   const recs = new Map<string, AreaRec & { id: number }>();
   names.forEach((n, i) => recs.set(n, { id: 10001 + i, name: n, score: 500, xingbi: 0, items: {}, pets: [] }));
@@ -288,7 +289,7 @@ test("54e_1 of any 亚比 but the union ones is left to the handler installed be
   const handlers = new Map<string, XtHandler>();
   let unicornCalls = 0;
   handlers.set("PetExtension2.54e_1", () => void unicornCalls++);
-  const world = { handlers, xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {} } as unknown as World;
+  const world = { handlers, xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {}, setUserVarOnce: () => {} } as unknown as World;
   const rec = { id: 1, name: "a", items: { "2": { "475": 1 } }, pets: [{ id: 1, race: 651, level: 30 }, { id: 2, race: 679, level: 10 }] } as AreaRec & { id: number };
   installAreaFuncs(world, { load: async () => rec, save: async () => {}, today: () => "2013-01-25", now: () => 0, get: async () => undefined, set: async () => {} });
   const replies: Record<string, unknown>[] = [];
@@ -305,7 +306,7 @@ test("欢乐券兑换: 欢乐券 for the exchange's things; other ids go to the 
   const handlers = new Map<string, XtHandler>();
   let armour = 0;
   handlers.set("SynthesizeExtension.57_8", () => void armour++);
-  const world = { handlers, xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {} } as unknown as World;
+  const world = { handlers, xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {}, setUserVarOnce: () => {} } as unknown as World;
   const rec = { id: 1, name: "a", items: { "2": { "297": 250 } }, pets: [] } as AreaRec & { id: number };
   installAreaFuncs(world, { load: async () => rec, save: async () => {}, today: () => "2013-01-25", now: () => 0, get: async () => undefined, set: async () => {} });
   const replies: Record<string, unknown>[] = [];

@@ -168,6 +168,8 @@ export interface SkillEffects {
   stages: StageChange[];
   drain?: number;
   drainCond?: Cond;
+  /** 溢出的回复量会转化为自己的护盾: what the heal could not give becomes points of 护盾. */
+  overShield?: boolean;
   recoil?: number;
   recoilChance?: number;
   heal?: number;
@@ -206,8 +208,12 @@ export interface SkillEffects {
   /** Power by the HP: "low" (the less, the more), "high" (the more, the more), "foeHigh". */
   powerByHp?: "low" | "high" | "foeHigh";
   powerBySpeed?: "fast" | "slow";
-  /** Power grows with each turn in a row: double, or +add. */
-  rollout?: { turns: number; add?: number; min?: number };
+  /**
+   * 连续攻击N回合: the skill goes on by itself its N turns (min~N), its power growing each turn:
+   * double, or +add. A miss takes the growth back to the start (攻击失误则清除加倍效果), save
+   * when it grows whether it hits or not (always: 不管命中与否).
+   */
+  rollout?: { turns: number; add?: number; min?: number; always?: boolean };
   falseSwipe?: boolean;
   endeavor?: boolean;
   painSplit?: boolean;
@@ -253,6 +259,8 @@ export interface SkillEffects {
   field?: { up: number; upPct: number; down?: number; downPct?: number; turns: number };
   charge?: boolean;
   chargeFirst?: boolean;
+  /** 蓄力N回合: the turns of gathering before the blow (1 when not said). */
+  chargeTurns?: number;
   lock?: { turns: [number, number]; after: "confuse" | "rest" | "heal" | "none"; healF?: number };
   protect?: boolean;
   endure?: "revive" | "reviveOnce";
@@ -1053,9 +1061,12 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   r.take(/(?:自己|我方)?(?:攻击|特攻|双防等级)(?:与对方(?:攻击|特攻))?(?:比值)?越(?:大|高)，?(?:则)?(?:威力|伤害)?越(?:大|高)|自己(?:当前)?(?:普通)?攻击越高(?:则)?造成伤害越大|自己特攻越高，伤害越高/, () => undefined);
   r.take(/无视对方(?:防御|特防)/, () => void (e.ignoreDef = true));
   r.take(/(\d+)%概率无视对方(?:防御|特防)提升的等级/, () => undefined);
-  r.take(/连续(?:攻击对方(?:单体)?)?(\d+)回合(?:攻击对方(?:单体)?)?，?(?:每(?:回合|次)威力加倍|威力(?:每回合)?(?:增加|递增)|不管命中与否，每回合威力增加(\d+))/, (m) => void (e.rollout = { turns: num(m[1]), add: m[2] ? num(m[2]) : undefined }));
+  r.take(/连续(?:攻击对方(?:单体)?)?(\d+)回合(?:攻击对方(?:单体)?)?，?(?:每(?:回合|次)威力加倍|威力(?:每回合)?(?:增加|递增)|不管命中与否，每回合威力增加(\d+))/, (m) => void (e.rollout = { turns: num(m[1]), add: m[2] ? num(m[2]) : undefined, ...(/不管命中与否/.test(m[0]) ? { always: true } : {}) }));
   r.take(/连续攻击对方(\d+)~(\d+)回合，威力每回合递增/, (m) => void (e.rollout = { turns: num(m[2]) }));
-  r.take(/(?:使用(?:技能)?)?元素庇护后?威力(?:再)?加倍|攻击失误则清除加倍效果|使用千军万马后威力大大提升/, () => undefined);
+  // After the user's own 元素庇护 or 千军万马 in this battle (RECONSTRUCTED: 大大提升 as double).
+  r.take(/(?:使用(?:技能)?)?(元素庇护)后?威力(?:再)?加倍|使用(千军万马)后威力大大提升/, (m) => void (e.powerIf ??= []).push({ cond: mk(m[1] ?? m[2]), mult: 2 }));
+  // The default of 连续攻击N回合 (rollout).
+  r.take(/攻击失误则清除加倍效果/, () => undefined);
   r.take(/至少(?:能)?为(?:对方亚比|其)保留1点体力值/, () => void (e.falseSwipe = true));
   r.take(/若对方体力值多过自己，则将对方的体力值减为与自己相同/, () => void (e.endeavor = true));
   r.take(/(?:若对方体力值比自己多，则有(\d+)%概率)?平分(?:自己和对方单体|双方)的?(?:当前)?体力值/, (m) => {
@@ -1272,7 +1283,8 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   });
   r.take(/每回合结束时(\d+)%概率令对方全场(麻痹)/, (m) => void e.timed.push({ who: "foe", kind: "plague", turns: turnsOf(r.d, 5), chance: num(m[1]), status: statusOf(m[2]) }));
   // multi-turn skills
-  r.take(/(?:本回合不行动，下回合自动攻击对方单体|本回合停止行动，下回合先发攻击对方单体|本回合聚集能量，下回合给予对方致命打击|蓄力1回合下回合爆发出无法阻挡的伤害)/, (m) => {
+  r.take(/(?:本回合不行动，下回合自动攻击对方单体|本回合停止行动，下回合先发攻击对方单体|本回合聚集能量，下回合给予对方致命打击|蓄力(\d+)回合下回合爆发出无法阻挡的伤害)/, (m) => {
+    if (m[1] && num(m[1]) > 1) e.chargeTurns = num(m[1]);
     if (/无法阻挡/.test(m[0])) {
       e.sure = true;
       e.pierce = true;
@@ -1411,7 +1423,7 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   });
   r.take(/伤害的(\d+%)转化回复自己/, (m) => void (e.drain = frac(m[1])));
   r.take(/回复对敌人造成伤害的一半的体力值/, () => void (e.drain = 0.5));
-  r.take(/溢出的回复量会转化为自己的护盾/, () => undefined);
+  r.take(/溢出的回复量会转化为自己的护盾/, () => void (e.overShield = true));
   r.take(/(?:(\d+)%概率)?(?:自身|自己)承受(?:造成|给)?(?:伤害值?|伤害)的(\d+\/\d+)/, (m) => {
     e.recoil = frac(m[2]);
     if (m[1]) e.recoilChance = num(m[1]);

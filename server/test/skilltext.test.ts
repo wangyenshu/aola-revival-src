@@ -308,3 +308,87 @@ test("连击: each hit's damage goes with the report (shown one after another)",
   const [, one] = e.act(b, b.mine, b.wild, 1016);
   assert.equal(one.hitDmg, undefined, "one hit: one number");
 });
+
+/** Two sturdy 兔小子 (no 属性: every skill hits plainly); the rng 0.5 throughout. */
+function sturdy(race = 1) {
+  const e = new BattleEngine(tables, () => 0.5);
+  const b = e.start(1, "x", { id: 1, name: "a" }, makePet(tables, race, 60, "d", 1), makePet(tables, 1, 50, "d"), true);
+  for (const f of [b.mine, b.wild]) {
+    f.stats = [99999, 100, 100, 100, 100, 100];
+    f.pet.hp = 99999;
+    f.types = [-1, -1];
+  }
+  const turn = (id: number, miss = false) => {
+    e.startTurn(b);
+    b.wild.stages.eva = miss ? 6 : 0;
+    const [, r] = e.act(b, b.mine, b.wild, id);
+    b.wild.stages.eva = 0;
+    b.turn++;
+    return r;
+  };
+  return { e, b, turn };
+}
+
+test("回复 is shown whole; 嗜血之矛's heal past the full 体力 becomes 护盾, which takes the blows first", () => {
+  const { e, b, turn } = sturdy(320);
+  b.mine.stats[1] = 2000;
+  b.mine.pet.hp = b.mine.stats[0] - 30;
+  const r = turn(skillNamed("嗜血之矛"));
+  const want = Math.floor(-Number(r.hpInc) * 0.6);
+  assert.equal(r.selfHpInc, want, "the whole 60%, though only 30 were lost");
+  assert.equal(b.mine.pet.hp, b.mine.stats[0]);
+  assert.equal(b.mine.armour, want - 30);
+  assert.match(String(r.desc), new RegExp(`获得了${want - 30}点护盾`));
+  const st = (e.view(b, 0) as { battleView: { pmList: { pmSView: { st: string } }[] } }).battleView.pmList[0].pmSView.st;
+  assert.match(st, new RegExp(`护盾${want - 30}`));
+  e.startTurn(b);
+  const [, hit] = e.act(b, b.wild, b.mine, 1016);
+  assert.equal(b.mine.pet.hp, b.mine.stats[0], "the 护盾 took it");
+  assert.ok(b.mine.armour! < want - 30);
+  assert.match(String(hit.desc), /护盾抵挡了\d+点伤害/);
+});
+
+test("蓄力 and 连续攻击N回合: the view names the skill that goes on by itself; it needs no PP", () => {
+  const { e, b, turn } = sturdy();
+  const soul = skillNamed("魂葬破");
+  const view = () => (e.view(b, 0) as { battleView: { forced?: number } }).battleView.forced;
+  turn(soul);
+  assert.equal(view(), soul);
+  turn(skillNamed("冲击腿"));
+  assert.equal(view(), undefined, "the blow came: the choice is free again");
+  assert.deepEqual(readSkill("蓄力2回合下回合爆发出无法阻挡的伤害").fx.chargeTurns, 2);
+  const snake = skillNamed("狂蟒三重击");
+  turn(snake);
+  assert.equal(view(), snake);
+  turn(snake);
+  assert.equal(view(), snake);
+  turn(snake);
+  assert.equal(view(), undefined);
+});
+
+test("连续攻击N回合: the power grows each turn and starts again with the next use; a miss takes it back", () => {
+  const dmg = (picks: string[], misses: number[] = []) => {
+    const { turn } = sturdy();
+    return picks.map((n, i) => -Number(turn(skillNamed(n), misses.includes(i + 1)).hpInc) || 0);
+  };
+  const [a, b2, c, d] = dmg(["狂蟒三重击", "狂蟒三重击", "狂蟒三重击", "狂蟒三重击"]);
+  assert.ok(b2 > a * 1.8 && c > b2 * 1.8, "each turn doubled");
+  assert.equal(d, a, "a new use starts from its own power");
+  const [, missed, after] = dmg(["迅杀", "迅杀", "迅杀"], [2]);
+  assert.equal(missed, 0);
+  assert.equal(after, dmg(["迅杀"])[0], "攻击失误则清除加倍效果");
+  const [s1, , s3] = dmg(["星诺火纹", "星诺火纹", "星诺火纹"], [2]);
+  assert.ok(s3 > s1, "不管命中与否，每回合威力增加30");
+  const plain = dmg(["冲击腿", "狂蟒三重击"])[1];
+  const boosted = dmg(["千军万马", "狂蟒三重击"])[1];
+  assert.ok(boosted > plain * 2.5, "使用千军万马后威力大大提升 (and its 攻击+1)");
+});
+
+test("the quest opponents 邪恶霹雳, 组合机器人, 苹果智能炮, 风筝雷电射线 have the skills of their battle rows", () => {
+  const names = (race: number) => tables.pm.species[String(race)].learn.map(([, s]) => tables.pm.skills[String(s)].n);
+  assert.deepEqual(names(332), ["霹雳穿甲炮", "雷神之怒", "聚能粒子炮", "燃烧的意志"]);
+  assert.deepEqual(names(334), ["霹雳穿甲炮", "超导V型斩", "聚能粒子炮"]);
+  assert.deepEqual(names(360), ["激发力量", "噼啪乱击", "合击"]);
+  assert.deepEqual(names(361), ["激发力量", "噼啪乱击", "合击"]);
+  assert.equal(makePet(tables, 360, 30, "d").skills.length, 3);
+});

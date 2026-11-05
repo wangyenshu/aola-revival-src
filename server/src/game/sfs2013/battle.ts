@@ -152,12 +152,14 @@ export interface Fighter {
   timed: Live[];
   /** The skill it gathers power for (本回合蓄力, 下回合攻击). */
   charging?: number;
+  /** The turns of gathering still to come before the blow (蓄力N回合). */
+  chargeLeft?: number;
+  /** Points of 护盾 (嗜血之矛: the heal it could not take): they take the blows first, until used up. */
+  armour?: number;
   /** It was hurt while it gathered power (魂葬破: 若蓄力时未受到伤害则伤害翻倍). */
   chargeHurt?: boolean;
-  /** A skill used several turns in a row (连续攻击N回合). */
-  lock?: { id: number; left: number; after: "confuse" | "rest" | "heal" | "none"; healF?: number };
-  /** The turns in a row it has used this skill (威力递增). */
-  roll?: { id: number; n: number };
+  /** A skill used several turns in a row (连续攻击N回合); boost: its growth this turn (威力递增). */
+  lock?: { id: number; left: number; after: "confuse" | "rest" | "heal" | "none"; healF?: number; boost?: number };
   turn: TurnFlags;
   /** Uses of each skill this battle (成功率越低 / 越高). */
   uses: Record<string, number>;
@@ -407,9 +409,35 @@ export class BattleEngine {
 
   /** The skill a fighter uses this turn: the one it gathers power for or keeps using, else its choice. */
   choice(f: Fighter, id: number): number {
+    return this.forcedOf(f) ?? id;
+  }
+
+  /** The skill f uses this turn by itself, not chosen (the one it gathers power for or keeps using). */
+  forcedOf(f: Fighter): number | undefined {
     if (f.charging !== undefined) return f.charging;
     if (f.lock && f.lock.left > 0) return f.lock.id;
-    return id;
+    return undefined;
+  }
+
+  /**
+   * 连续攻击N回合 (lock, rollout), after its use this turn (hit: it landed): the turn counted, the
+   * growth of its power for the next one, and after the last what comes then. The HP it healed.
+   */
+  private keepUp(att: Fighter, fx: SkillEffects, id: number, hit: boolean, lines: string[]): number {
+    if (!fx.lock && !fx.rollout) return 0;
+    const ro = fx.rollout;
+    if (!att.lock || att.lock.id !== id) {
+      const turns = fx.lock ? this.int(fx.lock.turns[0], fx.lock.turns[1]) : this.int(ro!.min ?? ro!.turns, ro!.turns);
+      att.lock = { id, left: turns - 1, after: fx.lock?.after ?? "none", healF: fx.lock?.healF, boost: 0 };
+    } else att.lock.left--;
+    if (ro) att.lock.boost = hit || ro.always ? Math.min((att.lock.boost ?? 0) + 1, ro.turns - 1) : 0;
+    if (att.lock.left > 0) return 0;
+    const after = att.lock.after;
+    att.lock = undefined;
+    if (after === "confuse" && att.confuse === 0) this.applyStatus(att, "混乱", lines);
+    if (after === "rest") att.rest = Math.max(att.rest, 1);
+    if (after === "heal" && fx.lock?.healF) return this.heal(att, att.stats[0] * fx.lock.healF);
+    return 0;
   }
 
   /** A new turn: what lasted only the last one ends. */
@@ -458,10 +486,22 @@ export class BattleEngine {
     return false;
   }
 
+  /** What the heals of this act (or turn end) could not give, by fighter: the 回复 is shown whole. */
+  private over = new Map<Fighter, number>();
+
   private heal(f: Fighter, n: number): number {
-    const h = Math.max(0, Math.min(f.stats[0] - f.pet.hp, Math.floor(n)));
+    const want = Math.max(0, Math.floor(n));
+    const h = Math.min(Math.max(0, f.stats[0] - f.pet.hp), want);
     f.pet.hp += h;
+    if (want > h) this.over.set(f, (this.over.get(f) ?? 0) + want - h);
     return h;
+  }
+
+  /** The part of f's heals the cap kept back, since it was last asked; it is forgotten. */
+  private overflow(f: Fighter): number {
+    const o = this.over.get(f) ?? 0;
+    this.over.delete(f);
+    return o;
   }
 
   private hurt(f: Fighter, n: number): number {
@@ -568,6 +608,7 @@ export class BattleEngine {
     const name = petName(t, att);
     this.cur = b;
     this.countered = 0;
+    this.over.clear();
     const skillId = this.choice(att, chosen);
     const sk = this.skill(skillId);
     const fx = parseEffects(sk.d);
@@ -575,10 +616,20 @@ export class BattleEngine {
     att.turn.moved = true;
     att.turn.first = !foeFirst;
     att.turn.damaging = sk.k !== 2 || !!fx.dmg;
-    const report = (srt: number, extra: Record<string, unknown> = {}): Msg => [
-      "2411",
-      { reqSId: att.slot, tarSId: def.slot, id: skillId, name: sk.n, k: sk.k, t: sk.t, self: selfOnly(sk), srt, cri: false, hits: 0, hpInc: 0, selfHpInc: 0, eff: 1, ...extra, desc: lines.join("\n"), pmmList: this.views(b) },
-    ];
+    const report = (srt: number, extra: Record<string, unknown> = {}): Msg => {
+      // The heals shown whole (回复 of 120 at 30 lost: +120), though the 体力 stops at its maximum.
+      const shown: Record<string, unknown> = { ...extra };
+      const whole = (key: string, f: Fighter) => {
+        const o = this.overflow(f);
+        if (o > 0) shown[key] = Number(shown[key] ?? 0) + o;
+      };
+      whole("selfHpInc", att);
+      if (def !== att) whole("hpInc", def);
+      return [
+        "2411",
+        { reqSId: att.slot, tarSId: def.slot, id: skillId, name: sk.n, k: sk.k, t: sk.t, self: selfOnly(sk), srt, cri: false, hits: 0, hpInc: 0, selfHpInc: 0, eff: 1, ...shown, desc: lines.join("\n"), pmmList: this.views(b) },
+      ];
+    };
 
     // Could it act at all? A 亚比 that cannot loses the power it gathered and the skill it kept up.
     const stopped = (why: string): Msg => {
@@ -633,9 +684,16 @@ export class BattleEngine {
     att.marks[plain(sk.n)] = b.turn + markTurns(sk.d);
     const grow = (p: number) => (fx.grow ? Math.min(100, p * Math.min(3, 1 + (uses - 1) * 0.5)) : p);
 
-    // 蓄力: this turn only the words of this turn (本回合…); the blow comes next turn.
+    // 蓄力: this turn only the words of this turn (本回合…); the blow comes next turn
+    // (蓄力N回合: after N turns of it). The turns between, it goes on gathering by itself.
+    if (fx.charge && att.charging === skillId && (att.chargeLeft ?? 0) > 0) {
+      att.chargeLeft!--;
+      lines.push(`${name}正在蓄力！`);
+      return report(0, { k: 2, self: true });
+    }
     if (fx.charge && att.charging === undefined) {
       att.charging = skillId;
+      att.chargeLeft = (fx.chargeTurns ?? 1) - 1;
       att.chargeHurt = false;
       lines.push(`${name}正在蓄力！`);
       this.stagesOf(b, att, def, fx, lines, { hits: 0 });
@@ -646,7 +704,10 @@ export class BattleEngine {
     }
     // The blow after the gathering: what the skill did that turn is not done again.
     const releasing = att.charging === skillId;
-    if (releasing) att.charging = undefined;
+    if (releasing) {
+      att.charging = undefined;
+      att.chargeLeft = undefined;
+    }
 
     // 一场战斗使用次数越多，成功率越低.
     if (fx.fade && uses > 1 && !this.chance(100 / 2 ** (uses - 1))) {
@@ -657,6 +718,11 @@ export class BattleEngine {
     }
 
     let selfHp = 0;
+    // A skill kept up that did not land this turn: 连续攻击N回合 counts the turn all the same.
+    const missed = () => {
+      if (fx.rollout) selfHp += this.keepUp(att, fx, skillId, false, lines);
+      else att.lock = undefined;
+    };
     // Its cost, before it acts (先扣除自己…).
     if (fx.selfCost && this.chance(fx.selfCost.chance ?? 100)) {
       const c = fx.selfCost;
@@ -692,12 +758,12 @@ export class BattleEngine {
       let acc = fx.acc ?? sk.acc;
       if (sk.k === 0) for (const x of live(att, "blind")) acc = Math.min(acc, x.phys ?? 100);
       if (!sure && acc < 101 && this.rng() >= (acc / 100) * accMult(att.stages.acc - def.stages.eva)) {
-        att.lock = undefined;
+        missed();
         lines.push("没有命中！");
         return report(2, { selfHpInc: selfHp });
       }
       if (def.turn.protect && !fx.pierce) {
-        att.lock = undefined;
+        missed();
         lines.push(`${petName(t, def)}挡住了攻击！`);
         return report(1, { selfHpInc: selfHp });
       }
@@ -714,6 +780,7 @@ export class BattleEngine {
     if (aims && (sk.k !== 2 || fx.dmg || fx.ohko || fx.ohkoIf)) {
       mult = sk.t < 0 ? 1 : typeMultiplier(t.pm, sk.t, def.types);
       if (mult === 0 && !fx.dmg) {
+        missed();
         lines.push("好像没有效果……");
         return report(1, { eff: 0, selfHpInc: selfHp });
       }
@@ -735,9 +802,15 @@ export class BattleEngine {
       for (const p of fx.powerIf ?? []) if (p.drain !== undefined && this.holds(p.cond, b, att, def, ctx)) drain = Math.max(drain, p.drain);
       if (fx.dmgHeals !== undefined) selfHp += this.heal(att, fx.dmgHeals === "all" ? dmg : fx.dmgHeals);
       if (drain > 0) {
-        const h = this.heal(att, Math.max(1, dmg * drain));
+        const want = Math.floor(Math.max(1, dmg * drain));
+        const h = this.heal(att, want);
         selfHp += h;
         if (h > 0) lines.push(`${name}回复了体力！`);
+        // 溢出的回复量会转化为自己的护盾.
+        if (fx.overShield && want > h && att.pet.hp > 0) {
+          att.armour = (att.armour ?? 0) + want - h;
+          lines.push(`${name}获得了${want - h}点护盾！`);
+        }
       }
       if ((fx.recoil || sk === STRUGGLE) && this.chance(fx.recoilChance ?? 100)) {
         const r = Math.max(1, Math.floor(dmg * (fx.recoil ?? 0.25)));
@@ -932,20 +1005,7 @@ export class BattleEngine {
         lines.push(`${petName(t, def)}下回合停止行动！`);
       }
     }
-    if (fx.lock || fx.rollout) {
-      if (!att.lock || att.lock.id !== skillId) {
-        const turns = fx.lock ? this.int(fx.lock.turns[0], fx.lock.turns[1]) : this.int(fx.rollout!.min ?? fx.rollout!.turns, fx.rollout!.turns);
-        att.lock = { id: skillId, left: turns - 1, after: fx.lock?.after ?? "none", healF: fx.lock?.healF };
-      } else att.lock.left--;
-      if (att.lock.left <= 0) {
-        const after = att.lock.after;
-        att.lock = undefined;
-        if (after === "confuse" && att.confuse === 0) this.applyStatus(att, "混乱", lines);
-        if (after === "rest") att.rest = Math.max(att.rest, 1);
-        if (after === "heal" && fx.lock?.healF) selfHp += this.heal(att, att.stats[0] * fx.lock.healF);
-      }
-    }
-    if (fx.rollout || fx.lock) att.roll = { id: skillId, n: rolled && att.roll?.id === skillId ? att.roll.n + 1 : 0 };
+    selfHp += this.keepUp(att, fx, skillId, true, lines);
     if (fx.selfConfuse && att.confuse === 0) this.applyStatus(att, "混乱", lines);
     if (fx.sacrifice) att.pet.hp = 0;
     if (fx.bothFaint && aims) {
@@ -1009,6 +1069,7 @@ export class BattleEngine {
     let blocked = 0;
     let soaked = 0;
     let shielded = 0;
+    let armoured = 0;
     for (let i = 0; i < n && def.pet.hp > 0 && att.pet.hp > 0; i++) {
       let dmg = 0;
       let hitCri = false;
@@ -1056,6 +1117,13 @@ export class BattleEngine {
         dmg -= take;
         def.turn.absorbed = (def.turn.absorbed ?? 0) + take;
         shielded += take;
+      }
+      // 护盾 (嗜血之矛): its points take each blow first, till they are used up.
+      if (!fx.pierce && (def.armour ?? 0) > 0 && dmg > 0) {
+        const take = Math.min(def.armour!, dmg);
+        def.armour! -= take;
+        dmg -= take;
+        armoured += take;
       }
       if (dmg > 0 && live(def, "doom").some((x) => this.chance(x.chance ?? 0))) {
         dmg = Math.max(dmg, def.pet.hp);
@@ -1118,6 +1186,7 @@ export class BattleEngine {
     if (dodged) lines.push(dodged === out.hits ? `${dn}闪避了攻击！` : `${dn}闪避了${dodged}次攻击！`);
     if (blocked) lines.push(`${dn}挡住了伤害！`);
     if (shielded) lines.push(`${dn}抵挡了${shielded}点伤害！`);
+    if (armoured) lines.push(`${dn}的护盾抵挡了${armoured}点伤害！${def.armour ? "" : `${dn}的护盾消失了！`}`);
     if (soaked) lines.push(`${dn}吸收了伤害！`);
     if (def.pet.hp <= 0 && def.turn.destiny) {
       out.selfHp -= this.hurt(att, att.pet.hp);
@@ -1172,10 +1241,9 @@ export class BattleEngine {
       if (p.add !== undefined) fixed += p.add;
     }
     if (fx.copyPower && def.last !== undefined) power += Math.max(0, this.skill(def.last).p) / 2;
-    if (fx.rollout && rolled && att.roll && att.roll.id === att.last) {
-      const k = Math.min(att.roll.n + 1, fx.rollout.turns - 1);
-      power = fx.rollout.add ? power + fx.rollout.add * k : power * 2 ** k;
-    }
+    // 连续攻击N回合, 威力递增: its later turns.
+    const grown = fx.rollout && att.lock && att.lock.id === att.last ? att.lock.boost ?? 0 : 0;
+    if (fx.rollout && grown > 0) power = fx.rollout.add ? power + fx.rollout.add * grown : power * 2 ** grown;
     if (fx.perHitPower) power += fx.perHitPower * i;
     if (fx.powerByHp) power = hpPower(fx.powerByHp, sk.p, att, def);
     if (fx.powerBySpeed) {
@@ -1355,6 +1423,7 @@ export class BattleEngine {
   /** The end of a turn: statuses, the lasting effects and later-turn effects; 2421 reports. */
   endOfTurn(b: Battle): Msg[] {
     this.cur = b;
+    this.over.clear();
     const out: Msg[] = [];
     const lostOf = new Map<Fighter, number>();
     const lineOf = new Map<Fighter, string[]>();
@@ -1514,7 +1583,8 @@ export class BattleEngine {
     }
     for (const f of [b.mine, b.wild]) {
       const lines = lineOf.get(f)!;
-      const inc = lostOf.get(f) ?? 0;
+      // The heals shown whole, as in a skill's report.
+      const inc = (lostOf.get(f) ?? 0) + this.overflow(f);
       if (!lines.length && !inc) continue;
       if (f.pet.hp <= 0) lines.push(`${petName(this.t, f)}倒下了！`);
       out.push(["2421", { slotId: f.slot, hpInc: inc, desc: lines.join("\n"), pmmList: this.views(b) }]);
@@ -1567,7 +1637,8 @@ export class BattleEngine {
 
   view(b: Battle, slot: 0 | 1, bag = this.bag, owner = this.ownerRef): Record<string, unknown> {
     const f = slot === 0 ? b.mine : b.wild;
-    const st = [f.status, f.confuse > 0 ? "混乱" : "", f.bind > 0 ? "束缚" : "", f.fear > 0 ? "害怕" : "", f.weak > 0 ? "衰弱" : "", f.seeded ? "寄生" : ""].filter(Boolean).join(",");
+    const st = [f.status, f.confuse > 0 ? "混乱" : "", f.bind > 0 ? "束缚" : "", f.fear > 0 ? "害怕" : "", f.weak > 0 ? "衰弱" : "", f.seeded ? "寄生" : "", f.armour ? `护盾${f.armour}` : ""].filter(Boolean).join(",");
+    const forced = this.forcedOf(f);
     const list = slot === 0 && bag ? [f.pet, ...bag.filter((p) => p !== f.pet)] : [f.pet];
     const own = { id: f.owner };
     return {
@@ -1581,6 +1652,8 @@ export class BattleEngine {
         locaId: slot,
         // Not a 2013 field: how my 亚比's attribute fares against the wild one's (the 强效 / 普通 / 弱效 row).
         ...(slot === 0 ? { mu: typeMultiplier(this.t.pm, b.mine.types[0], b.wild.types) } : {}),
+        // Not a 2013 field: the skill it uses this turn by itself (蓄力, 连续攻击N回合): no choice is asked.
+        ...(forced !== undefined ? { forced } : {}),
         pmList: list.map((p) => briefOf(p, own, this.t, p === f.pet ? { st, bal: balOf(f.stages) } : undefined)),
       },
     };
@@ -2495,7 +2568,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
           radarCoins = coins;
         }
       }
-      if (r.evolvedTo && o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+      if (r.evolvedTo && o.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
       // A win's own messages; NOTE ones are words for the end of the battle, not sent.
       const won = b.onWin ? b.onWin(o) : [];
       const notes = won.filter(([c]) => c === NOTE).map(([, m]) => String(m.text));
@@ -2545,6 +2618,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
   turn("1406", (_ctx, b, e, _o, t) => {
     if (b.mustSwitch) return { refused: [["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]] };
     const pet = b.mine.pet;
+    // A skill it uses by itself (蓄力, 连续攻击N回合) needs no PP.
+    const forced = e.forcedOf(b.mine);
+    if (forced !== undefined) return e.skillTurn(b, forced);
     return [["2421", { slotId: 0, hpInc: 0, desc: `${pet.nick || nameOf(t, pet.race)}什么也没有做。`, pmmList: e.views(b) }], ...e.wildTurn(b)];
   });
 

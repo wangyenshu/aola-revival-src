@@ -353,7 +353,17 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     };
   }
 
-  const save = (rec: UserRecord) => emu.store.set(userKey(rec.name), rec);
+  // A following 亚比 whose form changed (a level, an item, an activity): its room sees the new one.
+  const syncFollow = (rec: UserRecord) => {
+    const s = world.online(rec.name);
+    const pet = rec.pets?.find((x) => x.id === rec.followPet);
+    const [race, , id] = String(s ? world.player(s)?.vars.get("p")?.value ?? "" : "").split(",").map(Number);
+    if (s && pet && id === pet.id && race !== pet.race) world.setUserVarOnce(s, "p", followVar(pet));
+  };
+  const save = async (rec: UserRecord) => {
+    await emu.store.set(userKey(rec.name), rec);
+    syncFollow(rec);
+  };
   const me = async (ctx: XtContext) => (await userRecord(emu, ctx.player.name))!;
 
   for (const [key, reply] of Object.entries(EMPTY_INVENTORY)) {
@@ -687,7 +697,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       else {
         const r = gainExp(t, pet, add(p.exp));
         for (const [cmd, body] of r.msgs) ctx.reply(body, cmd);
-        if (r.evolvedTo && rec.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+        if (r.evolvedTo && rec.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
         said.push(`${nameOf(t, pet.race)} 经验 +${add(p.exp)}（Lv${pet.level}）`);
       }
     }
@@ -741,7 +751,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     save: (o) => save(o as UserRecord),
     tables,
     changedRace: (ctx, o, pet) => {
-      if (o.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+      if (o.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
     },
   });
 
@@ -1068,7 +1078,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     rec.robot.exp = have - want;
     const r = gainExp(t, pet, want);
     for (const [cmd, body] of r.msgs) ctx.reply(body, cmd);
-    if (r.evolvedTo && rec.followPet === pet.id) world.setUserVars(ctx.session, { p: followVar(pet) });
+    if (r.evolvedTo && rec.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
     await save(rec);
     ctx.reply({ res: 1, pi, e: want, exp: rec.robot.exp, lv: pet.level }, "2-13");
   });

@@ -207,8 +207,10 @@ export function installDuels(world: World, deps: DuelDeps) {
     if (c1.kind === "switch") doSwitch(d, 1, c1.pid, t, e, out, false);
     e.startTurn(d.canon);
     const skillOf = (i: number, c: Choice) => {
-      if (c.kind !== "skill") return -1;
       const f = fighterOf(d, i);
+      // 蓄力, 连续攻击N回合: the skill goes on by itself, PP or not.
+      if (c.kind === "wait" && e.forcedOf(f) !== undefined) return e.forcedOf(f)!;
+      if (c.kind !== "skill") return -1;
       const usable = f.pet.skills.filter((k) => k.pp > 0);
       return e.choice(f, usable.find((k) => k.id === c.id) ? c.id : usable.length ? usable[0].id : 0);
     };

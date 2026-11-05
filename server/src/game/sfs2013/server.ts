@@ -212,6 +212,14 @@ export class World {
     else s.sendBytes(S.userVarsUpdate(0, p.id, list));
   }
 
+  /** One user variable, set and told only when it changes (a following 亚比's "p", which several paths set). */
+  setUserVarOnce(s: Session, name: string, value: unknown): void {
+    const now = this.player(s)?.vars.get(name);
+    const v = encodeVar(name, value);
+    if (now && now.type === v.type && now.value === v.value) return;
+    this.setUserVars(s, { [name]: value });
+  }
+
   /** The session of the 奥拉 of that name in the game, if any. */
   online(name: string): Session | undefined {
     for (const s of this.emu.sessions) if (this.player(s)?.name === name) return s;

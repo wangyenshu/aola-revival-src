@@ -28,6 +28,8 @@ package mmo.petfollow
       private static var _instance:PetFollowManager;
       /** userName -> PetFollowAvatar */
       public static var pets:Object = {};
+      /** userName -> "raceId,viewId,petId" of the 亚比 following now. */
+      private static var shown:Object = {};
       public var petId:int;
 
       public static function get instance():PetFollowManager
@@ -90,6 +92,12 @@ package mmo.petfollow
          if (u == null) return;
          var a:Array = String(u.getVariable("p") || "").split(",");
          var pet:PetFollowAvatar = pets[u.getName()] as PetFollowAvatar;
+         // REVIVAL. Another form of the same 亚比 (an evolution, 还原喷雾, 进化石): its new figure follows.
+         if (pet != null && a.length > 2 && int(a[0]) > 0 && shown[u.getName()] != a.slice(0, 3).join(","))
+         {
+            followFromVariable(u.getName());
+            return;
+         }
          if (pet != null && a.length > 3) pet.setPetView(a[3] || "");
       }
 
@@ -101,6 +109,7 @@ package mmo.petfollow
          var pet:PetFollowAvatar = new PetFollowAvatar("pet_" + name + "_" + raceId, raceId, viewId > 0 ? viewId : raceId, id, name, ind);
          pet.setPetView(dress);
          pets[name] = pet;
+         shown[name] = [raceId, viewId, id].join(",");
          var layer:DisplayObjectContainer = info.scene.playerLayer;
          layer.addChild(pet);
          pet.setStrategy(new FollowSlowlyStrategy(leader));
@@ -151,6 +160,7 @@ package mmo.petfollow
          var pet:PetFollowAvatar = pets[name] as PetFollowAvatar;
          if (pet != null) pet.dispose();
          delete pets[name];
+         delete shown[name];
       }
    }
 }
