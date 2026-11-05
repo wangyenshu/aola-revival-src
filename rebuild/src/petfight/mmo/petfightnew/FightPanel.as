@@ -64,7 +64,7 @@ package mmo.petfightnew
       /** [class, file] set through IPetFight.changeBackgroundRes. */
       public static var backgroundOverride:Array;
 
-      public static const ATTR_NAMES:Array = ["普通", "格斗", "飞行", "毒", "爬行", "土", "虫", "数码", "机械", "火", "水", "木", "电", "神秘", "冰", "上古", "暗黑", "未知", "光明", "龙"];
+      public static const ATTR_NAMES:Array = ["普通", "格斗", "飞行", "毒", "爬行", "土", "虫", "数码", "机械", "火", "水", "木", "电", "神秘", "冰", "上古", "暗黑", "未知", "光明", "龙", "圣灵", "神兵", "王"];
       private static const DEFAULT_BACK:Array = ["mmo.petfight.FightSpace", "petfightbackground/fightspace"];
       private static const BALL_IDS:Object = {32: 1, 64: 1, 67: 1, 68: 1};
       /** The places of the era pet/fightpreview: myPetHolder (far) and VSPetHolder (near). */
