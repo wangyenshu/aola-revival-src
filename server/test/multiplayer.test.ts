@@ -630,3 +630,44 @@ test("review: made-up rooms go when empty; chat is bounded; a client cannot catc
   const rec = (await srv.store.get<{ pets: { race: number; level: number }[] }>(`user/${encodeURIComponent("奥拉Z")}`))!;
   assert.deepEqual(rec.pets.map((p) => [p.race, p.level]), [[7, 5]], "the starter only");
 });
+
+test("亚比对战: 威吓 sends the other player's 亚比 back for another; 束缚 keeps a 亚比 in", async () => {
+  const { a, b, host } = await twoPlayers(true);
+  await pets(a, b);
+  await pets(a, b);
+  // A's first 亚比 knows 威吓 alone, B's 角斗 (束缚对方单体，禁止对方替换亚比) alone.
+  for (const [who, skill] of [["奥拉A", 1079], ["奥拉B", 1109]] as const) {
+    const key = `user/${encodeURIComponent(who)}`;
+    const rec = (await host.emulator.store.get<{ pets: { skills: unknown[] }[] }>(key))!;
+    rec.pets[0].skills = [{ id: skill, name: "", pp: 20, max: 20 }];
+    await host.emulator.store.set(key, rec);
+  }
+  a.xt("PocketMonsterExtension", "revival_duel_invite", { name: "奥拉B" });
+  await a.wait("revival_duel_invite");
+  await b.wait("revival_duel_ask");
+  b.xt("PocketMonsterExtension", "revival_duel_answer", { from: "奥拉A", ok: true });
+  const join = (await b.wait("2303"))!;
+  const firstB = (join.pmmList as { battleView: { slotId: number; pms: string } }[]).find((v) => v.battleView.slotId === 0)!.battleView.pms.split("#")[0];
+  await a.wait("2401");
+  a.xts();
+  b.xts();
+  a.xt("PocketMonsterExtension", "1401", { skillId: 1079 });
+  b.xt("PocketMonsterExtension", "1401", { skillId: 1109 });
+  assert.ok(await a.wait("2402"), "the next turn");
+  const bs = b.xts();
+  const out = bs.find((o) => o._cmd === "2413" && !(o.extInfo as Record<string, unknown>).foe);
+  assert.ok(out, "B's 亚比 was sent back");
+  assert.match(String((out!.extInfo as Record<string, unknown>).desc), /强制替换/);
+  const now = ((out!.playerInfo as { battleView: { pmList: { pmSView: { id?: number } }[]; pms: string } }).battleView.pms).split("#")[0];
+  assert.notEqual(now, firstB, "another 亚比 came out");
+  assert.ok(a.xts().some((o) => o._cmd === "2413" && (o.extInfo as Record<string, unknown>).foe), "A sees B's next 亚比");
+  // A's 亚比 is bound by 角斗: it cannot be switched out.
+  const recA = (await host.emulator.store.get<{ pets: { id: number }[] }>(`user/${encodeURIComponent("奥拉A")}`))!;
+  a.xt("PocketMonsterExtension", "1403", { pmId: recA.pets[1].id });
+  const refused = await a.wait("2413");
+  assert.equal((refused!.extInfo as Record<string, unknown>).refused, true);
+  assert.match(String((refused!.extInfo as Record<string, unknown>).desc), /无法替换/);
+  // Over (its timer would go on).
+  b.xt("PocketMonsterExtension", "1404");
+  assert.ok(await a.wait("2403"));
+});

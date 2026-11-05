@@ -801,7 +801,7 @@ package mmo.petfightnew
       }
 
       /** Damage and healing numbers over a 亚比: "-23", "克制-112", "暴击-40", "+40", "MISS". */
-      private function float(slot:int, value:String, color:uint, big:Boolean = false):void
+      private function float(slot:int, value:String, color:uint, big:Boolean = false, dx:Number = 0, dy:Number = 0):void
       {
          var t:TextField = new TextField();
          t.defaultTextFormat = new TextFormat("Arial Black", big ? 34 : 28, color, true);
@@ -810,10 +810,39 @@ package mmo.petfightnew
          t.text = value;
          t.filters = [new GlowFilter(0xFFFFFF, 1, 3, 3, 10), new GlowFilter(0x5A0A00, 1, 2, 2, 6)];
          var at:Array = holder(slot == 0);
-         t.x = at[0] - t.width / 2 - (slot == 0 ? 0 : 20);
-         t.y = at[1] - 150;
+         t.x = at[0] - t.width / 2 - (slot == 0 ? 0 : 20) + dx;
+         t.y = at[1] - 150 + dy;
          floatLayer.addChild(t);
          TweenLite.to(t, 1.3, {y: t.y - 40, alpha: 0, delay: 0.3, onComplete: function():void { if (t.parent) t.parent.removeChild(t); }});
+      }
+
+      /**
+       * A 连击's hits one after another, then how many hits and the whole damage. As the later
+       * battle screen of the game plays them (SkillResultHandler): a hit every 8 frames, more than
+       * 8 hits within 50 frames, a 暴击 hit as a 暴击, then the hit count (MultipleTimesMovie).
+       */
+      private function playHits(slot:int, list:Array, cri:Array, eff:Number, total:int, done:Function):void
+      {
+         var n:int = list.length;
+         var gap:Number = n > 8 ? 50 / 24 / n : 8 / 24;
+         var hit:Function = function(i:int):void
+         {
+            TweenLite.delayedCall(gap * i, function():void
+            {
+               var d:int = int(list[i]);
+               var c:Boolean = cri != null && int(cri[i]) == 1;
+               var dx:Number = (i % 3 - 1) * 22;
+               if (d > 0) float(slot, (c ? "暴击" : "") + "-" + d, c ? 0xFFB01E : 0xE8301E, c, dx, -8 * (i % 2));
+               else float(slot, "MISS", 0xFFFFFF, false, dx);
+            });
+         };
+         for (var i:int = 0; i < n; i++) hit(i);
+         TweenLite.delayedCall(gap * n + 0.2, function():void
+         {
+            float(slot, n + "连击", 0xFFE66A, true, 0, -56);
+            if (total < 0) float(slot, (eff > 1 ? "克制" : (eff < 1 ? "微弱" : "")) + total, 0xE8301E, true, 0, 4);
+            done();
+         });
       }
 
       /** The skill's name called out by the 亚比 that uses it ("龙牙剑!!"). */
@@ -1215,6 +1244,7 @@ package mmo.petfightnew
                addLines(p.desc);
                takeViews(p.pmmList as Array);
                if (int(p.hpInc) < 0) float(int(p.slotId), String(int(p.hpInc)), 0xE8301E);
+               else if (int(p.hpInc) > 0) float(int(p.slotId), "+" + int(p.hpInc), 0x3CC21E);
                refresh(true);
                faintIfDown(int(p.slotId));
                later(0.8);
@@ -1368,7 +1398,14 @@ package mmo.petfightnew
             addLines(p.desc, used + 1);
             takeViews(p.pmmList as Array);
             var eff:Number = p.eff != undefined ? Number(p.eff) : 1;
+            var hitList:Array = p.hitDmg as Array;
             if (srt == 2) float(tar, "MISS", 0xFFFFFF);
+            else if (hitList != null && hitList.length > 1)
+            {
+               // A 连击: its hits one after another; the turn goes on once they are shown.
+               pending++;
+               playHits(tar, hitList, p.hitCri as Array, eff, int(p.hpInc), step);
+            }
             else if (int(p.hpInc) < 0) float(tar, (p.cri ? "暴击" : (eff > 1 ? "克制" : (eff < 1 ? "微弱" : ""))) + int(p.hpInc), p.cri ? 0xFFB01E : 0xE8301E, p.cri || eff > 1);
             if (int(p.selfHpInc) > 0) float(att, "+" + int(p.selfHpInc), 0x3CC21E);
             else if (int(p.selfHpInc) < 0) float(att, String(int(p.selfHpInc)), 0xE8301E);

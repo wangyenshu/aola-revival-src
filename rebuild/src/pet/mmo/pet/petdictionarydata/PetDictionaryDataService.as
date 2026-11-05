@@ -16,6 +16,7 @@ package mmo.pet.petdictionarydata
    public class PetDictionaryDataService extends EventDispatcher implements IPetDictionaryDataService
    {
       private var byName:Object;
+      private static var named:Boolean;
 
       public function PetDictionaryDataService()
       {
@@ -24,12 +25,34 @@ package mmo.pet.petdictionarydata
 
       public function init():void
       {
+         table();
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
+      }
+
+      /**
+       * The later table writes the 亚比 a species evolves from as ##id_name## ("由##1_兔小子##进化
+       * 得来。"): its PetDictionaryDataItem puts the name there, the 2013 one shows the text as it
+       * is. The items with one are made again with the name.
+       */
+      private static function table():Object
+      {
+         var data:Object = PetDictionaryData.data;
+         if (named) return data;
+         named = true;
+         for (var k:String in data)
+         {
+            var it:PetDictionaryDataItem = data[k] as PetDictionaryDataItem;
+            if (it == null || it.getWay.indexOf("##") < 0) continue;
+            data[k] = new PetDictionaryDataItem(String(it.petID), it.petName, it.petHeight, it.petWieght, it.defAttribute, it.attAttribute,
+               it.evolutionLevel, it.isNew ? "1" : "0", it.isRare ? "1" : "0", it.loc, it.getWay.replace(/##\d+_([^#]*)##/g, "$1"),
+               it.petFavourite, it.petIntro, String(it.petSerieId), String(it.petFormId), it.locations);
+         }
+         return data;
       }
 
       public function getDataItemByRaceId(raceId:int):PetDictionaryDataItem
       {
-         return PetDictionaryData.data[String(raceId)] as PetDictionaryDataItem;
+         return table()[String(raceId)] as PetDictionaryDataItem;
       }
 
       public function getDataItemByPetName(name:String):PetDictionaryDataItem
@@ -37,14 +60,14 @@ package mmo.pet.petdictionarydata
          if (byName == null)
          {
             byName = {};
-            for each (var it:PetDictionaryDataItem in PetDictionaryData.data) if (byName[it.petName] == null) byName[it.petName] = it;
+            for each (var it:PetDictionaryDataItem in table()) if (byName[it.petName] == null) byName[it.petName] = it;
          }
          return byName[name] as PetDictionaryDataItem;
       }
 
       public function getAllDatas():Object
       {
-         return PetDictionaryData.data;
+         return table();
       }
 
       public function getCommonPetExplorDataFactory():ICommonPetExploreDataFactory

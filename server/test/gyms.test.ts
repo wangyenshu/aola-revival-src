@@ -12,7 +12,14 @@ const tables: PetTables = {
   pm: JSON.parse(readFileSync(new URL("pmdata.json", revival), "utf8")),
 };
 
-function harness(rng = () => 0.5) {
+/** 0.5, but now and then a lower and a higher number, so that a fight does not stall on one roll. */
+const steady = () => {
+  let i = 0;
+  const seq = [0.5, 0.5, 0.5, 0.2, 0.5, 0.8];
+  return () => seq[i++ % seq.length];
+};
+
+function harness(rng = steady()) {
   const handlers = new Map<string, XtHandler>();
   const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {} } as unknown as World;
   const owner: PetOwner & { items: Record<string, Record<string, number>>; score: number; gymFights?: Record<string, unknown> } = {
@@ -38,7 +45,7 @@ function harness(rng = () => 0.5) {
   /** Win the battle open now with the strongest skill until 2403. */
   const win = async () => {
     const all: Msg[] = [];
-    for (let i = 0; i < 40 && !all.some(([c]) => c === "2403"); i++) {
+    for (let i = 0; i < 300 && !all.some(([c]) => c === "2403"); i++) {
       // the strongest skill, but 幻雷's own 电 (雷光四射) hardly hurts the 幻雷 of the master, who heals: its 麻痹一击 first
       const usable = owner.pets![0].skills.filter((s) => s.pp > 0);
       const sk = usable.find((s) => s.id === 1039) ?? usable.sort((a, b) => (tables.pm.skills[String(b.id)]?.p ?? 0) - (tables.pm.skills[String(a.id)]?.p ?? 0))[0];
@@ -67,7 +74,7 @@ test("the 踢馆 of 幻雷, 幻炎, 幻流 and 幻冥 begin against the masters"
 });
 
 test("a won 踢馆 pays its stone once a day, the first one sure when the gym's own 亚比 ended it", async () => {
-  const h = harness(); // rng 0.5: no luck (STONE_CHANCE 0.3), only the sure stone
+  const h = harness(); // rng mostly 0.5: no luck (STONE_CHANCE 0.3), only the sure stone
   await h.call("PetExtension.54_22", { type: 84 });
   const end = get(await h.win(), "2403")!;
   assert.equal(end.isWin, true);

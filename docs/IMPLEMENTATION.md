@@ -192,8 +192,14 @@ The 2013 server's rules are lost. The main reconstructions:
 - **Stats and battles**: the client's 亚比 tables have the columns of the
   Pokémon games they were modelled on (base stats, effort yields, base
   experience, experience groups, catch values), so the classic formulas for
-  those columns are used (`pmdata.ts`). Skill effects (stat changes,
-  statuses, priority) are read from the skills' descriptions.
+  those columns are used (`pmdata.ts`). What a skill does is read from its
+  description (`skilltext.ts`), clause by clause, and the battle engine does
+  it: stat changes (全属性 is all eight 属性等级: 攻击, 防御, 特攻, 特防, 速度, 命中, 闪避 and 暴击), statuses,
+  priority, damage that is not the formula's (half the foe's HP, levels,
+  points), draining, healing, PP, shields and counters, effects that last
+  some turns, charging and multi-turn skills. Every description of the
+  图鉴's 亚比 is read to the last word; how much a "一定概率" is, or how
+  strong "越少越大" grows, is a guess.
 - **Catching**: an ordinary 亚比球 works once a wild 亚比 is down to a fifth
   of its HP, earlier for easy species, at any HP for the 朵朵兔 (as the 2011
   walkthrough says); better balls raise the chance.

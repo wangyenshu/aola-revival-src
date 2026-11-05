@@ -121,7 +121,7 @@ export function installDuels(world: World, deps: DuelDeps) {
   const healthy = (s: Side, but?: PetRecord) => s.pets.filter((p) => p.hp > 0 && p !== but);
 
   /** Another 亚比 of side i comes out. */
-  const doSwitch = (d: Duel, i: number, pid: number, t: PetTables, e: BattleEngine, out: [Msg[], Msg[]], forced: boolean): boolean => {
+  const doSwitch = (d: Duel, i: number, pid: number, t: PetTables, e: BattleEngine, out: [Msg[], Msg[]], forced: boolean, why = ""): boolean => {
     const s = d.sides[i];
     const next = s.pets.find((p) => p.id === pid);
     if (!next || next.hp <= 0 || next === fighterOf(d, i).pet) return false;
@@ -130,8 +130,9 @@ export function installDuels(world: World, deps: DuelDeps) {
     else d.canon.wild = f;
     s.must = false;
     const name = next.nick || nameOf(t, next.race);
-    out[i].push(["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: `就决定是你了，${name}！`, res: 1, forced } }]);
-    out[1 - i].push(["2413", { playerInfo: viewsFor(d, 1 - i, e)[1], extInfo: { desc: `${s.name}派出了${name}！`, res: 1, forced: true, foe: true } }]);
+    const pre = why ? why + "\n" : "";
+    out[i].push(["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: `${pre}就决定是你了，${name}！`, res: 1, forced } }]);
+    out[1 - i].push(["2413", { playerInfo: viewsFor(d, 1 - i, e)[1], extInfo: { desc: `${pre}${s.name}派出了${name}！`, res: 1, forced: true, foe: true } }]);
     return true;
   };
 
@@ -204,10 +205,12 @@ export function installDuels(world: World, deps: DuelDeps) {
     // Switches go first, then the skills, the faster first.
     if (c0.kind === "switch") doSwitch(d, 0, c0.pid, t, e, out, false);
     if (c1.kind === "switch") doSwitch(d, 1, c1.pid, t, e, out, false);
+    e.startTurn(d.canon);
     const skillOf = (i: number, c: Choice) => {
       if (c.kind !== "skill") return -1;
-      const usable = fighterOf(d, i).pet.skills.filter((k) => k.pp > 0);
-      return usable.find((k) => k.id === c.id) ? c.id : usable.length ? usable[0].id : 0;
+      const f = fighterOf(d, i);
+      const usable = f.pet.skills.filter((k) => k.pp > 0);
+      return e.choice(f, usable.find((k) => k.id === c.id) ? c.id : usable.length ? usable[0].id : 0);
     };
     const s0 = skillOf(0, c0), s1 = skillOf(1, c1);
     const acts: [Fighter, Fighter, number][] = [];
@@ -220,6 +223,17 @@ export function installDuels(world: World, deps: DuelDeps) {
     for (const [att, def, id] of acts) {
       if (att.pet.hp <= 0 || def.pet.hp <= 0) break;
       both(d, e, out, e.act(d.canon, att, def, id));
+    }
+    // 威吓: the side it hit sends another 亚比, at random (none left: it stays).
+    const forced = d.canon.forceOut;
+    d.canon.forceOut = undefined;
+    if (forced !== undefined && fighterOf(d, forced).pet.hp > 0) {
+      const gone = fighterOf(d, forced).pet;
+      const others = healthy(d.sides[forced], gone);
+      if (others.length) {
+        const next = others[Math.floor((deps.rng ?? Math.random)() * others.length)];
+        doSwitch(d, forced, next.id, t, e, out, false, `${gone.nick || nameOf(t, gone.race)}被强制替换下场！`);
+      }
     }
     if (d.canon.mine.pet.hp > 0 && d.canon.wild.pet.hp > 0) for (const m of e.endOfTurn(d.canon)) both(d, e, out, m);
     // Who fell, and who has none left.
@@ -371,6 +385,11 @@ export function installDuels(world: World, deps: DuelDeps) {
       const mustOther = d.sides[1 - i].must;
       if (!next || next.hp <= 0 || next === fighterOf(d, i).pet || s.choice || (mustOther && !s.must)) {
         return me([["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: "这只亚比现在不能出战。", res: -1, refused: true } }]]);
+      }
+      // 束缚 or 无法替换亚比 (a skill of the other player's 亚比) keeps the 亚比 in, unless it fell.
+      const cur = fighterOf(d, i);
+      if (!s.must && cur.trapped > 0) {
+        return me([["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: `${cur.pet.nick || nameOf(t, cur.pet.race)}无法替换！`, res: -1, refused: true } }]]);
       }
       s.choice = { kind: "switch", pid };
     } else if (name === "1401" || name === "1406") {

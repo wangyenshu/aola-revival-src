@@ -44,7 +44,9 @@ test("skill effects are read from the descriptions", () => {
   assert.deepEqual(parseEffects("先发；1回合内撞击对方单体5~10次。自己体力越高，威力越大").hits, [5, 10]);
   assert.deepEqual(parseEffects("1回合内攻击对方全场1~3次，每次攻击均有10%概率令对方冰冻").hits, [1, 3]);
   assert.equal(parseEffects("1回合内攻击对方单体4-7次，每次攻击有5%概率削弱对方命中等级1级").perHit, true);
-  assert.equal(parseEffects("本回合削弱对方单体防御和速度的等级各1级，下回合攻击对方1-20次").hits, undefined, "a later turn's");
+  // A later turn's: the skill gathers power this turn (本回合…) and hits next turn.
+  assert.equal(parseEffects("本回合削弱对方单体防御和速度的等级各1级，下回合攻击对方1-20次").charge, true);
+  assert.deepEqual(parseEffects("本回合削弱对方单体防御和速度的等级各1级，下回合攻击对方1-20次").hits, [1, 20]);
   assert.equal(parseEffects("40%概率1回合内发动2次攻击效果，破坏力巨大").hits, undefined, "a chance of a second hit");
   assert.equal(parseEffects("使用后3回合内，每攻击对方1次，就回复自己50点体力值").hits, undefined);
   assert.equal(parseEffects("先发；给对方单体造成伤害").first, true);

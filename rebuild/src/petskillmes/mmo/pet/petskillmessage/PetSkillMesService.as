@@ -1,7 +1,13 @@
 package mmo.pet.petskillmessage
 {
+   import flash.display.DisplayObject;
    import flash.display.Sprite;
    import flash.events.EventDispatcher;
+   import flash.text.TextField;
+   import flash.text.TextFieldAutoSize;
+   import flash.text.TextFormat;
+   import mmo.loader.scheduler.ResScheduler;
+   import mmo.revival.RDef;
    import mmo.interfaces.InitServiceEvent;
    import mmo.interfaces.pet.data.IPetSkillMesService;
 
@@ -104,11 +110,69 @@ package mmo.pet.petskillmessage
          return getPetAttributeTipsByattributeId(int(getPetMes(param1).attribute));
       }
 
+      /** The attribute names, as the later PMAttributeMap lists them (999: the 超系 together). */
+      private static const NAMES:Array = ["普通", "格斗", "飞行", "毒", "爬行", "土", "虫", "数码", "机械", "火", "水", "木", "电", "神秘", "冰", "上古", "暗黑", "数码2", "光明", "龙", "圣灵", "神兵", "王",
+         "超数码", "超木", "超水", "超火", "超土", "超电", "超光", "超暗", "超龙", "超上古", "超圣灵", "超王"];
+
+      private static function nameOf(attr:int):String
+      {
+         if (attr == 999) return "超";
+         return attr >= 0 && attr < NAMES.length ? NAMES[attr] : "";
+      }
+
       public function getPetAttributeTipsByattributeId(param1:int):String
       {
-         // The attribute names of the era, as the later PMAttributeMap lists them (0–22).
-         var names:Array = ["普通", "格斗", "飞行", "毒", "爬行", "土", "虫", "数码", "机械", "火", "水", "木", "电", "神秘", "冰", "上古", "暗黑", "数码2", "光明", "龙", "圣灵", "神兵", "王"];
-         return param1 >= 0 && param1 < names.length ? names[param1] + "系" : "";
+         var n:String = nameOf(param1);
+         return n ? n + "系" : "";
+      }
+
+      /**
+       * An attribute's icon in a box of 20, the size of the later icons (the panels place, space
+       * and scale the box at once, before the icon is loaded): petattribute/attribute<n>.swf,
+       * mmo.pet.attribute<n> (the 2011 icons, 0 to 21); for the others (王, the 超系) the name on
+       * a badge.
+       */
+      private static function attributeBox(attr:int):Sprite
+      {
+         var box:Sprite = new Sprite();
+         box.graphics.beginFill(0, 0);
+         box.graphics.drawRect(0, 0, 20, 20);
+         box.graphics.endFill();
+         var cls:String = "mmo.pet.attribute" + attr;
+         var put:Function = function(... a):void
+         {
+            if (!RDef.has(cls)) return;
+            var d:DisplayObject = RDef.make(cls) as DisplayObject;
+            if (d == null) return;
+            var b:Object = d.getBounds(d);
+            var k:Number = Math.min(20 / Math.max(1, b.width), 20 / Math.max(1, b.height));
+            d.scaleX = d.scaleY = k;
+            d.x = 10 - (b.left + b.width / 2) * k;
+            d.y = 10 - (b.top + b.height / 2) * k;
+            box.addChild(d);
+         };
+         if (attr >= 0 && attr <= 21)
+         {
+            if (RDef.has(cls)) put();
+            else ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});
+         }
+         else if (nameOf(attr))
+         {
+            box.graphics.lineStyle(1, 0xFFFFFF);
+            box.graphics.beginFill(0x6A2BB5);
+            box.graphics.drawCircle(10, 10, 9);
+            box.graphics.endFill();
+            var t:TextField = new TextField();
+            t.defaultTextFormat = new TextFormat("宋体", nameOf(attr).length > 1 ? 7 : 11, 0xFFFFFF, true);
+            t.autoSize = TextFieldAutoSize.LEFT;
+            t.selectable = false;
+            t.mouseEnabled = false;
+            t.text = nameOf(attr);
+            t.x = 10 - t.width / 2;
+            t.y = 10 - t.height / 2;
+            box.addChild(t);
+         }
+         return box;
       }
 
       public function getMaxRaceIdByEggId(param1:int):int
@@ -124,7 +188,8 @@ package mmo.pet.petskillmessage
 
       public function getPetAttributeIconByRaceId(param1:int, param2:int = 1):Sprite
       {
-         return new Sprite();
+         var mes:Object = getPetMes(param1);
+         return attributeBox(int(param2 == 2 ? mes.attribute2 : mes.attribute));
       }
 
       public function getPetEggIconByRaceId(param1:int):Sprite
@@ -141,7 +206,7 @@ package mmo.pet.petskillmessage
 
       public function getSkillAttributeIcon(param1:int):Sprite
       {
-         return new Sprite();
+         return attributeBox(param1);
       }
    }
 }

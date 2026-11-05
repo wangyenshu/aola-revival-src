@@ -79,6 +79,10 @@ def main(argv=None) -> None:
     # (ids of 10000 and up are special forms with their own numbering: ignored for the cut.)
     top = a.top or max((i for i in era if i < 10000), default=0)
     keep = sorted(i for i in dict_lines if i <= top or i in era)
+    # The later table writes the 亚比 a species evolves from as ##id_name## ("由##1_兔小子##进化得来。"),
+    # which its PetDictionaryDataItem turns into the name; the 2013 one shows the text as it is.
+    for i in keep:
+        dict_lines[i] = re.sub(r"##\d+_([^#]*)##", r"\1", dict_lines[i])
     pkg = os.path.join(a.gen, "mmo", "pet", "petdictionarydata")
     os.makedirs(pkg, exist_ok=True)
     rows = ",\n".join(f'         "{i}":{dict_lines[i]}' for i in keep)
