@@ -91,6 +91,15 @@ export const STEP_ITEMS = 14;
 export const STEP_BEAT_PET = 101;
 export const STEP_RULES: Record<number, { type: number; param: string }> = {};
 
+/** Is this a 道具 some quest step waits for (what a quest's script may hand out: 14_8, 14_6)? */
+export function isQuestItem(id: number): boolean {
+  for (const rule of Object.values(STEP_RULES)) {
+    if (rule.type !== STEP_ITEMS) continue;
+    for (const x of (rule.param.split("|")[1] ?? "").split(",")) if (Number(x.split(":")[0]) === id) return true;
+  }
+  return false;
+}
+
 /** Owners whose items the item steps look at (material type -> id -> count). */
 export interface ItemOwner extends TaskOwner {
   items?: Record<string, Record<string, number>>;

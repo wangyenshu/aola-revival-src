@@ -215,6 +215,40 @@ test("the live records: one object a key, written through, the least used let go
   assert.equal(await live.get("user/c"), undefined);
 });
 
+test("the live records: a write that fails leaves the last saved state, not a record never saved", async () => {
+  const inner = new MemoryStore();
+  let fail = 0;
+  const flaky: typeof inner = Object.assign(Object.create(inner), {
+    set: async (k: string, v: unknown) => {
+      if (fail > 0) {
+        fail--;
+        throw new Error("disk full");
+      }
+      return inner.set(k, v);
+    },
+  });
+  const logs: string[] = [];
+  const live = new LiveRecordStore(flaky, ["user/"], 10, () => true, 200, (m) => logs.push(m));
+  await live.set("user/a", { n: 1 });
+  const a = (await live.get<{ n: number }>("user/a"))!;
+  // One failure is retried.
+  fail = 1;
+  a.n = 2;
+  await live.set("user/a", a);
+  assert.deepEqual(await inner.get("user/a"), { n: 2 });
+  // Failing for good: the live copy goes, the next get reads what was last saved.
+  fail = 5;
+  a.n = 3;
+  await assert.rejects(live.set("user/a", a), /disk full/);
+  assert.deepEqual(await live.get("user/a"), { n: 2 });
+  assert.match(logs.at(-1)!, /user\/a failed/);
+  // Over the size limit: not written either.
+  const big = (await live.get<{ n: number; pad?: string }>("user/a"))!;
+  big.pad = "x".repeat(300);
+  await assert.rejects(live.set("user/a", big), /over 200 bytes/);
+  assert.deepEqual(await live.get("user/a"), { n: 2 });
+});
+
 test("a mod's team events go to the other members", async () => {
   const { a, b } = await twoPlayers();
   a.xt("TeamExtension", "revival_team_invite", { name: "奥拉B" });

@@ -9,7 +9,7 @@ import { installPetItems, type Boosts } from "./petitems.ts";
 import { checkPass, hashPass, nameProblem, LOCKED, PassGuard, type AccountOptions, type PassRec } from "./accounts.ts";
 import { adoptRecord, fileProblem, jsonBytes, playerFile, rolesOf, SAVE_RECORD_MAX, type SaveFile } from "./saves.ts";
 import { installSocial } from "./social.ts";
-import { installTasks, registerTaskTables, robotVar, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
+import { installTasks, isQuestItem, registerTaskTables, robotVar, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
 import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installPetCards } from "./petcards.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord, type Visits } from "./house.ts";
@@ -93,6 +93,8 @@ export interface UserRecord {
   hotSpring?: { day: string; used: number; extra: number; adds: number; double: boolean };
   /** 财富小管家's boxes: 晶币 put away (sc) on sd (ms) for d days. */
   fortune?: ({ sc: number; sd: number; d: number } | null)[];
+  /** 欢乐弹珠机: the day its top prize was last given (once a day). */
+  pinballTop?: string;
   /** 礼包 (giftbags.ts): the ones bought at least once, and 经验 waiting for the HELLO. */
   giftBags?: number[];
   helloExp?: number;
@@ -615,7 +617,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const mi = String(Number(ctx.params.ii));
     // A quest hands out a few things at a time, and no 礼包 (it would open itself on the next load).
     const qt = Math.min(QUEST_ITEM_MAX, Math.max(1, Number(ctx.params.qt) | 0));
-    if (sign > 0 && isGiftBag(2, mi)) return;
+    // Handed out: only the 道具 the quest steps wait for (the scripts hand out nothing else).
+    if (sign > 0 && !isQuestItem(Number(mi))) return;
     const rec = await me(ctx);
     const items = (rec.items!["2"] ??= {});
     if (once && (items[mi] ?? 0) > 0) return;
@@ -1270,7 +1273,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       ctx.reply({ amount: `2_343_0_${-used}` }, "onAmountUpdated");
     }
     // No 欢乐弹珠 played, no prize.
-    const lvl = used > 0 ? Number(ctx.params.lvl) | 0 : -1;
+    // The slot reached is the game's word (its play is not followed here): the top prize (a
+    // 亚比蛋, 天赋重组药剂 …) at most once a day, the second one otherwise.
+    let lvl = used > 0 ? Number(ctx.params.lvl) | 0 : -1;
+    const day = emu.clock.now().toISOString().slice(0, 10);
+    if (lvl === 1) {
+      if (rec.pinballTop === day) lvl = 2;
+      else rec.pinballTop = day;
+    }
     if (lvl < 0) {
       await save(rec);
       return ctx.reply({ gf: "" });

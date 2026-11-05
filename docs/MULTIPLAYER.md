@@ -46,6 +46,10 @@ WebSocket) and the small API (`/__api/status`, `rename`, `password`,
 | `--adopt` | a save with no password in it (copied in from elsewhere) takes the password of its first login; off by default |
 | `--trust-proxy` | behind a reverse proxy or tunnel: the client's address (the password lock and the connections an address may hold are per address) is the last of `X-Forwarded-For`, the one the proxy added; off by default, when anyone could set that header |
 
+A record that cannot be written (the disk full, a record over 1.5 MB) is
+logged and let go: the game goes on from what was last saved, so memory and
+storage never disagree.
+
 A connection that has not logged in within 30 seconds is closed, one address
 (an IPv6 one by its /64) holds at most 12 connections, and a connection that
 does not answer the server's ping (every 30 seconds) is ended. The same 奥拉

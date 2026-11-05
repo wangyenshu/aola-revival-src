@@ -42,12 +42,20 @@ export class LiveRecordStore implements Store {
   private readonly prefixes: string[];
   private readonly max: number;
   private readonly pinned: (key: string) => boolean;
-  /** pinned: records never let go (the players in the game: their handlers hold them). */
-  constructor(inner: Store, prefixes: string[], max = 1000, pinned: (key: string) => boolean = () => false) {
+  private readonly maxBytes: number;
+  private readonly log: (msg: string) => void;
+  /**
+   * pinned: records never let go (the players in the game: their handlers hold them). maxBytes: a
+   * kept record larger than this as JSON is not written (0: no limit; a Durable Object value is
+   * at most 2 MB).
+   */
+  constructor(inner: Store, prefixes: string[], max = 1000, pinned: (key: string) => boolean = () => false, maxBytes = 0, log: (msg: string) => void = (m) => console.error(m)) {
     this.inner = inner;
     this.prefixes = prefixes;
     this.max = max;
     this.pinned = pinned;
+    this.maxBytes = maxBytes;
+    this.log = log;
   }
 
   private kept(key: string): boolean {
@@ -90,11 +98,32 @@ export class LiveRecordStore implements Store {
   }
 
   async set<T>(key: string, value: T): Promise<void> {
-    if (this.kept(key)) {
-      this.remember(key, value);
+    if (!this.kept(key)) return this.inner.set(key, value);
+    this.remember(key, value);
+    this.changed(key);
+    // Written as it is now; a write that fails (the disk full, the record over the limit) leaves
+    // the live copy out, so the next get reads what storage last kept: memory and storage agree
+    // (the change since the last good write is lost, and logged), rather than a game going on
+    // from a record that is never saved.
+    let err: unknown;
+    if (this.maxBytes && new TextEncoder().encode(JSON.stringify(value)).length > this.maxBytes) err = new Error(`record over ${this.maxBytes} bytes`);
+    else {
+      for (let tries = 0; tries < 3; tries++) {
+        try {
+          await this.inner.set(key, value);
+          return;
+        } catch (e) {
+          err = e;
+          await new Promise((r) => setTimeout(r, 50 * (tries + 1)));
+        }
+      }
+    }
+    if (this.live.get(key) === value) {
+      this.live.delete(key);
       this.changed(key);
     }
-    await this.inner.set(key, value);
+    this.log(`[aola] save of ${key} failed, its last saved state is kept: ${(err as Error)?.message ?? String(err)}`);
+    throw err;
   }
 
   async delete(key: string): Promise<void> {

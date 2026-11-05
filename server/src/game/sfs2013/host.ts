@@ -3,6 +3,7 @@
 // for many. The host gives a Store for the saves and a way to read the game's JSON tables;
 // it hands every connection (a WebSocket from Ruffle's socketProxy, a TCP socket) to attach.
 
+import { SAVE_RECORD_MAX } from "./saves.ts";
 import { GameClock } from "../../core/clock.ts";
 import { Emulator, type Link, type Session } from "../../core/emulator.ts";
 import { MemoryRecorder, type Recorder } from "../../core/recorder.ts";
@@ -73,7 +74,7 @@ export function createGameHost(o: GameHostOptions): GameHost {
       } catch {
         return false;
       }
-    }),
+    }, SAVE_RECORD_MAX),
     recorder: o.recorder ?? new MemoryRecorder(),
     answerPolicy: o.answerPolicy ?? false,
   });

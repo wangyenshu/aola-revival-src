@@ -148,7 +148,7 @@ test("the story quests come from revival/tasks.json; a type 12 starter follows i
 });
 
 test("an item step finishes once the script has handed out its items; a fight step once its task 亚比 is beaten", async () => {
-  const { registerTaskTables, skipTo, stepsByItems, stepsByPetWin } = await import("../src/game/sfs2013/tasks.ts");
+  const { registerTaskTables, skipTo, stepsByItems, stepsByPetWin, isQuestItem } = await import("../src/game/sfs2013/tasks.ts");
   registerTaskTables({
     defines: {
       "228": [0, "229,230"], "229": [14, "1|108:1"], "230": [11, ""],
@@ -156,6 +156,9 @@ test("an item step finishes once the script has handed out its items; a fight st
     },
     starters: { "228": { type: 11, pre: [], name: "可恶的达斯特黑市" }, "59": { type: 11, pre: [], name: "干涸的河床" } },
   });
+  // What a quest's script may hand out (14_8): the items its steps wait for, nothing else.
+  assert.equal(isQuestItem(108), true);
+  assert.equal(isQuestItem(64), false, "百分百亚比球 is no quest item");
   const rec: TaskOwner & { items?: Record<string, Record<string, number>> } = {};
   skipTo(rec, 229, 1);
   assert.deepEqual(stepsByItems(rec, 2).changes, [], "no 人鱼鳞片 yet");
