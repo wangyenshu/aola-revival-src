@@ -1643,8 +1643,11 @@ package mmo.petfightnew
          sound(win ? "x7009" : "x7010");
          // myFinalRaceId (PetFightEvent): the 亚比 that ended the fight; the 道馆 panels give their stone for their own.
          var bonus:Array = win && p.bn is Array ? p.bn as Array : [];
+         var ended:Boolean = false;
          var done:Function = function():void
          {
+            if (ended) return;
+            ended = true;
             close({isWin: win, isCatched: p.isCatched == true, raceId: int(p.raceId), id: int(p.id), isEscape: false, myFinalRaceId: int(p.myFinalRaceId)});
             showBonus(bonus);
          };
@@ -1658,7 +1661,11 @@ package mmo.petfightnew
          if (p.pvp) lines = [win ? "战斗胜利！" : "战斗失败！"];
          // note (the revival's server): what the win brought besides, a boss's 亚比蛋.
          if (win && p.note) lines = lines.concat(String(p.note).split("\n"));
+         // 自动战斗仪: its battles end by themselves, and the 亚比 have all back (the server's words).
+         var healed:String = "自动战斗仪回复了亚比的全部状态。";
+         if (String(p.desc || "").indexOf(healed) >= 0) lines = (results.length || win ? lines : ["你的亚比都倒下了……"]).concat([healed]);
          showResult(title, lines, done);
+         if (auto) TweenLite.delayedCall(2.5, done);
       }
 
       /**

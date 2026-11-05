@@ -208,6 +208,8 @@ The 2013 server's rules are lost. The main reconstructions:
   left, the player's 亚比 uses 挣扎; the computer's (wild ones, bosses, 副本,
   时空隧道, quests, 道馆) take a 高级活力豆 instead, of which they have no end:
   their turn goes on it (20 uses back on every skill) and they fight on.
+  A 自动战斗仪 battle ends by itself, won or lost, and gives every 亚比 of the
+  bag all its 体力 and PP back, so that the next one can come.
 - **Catching**: an ordinary 亚比球 works once a wild 亚比 is down to a fifth
   of its HP, earlier for easy species, at any HP for the 朵朵兔 (as the 2011
   walkthrough says); better balls raise the chance.

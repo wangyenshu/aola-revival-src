@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { BattleEngine, award, catchChance, installBattles, parseEffects, type Msg } from "../src/game/sfs2013/battle.ts";
 import { catchLevel, skillsAt, type PmData } from "../src/game/sfs2013/pmdata.ts";
-import { makePet, type PetOwner, type PetTables } from "../src/game/sfs2013/pets.ts";
+import { makePet, statsOf, type PetOwner, type PetTables } from "../src/game/sfs2013/pets.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
 
 const pm: PmData = {
@@ -276,4 +276,27 @@ test("no PP left: the 亚比 does nothing that turn (no 挣扎), the wild 亚比
   assert.equal(out[0][0], "2421");
   assert.match(String(out[0][1].desc), /技能次数用完了，什么也没有做/);
   assert.ok(!out.some(([c, m]) => c === "2411" && m.reqSId === 0), "no 挣扎");
+});
+
+test("自动战斗仪: after each of its battles every 亚比 of the bag has all its 体力 and PP back", async () => {
+  const { owner, call } = harness(() => 0.3);
+  owner.pets!.push(makePet(tables, 1, 12, "d", 2));
+  (owner as PetOwner & { boosts?: { auto?: number } }).boosts = { auto: 3 };
+  const start = await call("PetExtension.54_2", { raceId: 43, level: -1, sw: true, id: -1 });
+  assert.equal((start.find(([c]) => c === "2401")![1] as { auto?: boolean }).auto, true);
+  owner.pets![1].hp = 1;
+  owner.pets![1].skills[0].pp = 0;
+  let end: Msg | undefined;
+  for (let i = 0; i < 20 && !end; i++) end = (await call("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 })).find(([c]) => c === "2403");
+  assert.ok(end, "the battle ended");
+  assert.match(String(end![1].desc), /自动战斗仪回复了亚比的全部状态/);
+  for (const p of owner.pets!) {
+    assert.equal(p.hp, statsOf(p, tables)[0]);
+    assert.ok(p.skills.every((s) => s.pp === s.max));
+  }
+  // Without it: as the battle left them.
+  const { owner: o2, call: c2 } = harness(() => 0.3);
+  await c2("PetExtension.54_2", { raceId: 43, level: -1, sw: true, id: -1 });
+  for (let i = 0; i < 20; i++) if ((await c2("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 })).some(([c]) => c === "2403")) break;
+  assert.ok(o2.pets![0].skills.some((s) => s.pp < s.max));
 });

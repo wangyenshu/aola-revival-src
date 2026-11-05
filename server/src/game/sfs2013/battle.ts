@@ -201,6 +201,8 @@ export interface Battle {
   copyId?: number;
   /** A 沙盒 fight (sandbox.ts): no experience, effort points or evolution for the win. */
   noAward?: boolean;
+  /** Fought by the 自动战斗仪: at its end every 亚比 of the bag has all its 体力 and PP back. */
+  auto?: boolean;
   /** 亚比对战 with another player (duel.ts): the battle of both, its commands are the duel's. */
   duel?: Duel;
   /** 全场 X系威力提升: the 属性 up and down, for some turns. */
@@ -2032,6 +2034,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const boosts = (o as PetItemOwner).boosts;
     // (A wild 亚比 of the room: the one battle that may be caught.)
     const auto = !!boosts?.auto && catchable && !copyId && !sandbox;
+    b.auto = auto;
     if (auto && boosts) {
       boosts.auto = (boosts.auto ?? 0) - 1;
       if (boosts.auto <= 0) delete boosts.auto;
@@ -2550,6 +2553,20 @@ export function installBattles(world: World, deps: BattleDeps): void {
       send(ctx, out);
     });
 
+  /**
+   * The end of a battle the 自动战斗仪 fought, whatever its end: every 亚比 of the bag has all its 体力
+   * and PP back (RECONSTRUCTED: the device's 2013 words say only that it fights by itself), so that
+   * the next of its battles can come. The words that say so, or "".
+   */
+  const autoRestore = (b: Battle, o: PetOwner, t: PetTables): string => {
+    if (!b.auto) return "";
+    for (const p of o.pets ?? []) {
+      p.hp = statsOf(p, t)[0];
+      for (const s of p.skills) s.pp = s.max;
+    }
+    return "自动战斗仪回复了亚比的全部状态。";
+  };
+
   /** After the actions of a turn: residual damage, then the next turn, a forced switch, or the end. */
   const finish = (b: Battle, e: BattleEngine, o: PetOwner, t: PetTables, ctx: XtContext): Msg[] => {
     const out: Msg[] = [];
@@ -2601,7 +2618,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // once the battle is closed ("1 个 …亚比蛋 已经放入你的亚比孵化器").
       const bn = won.filter(([c, m]) => c === NOTE && m.bn).map(([, m]) => m.bn);
       out.push(...won.filter(([c]) => c !== NOTE));
-      const desc = b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。${radarCoins ? `寻宝雷达找到了${radarCoins}晶币！` : ""}`;
+      const desc = (b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。${radarCoins ? `寻宝雷达找到了${radarCoins}晶币！` : ""}`) + autoRestore(b, o, t);
       // myFinalRaceId: the 亚比 that ended it (PetFightEvent.myFinalRaceId; the 道馆 panels give their stone for their own).
       out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, myFinalRaceId: before, desc, ...(notes.length ? { note: notes.join("\n") } : {}), ...(bn.length ? { bn } : {}), pmmList: e.views(b) }]);
       battles.delete(o.id);
@@ -2615,7 +2632,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
       }
       b.over = true;
       if (b.onLose) out.push(...b.onLose(o));
-      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, myFinalRaceId: b.mine.pet.race, desc: "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
+      const healed = autoRestore(b, o, t);
+      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, myFinalRaceId: b.mine.pet.race, desc: healed ? `战斗失败了……${healed}` : "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
@@ -2731,11 +2749,11 @@ export function installBattles(world: World, deps: BattleDeps): void {
   });
 
   // escape {}: always works against wild 亚比.
-  turn("1404", (ctx, b, _e, o) => {
+  turn("1404", (ctx, b, _e, o, t) => {
     b.over = true;
     battles.delete(o.id);
     if (b.onLose) for (const [c, body] of b.onLose(o)) ctx.reply(body, c);
-    ctx.reply({ reqSId: 0, isEscape: true, raceId: b.asked ?? b.wild.pet.race, desc: "成功逃跑了！" }, "2414");
+    ctx.reply({ reqSId: 0, isEscape: true, raceId: b.asked ?? b.wild.pet.race, desc: "成功逃跑了！" + autoRestore(b, o, t) }, "2414");
     return "end";
   });
 
@@ -2768,9 +2786,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const lv = catchLevel(o.catchExp).clv;
     b.over = true;
     battles.delete(o.id);
+    const healed = autoRestore(b, o, t);
     send(ctx, [
       ["2415", { reqId: o.id, tarSId: 1, itemId: ball, pmId: caught.id, raceId: caught.race, lv, lc: inBag ? 1 : 2, pet: briefOf(caught, o, t), desc: `捕捉成功！${nameOf(t, caught.race)}${inBag ? "进入了你的亚比背包" : "被送进了亚比仓库"}。` }],
-      ["2403", { isWin: true, isCatched: true, raceId: caught.race, desc: "捕捉成功！", pmmList: e.views(b) }],
+      ["2403", { isWin: true, isCatched: true, raceId: caught.race, desc: "捕捉成功！" + healed, pmmList: e.views(b) }],
       ...(markDic(o, t, caught.race, OWNED) ? [NEW_RECORD] : []),
     ]);
     return "end";
