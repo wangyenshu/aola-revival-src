@@ -28,8 +28,9 @@ function harness(rng = steady()) {
     items: {},
     score: 100,
   };
-  owner.pets = [makePet(tables, 1300, 100, "d", 1)]; // 幻雷 Lv100
-  owner.nextPetId = 1;
+  // 幻雷 Lv100, and a second 亚比 to step in for a turn (below).
+  owner.pets = [makePet(tables, 1300, 100, "d", 1), makePet(tables, 1300, 100, "d", 2)];
+  owner.nextPetId = 2;
   let clock = 1_000_000;
   installBattles(world, { load: async () => owner, save: async () => {}, tables: async () => tables, wild: async () => ({}), today: () => "2013-01-25", rng, now: () => clock });
   const call = async (key: string, params: Record<string, unknown> = {}) => {
@@ -50,6 +51,12 @@ function harness(rng = steady()) {
       const usable = owner.pets![0].skills.filter((s) => s.pp > 0);
       const sk = usable.find((s) => s.id === 1039) ?? usable.sort((a, b) => (tables.pm.skills[String(b.id)]?.p ?? 0) - (tables.pm.skills[String(a.id)]?.p ?? 0))[0];
       all.push(...(await call("PocketMonsterExtension.1401", { skillId: sk.id })));
+      // The masters never run out of PP (高级活力豆): every 20 turns the 幻雷 steps out and back,
+      // so that its 命中 lowered by 雷光四射 comes back, as a player would do.
+      if (i % 20 === 19 && !all.some(([c]) => c === "2403")) {
+        all.push(...(await call("PocketMonsterExtension.1403", { pmId: 2 })));
+        all.push(...(await call("PocketMonsterExtension.1403", { pmId: 1 })));
+      }
       for (const p of owner.pets!) {
         p.hp = 9999; // the test's 亚比 does not fall nor tire
         for (const k of p.skills) k.pp = k.max;

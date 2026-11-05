@@ -212,9 +212,19 @@ export function installDuels(world: World, deps: DuelDeps) {
       if (c.kind === "wait" && e.forcedOf(f) !== undefined) return e.forcedOf(f)!;
       if (c.kind !== "skill") return -1;
       const usable = f.pet.skills.filter((k) => k.pp > 0);
-      return e.choice(f, usable.find((k) => k.id === c.id) ? c.id : usable.length ? usable[0].id : 0);
+      // No PP left: the turn is skipped (no 挣扎), as when its time runs out.
+      if (!usable.length && e.forcedOf(f) === undefined) return -1;
+      return e.choice(f, usable.find((k) => k.id === c.id) ? c.id : usable[0].id);
     };
     const s0 = skillOf(0, c0), s1 = skillOf(1, c1);
+    // A side that does nothing this turn is told so, on both pages.
+    for (const [i, si, c] of [[0, s0, c0], [1, s1, c1]] as const) {
+      if (si >= 0 || c.kind === "switch") continue;
+      const pet = fighterOf(d, i).pet;
+      const name = pet.nick || nameOf(t, pet.race);
+      const out_ = pet.skills.every((k) => k.pp <= 0) ? `${name}的技能次数用完了，什么也没有做。` : `${name}什么也没有做。`;
+      both(d, e, out, ["2421", { slotId: i, hpInc: 0, desc: out_, pmmList: [] }]);
+    }
     const acts: [Fighter, Fighter, number][] = [];
     if (s0 >= 0 && s1 >= 0) {
       const first = e.firstMover(d.canon, s0, s1);

@@ -671,3 +671,38 @@ test("亚比对战: 威吓 sends the other player's 亚比 back for another; 束
   b.xt("PocketMonsterExtension", "1404");
   assert.ok(await a.wait("2403"));
 });
+
+test("亚比对战: a 亚比 with no PP left does nothing that turn (no 挣扎); both are told", async () => {
+  const { a, b } = await twoPlayers(true);
+  // A: a 鱼龙, one skill of 5 PP; B: a 雷帝神 whose first skill is 昏暗 (no damage).
+  a.xt("SundriesExtension", "revival_toolbox", { raceId: 403, level: 5 });
+  b.xt("SundriesExtension", "revival_toolbox", { raceId: 320, level: 60 });
+  assert.ok(await a.wait("revival_toolbox"));
+  assert.ok(await b.wait("revival_toolbox"));
+  a.xt("PocketMonsterExtension", "revival_duel_invite", { name: "奥拉B" });
+  await a.wait("revival_duel_invite");
+  await b.wait("revival_duel_ask");
+  b.xt("PocketMonsterExtension", "revival_duel_answer", { from: "奥拉A", ok: true });
+  await a.wait("2401");
+  await b.wait("2401");
+  let told: Record<string, unknown>[] = [];
+  for (let turn = 0; turn < 8 && !told.length; turn++) {
+    a.xts();
+    b.xts();
+    a.xt("PocketMonsterExtension", "1401", { skillId: 0 });
+    b.xt("PocketMonsterExtension", "1401", { skillId: 0 });
+    assert.ok(await a.wait("2402"), "the next turn");
+    const [as, bs] = [a.xts(), b.xts()];
+    told = [as, bs].map((seen) => seen.find((o) => o._cmd === "2421" && /技能次数用完了，什么也没有做/.test(String(o.desc)))).filter((o): o is Record<string, unknown> => !!o);
+    if (told.length) {
+      assert.equal(told.length, 2, "both are told");
+      assert.equal(turn, 5, "after its 5 uses");
+      const skills = bs.filter((o) => o._cmd === "2411");
+      assert.equal(skills.length, 1, "only B's 亚比 acted");
+      assert.equal(skills[0].name, "昏暗");
+    }
+  }
+  b.xt("PocketMonsterExtension", "1404");
+  assert.ok(await a.wait("2403"), "over");
+  assert.equal(told.length, 2);
+});

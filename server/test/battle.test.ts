@@ -267,3 +267,13 @@ test("a story quest's task 亚比 (variant * 10000 + species): at the player's l
   assert.equal(end[1].raceId, 10043);
   assert.deepEqual(out.filter(([c]) => c === "10-1").map(([, b]) => (b as { t: { ti: number } }).t.ti), [62, 63]);
 });
+
+test("no PP left: the 亚比 does nothing that turn (no 挣扎), the wild 亚比 acts", async () => {
+  const { owner, call } = harness(() => 0.3);
+  await call("PetExtension.54_2", { raceId: 43, level: -1, sw: true, id: -1 });
+  for (const s of owner.pets![0].skills) s.pp = 0;
+  const out = await call("PocketMonsterExtension.1401", { skillId: 0, tarSId: 1 });
+  assert.equal(out[0][0], "2421");
+  assert.match(String(out[0][1].desc), /技能次数用完了，什么也没有做/);
+  assert.ok(!out.some(([c, m]) => c === "2411" && m.reqSId === 0), "no 挣扎");
+});

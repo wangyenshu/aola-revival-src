@@ -926,7 +926,9 @@ package mmo.petfightnew
          }
          hideTooltip();
          setCommands(false);
-         PetClient.instance.useSkill(id, 1, true);
+         // No PP left: the turn is skipped (no 挣扎).
+         if (id > 0) PetClient.instance.useSkill(id, 1, true);
+         else PetClient.instance.standby(true);
       }
 
       private function applyCommandState():void

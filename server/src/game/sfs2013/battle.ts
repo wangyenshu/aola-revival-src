@@ -2629,24 +2629,34 @@ export function installBattles(world: World, deps: BattleDeps): void {
     return out;
   };
 
+  // The player's 亚比 does nothing this turn (its time ran out, or it has no PP left): the other acts.
+  const idle = (b: Battle, e: BattleEngine, t: PetTables): Msg[] => {
+    const pet = b.mine.pet;
+    const name = pet.nick || nameOf(t, pet.race);
+    const desc = pet.skills.every((s) => s.pp <= 0) ? `${name}的技能次数用完了，什么也没有做。` : `${name}什么也没有做。`;
+    return [["2421", { slotId: 0, hpInc: 0, desc, pmmList: e.views(b) }], ...e.wildTurn(b)];
+  };
+
   // useSkill {skillId, tarSId, isAuto, tarPSId, reqPSId}
-  turn("1401", (_ctx, b, e) => {
+  turn("1401", (_ctx, b, e, _o, t) => {
     if (b.mustSwitch) return { refused: [["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]] };
     const id = Number(_ctx.params.skillId);
     const usable = b.mine.pet.skills.filter((s) => s.pp > 0);
+    const forced = e.forcedOf(b.mine);
+    // No PP left: the player's 亚比 does nothing this turn (no 挣扎); the other acts.
+    if (!usable.length && forced === undefined) return idle(b, e, t);
     const chosen = usable.find((s) => s.id === id) ? id : usable.length ? usable[0].id : 0;
-    return e.skillTurn(b, chosen);
+    return e.skillTurn(b, forced ?? chosen);
   });
 
   // standby {isAuto, reqPSId} (PetClient.standby): the turn's time ran out and no skill has uses left
   // (the later FightPanel's petAutoUseSkill): the 亚比 waits, the wild 亚比 acts.
   turn("1406", (_ctx, b, e, _o, t) => {
     if (b.mustSwitch) return { refused: [["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]] };
-    const pet = b.mine.pet;
     // A skill it uses by itself (蓄力, 连续攻击N回合) needs no PP.
     const forced = e.forcedOf(b.mine);
     if (forced !== undefined) return e.skillTurn(b, forced);
-    return [["2421", { slotId: 0, hpInc: 0, desc: `${pet.nick || nameOf(t, pet.race)}什么也没有做。`, pmmList: e.views(b) }], ...e.wildTurn(b)];
+    return idle(b, e, t);
   });
 
   // useItem {itemId, tarSId}: 体力糖 heal, 活力豆 give PP back; then the wild 亚比 acts.
