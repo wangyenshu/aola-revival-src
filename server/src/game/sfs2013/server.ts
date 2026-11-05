@@ -39,6 +39,9 @@ export const sfs2013Codec: Codec = {
   },
 };
 
+/** What an older page of the same 奥拉 is told when a new login takes over. */
+export const REPLACED_TEXT = "你的奥拉在别的地方登录了，这里的连接已经断开。";
+
 export interface PlayerState {
   id: number;
   name: string;
@@ -90,6 +93,8 @@ export interface WorldOptions {
   login?: (zone: string, user: string, pass: string, session: Session) => Promise<LoginResult> | LoginResult;
   /** A refused login is answered this much later (a shared server: guessing passwords is slow). */
   refuseDelayMs?: number;
+  /** A connection that has not logged in this long after it came is closed (0: never). */
+  loginWaitMs?: number;
   /** Called after a player joins a room. */
   onJoin?: (session: Session, player: PlayerState, room: Room) => void;
   /** Check client packet numbers (default true: mismatches are logged, not fatal). */
@@ -98,7 +103,7 @@ export interface WorldOptions {
 
 const PLAYER = "sfs2013.player";
 /** A room's name, at most (the longest of the game's: a team's mod room, "sandboxroom|…"). */
-export const ROOM_NAME_MAX = 200;
+export const ROOM_NAME_MAX = 500;
 /** Rooms at once, at most. */
 export const ROOMS_MAX = 5000;
 /** A chat line (pubMsg), at most. */
@@ -107,8 +112,19 @@ export const CHAT_MAX = 300;
 export const CHAT_EVERY_MS = 300;
 /** A room variable's name and value, at most. */
 export const RVAR_MAX = 256;
+/** A player's user variables: at most this many, their names and values together at most UVAR_BYTES. */
+export const UVARS_MAX = 64;
+export const UVAR_BYTES = 8192;
 /** Rooms that go when their last member leaves: homes, 沙盒 rooms, a player's 副本 rooms. */
 const TEMP_ROOM = /_Home$|^sandboxroom[_|]|@/;
+
+const utf8 = new TextEncoder();
+/** The bytes variables take on the wire (their names and values as UTF-8). */
+function varBytes(vars: Iterable<SfsVar>): number {
+  let n = 0;
+  for (const v of vars) n += utf8.encode(v.name).length + utf8.encode(String(v.value ?? "")).length;
+  return n;
+}
 
 export class World {
   readonly rooms = new Map<string, Room>();
@@ -121,7 +137,19 @@ export class World {
   constructor(emu: Emulator, opts: WorldOptions = {}) {
     this.emu = emu;
     this.opts = opts;
-    emu.onConnect((s) => s.sendBytes(S.policy(), "sfs2013: policy (client discards it)"));
+    emu.onConnect((s) => {
+      s.sendBytes(S.policy(), "sfs2013: policy (client discards it)");
+      // A connection that never logs in holds a place of the server's (and of its address's).
+      if (this.opts.loginWaitMs) {
+        const t = setTimeout(() => {
+          if (!s.closed && !this.player(s)) {
+            s.note("sfs2013: no login in time, closed");
+            s.close();
+          }
+        }, this.opts.loginWaitMs);
+        (t as { unref?: () => void }).unref?.();
+      }
+    });
     emu.onClose((s) => {
       if (this.player(s)) for (const h of this.leaveHooks) h(s);
       this.leave(s, true);
@@ -242,19 +270,27 @@ export class World {
         this.sendRoom(p.room, S.pubMsg(p.room.id, p.id, msg.message));
         return;
       }
-      case "setUvars":
-        if (!p) return;
+      case "setUvars": {
+        // Bounded: each player's variables reach everyone who enters his room (joinOK).
+        if (!p || msg.vars.length > UVARS_MAX) return;
+        const next = new Map(p.vars);
         for (const v of msg.vars) {
-          if (v.type === "x") p.vars.delete(v.name);
-          else p.vars.set(v.name, v);
+          if (v.type === "x") next.delete(v.name);
+          else next.set(v.name, v);
         }
+        if (next.size > UVARS_MAX || varBytes(next.values()) > UVAR_BYTES) {
+          s.note(`sfs2013: user variables of "${p.name}" over the limit, not set`);
+          return;
+        }
+        p.vars = next;
         if (p.room) this.sendRoom(p.room, S.userVarsUpdate(p.room.id, p.id, msg.vars));
         return;
+      }
       case "setRvars": {
         // Only in a room the client made (a home's, a 沙盒's, a 副本's: temp rooms): a scene's
         // variables are everyone's, and the 2013 client sets none there. Bounded in number and size.
         if (!p?.room || !p.room.isTemp) return;
-        const vars = msg.vars.filter((v) => v.name.length <= RVAR_MAX && String(v.value ?? "").length <= RVAR_MAX);
+        const vars = msg.vars.filter((v) => v.name.length <= RVAR_MAX && String(v.value ?? "").length <= RVAR_MAX).slice(0, 50);
         for (const v of vars) {
           if (v.type === "x") p.room.vars.delete(v.name);
           else if (p.room.vars.size < 50 || p.room.vars.has(v.name)) p.room.vars.set(v.name, v);
@@ -283,22 +319,28 @@ export class World {
     let r: LoginResult;
     try {
       r = this.opts.login ? await this.opts.login(zone, user, pass, s) : { id: this.nextUserId++, name: user || `aola${this.nextUserId}` };
-    } finally {
+    } catch (err) {
       this.loggingIn.delete(s);
+      throw err;
     }
-    if (s.closed) return;
+    if (s.closed) return void this.loggingIn.delete(s);
     if (r.error) {
       s.note(`sfs2013: login of "${user}" refused: ${r.error}`);
-      // A wrong password: the answer a second later (guessing one after another is slow).
+      // A wrong password: the answer a second later, and no other try on this connection till
+      // then (guessing one after another is slow).
       if (this.opts.refuseDelayMs) await new Promise((ok) => setTimeout(ok, this.opts.refuseDelayMs));
+      this.loggingIn.delete(s);
       s.sendBytes(S.logKO(r.error), "logKO");
       return;
     }
-    // One session a name: a second login of the same 奥拉 (another tab, a reconnect) takes over.
+    this.loggingIn.delete(s);
+    // One session a name: a second login of the same 奥拉 (another tab, a reconnect) takes over;
+    // the old page is told why before its connection closes (the rebuilt Social.as shows it).
     for (const other of this.emu.sessions) {
       if (other !== s && this.player(other)?.name === r.name) {
         for (const h of this.leaveHooks) h(other);
         this.leave(other, true);
+        other.sendBytes(S.ext({ _cmd: "revival_replaced", msg: REPLACED_TEXT }), "revival_replaced");
         other.close();
       }
     }
@@ -328,14 +370,27 @@ export class World {
       s.sendBytes(S.joinKO("no such room"));
       return;
     }
-    const room = this.room(name, isTemp || TEMP_ROOM.test(name));
-    room.members.add(s);
-    p.room = room;
-    const users = [...room.members].flatMap((m) => {
+    // Which rooms are temporary is the server's rule (a client's flag would open room variables
+    // in a scene; no 2013 module sets it).
+    void isTemp;
+    const room = this.room(name, TEMP_ROOM.test(name));
+    const users = [...room.members, s].flatMap((m) => {
       const mp = this.player(m);
       return mp ? [this.wireUser(mp)] : [];
     });
-    s.sendBytes(S.joinOK({ id: room.id, name: room.name, maxUsers: room.maxUsers, vars: [...room.vars.values()] }, users), `joinOK ${name}`);
+    // Built before he is counted in: a reply that cannot be built leaves him out of the room.
+    let ok: Uint8Array;
+    try {
+      ok = S.joinOK({ id: room.id, name: room.name, maxUsers: room.maxUsers, vars: [...room.vars.values()] }, users);
+    } catch (err) {
+      s.note(`sfs2013: joinOK ${name} not built: ${(err as Error).message}`);
+      if (!room.members.size) this.rooms.delete(room.name);
+      s.sendBytes(S.joinKO("no such room"));
+      return;
+    }
+    room.members.add(s);
+    p.room = room;
+    s.sendBytes(ok, `joinOK ${name}`);
     this.sendRoom(room, S.userEnterRoom(room.id, this.wireUser(p)), s);
     this.opts.onJoin?.(s, p, room);
     for (const h of this.joinHooks) h(s, p, room, from);

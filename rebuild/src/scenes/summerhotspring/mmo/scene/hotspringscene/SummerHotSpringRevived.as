@@ -221,6 +221,8 @@ package mmo.scene.hotspringscene
          lastStep = 0;
          exp = 0;
          me.stop();
+         // In the pool a team member stays (his leader coming and going moves him not).
+         try { getDefinitionByName("mmo.control.Social").paused = true; } catch (e0:Error) {}
          me.setStrategy(null);
          me.jumpTo(JOIN_X, JOIN_Y);
          loadCostume(wantedCostume, function(mc:MovieClip, into:Sprite):void
@@ -368,12 +370,22 @@ package mmo.scene.hotspringscene
          costume = null;
          if (hidden != null) hidden.visible = true;
          hidden = null;
-         if (me != null && tell)
+         if (me != null && tell) me.jumpTo(OUT_X, OUT_Y);
+         if (me != null) walkAgain(me);
+      }
+
+      /** Out of the pool: a team member follows his leader again (control's Social), else walks. */
+      private static function walkAgain(me:Player):void
+      {
+         try
          {
-            me.jumpTo(OUT_X, OUT_Y);
-            me.setStrategy(new MouseControlStrategy());
+            var social:Object = getDefinitionByName("mmo.control.Social");
+            social.paused = false;
+            social.refollow();
+            return;
          }
-         else if (me != null) me.setStrategy(new MouseControlStrategy());
+         catch (e:Error) {}
+         me.setStrategy(new MouseControlStrategy());
       }
 
       private function onOut(e:SocketClientEvent):void

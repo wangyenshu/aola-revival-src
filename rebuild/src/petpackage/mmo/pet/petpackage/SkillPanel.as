@@ -3,6 +3,7 @@ package mmo.pet.petpackage
    import flash.display.Sprite;
    import flash.events.MouseEvent;
    import flash.text.TextField;
+   import flash.text.TextFieldAutoSize;
    import mmo.framework.comm.PetClient;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -37,6 +38,10 @@ package mmo.pet.petpackage
       private var onDone:Function;
       private var page:int = 0;
       private var pageText:TextField;
+      /** A skill's description while the mouse is over it (a click chooses it). */
+      private var tip:Sprite;
+      /** The skill under the mouse (its tip is shown again when the rows are drawn anew), or -1. */
+      private var tipId:int = -1;
 
       public static function show(petId:int, petName:String, onDone:Function):void
       {
@@ -104,6 +109,7 @@ package mmo.pet.petpackage
 
       private function draw():void
       {
+         removeTip();
          while (list.numChildren) list.removeChildAt(0);
          var pages:int = Math.max(1, Math.ceil(skills.length / PER));
          page = Math.max(0, Math.min(page, pages - 1));
@@ -134,10 +140,15 @@ package mmo.pet.petpackage
             d.x = 8;
             d.y = 20;
             row.addChild(d);
-            row.addEventListener(MouseEvent.CLICK, toggle(int(s.id), String(s.desc || "")));
+            row.addEventListener(MouseEvent.CLICK, toggle(int(s.id)));
+            var over:Function = hover(row, int(s.id), String(s.name), String(s.desc || ""));
+            row.addEventListener(MouseEvent.ROLL_OVER, over);
+            row.addEventListener(MouseEvent.ROLL_OUT, unhover);
             list.addChild(row);
+            // A click draws the rows anew under the mouse: its tip stays.
+            if (int(s.id) == tipId) over(null);
          }
-         said.text = skills.length ? "已选 " + chosen.length + " / 4" : "正在读取技能……";
+         said.text = skills.length ? "已选 " + chosen.length + " / 4    （把鼠标放在技能上看说明，点一下选上或取下）" : "正在读取技能……";
       }
 
       private function turn(by:int):void
@@ -146,7 +157,51 @@ package mmo.pet.petpackage
          draw();
       }
 
-      private function toggle(id:int, desc:String):Function
+      /** Its description beside the skill under the mouse. */
+      private function hover(row:Sprite, id:int, title:String, desc:String):Function
+      {
+         return function(e:MouseEvent):void
+         {
+            removeTip();
+            tipId = id;
+            tip = new Sprite();
+            tip.name = "skillTip";
+            tip.mouseEnabled = tip.mouseChildren = false;
+            var t1:TextField = RUI.text(12, 0xFFFFFF, true);
+            t1.text = title;
+            t1.x = 8;
+            t1.y = 5;
+            var t2:TextField = RUI.text(12, 0xFFE66A, false, 184);
+            t2.text = desc || "这个技能没有说明。";
+            t2.autoSize = TextFieldAutoSize.LEFT;
+            t2.x = 8;
+            t2.y = 24;
+            tip.graphics.lineStyle(1, 0x6FB6E8);
+            tip.graphics.beginFill(0x123A7A, 0.92);
+            tip.graphics.drawRoundRect(0, 0, 200, t2.y + t2.height + 8, 8, 8);
+            tip.graphics.endFill();
+            tip.addChild(t1);
+            tip.addChild(t2);
+            // Beside the row, inside the panel: right of a left-hand skill, left of a right-hand one.
+            tip.x = list.x + row.x + (row.x > 0 ? -206 : 232);
+            tip.y = Math.min(list.y + row.y, H - tip.height - 8);
+            box.addChild(tip);
+         };
+      }
+
+      private function unhover(e:MouseEvent = null):void
+      {
+         tipId = -1;
+         removeTip();
+      }
+
+      private function removeTip():void
+      {
+         if (tip && tip.parent) tip.parent.removeChild(tip);
+         tip = null;
+      }
+
+      private function toggle(id:int):Function
       {
          return function(e:MouseEvent):void
          {
@@ -163,7 +218,6 @@ package mmo.pet.petpackage
                chosen.push(id);
             }
             draw();
-            if (desc) said.text = "已选 " + chosen.length + " / 4    " + desc;
          };
       }
 

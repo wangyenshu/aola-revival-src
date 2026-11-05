@@ -242,6 +242,10 @@ records which open and what errors they log.
 
 ### The test hook
 
+The browser console shows every socket frame and the engine's log only with
+`?verbose=1` (or `?dev=1`); otherwise warnings only, and the page keeps the last
+5000 frames (`window.aola.frames`).
+
 With `?dev=1` the control module registers an ExternalInterface callback,
 `revival(command, argument)`, which scenarios call through `h.hook`. Useful
 commands:

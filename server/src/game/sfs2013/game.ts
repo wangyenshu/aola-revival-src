@@ -168,6 +168,10 @@ const userKey = (name: string) => `user/${encodeURIComponent(name)}`;
 const queues = new WeakMap<Emulator, Promise<unknown>>();
 /** After an import ends an 奥拉's game: a moment for its requests still running to finish. */
 export const IMPORT_SETTLE_MS = 300;
+/** On a shared server, a connection that has not logged in within this is closed. */
+export const LOGIN_WAIT_MS = 30_000;
+/** What a quest's script hands out at once (14_8, 14_6), at most. */
+export const QUEST_ITEM_MAX = 99;
 /** Wrong passwords per name, whichever way they are tried (accounts.ts PassGuard). */
 const guards = new WeakMap<Emulator, PassGuard>();
 const guardOf = (emu: Emulator) => {
@@ -306,6 +310,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   const world = new World(emu, {
     login: (zone, user, pass, s) => oneAtATime(emu, () => login(zone, user, pass, s.link.remote)),
     refuseDelayMs: opts.accounts?.required ? 1000 : 0,
+    loginWaitMs: opts.accounts?.required ? LOGIN_WAIT_MS : 0,
   });
   async function login(_zone: string, user: string, pass: string, addr: string) {
     const name = (user || "小奥拉").trim();
@@ -362,6 +367,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const owned = Object.keys(rec?.items?.["0"] ?? {});
     for (const id of worn) if (!owned.includes(id)) owned.push(id);
     ctx.reply({ un, cl: owned.map((id) => `${id},${worn.has(id) ? 1 : 0}`).join(";") });
+  });
+
+  // ClothesService.getOthersAvatarInfo for a player not in the room (the 名片 from 好友): {un} -> the
+  // clothes he wears ("id;id", as his user variable c).
+  world.xt("MaterialExtension.getUserWearingClothes", async (ctx) => {
+    const un = String((ctx.params as { un?: string })?.un ?? ctx.player.name).slice(0, 64);
+    const rec = await userRecord(emu, un);
+    ctx.reply({ un, cl: rec?.avatar ?? DEFAULT_AVATAR });
   });
 
   // ClothesService.updateMyWearingClothes: {cid: "id,id"} = clothes whose worn state flips.
@@ -474,14 +487,19 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const qt = Math.max(1, Number(ctx.params.qt ?? 1) | 0);
     const rec = await me(ctx);
     const row = (await table())[tp]?.[mi];
-    const owned = ((rec.items ??= {})[tp] ??= {});
     const fail = (result: number) => ctx.reply({ result, tp: Number(tp), mi: Number(mi), qt, score: 0 });
     const worn = tp === "0" && String(rec.avatar ?? "").split(";").includes(mi);
     if (!row || row[1] <= 0 || worn) return fail(-1);
-    if ((owned[mi] ?? 0) < qt) return fail(-2);
+    const owned = ((rec.items ??= {})[tp] ??= {});
+    // Furniture standing in the home, and the house in use, are not for sale (the house would
+    // come back on the next load, houseOf, and could be sold again and again).
+    const standing = tp === "1" ? (usedUp(rec)[mi] ?? 0) : 0;
+    if ((owned[mi] ?? 0) - standing < qt) return fail(-2);
     owned[mi] -= qt;
     if (owned[mi] <= 0) delete owned[mi];
-    const got = row[1] * qt;
+    // Never more than it costs in the shop (a few rows of the 2013 data buy back for more).
+    const each = row[0] > 0 ? Math.min(row[1], row[0]) : row[1];
+    const got = each * qt;
     rec.score = Math.min(9_999_999, (rec.score ?? 0) + got);
     await save(rec);
     ctx.reply({ amount: `${tp}_${mi}_0_-${qt}` }, "onAmountUpdated");
@@ -502,10 +520,10 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const qt = Math.max(1, Number(ctx.params.qt ?? 1) | 0);
     const row = (await table())[tp]?.[mi];
     const rec = await me(ctx);
-    const owned = (rec.items![tp] ??= {});
     // The 2015 欢乐弹珠机's buy panel reads result where the 2013 panels read res.
     const fail = (res: number) => ctx.reply({ res, result: res, tp: Number(tp), mi: Number(mi), qt });
     if (!row) return fail(-1);
+    const owned = (rec.items![tp] ??= {});
     if (tp === "9") {
       // A tree of the 种植手册: it goes into the 植树盆 of the 家园 (plants.ts).
       const tree = plantTree(rec, Number(mi));
@@ -576,7 +594,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   world.xt("MaterialExtension.14_11", async (ctx) => {
     const mi = String(Number(ctx.params.ItemId));
     const rec = await me(ctx);
-    if ((await gatherCheck(rec, mi)) !== 0) return ctx.reply({ result: 2, itemId: Number(mi), qt: 0 });
+    // A 礼包 grows at no gather point (and would open itself on the next load).
+    if (isGiftBag(2, mi) || (await gatherCheck(rec, mi)) !== 0) return ctx.reply({ result: 2, itemId: Number(mi), qt: 0 });
     const qt = 1;
     const st = gatherState(rec);
     st.n[mi] = (st.n[mi] ?? 0) + 1;
@@ -594,7 +613,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //   these survives, and the scripts wait for none. RECONSTRUCTED.
   const questItem = async (ctx: XtContext, once: boolean, sign: number) => {
     const mi = String(Number(ctx.params.ii));
-    const qt = Math.max(1, Number(ctx.params.qt) | 0);
+    // A quest hands out a few things at a time, and no 礼包 (it would open itself on the next load).
+    const qt = Math.min(QUEST_ITEM_MAX, Math.max(1, Number(ctx.params.qt) | 0));
+    if (sign > 0 && isGiftBag(2, mi)) return;
     const rec = await me(ctx);
     const items = (rec.items!["2"] ??= {});
     if (once && (items[mi] ?? 0) > 0) return;
@@ -1054,15 +1075,20 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //   2-16 trainStop {pi}   -> 2-16 {res, pi, exp, lv}   the experience of the time trained
   // The lessons' lengths and experience are lost: RECONSTRUCTED as TRAIN_LESSONS.
   const TRAIN_LESSONS: Record<number, [seconds: number, exp: number]> = { 1: [3600, 1500], 2: [4 * 3600, 5000], 3: [8 * 3600, 9000] };
+  /** The lessons of 亚比 still had (one released or fused since leaves its place free). */
+  const training = (rec: UserRecord) => {
+    const has = (pi: number) => (rec.storage ?? []).some((p) => p.id === pi) || (rec.pets ?? []).some((p) => p.id === pi);
+    return (rec.training = (rec.training ?? []).filter((t) => has(t.pi) && TRAIN_LESSONS[t.c]));
+  };
   const trainView = (rec: UserRecord) => {
     const now = emu.clock.now().getTime();
-    return (rec.training ?? []).map((t) => ({ pi: t.pi, c: t.c, lt: Math.max(0, Math.ceil((t.since + TRAIN_LESSONS[t.c][0] * 1000 - now) / 1000)) }));
+    return training(rec).map((t) => ({ pi: t.pi, c: t.c, lt: Math.max(0, Math.ceil((t.since + TRAIN_LESSONS[t.c][0] * 1000 - now) / 1000)) }));
   };
   world.xt("RobotExtension.2-15", async (ctx) => {
     const rec = await me(ctx);
     const pi = Number(ctx.params.pi) | 0;
     const c = TRAIN_LESSONS[Number(ctx.params.c) | 0] ? Number(ctx.params.c) | 0 : 1;
-    const list = (rec.training ??= []);
+    const list = training(rec);
     if (!(rec.storage ?? []).some((p) => p.id === pi) || list.some((t) => t.pi === pi)) return ctx.reply({ res: -1, pi, c }, "2-15");
     if (list.length >= 2) return ctx.reply({ res: -2, pi, c }, "2-15");
     list.push({ pi, c, since: emu.clock.now().getTime() });
@@ -1073,9 +1099,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   world.xt("RobotExtension.2-16", async (ctx) => {
     const rec = await me(ctx);
     const pi = Number(ctx.params.pi) | 0;
-    const at = (rec.training ?? []).findIndex((t) => t.pi === pi);
+    const at = training(rec).findIndex((t) => t.pi === pi);
     const pet = (rec.storage ?? []).find((p) => p.id === pi) ?? (rec.pets ?? []).find((p) => p.id === pi);
-    if (at < 0 || !pet) return ctx.reply({ res: -1, pi, exp: 0 }, "2-16");
+    if (at < 0 || !pet) {
+      await save(rec);
+      return ctx.reply({ res: -1, pi, exp: 0 }, "2-16");
+    }
     const [t0] = rec.training!.splice(at, 1);
     const [secs, full] = TRAIN_LESSONS[t0.c];
     const done = Math.min(1, (emu.clock.now().getTime() - t0.since) / (secs * 1000));
@@ -1240,7 +1269,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       if (items["343"] <= 0) delete items["343"];
       ctx.reply({ amount: `2_343_0_${-used}` }, "onAmountUpdated");
     }
-    const lvl = Number(ctx.params.lvl) | 0;
+    // No 欢乐弹珠 played, no prize.
+    const lvl = used > 0 ? Number(ctx.params.lvl) | 0 : -1;
+    if (lvl < 0) {
+      await save(rec);
+      return ctx.reply({ gf: "" });
+    }
     const pick = <T,>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
     const prize: [string, number, number][] =
       lvl === 1 ? [pick([["5", 88, 1], ["2", 178, 1], ["2", 661, 1]] as [string, number, number][])]

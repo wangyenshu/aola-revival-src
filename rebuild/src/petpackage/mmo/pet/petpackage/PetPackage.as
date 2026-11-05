@@ -67,6 +67,10 @@ package mmo.pet.petpackage
          panel = new PetPackagePanel();
          wire();
          ModalDialogManager.getInstance().addModalDialog(panel);
+         // Taken away with the room left (SceneManager clears the dialogs): closed as well, so the
+         // next one opens as new (its 技能 page, its listeners).
+         var mine:Sprite = panel;
+         panel.addEventListener(Event.REMOVED_FROM_STAGE, function(e:Event):void { if (panel == mine) close(); });
          if (data != null)
          {
             data.addEventListener(PetDataServiceEvent.RSPN_VIEW_SINGLE_PM, onDetail);
@@ -455,8 +459,10 @@ package mmo.pet.petpackage
          }
          CommonEventDispatcher.instance.removeEventListener(PetFollowEvent.SET_FOLLOW, onFollowChanged);
          CommonEventDispatcher.instance.removeEventListener(PetFollowEvent.SET_UNFOLLOW, onFollowChanged);
-         if (panel && panel.parent) ModalDialogManager.getInstance().removeModalDialog(panel);
+         // Forgotten first: taking it away tells its removal listener, which must not close it again.
+         var was:PetPackagePanel = panel;
          panel = null;
+         if (was && was.parent) ModalDialogManager.getInstance().removeModalDialog(was);
          itemPage = null;
          if (cardPage != null) cardPage.dispose();
          cardPage = null;

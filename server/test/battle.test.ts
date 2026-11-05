@@ -36,6 +36,16 @@ test("skill effects are read from the descriptions", () => {
   assert.equal(parseEffects("攻击对方单体，将伤害值的一半转化来回复自己体力值").drain, 0.5);
   assert.equal(parseEffects("给对方单体造成伤害，自己承受伤害值的1/3").recoil, 1 / 3);
   assert.deepEqual(parseEffects("2回合内攻击对方单体2~5次").hits, [2, 5]);
+  // 连击, the other ways the 2013 descriptions write it.
+  assert.deepEqual(parseEffects("1回合内攻击对方4-7次，若暴击，每次暴击均回复自身体力最大值的1/10").hits, [4, 7]);
+  assert.deepEqual(parseEffects("1回合攻击对方单体4次").hits, [4, 4]);
+  assert.deepEqual(parseEffects("1回合发动2次攻击，容易暴击").hits, [2, 2]);
+  assert.deepEqual(parseEffects("先发；1回合内撞击对方单体5~10次。自己体力越高，威力越大").hits, [5, 10]);
+  assert.deepEqual(parseEffects("1回合内攻击对方全场1~3次，每次攻击均有10%概率令对方冰冻").hits, [1, 3]);
+  assert.equal(parseEffects("1回合内攻击对方单体4-7次，每次攻击有5%概率削弱对方命中等级1级").perHit, true);
+  assert.equal(parseEffects("本回合削弱对方单体防御和速度的等级各1级，下回合攻击对方1-20次").hits, undefined, "a later turn's");
+  assert.equal(parseEffects("40%概率1回合内发动2次攻击效果，破坏力巨大").hits, undefined, "a chance of a second hit");
+  assert.equal(parseEffects("使用后3回合内，每攻击对方1次，就回复自己50点体力值").hits, undefined);
   assert.equal(parseEffects("先发；给对方单体造成伤害").first, true);
   assert.equal(parseEffects("攻击对方单体，必定命中，容易暴击").sure, true);
   assert.equal(parseEffects("回复自己一半的体力值").heal, 0.5);

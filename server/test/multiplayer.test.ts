@@ -114,6 +114,7 @@ test("an account's password, and one game a name", async () => {
   again.login("奥拉A", "pass-a");
   assert.ok(await again.wait("logOK"));
   assert.equal(a.closed(), true);
+  assert.match(String(a.xts().find((o) => o._cmd === "revival_replaced")?.msg), /别的地方登录了/, "the older page is told why");
 });
 
 test("好友: an ask, an answer, the list with where the friend is", async () => {
@@ -260,8 +261,8 @@ test("no joining a team uninvited; one login a connection; rooms a client names 
   b.login("奥拉A", "pass-a");
   await tick(60);
   assert.equal(b.xts().some((o) => o._cmd === "logOK"), false);
-  // A room's name of 300 characters: refused.
-  b.join("x".repeat(300));
+  // A room's name longer than ROOM_NAME_MAX (500 characters): refused.
+  b.join("x".repeat(600));
   await tick();
   assert.equal(b.frames().some((f) => f.handler === 0 && f.action === Down.joinOK), false);
 });
@@ -406,11 +407,12 @@ test("副本 and 时空隧道 in a team: each player's own, nobody follows, noth
   a.send(clientPayload(0, Up.AsObj, 1).utf("<dataObj><var n='what' t='s'>fb_team_service</var></dataObj>").body());
   await tick();
   assert.equal(b.frames().filter((f) => f.handler === 0 && f.action === Down.dataObj).length, 0);
-  // A's run is his: B (no fb_1 of his own) has none, and A's end pays A only.
+  // A's run is his: B (no fb_1 of his own) has none, and A's end is answered to A only (not
+  // finished: no boss beaten yet).
   a.xt("FBExtension", "fb_1", { id: 0, name: "fbaixi", lv: 0 });
   assert.equal((await a.wait("fb_1"))?.succ, true);
   a.xt("FBExtension", "fb_4");
-  assert.equal((await a.wait("fb_4"))?.fin, true);
+  assert.equal((await a.wait("fb_4"))?.fin, false);
   assert.equal(await b.wait("fb_4", 300), undefined);
   // The team tunnel: each chooses his own floor, nobody is told another's.
   b.xt("TeamTowerExtension", "56_2_t", { fl: 1 });

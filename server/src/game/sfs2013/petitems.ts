@@ -15,6 +15,7 @@
 // (PetRecord.buff) are read by battle.ts.
 
 import type { World, XtContext } from "./server.ts";
+import { inFight } from "./fighting.ts";
 import { learntFor, nameOf, skillOf, speciesOf, statsOf, type PetOwner, type PetRecord, type PetTables } from "./pets.ts";
 import { BUFF_ROUNDS, gainExp, type Msg } from "./battle.ts";
 import { NATURE_NAMES } from "./pmdata.ts";
@@ -242,6 +243,7 @@ export function installPetItems(world: World, deps: PetItemDeps): void {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     const reply = (res: number, msg: string) => ctx.reply({ res, ii, pi, msg });
+    if (inFight(world, (o as { id?: number }).id ?? -1)) return reply(0, "战斗中不能这样使用道具哦。");
     const bag = ((o.items ??= {})["2"] ??= {});
     if ((bag[String(ii)] ?? 0) < 1) return reply(0, "你没有这个道具哦。");
     const pet = pi > 0 ? [...(o.pets ?? []), ...(o.storage ?? [])].find((p) => p.id === pi) : undefined;

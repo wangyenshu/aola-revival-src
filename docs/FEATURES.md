@@ -751,12 +751,12 @@ upload or a later copy. Not every game was played to its end in testing.
 | 张灯结彩 | `gameMakelantern` | `game/makelantern` | 2013 年或更早 |
 | 团团圆圆 | `gameMakeGulePudding` | `game/makegulepudding` | 2013 年或更早 |
 | 天降神饼 | `gamePickCookies` | `game/pickcookies` | 2013 年或更早 |
-| 吉拉狮跳火圈 | `gameJumpFireRing` | `game/jumpfirering` | 后期文件 |
+| 吉拉狮跳火圈（后期文件里是波鲁跳火圈：菲尔区的火圈，开始面板 `game/jumpfireringstartpanel` 缺失，重建） | `gameJumpFireRing` | `game/jumpfirering` | 后期文件 |
 | 环保小卫士 | `gameRecycleGame` | `game/recyclegame` | 后期文件 |
 | 奥拉大战达斯特 | `gameAolaVsDaserte` | `game/aolavsdaserte` | 缺失 |
 | 小星猴走钢丝 | `gameRopedancer` | `game/ropedancer` | 2013 年或更早 |
 | 滴滴快回家 | `gameDidiGoHome` | `game/didigohome` | 后期文件 |
-| 兔小子拔萝卜 | `gamerabbit` | `game/rabbitgame` | 后期文件 |
+| 兔小子拔萝卜（后期文件里是喵仔拔萝卜：思伍德区的萝卜，开始面板 `scene/siwude6_res` 后期文件） | `gamerabbit` | `game/rabbitgame` | 后期文件 |
 | 粽子大作战 | `gameJumpPet` | `game/jumppet` | 2013 年或更早 |
 | 抢龙鳞 | `gameRobDragon` | `game/robdragon` | 后期文件 |
 | 端午龙舟赛 | `gameDragonBoat` | `game/dragonboat` | 2013 年或更早 |

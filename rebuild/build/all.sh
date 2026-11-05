@@ -441,3 +441,8 @@ mkdir -p "$W/otherpanel"
 python3 "$TOOLS/swf_transplant.py" --art "$(art otherpanel/yakestarrarepetpanel.swf)" --code "$OUT/yakestarpanel-code.swf" --drop-art-abc \
   --note "LATER otherpanel/yakestarrarepetpanel (2014) on the 2013 libraries (aola-revival): ProgressFullSprite.lockScreen made show" \
   --out "$W/otherpanel/yakestarrarepetpanel.swf%3F1210"
+
+# 波鲁跳火圈 (菲尔区 feier1's fire ring; the later scene and game, scene/feier1 and
+# game/jumpfirering): their start panel game/jumpfireringstartpanel is lost. Rebuilt: it opens
+# the game (whose start page has 开始, 规则 and 关闭), and its notice for a player in a team.
+build jumpfireringstartpanel mmo/game/jumpfirering/start/DocStartPanel.as jumpfireringstartpanel.swf "game/jumpfireringstartpanel.swf%3F1210"

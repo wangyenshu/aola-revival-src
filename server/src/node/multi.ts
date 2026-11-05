@@ -132,7 +132,15 @@ async function serveStatic(req: http.IncomingMessage, res: http.ServerResponse, 
     res.end("not found\n");
     return;
   }
-  res.writeHead(200, { "Content-Type": contentType(rel), "Content-Length": st.size, "Cache-Control": rel.startsWith("files/") ? "public, max-age=86400" : "no-cache" });
+  // Asked again each time, answered "not changed" when it is not (web/_headers: the rebuilt
+  // modules, the tables and files/index.json change under the same names with each build).
+  const tag = `W/"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"`;
+  const head = { "Cache-Control": "no-cache", ETag: tag, "Last-Modified": st.mtime.toUTCString() };
+  if (req.headers["if-none-match"] === tag) {
+    res.writeHead(304, head);
+    return void res.end();
+  }
+  res.writeHead(200, { "Content-Type": contentType(rel), "Content-Length": st.size, ...head });
   if (req.method === "HEAD") return void res.end();
   createReadStream(file).pipe(res);
 }
@@ -143,14 +151,22 @@ process.on("unhandledRejection", (e) => console.error(`[aola] unhandled: ${(e as
 
 const API_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" };
 /**
- * The client's address (the password lock's: accounts.ts): the connection's, or behind a proxy
- * (--trust-proxy) the first of X-Forwarded-For. Not the header's otherwise: a client could set
- * it to anything, a new one for every wrong password.
+ * The client's address (the password lock's: accounts.ts, and the connections an address may
+ * hold): the connection's, or behind a proxy (--trust-proxy) the last of X-Forwarded-For, the one
+ * the proxy put there (what comes before it is the client's to write). Not the header's
+ * otherwise: a client could set it to anything, a new one for every wrong password. An IPv6
+ * address counts by its /64 (one line has a whole /64).
  */
 const clientAddr = (req: http.IncomingMessage) => {
-  const fwd = a["trust-proxy"] ? String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim() : "";
-  return `ws ${fwd || req.socket.remoteAddress}`;
+  const fwd = a["trust-proxy"] ? (String(req.headers["x-forwarded-for"] ?? "").split(",").pop() ?? "").trim() : "";
+  return `ws ${addrKey(fwd || req.socket.remoteAddress || "")}`;
 };
+
+/** Connections one address may hold at once (a family behind one router, a few tabs each). */
+const PER_ADDRESS = 12;
+const perAddress = new Map<string, number>();
+/** Every this often a ping: a connection that has not answered the last one is ended. */
+const PING_MS = 30_000;
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://x");
@@ -188,11 +204,35 @@ server.on("upgrade", (req, socket, head) => {
   if (!m) return void socket.destroy();
   // Every connection counts, logged in or not (a few more than players: pages reconnecting).
   if (host.emulator.sessions.size >= maxPlayers + 20) return void socket.destroy();
+  const addr = clientAddr(req);
+  if ((perAddress.get(addr) ?? 0) >= PER_ADDRESS) return void socket.destroy();
+  perAddress.set(addr, (perAddress.get(addr) ?? 0) + 1);
+  let counted = true;
+  const uncount = () => {
+    if (!counted) return;
+    counted = false;
+    const n = (perAddress.get(addr) ?? 1) - 1;
+    if (n > 0) perAddress.set(addr, n);
+    else perAddress.delete(addr);
+  };
+  socket.once("close", uncount);
   wss.handleUpgrade(req, socket, head, (ws: WebSocket) => {
     const session = host.attach(
-      { remote: clientAddr(req), send: (b) => ws.send(b), close: () => ws.close() },
+      { remote: addr, send: (b) => ws.send(b), close: () => ws.close() },
       Number(m[1]),
     );
+    // A connection gone without a word (a phone changing networks) is noticed by its silence.
+    let alive = true;
+    ws.on("pong", () => (alive = true));
+    const ping = setInterval(() => {
+      if (!alive) return void ws.terminate();
+      alive = false;
+      ws.ping();
+    }, PING_MS);
+    ws.on("close", () => {
+      clearInterval(ping);
+      uncount();
+    });
     ws.on("message", (data, isBinary) => {
       const buf = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as ArrayBuffer);
       session.receive(isBinary ? new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength) : new TextEncoder().encode(buf.toString("utf8")));
@@ -206,3 +246,15 @@ server.listen(Number(a.port), a.bind, () => {
   console.log(`[aola] shared server on http://${a.bind}:${a.port}/  (game: /__socket/9339, saves: ${path.resolve(a.data)})`);
   console.log(`[aola] ${web ? `site: ${web}` : "no site: the page comes from elsewhere"}; tables: ${tables}; new names ${a.closed ? "closed" : "open"}`);
 });
+
+/** An address as the locks count it: an IPv6 one by its first four groups (its /64). */
+function addrKey(ip: string): string {
+  const v4 = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
+  if (v4) return v4[1];
+  if (!ip.includes(":")) return ip;
+  const [head, tail = ""] = ip.split("::");
+  const a = head ? head.split(":") : [];
+  const b = tail ? tail.split(":") : [];
+  const full = [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill("0"), ...b];
+  return full.slice(0, 4).map((g) => g.toLowerCase().replace(/^0+(?=.)/, "")).join(":") + "::/64";
+}

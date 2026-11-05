@@ -314,6 +314,12 @@ package mmo.play.scene
       public function loadSceneWith(info:SceneInfo, hooks:Object = null):void
       {
          if (busy) return;
+         // Asked first whether the move may happen (a team member goes only where his leader
+         // does: Social): nothing is taken down for a move refused.
+         var ask:SceneManagerEvent = new SceneManagerEvent(SceneManagerEvent.ON_LOADING_SCENE, {sceneName: info.sceneName, SceneInfo: info});
+         busy = true;
+         try { dispatchEvent(ask); } finally { busy = false; }
+         if (ask.params.cancel) return;
          if (loadedGameInfo != null)
          {
             // Going elsewhere from inside a mini game (a task, a test): the game goes away.
@@ -330,14 +336,6 @@ package mmo.play.scene
          loadingHooks = hooks || {};
          // My avatar as it stands, for my player in the next room until its own is drawn.
          try { PlayerManager.getInstance().keepLook(); } catch (ek:Error) {}
-         var e:SceneManagerEvent = new SceneManagerEvent(SceneManagerEvent.ON_LOADING_SCENE, {sceneName: info.sceneName, SceneInfo: info});
-         dispatchEvent(e);
-         if (e.params.cancel)
-         {
-            busy = false;
-            loadingInfo = null;
-            return;
-         }
          var token:SceneInfo = loadingInfo;
          var swf:String = info.swf;
          fileArrived = false;
@@ -557,8 +555,18 @@ package mmo.play.scene
          dropLeftScene();
          busy = false;
          loadingHooks = {};
-         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.ON_JOIN_ROOM_ERROR, {sceneName: loadingInfo ? loadingInfo.sceneName : null, error: e.params}));
+         var name:String = loadingInfo ? loadingInfo.sceneName : null;
+         dispatchEvent(new SceneManagerEvent(SceneManagerEvent.ON_JOIN_ROOM_ERROR, {sceneName: name, error: e.params}));
          loadingInfo = null;
+         // The server would not let him in, and the room he left is gone: somewhere to stand
+         // (as when a scene cannot be built), not an empty screen.
+         if (loadedSceneInfo == null)
+         {
+            RNotice.show(LayerManager.getBaseScene().stage, "进不去这个地方，先回到星际广场吧。");
+            var i:int = FALLBACK_SCENES.indexOf(name);
+            var next:String = FALLBACK_SCENES[i + 1];
+            if (next) loadScene(next);
+         }
       }
 
       private function stopListening():void

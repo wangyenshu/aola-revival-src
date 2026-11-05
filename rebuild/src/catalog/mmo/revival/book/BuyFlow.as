@@ -74,7 +74,8 @@ package mmo.revival.book
             if (done != null) done(false);
             return;
          }
-         var price:int = unit * info.quantity;
+         // What is sent (realQuantity: packs × their size, a book's "×n" button) is what the server charges for.
+         var price:int = unit * Math.max(1, info.realQuantity);
          confirm(material, info, price, service, starCoins, member, function(ok:Boolean):void
          {
             if (!ok) { if (done != null) done(false); return; }

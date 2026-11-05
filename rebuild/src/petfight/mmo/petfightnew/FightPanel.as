@@ -137,6 +137,8 @@ package mmo.petfightnew
       private var clockText:TextField;
       private var clockTimer:Timer;
       private var forcedSwitch:Boolean;
+      /** A switch was asked for (a click or the clock) and its answer has not come: no second one. */
+      private var switchSent:Boolean;
       /** 自动战斗仪 (server petitems.ts): the battle picks the skills by itself. */
       private var auto:Boolean;
       private var turn:int = 1;
@@ -174,8 +176,9 @@ package mmo.petfightnew
          setCommands(false);
          // 亚比对战 with another player (the revival's server, duel.ts): his name, not "野生的".
          pvp = join.pvp ? String(join.pvp.vs || "") : null;
-         if (pvp != null) addLog("<font color='#7FE0FF'>" + pvp + "</font>派出了<font color='#FFE66A'>" + petName(vs) + "</font>！");
-         else addLog("野生的<font color='#FFE66A'>" + petName(vs) + "</font>出现了！");
+         // Names a player wrote (a 亚比's nickname from an imported save): as text, not markup.
+         if (pvp != null) addLog("<font color='#7FE0FF'>" + esc(pvp) + "</font>派出了<font color='#FFE66A'>" + esc(petName(vs)) + "</font>！");
+         else addLog("野生的<font color='#FFE66A'>" + esc(petName(vs)) + "</font>出现了！");
       }
 
       /** The other player's name in a 亚比对战, or null. */
@@ -287,7 +290,7 @@ package mmo.petfightnew
 
       private function onClock(e:TimerEvent):void
       {
-         var waiting:Boolean = deadline > 0 && (commandsOn || forcedSwitch) && !closed;
+         var waiting:Boolean = deadline > 0 && (commandsOn || (forcedSwitch && !switchSent)) && !closed;
          clock.visible = waiting;
          if (!waiting) return;
          var left:int = Math.max(0, Math.ceil((deadline - getTimer()) / 1000));
@@ -304,12 +307,14 @@ package mmo.petfightnew
          hideTooltip();
          if (forcedSwitch)
          {
+            if (switchSent) return;
             if (current != "pet") showPage("pet");
             for (var i:int = 0; i < page.numChildren; i++)
             {
                var row:PetRow = page.getChildAt(i) as PetRow;
                if (row == null || row.data == null || row.data.pick != true) continue;
                addLog("<font color='#FF9A3C'>时间到了！</font>");
+               switchSent = true;
                setCommands(false);
                PetClient.instance.switchPM(int(row.data.i));
                return;
@@ -788,6 +793,7 @@ package mmo.petfightnew
       private function setCommands(on:Boolean):void
       {
          commandsOn = on;
+         if (on) switchSent = false;
          applyCommandState();
          if (on && auto && !forcedSwitch) TweenLite.delayedCall(1.2, autoSkill);
       }
@@ -820,7 +826,7 @@ package mmo.petfightnew
             var c:DisplayObject = page.getChildAt(i);
             if (c is SkillRow) SkillRow(c).enabled = on && SkillRow(c).pp > 0;
             else if (c is SlotButton) SlotButton(c).enabled = on;
-            else if (c is PetRow) PetRow(c).enabled = (on || forcedSwitch) && PetRow(c).data.pick == true;
+            else if (c is PetRow) PetRow(c).enabled = (on || (forcedSwitch && !switchSent)) && PetRow(c).data.pick == true;
          }
       }
 
@@ -1075,7 +1081,8 @@ package mmo.petfightnew
       private function onPetRow(e:MouseEvent):void
       {
          var row:PetRow = e.currentTarget as PetRow;
-         if ((!commandsOn && !forcedSwitch) || row.data.pick != true) return;
+         if ((!commandsOn && !forcedSwitch) || switchSent || row.data.pick != true) return;
+         switchSent = true;
          setCommands(false);
          PetClient.instance.switchPM(int(row.data.i));
       }
@@ -1190,6 +1197,7 @@ package mmo.petfightnew
                takeViews(p.pmmList as Array);
                addLines(p.desc);
                forcedSwitch = true;
+               switchSent = false;
                setCommands(false);
                showPage("pet");
                newTurnClock();
@@ -1435,6 +1443,7 @@ package mmo.petfightnew
          }
          var wasForced:Boolean = forcedSwitch || ext.forced == true;
          forcedSwitch = false;
+         switchSent = false;
          me = p.playerInfo;
          var old:FightPetView = myView;
          myView = makePetView(true, function():void

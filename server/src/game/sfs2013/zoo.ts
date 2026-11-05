@@ -57,6 +57,14 @@ export const TD_ENDLESS_WAVE = 10;
 export const TD_ENDLESS_MAX = 300;
 /** Catching odds in percent when the game leaves them to the server (RECONSTRUCTED). */
 export const CATCH_RATE = 40;
+/** The most a catch's own odds (its rate) may be. */
+export const CATCH_RATE_MAX = 80;
+/** 晶币 the 保卫战 (wins and the 地狱模式) pay a day, at most. RECONSTRUCTED. */
+export const TD_DAY_MAX = 3000;
+/** The places (the three 保卫战) and their zones and steps a client may name. */
+export const TD_PLACES_MAX = 9;
+export const TD_ZONES_MAX = 60;
+export const TD_STEPS_MAX = 99;
 /** 能源石 and 普通糖果 (items 424, 425; CatchAnimalClient keeps itemId - 424) one gets for a game when one has none (RECONSTRUCTED). */
 export const FREE_TOOLS = 5;
 export const ANIMAL_TYPE = "12";
@@ -88,6 +96,8 @@ export interface ZooOwner {
   items?: Record<string, Record<string, number>>;
   /** 保卫战 progress per place: "zone:stars" entries. */
   td?: Record<string, string[]>;
+  /** 晶币 the 保卫战 paid today (TD_DAY_MAX a day). */
+  tdPaid?: { day: string; n: number };
 }
 
 export interface ZooDeps<O extends ZooOwner> {
@@ -192,8 +202,16 @@ export function animalLeft(a: ZooAnimalRec, now: number): number {
 
 export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): void {
   const rnd = deps.random ?? Math.random;
-  const place = (ctx: XtContext) => String(Number(ctx.params.place ?? 1) | 0 || 1);
+  const place = (ctx: XtContext) => String(Math.min(TD_PLACES_MAX, Math.max(1, Number(ctx.params.place ?? 1) | 0 || 1)));
   const items = (o: O) => ((o.items ??= {})["2"] ??= {});
+  /** What of add the day's cap leaves to pay. */
+  const tdPay = (o: O, add: number): number => {
+    const day = new Date(deps.now ? deps.now() : Date.now()).toISOString().slice(0, 10);
+    if (o.tdPaid?.day !== day) o.tdPaid = { day, n: 0 };
+    const pay = Math.max(0, Math.min(add, TD_DAY_MAX - o.tdPaid.n));
+    o.tdPaid.n += pay;
+    return pay;
+  };
 
   world.xt(`${ZOO_EXT}.97_203`, async (ctx) => {
     const o = await deps.me(ctx);
@@ -225,7 +243,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const o = await deps.me(ctx);
     const waves = endless.get(tdKey(ctx)) ?? 0;
     endless.delete(tdKey(ctx));
-    const add = Math.min(TD_ENDLESS_MAX, waves * TD_ENDLESS_WAVE);
+    const add = tdPay(o, Math.min(TD_ENDLESS_MAX, waves * TD_ENDLESS_WAVE));
     if (add > 0) {
       o.score = (o.score ?? 0) + add;
       await deps.save(o);
@@ -242,18 +260,18 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const p = place(ctx);
     const win = Number(ctx.params.isWin) === 1;
     const zone = Number(ctx.params.zoneNum) | 0;
-    const step = Number(ctx.params.step) | 0;
+    const step = Math.min(TD_STEPS_MAX, Number(ctx.params.step) | 0);
     let add = 0;
-    if (win && zone > 0) {
+    if (win && zone > 0 && zone <= TD_ZONES_MAX) {
       const list = ((o.td ??= {})[p] ??= []);
       const i = list.findIndex((e) => Number(e.split(":")[0]) === zone);
       const had = i >= 0 ? Number(list[i].split(":")[1]) : 0;
       if (i < 0) list.push(`${zone}:${Math.max(1, step)}`);
       else if (step > had) list[i] = `${zone}:${step}`;
-      add = TD_WIN_SCORE;
+      add = tdPay(o, TD_WIN_SCORE);
       o.score = (o.score ?? 0) + add;
       await deps.save(o);
-      ctx.reply({ score: o.score }, "onScoreUpdated");
+      if (add) ctx.reply({ score: o.score }, "onScoreUpdated");
     }
     ctx.reply({ res: 1, moneyState: 0, prize: "", score: o.score ?? 0, scoreAdded: add }, "97_201");
   });
@@ -307,14 +325,14 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const race = Number(ctx.params.raceId) | 0;
     const tool = String(Number(ctx.params.itemId) | 0);
     const rate = Number(ctx.params.rate);
-    const odds = rate >= 0 ? rate : CATCH_RATE;
+    const odds = Math.min(CATCH_RATE_MAX, rate >= 0 ? rate : CATCH_RATE);
     const mine = items(o);
-    if ((mine[tool] ?? 0) > 0) {
-      mine[tool] -= 1;
-      if (mine[tool] <= 0) delete mine[tool];
-      ctx.reply({ amount: `2_${tool}_0_-1` }, "onAmountUpdated");
-    }
-    const caught = race > 0 && rnd() * 100 < odds;
+    // A catch takes its tool, and is of an animal of the zoo (a baby one: its race, not its key).
+    if (!((mine[tool] ?? 0) > 0) || !ANIMAL.has(race)) return ctx.reply({ res: 0, raceId: race }, "97_103");
+    mine[tool] -= 1;
+    if (mine[tool] <= 0) delete mine[tool];
+    ctx.reply({ amount: `2_${tool}_0_-1` }, "onAmountUpdated");
+    const caught = rnd() * 100 < odds;
     if (caught) {
       const zoo = animalsOwned(o);
       const key = String(BABY_BASE + race);

@@ -16,10 +16,14 @@ export class IdbStore implements Store {
 
   private async tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
     const db = await this.db;
+    // Done when the transaction is: a write is kept only once it commits (a full disk fails
+    // there, after the request itself succeeded).
     return new Promise((resolve, reject) => {
-      const req = fn(db.transaction("kv", mode).objectStore("kv"));
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+      const t = db.transaction("kv", mode);
+      const req = fn(t.objectStore("kv"));
+      t.oncomplete = () => resolve(req.result);
+      t.onabort = () => reject(t.error ?? req.error ?? new Error("IndexedDB transaction aborted"));
+      t.onerror = () => reject(t.error ?? req.error);
     });
   }
 

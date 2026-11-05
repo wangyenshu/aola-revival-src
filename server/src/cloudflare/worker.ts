@@ -156,8 +156,10 @@ export class AolaGame {
     const url = new URL(req.url);
     if (url.pathname.startsWith("/__api/")) {
       // The limit is in bytes (a body of Chinese text is three bytes a character).
-      const bytes = req.method === "POST" ? new Uint8Array(await req.arrayBuffer()) : new Uint8Array();
-      if (bytes.length > apiBodyMax(url.pathname)) {
+      // Read only up to the limit: the one object holds every player, and a body read whole
+      // first could fill its memory.
+      const bytes = req.method === "POST" ? await readCapped(req, apiBodyMax(url.pathname)) : new Uint8Array();
+      if (bytes == null) {
         return new Response(JSON.stringify({ ok: false, error: "这个存档太大了。" }), { status: 413, headers: JSON_HEADERS });
       }
       const addr = `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`;
@@ -171,14 +173,18 @@ export class AolaGame {
     }
     const m = /^\/__socket\/(\d+)/.exec(url.pathname);
     if (!m || req.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("not found\n", { status: 404 });
-    // Every connection counts, logged in or not.
+    // Every connection counts, logged in or not; and one address holds only so many.
     if (this.host.emulator.sessions.size >= this.maxPlayers + 20) return new Response("the server is full\n", { status: 503 });
+    const remote = `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`;
+    let mine = 0;
+    for (const s of this.host.emulator.sessions) if (s.link.remote === remote) mine++;
+    if (mine >= PER_ADDRESS) return new Response("too many connections\n", { status: 429 });
     const pair = new WebSocketPair();
     const [client, ws] = [pair[0], pair[1]];
     ws.accept();
     ws.binaryType = "arraybuffer";
     const session = this.host.attach(
-      { remote: `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`, send: (b) => ws.send(b), close: () => ws.close() },
+      { remote, send: (b) => ws.send(b), close: () => ws.close() },
       Number(m[1]),
     );
     ws.addEventListener("message", (e: MessageEvent) => {
@@ -190,4 +196,34 @@ export class AolaGame {
     ws.addEventListener("error", gone);
     return new Response(null, { status: 101, webSocket: client } as ResponseInit);
   }
+}
+
+/** Connections one address may hold at once (a family behind one router, a few tabs each). */
+const PER_ADDRESS = 12;
+
+/** A request's body, or null when it is longer than max (read no further than that). */
+async function readCapped(req: Request, max: number): Promise<Uint8Array | null> {
+  const said = Number(req.headers.get("Content-Length") ?? "");
+  if (Number.isFinite(said) && said > max) return null;
+  if (!req.body) return new Uint8Array();
+  const reader = req.body.getReader();
+  const parts: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > max) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    parts.push(value);
+  }
+  const out = new Uint8Array(size);
+  let at = 0;
+  for (const p of parts) {
+    out.set(p, at);
+    at += p.length;
+  }
+  return out;
 }

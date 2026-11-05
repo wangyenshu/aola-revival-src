@@ -40,10 +40,17 @@ export class NullRecorder implements Recorder {
   record(): void {}
 }
 
+/** Keeps the last frames (max; 0: all): a page played for hours would otherwise grow without end. */
 export class MemoryRecorder implements Recorder {
   readonly records: FrameRecord[] = [];
+  private readonly max: number;
+  constructor(max = 0) {
+    this.max = max;
+  }
   record(r: FrameRecord): void {
     this.records.push(r);
+    // Cut in batches (one cut a quarter of max frames).
+    if (this.max && this.records.length > this.max + (this.max >> 2)) this.records.splice(0, this.records.length - this.max);
   }
 }
 

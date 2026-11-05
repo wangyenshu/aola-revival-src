@@ -22,6 +22,7 @@ import {
   type PmSpecies,
 } from "./pmdata.ts";
 import type { World, XtContext } from "./server.ts";
+import { inFight } from "./fighting.ts";
 import { cardBonus } from "./petcards.ts";
 
 export interface PetSkill {
@@ -228,11 +229,11 @@ function sView(p: PetRecord, owner: Pick<PetOwner, "id">, t: PetTables) {
   };
 }
 
-/** SkillInfo list; the attribute (t), kind (k) and power (pw) ride along for the rebuilt battle screen. */
+/** SkillInfo list; the attribute (t), kind (k), power (pw) and description (d) ride along for the rebuilt battle screen. */
 export function skillList(p: PetRecord, t: PetTables) {
   return p.skills.map((s) => {
     const d = t.pm.skills[String(s.id)];
-    return { id: s.id, name: s.name, pp: `${s.pp}/${s.max}`, ssi: 0, used: true, t: d?.t ?? 0, k: d?.k ?? 0, pw: d?.p ?? 0 };
+    return { id: s.id, name: s.name, pp: `${s.pp}/${s.max}`, ssi: 0, used: true, t: d?.t ?? 0, k: d?.k ?? 0, pw: d?.p ?? 0, d: d?.d ?? "" };
   });
 }
 
@@ -472,7 +473,8 @@ export function installPets(world: World, deps: PetDeps): void {
     const { o, t } = await loadAll(ctx);
     const p = list(o).find((x) => x.id === Number(ctx.params.id));
     const ids = String(ctx.params.sks ?? "").split(",").map(Number).filter((n) => n > 0);
-    if (!p || ids.length === 0 || ids.length > 4 || ids.some((id) => !(p.learned ?? []).includes(id) && !p.skills.some((s) => s.id === id))) {
+    // Each skill once (one carried twice would be two PP pools of it), and not in a fight.
+    if (!p || inFight(world, o.id) || ids.length === 0 || ids.length > 4 || new Set(ids).size !== ids.length || ids.some((id) => !(p.learned ?? []).includes(id) && !p.skills.some((s) => s.id === id))) {
       return ctx.reply({ id: Number(ctx.params.id), res: -1 }, "2232");
     }
     p.skills = ids.map((id) => p.skills.find((s) => s.id === id) ?? skillOf(t, id));
@@ -483,6 +485,7 @@ export function installPets(world: World, deps: PetDeps): void {
   // Revival: heal every pet (the 2013 HELLO/亚比治疗 went through other services).
   world.xt(`${EXT}.revival_heal`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
+    if (inFight(world, o.id)) return ctx.reply({ ok: 0 });
     for (const p of list(o)) {
       p.hp = statsOf(p, t)[0];
       for (const s of p.skills) s.pp = s.max;

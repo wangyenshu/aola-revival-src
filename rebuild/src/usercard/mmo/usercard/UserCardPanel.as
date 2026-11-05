@@ -1,5 +1,6 @@
 package mmo.usercard
 {
+   import flash.utils.getTimer;
    import flash.display.DisplayObject;
    import flash.display.GradientType;
    import flash.display.Shape;
@@ -244,12 +245,19 @@ package mmo.usercard
       }
 
       /** A request to the server whose reply {res, msg} is shown. */
+      /** Requests sent and not yet answered, by their answer (getTimer() then): one at a time. */
+      private static var waiting:Object = {};
+
       private function ask(ext:String, cmd:String, answer:String):void
       {
          var sc:SocketClient = SocketClient.instance;
+         // A second click while the first waits is not sent again (its answer would be shown twice).
+         if (waiting[answer] != null && getTimer() - int(waiting[answer]) < 8000) return;
+         waiting[answer] = getTimer();
          var onReply:Function = function(e:SocketClientEvent):void
          {
             sc.removeEventListener(answer, onReply);
+            delete waiting[answer];
             if (int(e.params.res) == 1) NewDialog.showSucceedMessage(String(e.params.msg));
             else NewDialog.showFailMessage(String(e.params.msg));
          };

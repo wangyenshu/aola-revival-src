@@ -31,7 +31,7 @@
 
 import { stepsByPetWin, type TaskOwner } from "./tasks.ts";
 import { wildDrop, type ActsOwner } from "./planetacts.ts";
-import { FB_TIMES, betterGrade, ensureFbSpecies, fbByName, fbGrade, fbOfRoom, fbPay, fbRoomPets, fbSpecies, FBS, type FbRec } from "./fb.ts";
+import { FB_TIMES, betterGrade, ensureFbSpecies, fbBossBeaten, fbByName, fbGrade, fbOfRoom, fbPay, fbRoomPets, fbSpecies, FBS, type FbRec } from "./fb.ts";
 import {
   catchLevel,
   evolutionAt,
@@ -59,6 +59,7 @@ import { PET_CARD, PET_CARDS, cardDrop } from "./petcards.ts";
 import { installSandbox } from "./sandbox.ts";
 import { applyFate, dollLevel, gymOf, gymWon, installGyms, towerFloorWon, GYM_DARK, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
 import { sceneOfRoom, type World, type XtContext } from "./server.ts";
+import { registerFights } from "./fighting.ts";
 import { installDuels, type Duel } from "./duel.ts";
 import type { Boosts, PetItemOwner } from "./petitems.ts";
 
@@ -95,6 +96,8 @@ export interface SkillEffects {
   recoil?: number;
   heal?: number;
   hits?: [number, number];
+  /** A 连击's secondary effect ("每次攻击有10%概率…", "每次命中都会…") rolls for each hit. */
+  perHit?: boolean;
   sure?: boolean;
   highCrit?: boolean;
   first?: boolean;
@@ -144,8 +147,17 @@ export function parseEffects(desc: string): SkillEffects {
     if (/回复自己一半的体力/.test(d)) e.heal = 0.5;
     else if ((m = d.match(/回复自己最大体力值的(\d+)\/(\d+)/))) e.heal = Number(m[1]) / Number(m[2]);
   }
-  if ((m = d.match(/攻击对方(?:单体|全体)?(\d+)~(\d+)次/) ?? d.match(/爆发(\d+)~(\d+)次/))) e.hits = [Number(m[1]), Number(m[2])];
-  else if ((m = d.match(/\d+回合内攻击对方(?:单体)?(\d+)次/))) e.hits = [Number(m[1]), Number(m[1])];
+  // 连击, as the descriptions write it: "攻击对方单体2~5次" (also "4-7次"), "撞击对方单体5~10次",
+  // "1回合攻击对方单体4次", "1回合内发动1~9次攻击", "爆发2~20次攻击"; not a later turn's
+  // ("下回合攻击对方1-20次") nor a chance of a second hit ("40%概率1回合内发动2次攻击").
+  const h = d.replace(/(\d+)\s*[-－]\s*(\d+)/g, "$1~$2");
+  if (!/下回合(?:内)?攻击/.test(h) && !/%概率\d*回合内?发动/.test(h)) {
+    const span = h.match(/(?:攻击|撞击)对方(?:单体|全体|全场)?(\d+)~(\d+)次/) ?? h.match(/(?:爆发|发动)(\d+)~(\d+)次/);
+    const once = h.match(/(?:\d+|一)回合内?(?:攻击|撞击)对方(?:单体|全体|全场)?(\d+)次/) ?? h.match(/(?:\d+|一)回合内?发动(\d+)次攻击/);
+    if (span) e.hits = [Number(span[1]), Number(span[2])];
+    else if (once && Number(once[1]) > 1) e.hits = [Number(once[1]), Number(once[1])];
+    if (e.hits && /每次(?:攻击|命中)/.test(h)) e.perHit = true;
+  }
   if (/必定命中/.test(d)) e.sure = true;
   if (/容易暴击/.test(d)) e.highCrit = true;
   if (/^先发|；先发|先发；/.test(d)) e.first = true;
@@ -430,20 +442,24 @@ export class BattleEngine {
       lines.push(heal > 0 ? `${name}回复了体力！` : "体力已经是满的了。");
     }
 
-    // Statuses and stage changes (secondary for damaging skills).
+    // Statuses and stage changes (secondary for damaging skills; a 连击's "每次…" for each hit).
     let landed = sk.k !== 2;
+    const rolls = fx.perHit ? Math.max(1, hits) : 1;
     if (fx.status && def.pet.hp > 0) {
-      const ok = this.chance(fx.status.chance) && this.applyStatus(def, fx.status.name, lines);
+      let ok = false;
+      for (let r = 0; r < rolls && !ok; r++) ok = this.chance(fx.status.chance) && this.applyStatus(def, fx.status.name, lines);
       landed ||= ok;
       if (!ok && sk.k === 2) lines.push("好像没有效果……");
     }
     for (const ch of fx.stages) {
       const f = ch.self ? att : def;
-      if (f.pet.hp <= 0 || !this.chance(ch.chance)) continue;
-      for (const k of ch.stats) f.stages[k] = clampStage(f.stages[k] + ch.delta);
-      const label = ch.stats.length >= 5 ? "全属性" : ch.stats.map((k) => STAT_LABEL[k]).join("和");
-      lines.push(`${petName(t, f)}的${label}${ch.delta > 0 ? "提升" : "下降"}了！`);
-      landed = true;
+      for (let r = 0; r < rolls; r++) {
+        if (f.pet.hp <= 0 || !this.chance(ch.chance)) continue;
+        for (const k of ch.stats) f.stages[k] = clampStage(f.stages[k] + ch.delta);
+        const label = ch.stats.length >= 5 ? "全属性" : ch.stats.map((k) => STAT_LABEL[k]).join("和");
+        lines.push(`${petName(t, f)}的${label}${ch.delta > 0 ? "提升" : "下降"}了！`);
+        landed = true;
+      }
     }
     if (def.pet.hp <= 0) lines.push(`${petName(t, def)}倒下了！`);
     if (att.pet.hp <= 0) lines.push(`${name}倒下了！`);
@@ -740,6 +756,13 @@ export const GUARDIANS: [string, string][] = [
   ["31394,21394,11394", "60,80,100"],
 ];
 
+/** The 亚比 whose skill film the game has (petlearning/petlearning<race>: 艾尔利克 192 and 230). */
+const FILM_RACES = new Set([192, 230]);
+
+/** The boss forms of GUARDIANS: what 54_16 fights (any other id is no 守护者). */
+const GUARDIAN_RACES = new Set(GUARDIANS.flatMap(([races]) => races.split(/[#,]/).map(Number)));
+export const isGuardian = (race: number): boolean => GUARDIAN_RACES.has(race);
+
 /**
  * Boss ids whose species is not id % 10000 (PetAssetsMap: 时间之神 10112 / 20112 are 114, not 112 小时).
  */
@@ -843,6 +866,7 @@ const WEAK = "你的亚比很虚弱了，快去治疗它吧！\n点击亚比背�
 
 export function installBattles(world: World, deps: BattleDeps): void {
   const battles = new Map<number, Battle>();
+  registerFights(world, battles);
   let nextBattle = 1;
   const send = (ctx: XtContext, msgs: Msg[]) => {
     for (const [cmd, body] of msgs) ctx.reply(body, cmd);
@@ -1044,6 +1068,11 @@ export function installBattles(world: World, deps: BattleDeps): void {
       return ctx.reply({ msg: "这个挑战现在还不能进行哦！" }, "2303");
     }
     const npcId = Number(ctx.params.npcId) | 0;
+    // The NPCs that challenge (their gifts are counted by NPC: a made-up one would be one more).
+    if (NPC_TEAM_BASE[npcId] === undefined) {
+      ctx.reply({ res: false, canGet: false, canGet1: false });
+      return ctx.reply({ msg: "这个挑战现在还不能进行哦！" }, "2303");
+    }
     const lv = Math.max(1, Math.min(3, Number(ctx.params.lv) | 0));
     const o = (await deps.load(ctx)) as PetOwner & NpcChallengeRecord;
     const t = await deps.tables();
@@ -1051,7 +1080,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     if (lv > (rec.won[npcId] ?? 0) + 1) return ctx.reply({ res: false, canGet: false, canGet1: false });
     const day = deps.today();
     const canGet = rec.gift[npcId] !== day;
-    let race = NPC_TEAM_BASE[npcId] ?? NPC_TEAM_BASE[13];
+    let race = NPC_TEAM_BASE[npcId];
     for (let i = 1; i < lv; i++) {
       const next = (t.species[String(race)] as { next?: number } | undefined)?.next;
       if (next && speciesOf(t, next)) race = next;
@@ -1123,6 +1152,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     world.xt(`${ext}.56_2${sfx}`, async (ctx) => {
       const o = await deps.load(ctx);
       const rec = towerOf(o);
+      // Not to another floor in the middle of a fight (its win would count there).
+      if (battles.has(o.id)) return ctx.reply(floorReply(rec), `56_2${sfx}`);
       const fl = Math.max(1, Math.min(rec.mf, Number(ctx.params.fl ?? ctx.params.floor ?? rec.cf) | 0 || rec.cf));
       await towerFloor(o, fl);
       await deps.save(o);
@@ -1138,7 +1169,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     world.xt(`${ext}.56_3${sfx}`, async (ctx) => {
       const o = await deps.load(ctx);
       const rec = towerOf(o);
-      if (rec.alive.some(Boolean)) return ctx.reply({ result: 0 }, `56_3${sfx}`);
+      if (rec.alive.some(Boolean) || battles.has(o.id)) return ctx.reply({ result: 0 }, `56_3${sfx}`);
       if (rec.cf >= TOWER_FLOORS) return ctx.reply({ result: -2 }, `56_3${sfx}`);
       await towerFloor(o, rec.cf + 1);
       await deps.save(o);
@@ -1154,7 +1185,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const f = rec.cf;
       await begin(ctx, race, towerLevel(f), false, (owner) => {
         const r = towerOf(owner);
-        r.alive[i] = false;
+        if (r.cf === f) r.alive[i] = false;
         const coins = 10 + 2 * f;
         (owner as { score?: number }).score = ((owner as { score?: number }).score ?? 0) + coins;
         return [
@@ -1224,8 +1255,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
   world.xt(`${FB}.fb_1`, async (ctx) => {
     const o = await deps.load(ctx);
     const r = fbOf(o);
-    const id = Number(ctx.params.id) | 0;
-    const def = FBS[id] ?? fbByName(String(ctx.params.name ?? ""));
+    const asked = FBS[Number(ctx.params.id) | 0] ?? fbByName(String(ctx.params.name ?? ""));
+    // Counted by the 副本 it is (a made-up id would be a new count each time).
+    const def = asked && FBS.includes(asked) ? asked : undefined;
+    const id = def ? FBS.indexOf(def) : -1;
     const used = r.used?.[id] ?? 0;
     if (!def || used >= FB_TIMES) return ctx.reply({ succ: false, task: false, score: false }, "fb_1");
     (r.used ??= {})[id] = used + 1;
@@ -1263,6 +1296,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
   });
   world.xt(`${FB}.fb_8`, async (ctx) => {
     const o = await deps.load(ctx);
+    // Not between the turns of a fight (the fight's 亚比 are these).
+    if (battles.has(o.id)) return ctx.reply({ res: false }, "fb_8");
     const t = await deps.tables();
     for (const p of o.pets ?? []) {
       normalisePet(p, t);
@@ -1291,7 +1326,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const o = await deps.load(ctx);
     const r = fbOf(o);
     const cur = r.cur;
-    if (!cur) return ctx.reply({ fin: false, bn: [], gr: "", tm: 0 }, "fb_4");
+    // Finished once the last room's boss is beaten.
+    if (!cur || !fbBossBeaten(cur)) return ctx.reply({ fin: false, bn: [], gr: "", tm: 0 }, "fb_4");
     const tm = Math.max(1, Math.round((fbNow() - cur.start) / 1000));
     const gr = fbGrade(tm);
     const best = ((r.best ??= {})[cur.id] ??= ["#", "#", "#"]);
@@ -1329,7 +1365,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const o = await deps.load(ctx);
     const pet = (o.pets ?? []).find((p) => p.id === (Number(ctx.params.pid) | 0));
     const sid = Number(ctx.params.sid) | 0;
-    if (!pet || !sid) return ctx.reply({ res: false }, "54e_5");
+    // The films there are (petlearning<race>) teach their own 亚比, a skill of the tables.
+    const t = await deps.tables();
+    if (!pet || !sid || !FILM_RACES.has(pet.race) || !t.pm.skills[String(sid)]) return ctx.reply({ res: false }, "54e_5");
     pet.learned = [...new Set([...(pet.learned ?? []), sid])];
     await deps.save(o);
     ctx.reply({ res: true, pid: pet.id, sid }, "54e_5");
@@ -1346,6 +1384,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     // A pair asked for at once ("11320#11322", fightWithTeamBoss) fights its first here.
     const asked = Number(String(ctx.params.raceId ?? "0").split("#")[0]) | 0;
     const index = Math.max(0, Number(ctx.params.index) | 0);
+    if (!isGuardian(asked)) return ctx.reply({ msg: "这里没有可以挑战的守护者。" }, "2303");
     const t = await deps.tables();
     // The species of a boss form: variant * 10000 + species, or for 终极麦斗王's 14523 / 11514 / 11516
     // (PetAssetsMap) variant * 1000 + species.

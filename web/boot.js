@@ -26,8 +26,26 @@
       (cfg.index ? `&index=${encodeURIComponent(cfg.index)}` : "");
     await navigator.serviceWorker.register(swUrl);
     if (!navigator.serviceWorker.controller) {
-      await new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }));
+      const taken = new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", () => r(true), { once: true }));
+      // A forced reload (Ctrl+Shift+R) leaves the page without the worker, which is already
+      // active and does not activate again: it is asked to take the page over, and failing
+      // that the page is loaded once more (a plain reload is served by it).
+      const reg = await navigator.serviceWorker.ready;
+      if (!navigator.serviceWorker.controller) {
+        if (reg.active) reg.active.postMessage("aola-claim");
+        const ok = await Promise.race([taken, new Promise((r) => setTimeout(() => r(false), 4000))]);
+        if (!ok && !navigator.serviceWorker.controller) {
+          let again = false;
+          try { again = sessionStorage.getItem("aola-sw-reload") === "1"; sessionStorage.setItem("aola-sw-reload", "1"); } catch (e) {}
+          if (!again) {
+            location.reload();
+            return;
+          }
+          await taken;
+        }
+      }
     }
+    try { sessionStorage.removeItem("aola-sw-reload"); } catch (e) {}
     // The page's 2012 pictures come from the mirror too (index.html).
     document.documentElement.classList.add("site");
     fetch(upgrade("http://www.9aola.com/favicon.ico"))
@@ -72,6 +90,20 @@
     window.aolaRevivalMode = () => cfg.mode;
     let socketProxy;
     if (cfg.mode === "inpage") {
+      // One tab of 单机模式 at a time: each runs its own game on the same saves, and the one
+      // behind would write its older 奥拉 over the other's.
+      if (navigator.locks && navigator.locks.request) {
+        const mine = await new Promise((r) => {
+          navigator.locks
+            .request("aola-revival-inpage", { ifAvailable: true }, (lock) => {
+              r(!!lock);
+              // Held while the page is open.
+              return lock ? new Promise(() => {}) : null;
+            })
+            .catch(() => r(true));
+        });
+        if (!mine) throw new Error("单机模式已经在另一个标签页里打开了：请回到那个标签页玩，或者关掉它再刷新这一页。");
+      }
       say("Starting the in-page emulator…");
       const prefix = "ws://in-page.aola/";
       window.aola = window.AolaEmulator.startInPage({

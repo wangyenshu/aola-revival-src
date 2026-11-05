@@ -41,6 +41,26 @@ test("body-length framing and garbage detection", () => {
   assert.throws(() => bad.push(utf8("GET / HTTP/1.1\r\n")), FramingError);
 });
 
+test("a big frame sent a byte at a time: whole once, in time proportional to its size", () => {
+  const body = new Uint8Array(200_000).map((_, i) => i & 0xff);
+  const frame = new Uint8Array(4 + body.length);
+  const sp = new FrameSplitter({ lengthOffset: 0, lengthBytes: 4, littleEndian: false, lengthIncludesHeader: false, headerBytes: 4, maxFrame: 1 << 20 });
+  new DataView(frame.buffer).setUint32(0, body.length);
+  frame.set(body, 4);
+  const t0 = Date.now();
+  const got: Uint8Array[] = [];
+  for (let i = 0; i < frame.length; i++) got.push(...sp.push(frame.subarray(i, i + 1)));
+  assert.ok(Date.now() - t0 < 3000, "byte by byte is not quadratic");
+  assert.equal(got.length, 1);
+  assert.deepEqual(got[0], frame);
+  assert.equal(sp.pending, 0);
+  // Two frames and a part of a third in one piece, the rest later.
+  const two = concat(frame, frame, frame.subarray(0, 10));
+  assert.equal(sp.push(two).length, 2);
+  assert.equal(sp.pending, 10);
+  assert.equal(sp.push(frame.subarray(10)).length, 1);
+});
+
 test("game clock starts at the 2012 anchor in China time and keeps running", () => {
   let now = 1_800_000_000_000;
   const clock = new GameClock("2012-08-15T10:00", () => now);

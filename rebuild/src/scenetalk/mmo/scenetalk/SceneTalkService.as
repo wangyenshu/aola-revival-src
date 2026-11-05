@@ -99,6 +99,13 @@ package mmo.scenetalk
          });
       }
 
+      /** A line said elsewhere (the team's, control's Social) into the talk history. */
+      public function addLine(userName:String, message:String):void
+      {
+         record.push({userName: userName, message: message});
+         if (record.length > 30) record.shift();
+      }
+
       public function getTalkMessageRec():Array
       {
          return record.concat();

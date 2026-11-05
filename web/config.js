@@ -39,5 +39,7 @@ window.AOLA_CONFIG = {
   // Game clock anchor (China time) and stream framing, as in the Node server.
   date: "2012-08-15",
   framing: "raw",
-  verbose: true,
+  // Every socket frame and the engine's log in the console: with ?verbose=1 (or ?dev=1, the
+  // walk-throughs); else warnings only.
+  verbose: /[?&](verbose|dev)=1(&|$)/.test(location.search),
 };

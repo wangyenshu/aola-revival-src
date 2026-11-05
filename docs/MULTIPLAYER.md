@@ -44,7 +44,13 @@ WebSocket) and the small API (`/__api/status`, `rename`, `password`,
 | `--max-players N` | at most N in the game at once (default 200) |
 | `--no-toolbox` | close the 工具箱 (晶币, 亚比 … for nothing), mods' gifts of 亚比 and 导入存档 to the players, for a fair server; open by default, as in 单机模式 (`--toolbox` opens it whatever `AOLA_TOOLBOX` says) |
 | `--adopt` | a save with no password in it (copied in from elsewhere) takes the password of its first login; off by default |
-| `--trust-proxy` | behind a reverse proxy or tunnel: the client's address (the password lock is per address) is the first of `X-Forwarded-For`; off by default, when anyone could set that header |
+| `--trust-proxy` | behind a reverse proxy or tunnel: the client's address (the password lock and the connections an address may hold are per address) is the last of `X-Forwarded-For`, the one the proxy added; off by default, when anyone could set that header |
+
+A connection that has not logged in within 30 seconds is closed, one address
+(an IPv6 one by its /64) holds at most 12 connections, and a connection that
+does not answer the server's ping (every 30 seconds) is ended. The same 奥拉
+logged in again elsewhere takes over: the older page is told so in a dialog of
+the game and its connection is closed.
 
 Each option has an environment variable too: `PORT`, `BIND`, `AOLA_DATA`,
 `AOLA_WEB`, `AOLA_TABLES`, `AOLA_DATE`, `AOLA_CLOSED`, `AOLA_TOOLBOX` ("0"

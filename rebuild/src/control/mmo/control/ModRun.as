@@ -12,6 +12,7 @@ package mmo.control
    import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
+   import mmo.common.dialog.NewDialog;
    import mmo.play.scene.SceneManager;
    import mmo.play.scene.SceneManagerEvent;
    import mmo.revival.RLog;
@@ -283,8 +284,13 @@ package mmo.control
       {
          var t:Object = Social.team;
          if (t == null || !(t.members is Array) || t.members.length < 2) return null;
-         return TEAM_ROOM + [t.leader, g.info.id, g.info.version, roomId].map(function(s:*, i:int, a:Array):String { return encodeURIComponent(String(s)); }).join("|");
+         var name:String = TEAM_ROOM + [t.leader, g.info.id, g.info.version, roomId].map(function(s:*, i:int, a:Array):String { return encodeURIComponent(String(s)); }).join("|");
+         // Longer than the server takes (ROOM_NAME_MAX): the room of one's own.
+         return name.length <= TEAM_ROOM_MAX ? name : null;
       }
+
+      /** The longest room name the server takes (server.ts ROOM_NAME_MAX). */
+      public static const TEAM_ROOM_MAX:int = 500;
 
       public static const TEAM_ROOM:String = "sandboxroom|";
 
@@ -328,6 +334,12 @@ package mmo.control
       /** Leave the mods' rooms: back to where the 沙盒 was started. */
       internal function leaveMods():void
       {
+         // A team member goes where his leader does: nothing is left before he may (Social).
+         if (Social.follower && SceneManager.getInstance().loadedSceneInfo != null && String(SceneManager.getInstance().loadedSceneInfo.roomName).indexOf(TEAM_ROOM) == 0)
+         {
+            NewDialog.showMessage("只有队长才能决定去哪里哦！");
+            return;
+         }
          pendingEnter = null;
          follow = null;
          SceneManager.sandboxRoom = null;

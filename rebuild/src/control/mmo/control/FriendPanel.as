@@ -1,11 +1,16 @@
 package mmo.control
 {
    import flash.display.Sprite;
+   import flash.events.Event;
+   import flash.events.MouseEvent;
    import flash.text.TextField;
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import mmo.config.ConfigReader;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
+   import mmo.interfaces.IService;
+   import mmo.interfaces.ServiceContainer;
+   import mmo.revival.RLog;
    import mmo.revival.RUI;
 
    /**
@@ -39,6 +44,8 @@ package mmo.control
          super();
          box = RUI.panel(470, 400, "我的好友", close, "friendClose");
          addChild(box);
+         // Taken away with the room left (SceneManager clears the dialogs): closed as well.
+         addEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
          box.addChild(RUI.well(18, 52, 434, 270));
          rows.x = 26;
          rows.y = 58;
@@ -112,10 +119,20 @@ package mmo.control
          {
             var f:Object = all[page * PER_PAGE + i];
             var y:int = i * 37;
+            // The name opens his 名片 (as a click on him in a scene does).
             var name:TextField = RUI.text(14, f.ask ? 0xE8641B : 0x1A5FA8, true);
             name.text = String(f.name);
             name.y = y + 6;
-            rows.addChild(name);
+            name.mouseEnabled = false;
+            var card:Sprite = new Sprite();
+            card.name = "friendCard" + i;
+            card.buttonMode = true;
+            card.graphics.beginFill(0xFFFFFF, 0);
+            card.graphics.drawRect(0, y + 4, Math.max(40, name.width), 24);
+            card.graphics.endFill();
+            card.addChild(name);
+            card.addEventListener(MouseEvent.CLICK, cardFn(String(f.name)));
+            rows.addChild(card);
             var state:TextField = RUI.text(12, f.online ? 0x2A8A2A : 0x8A9AAA, false);
             state.text = f.ask ? "想加你为好友" : f.online ? "在线" + (f.room ? "：" + place(String(f.room)) : "") : "离线";
             state.x = 120;
@@ -175,6 +192,25 @@ package mmo.control
          };
       }
 
+      private function cardFn(name:String):Function
+      {
+         return function(e:MouseEvent):void
+         {
+            close();
+            try
+            {
+               ServiceContainer.instance.tryGetService("UserCardService", function(svc:IService, o:Object):void
+               {
+                  Object(svc).showUserCard(name, 1);
+               });
+            }
+            catch (err:Error)
+            {
+               RLog.error("friend card", err);
+            }
+         };
+      }
+
       private function homeFn(name:String):Function
       {
          return function():void
@@ -206,11 +242,18 @@ package mmo.control
          SocketClient.instance.addEventListener("revival_friend_del", t);
       }
 
+      private function onRemoved(e:Event):void
+      {
+         if (current == this) close();
+      }
+
       public function close():void
       {
+         // Forgotten first: taking it away below tells onRemoved, which must not close it again.
+         if (current == this) current = null;
+         removeEventListener(Event.REMOVED_FROM_STAGE, onRemoved);
          SocketClient.instance.removeEventListener("revival_friends", onList);
          if (parent != null) ModalDialogManager.getInstance().removeModalDialog(this);
-         if (current == this) current = null;
       }
    }
 }

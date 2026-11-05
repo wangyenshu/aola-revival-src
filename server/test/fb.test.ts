@@ -92,9 +92,15 @@ test("a 副本 run: join, the room's 亚比, a chest once, the rating", async ()
   assert.equal((await call("FBExtension.fb_5", {}, "fbaixi5")).at(-1)![1].succ, true);
   assert.equal((await call("FBExtension.fb_5", {}, "fbaixi5")).at(-1)![1].succ, false);
   now += 6 * 60 * 1000;
+  // Not finished before the last room's boss is beaten (冰宫之巅's 1).
+  assert.equal((await call("FBExtension.fb_4", {}, "fbaixi9")).at(-1)![1].fin, false);
+  (owner as unknown as { fb: { cur: { dead: Record<string, number[]> } } }).fb.cur.dead.fbaixi9 = [1];
   const fin = (await call("FBExtension.fb_4", {}, "fbaixi9")).at(-1)![1];
   assert.equal(fin.fin, true);
   assert.equal(fin.gr, "S");
   assert.equal((await call("FBExtension.fb_6", { id: 0 }))[0][1].gr, "#;S;#");
   assert.equal((await call("FBExtension.fb_9", { id: 0 }))[0][1].lt, 4);
+  // A made-up id is not a new 副本 with entries of its own.
+  for (let i = 0; i < 6; i++) await call("FBExtension.fb_1", { id: 100 + i, name: "fbaixi", lv: 0 });
+  assert.equal((await call("FBExtension.fb_9", { id: 0 }))[0][1].lt, 0);
 });

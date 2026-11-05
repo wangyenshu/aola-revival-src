@@ -30,6 +30,7 @@ declare const self: {
   addEventListener(type: "install", fn: (e: ExtendableEvt) => void): void;
   addEventListener(type: "activate", fn: (e: ExtendableEvt) => void): void;
   addEventListener(type: "fetch", fn: (e: FetchEvt) => void): void;
+  addEventListener(type: "message", fn: (e: ExtendableEvt & { data: unknown }) => void): void;
 };
 
 const params = new URL(self.location.href).searchParams;
@@ -52,6 +53,11 @@ function index(): Promise<Set<string> | null> {
 
 self.addEventListener("install", () => void self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+// A page loaded with a forced reload (Ctrl+Shift+R) is not served by the worker, which is
+// already active and does not activate again: the page asks it to take it over (boot.js).
+self.addEventListener("message", (e) => {
+  if (e.data === "aola-claim") e.waitUntil(self.clients.claim());
+});
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);

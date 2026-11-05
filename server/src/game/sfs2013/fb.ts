@@ -201,6 +201,17 @@ export function fbPay(mode: number, grade: string): number {
   return Math.round(base * (1 + 0.25 * Math.max(0, GRADE_ORDER.indexOf(grade) - 1)));
 }
 
+/** Whether a run has beaten the boss of its 副本's last room (then it may finish: fb_4). */
+export function fbBossBeaten(cur: NonNullable<FbRec["cur"]>): boolean {
+  const def = FBS.find((d) => d.name === cur.name);
+  if (!def) return false;
+  const rooms = Object.entries(def.rooms).filter(([, r]) => r.boss?.length);
+  if (!rooms.length) return true;
+  const [last, room] = rooms[rooms.length - 1];
+  const dead = cur.dead[last] ?? [];
+  return room.boss!.every((id) => dead.includes(id));
+}
+
 export type FbRec = {
   day?: string;
   /** Entries used today, by 副本 id. */

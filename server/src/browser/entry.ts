@@ -25,8 +25,12 @@ export interface InPageConfig {
   dev?: boolean;
 }
 
+/** Frames the page keeps (window.aola.frames). */
+export const FRAMES_KEPT = 5000;
+
 export function startInPage(cfg: InPageConfig) {
-  const memory = new MemoryRecorder();
+  // The last frames only (the walk-throughs read them; a long game would pile them up).
+  const memory = new MemoryRecorder(FRAMES_KEPT);
   const sfs = cfg.protocol === "sfs2013";
   if (sfs && !cfg.demo) {
     // The 2013 game for the one player of this page (game/sfs2013/host.ts), saves in IndexedDB.

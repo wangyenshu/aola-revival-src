@@ -17,6 +17,10 @@ package mmo.control
    import mmo.play.scene.SceneManager;
    import mmo.play.scene.SceneManagerEvent;
    import mmo.revival.RLog;
+   import mmo.revival.RNotice;
+   import mmo.loader.layer.LayerManager;
+   import flash.utils.setTimeout;
+   import flash.utils.getTimer;
 
    /**
     * REVIVAL. 好友 and 组队 on a shared server (server social.ts): what arrives without being asked
@@ -39,6 +43,10 @@ package mmo.control
       /** My player and the leader's as last followed, or null. */
       private static var followedMe:PlayerBase;
       private static var followedLead:PlayerBase;
+      /** A scene holds my player still (the hot spring's pool): not moved to follow till refollow(). */
+      public static var paused:Boolean;
+      /** A friend ask or a team invite sent and not yet answered (getTimer() then; one at a time). */
+      private static var asking:Object = {};
 
       /** In a team and not its leader. */
       public static function get follower():Boolean
@@ -63,6 +71,11 @@ package mmo.control
             if (e.params.msg) NewDialog.showMessage(String(e.params.msg));
             if (TeamPanel.current != null) TeamPanel.current.refresh();
             follow();
+         });
+         // The same 奥拉 logged in elsewhere: this game's connection is closed (server.ts).
+         sc.addEventListener("revival_replaced", function(e:SocketClientEvent):void
+         {
+            NewDialog.showMessage(String(e.params.msg || "你的奥拉在别的地方登录了，这里的连接已经断开。"));
          });
          sc.addEventListener("revival_team_go", function(e:SocketClientEvent):void
          {
@@ -94,13 +107,40 @@ package mmo.control
          {
             if (int(e.params.res) != 1 && e.params.msg) NewDialog.showFailMessage(String(e.params.msg));
          });
+         // A line of the team's: over the speaker's head when he is here, as a notice that
+         // goes by itself, and in the talk history (not a dialog to close for every line).
          sc.addEventListener("revival_team_said", function(e:SocketClientEvent):void
          {
-            NewDialog.showMessage("【队伍】" + e.params.name + "：" + e.params.text);
+            var who:String = String(e.params.name), text:String = String(e.params.text);
+            try
+            {
+               var speaker:PlayerBase = PlayerManager.getInstance().getPlayer(who);
+               if (speaker != null && !speaker.isDisposed && speaker.hasOwnProperty("say")) Object(speaker).say(text);
+            }
+            catch (err:Error) {}
+            try { RNotice.show(LayerManager.getBaseTop().stage, "【队伍】" + who + "：" + text, 4); } catch (err2:Error) {}
+            ServiceContainer.instance.tryGetService("SceneTalkService", function(svc:IService, o:Object):void
+            {
+               if (Object(svc).hasOwnProperty("addLine")) Object(svc).addLine(who, "【队伍】" + text);
+            });
          });
          // The leader's room changes: the team follows.
          SceneManager.getInstance().addEventListener(SceneManagerEvent.TASK_SCENE_INITED, function(e:SceneManagerEvent):void
          {
+            // A new room holds no one still (the hot spring's pool lets go on leaving it).
+            if (paused)
+            {
+               paused = false;
+               followedMe = followedLead = null;
+               follow();
+            }
+            // A member who came where the team is not (the leader moved on while this room
+            // loaded: a call to go then was not taken): after him.
+            if (follower && teamRoom && teamRoom != currentRoom())
+            {
+               var go:String = teamRoom;
+               setTimeout(function():void { if (follower && teamRoom == go && go != currentRoom()) goTo(go); }, 300);
+            }
             if (team != null && team.leader == SocketClient.instance.myUserName && team.members && team.members.length > 1)
             {
                // A 副本 and 时空隧道 are played alone: the team does not follow there.
@@ -115,7 +155,7 @@ package mmo.control
       {
          var pm:PlayerManager = PlayerManager.getInstance();
          var me:PlayerBase = pm.myPlayer;
-         if (me == null || me.isDisposed) return;
+         if (me == null || me.isDisposed || paused) return;
          if (follower)
          {
             var lead:PlayerBase = pm.getPlayer(String(team.leader));
@@ -125,12 +165,33 @@ package mmo.control
             // My place beside him: the first member on his left, the second on his right.
             var i:int = Math.max(1, (team.members as Array).indexOf(SocketClient.instance.myUserName));
             me.stop();
-            me.setStrategy(lead != null ? new PlayerFollowStrategy(lead as IMovable, i % 2 == 1 ? -45 : 45, 25) : null);
+            // He is not here (a 副本 of his, or on his way): walk about the room while waiting.
+            me.setStrategy(lead != null ? new PlayerFollowStrategy(lead as IMovable, i % 2 == 1 ? -45 : 45, 25) : new MouseControlStrategy());
             return;
          }
          if (followedMe == null) return;
          if (followedMe == me) me.setStrategy(new MouseControlStrategy());
          followedMe = followedLead = null;
+      }
+
+      /** Follow again (a scene that set my strategy itself, the hot spring, gives it back). */
+      public static function refollow():void
+      {
+         followedMe = followedLead = null;
+         if (follower) follow();
+         else
+         {
+            var me:PlayerBase = PlayerManager.getInstance().myPlayer;
+            if (me != null && !me.isDisposed) me.setStrategy(new MouseControlStrategy());
+         }
+      }
+
+      /** One ask of a kind at a time (a second click while it waits is not sent again). */
+      private static function oneAsk(kind:String):Boolean
+      {
+         if (asking[kind] != null && getTimer() - int(asking[kind]) < 8000) return false;
+         asking[kind] = getTimer();
+         return true;
       }
 
       public static function currentRoom():String
@@ -269,9 +330,11 @@ package mmo.control
       public static function addFriend(name:String):void
       {
          var sc:SocketClient = SocketClient.instance;
+         if (!oneAsk("friend")) return;
          var onAdd:Function = function(e:SocketClientEvent):void
          {
             sc.removeEventListener("revival_friend_add", onAdd);
+            delete asking["friend"];
             if (int(e.params.res) == 1) NewDialog.showSucceedMessage(String(e.params.msg));
             else NewDialog.showFailMessage(String(e.params.msg));
             if (FriendPanel.current != null) FriendPanel.current.refresh();
@@ -283,9 +346,11 @@ package mmo.control
       public static function invite(name:String):void
       {
          var sc:SocketClient = SocketClient.instance;
+         if (!oneAsk("invite")) return;
          var onInvite:Function = function(e:SocketClientEvent):void
          {
             sc.removeEventListener("revival_team_invite", onInvite);
+            delete asking["invite"];
             if (int(e.params.res) == 1) NewDialog.showSucceedMessage(String(e.params.msg));
             else NewDialog.showFailMessage(String(e.params.msg));
          };
