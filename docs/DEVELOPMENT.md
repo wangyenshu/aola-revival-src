@@ -100,8 +100,8 @@ web/
   index.html                  the page
   config.js                   settings (boot URL, hosts, socket address, mode, clock)
   boot.js                     starts the service worker, the emulator and Ruffle
-  start.js, accounts.js       the start screen (单机模式 / 联机模式), the 选择奥拉 screen
-  saves.js                    the 存档 and 改名字 / 改密码 panels
+  start.js                    what the game's start screens remember and do (单机 / 联机, 选择奥拉)
+  saves.js                    what the game's 存档 and 改名字 / 改密码 panels do
   theatre.js                  the page's video functions, which open the game's 百田大剧场
   robots.txt                  asks all crawlers to stay out
 

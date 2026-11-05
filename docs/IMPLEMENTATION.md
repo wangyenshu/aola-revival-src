@@ -16,7 +16,8 @@ dist/index.html + boot.js
  └── Ruffle (ruffle/)
        runs the original start.swf, which loads the loader, login, play.swf
        and the game modules from their original URLs; the client's socket to
-       127.0.0.1:9339 goes to the emulator through Ruffle's socket proxy
+       127.0.0.1:9339 goes through Ruffle's socket proxy to the emulator
+       (单机模式, started when it is chosen) or a shared server (联机模式)
 ```
 
 The client is the January 2013 client wherever its files survive. Where a
@@ -99,11 +100,15 @@ open nothing. `?dev=1` enables test commands in the emulator.
 
 `web/theatre.js` answers the client's video calls (`showVideoPlayer` and
 others) by opening the game's 百田大剧场 (`control/TheatrePanel`, which plays
-the surviving FLVs). `web/start.js` is the
-start screen (单机模式 / 联机模式), `web/accounts.js` the 选择奥拉 screen of
-单机模式 (up to three 奥拉 a browser), and `web/saves.js` the 工具箱's 存档
-panels and the 信息卡's 改名字 / 改密码 panels, in both modes (the page's own
-game, or the shared server's `/__api/`).
+the surviving FLVs). The screens before the game and the account panels are drawn in the game (so
+they show in fullscreen): the login's 进入奥拉星 (单机模式 / 联机模式) and 选择奥拉
+(`login/StartScreen`, `RolesScreen`), and the 工具箱's 存档 and the 信息卡's
+改名字 / 改密码 (`shared/mmo/revival/SavePanels`), with Flash's own dialogs for
+the files. The page does their work through ExternalInterface: `web/start.js`
+(what the start screen remembers; 单机模式's 奥拉) and `web/saves.js` (存档,
+names and passwords), in both modes (the page's own game, or the shared
+server's `/__api/`). Ruffle's sockets go to one address, which `boot.js` routes
+when the login connects: to the in-page game, or to the chosen server.
 
 ### The service worker
 
@@ -213,7 +218,7 @@ Each rule carries a RECONSTRUCTED comment with its source in the code.
 | --- | --- | --- |
 | Start page and entry | `start.swf`, `loader.swf?201301241`, `versiondata.swf?201301241` | originals (Wayback captures) |
 | Start screen | `user/yunyingres`, `user/yunyingstart` | originals, the January 2013 campaign removed (`tools/clean_start.py`) |
-| Login | `user/login` | REBUILT: connects, logs in to the zone, fills `UserInfo`, hands over to `play` as the original did; the account form is skipped |
+| Login | `user/login` | REBUILT: the revival's 进入奥拉星 and 选择奥拉 screens (the 2013 account form is lost), then connects, logs in to the zone, fills `UserInfo`, hands over to `play` as the original did |
 | Game | `play.swf?130110` | REBUILT: creates the `ServiceContainer`, loads the `<play>` modules of `config.xml` in the original order, starts every service, enters the first scene |
 
 ### The engine

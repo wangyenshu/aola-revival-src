@@ -1,16 +1,30 @@
-// The start screen, before the game: 单机模式 (the game runs inside this page, the saves stay
-// in this browser; its 奥拉 are chosen after 开始, accounts.js 选择奥拉) or 联机模式 (a shared
-// server, src/node/multi.ts or the Cloudflare worker: its address, the 奥拉's name and its
-// password). The 奥拉's name is the name in the game (the rebuilt login asks the page for it:
-// aolaRevivalAccount), so 我的家, the 信息卡 and the other players show it; 改名字 changes it
-// (one's save moves with it).
+// Which game and which 奥拉: 单机模式 (the game runs inside this page, the saves stay in this
+// browser, up to three 奥拉 on 选择奥拉) or 联机模式 (a shared server, src/node/multi.ts or the
+// Cloudflare worker: its address, the 奥拉's name and its password). The screens are the game's
+// own, in its login (rebuild/src/login: StartScreen, RolesScreen), so they show in fullscreen
+// too; the page keeps what they remember and does the work. The 奥拉's name is the name in the
+// game, so 我的家, the 信息卡 and the other players show it.
 //
 // Remembered in this browser (localStorage): mode, server, 联机模式's name, the 单机 奥拉 played
-// last; the password only with 记住密码. Skipped (single, the remembered name) with ?bare=1 (the
-// automated walk-throughs); ?mode=server&server=…&name=…&pass=… chooses from the address
-// (tests); a resume (an 奥拉 renamed or imported in the game) once, after its reload.
+// last; the password only with 记住密码. Chosen without the screens (preset): ?bare=1 (the
+// automated walk-throughs: 单机, the remembered name), ?mode=inpage, ?mode=server&server=…&name=…&pass=…
+// (tests), and a resume (an 奥拉 renamed or imported in the game) once, after its reload.
+//
+// The login calls aolaStartPage(op, args, id), answered in its revivalStart(id, result):
+//   saved                    -> what the start screen fills in, at once
+//   check {server}           -> {online}: the server answers
+//   rename {server, name, pass, to}   a 联机 奥拉's new name, from the start screen
+//   begin {mode, server, name, pass, remember}   the game starts (boot.js AolaBoot.begin)
+//   users                    -> {list: [{name, score, pets, level, createdAt, id}], last}
+//   create {name}, renameRole {from, to}, delete {name}   单机模式's 奥拉
+//   export {name}, exportAll -> {text, file}
+//   import {text, from, as, replace} -> {roles} for a file of several 奥拉 and no from; {name}
+//                               once imported; {conflict} for a name this page already has
+//   chosen {name}            the 奥拉 who plays (remembered)
+// A failure is {error}.
 (function () {
   const KEY = "aolaRevivalStart";
+  const FORMAT = "aola-revival-save";
   const load = () => {
     try {
       return JSON.parse(localStorage.getItem(KEY) || "{}") || {};
@@ -23,6 +37,7 @@
       localStorage.setItem(KEY, JSON.stringify(o));
     } catch (e) {}
   };
+  const remember = (fields) => store(Object.assign(load(), fields));
 
   /** "host:port", "https://host", "ws://host:8080/" -> "ws(s)://host[:port]" (no trailing /). */
   function wsBase(server) {
@@ -34,28 +49,6 @@
     return s.replace(/\/__socket.*$/, "");
   }
   const httpBase = (server) => wsBase(server).replace(/^ws/i, "http");
-
-  function css() {
-    const st = document.createElement("style");
-    st.textContent = `
-      #aolaStart { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center;
-        background: radial-gradient(circle at 50% 35%, #3a9be8, #0b3f86 70%, #072a5e); font: 14px/1.6 SimSun, "宋体", "Microsoft YaHei", sans-serif; color: #12406f; }
-      #aolaStart .box { width: 420px; background: #f2fbff; border: 3px solid #7fd0ff; border-radius: 18px; box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 18px 26px 20px; }
-      #aolaStart h1 { margin: 0 0 12px; text-align: center; font-size: 22px; color: #0e5fb4; letter-spacing: 4px; }
-      #aolaStart .modes { display: flex; gap: 10px; margin-bottom: 12px; }
-      #aolaStart .modes button { flex: 1; padding: 8px 0; border-radius: 12px; border: 2px solid #8cc8ef; background: #dff1fd; color: #2a628f; font: bold 15px SimSun, sans-serif; cursor: pointer; }
-      #aolaStart .modes button.on { background: linear-gradient(#ffd56a, #f39a1e); border-color: #e07a12; color: #fff; text-shadow: 0 1px 1px #a45300; }
-      #aolaStart .hint { font-size: 12px; color: #5a7fa3; margin: -4px 0 10px; min-height: 18px; }
-      #aolaStart label { display: block; margin: 6px 0 2px; font-weight: bold; }
-      #aolaStart input[type=text], #aolaStart input[type=password] { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #8cc8ef; border-radius: 8px; font: 14px SimSun, sans-serif; background: #fff; }
-      #aolaStart .row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; }
-      #aolaStart .go { display: block; width: 100%; margin-top: 14px; padding: 9px 0; border: 0; border-radius: 14px; background: linear-gradient(#ffd56a, #f08a12); color: #fff; font: bold 18px SimSun, sans-serif; letter-spacing: 6px; cursor: pointer; text-shadow: 0 1px 1px #a45300; }
-      #aolaStart .link { background: none; border: 0; color: #1d6fc1; text-decoration: underline; cursor: pointer; font: 12px SimSun, sans-serif; padding: 0; }
-      #aolaStart .msg { margin-top: 8px; min-height: 18px; color: #c8401a; font-size: 12px; }
-      #aolaStart .msg.ok { color: #2a8a2a; }
-      #aolaStart .hidden { display: none; }`;
-    document.head.appendChild(st);
-  }
 
   // A game the page just ended to come back to at once (an 奥拉 renamed or imported in the game:
   // saves.js): its mode, server, name and, on a shared server, password. Kept in this tab only
@@ -77,132 +70,158 @@
     }
   }
 
-  function choose(cfg) {
+  /** The game chosen without the screens ({mode, server, name, pass}), or null. */
+  function preset() {
     const q = new URLSearchParams(location.search);
-    const saved = load();
     const back = takeResume();
-    if (back) return Promise.resolve({ mode: back.mode, server: back.server || "", name: back.name, pass: back.pass || "" });
+    if (back) return { mode: back.mode, server: back.server || "", name: back.name, pass: back.pass || "" };
     if (q.get("mode") === "server" && q.get("server") && q.get("name"))
-      return Promise.resolve({ mode: "server", server: q.get("server"), name: q.get("name"), pass: q.get("pass") || "" });
-    if (q.get("bare") === "1" || q.get("mode") === "inpage")
-      return Promise.resolve({ mode: "inpage", name: q.get("name") || saved.name || "小奥拉", pass: "" });
-    return new Promise((resolve) => {
-      css();
-      const el = document.createElement("div");
-      el.id = "aolaStart";
-      el.innerHTML = `
-        <div class="box">
-          <h1>进入奥拉星</h1>
-          <div class="modes"><button data-mode="inpage">单机模式</button><button data-mode="server">联机模式</button></div>
-          <div class="hint" id="asHint"></div>
-          <div id="asServerRow"><label for="asServer">服务器地址</label><input type="text" id="asServer"></div>
-          <div id="asNameRow"><label for="asName">奥拉的名字</label><input type="text" id="asName" maxlength="12"></div>
-          <div id="asPassRow"><label for="asPass">密码</label><input type="password" id="asPass" maxlength="32">
-            <div class="row"><input type="checkbox" id="asRemember"><label for="asRemember" style="display:inline;font-weight:normal;margin:0">记住密码</label>
-              <span style="flex:1"></span><button class="link" id="asCheck">检查服务器</button></div></div>
-          <div class="row" id="asRenameLinkRow"><button class="link" id="asRenameLink">改名字</button></div>
-          <div id="asRenameRow" class="hidden"><label for="asNewName">新名字</label><input type="text" id="asNewName" maxlength="12">
-            <div class="row"><button class="link" id="asRenameGo">确定改名</button><span style="flex:1"></span><button class="link" id="asRenameCancel">取消</button></div></div>
-          <div class="msg" id="asMsg"></div>
-          <button class="go" id="asGo">进入</button>
-        </div>`;
-      document.getElementById("stage").appendChild(el);
-      const $ = (id) => document.getElementById(id);
-      let mode = saved.mode === "server" ? "server" : "inpage";
-      // Each mode's 奥拉: 单机模式's starts as 小奥拉; 联机模式's address, name and password start
-      // empty (what one wrote there before, when remembered). Older pages kept one name for both.
-      const names = {
-        inpage: saved.name || "小奥拉",
-        server: saved.serverName ?? (saved.mode === "server" ? saved.name || "" : ""),
-      };
-      // The address last written, else the site's own (config.js server: a site made for one
-      // shared server fills it in).
-      $("asServer").value = saved.server || cfg.server || "";
-      $("asName").value = names[mode];
-      $("asPass").value = saved.pass || "";
-      $("asRemember").checked = !!saved.pass;
-      const msg = (t, ok) => {
-        $("asMsg").textContent = t || "";
-        $("asMsg").className = "msg" + (ok ? " ok" : "");
-      };
-      const show = () => {
-        for (const b of el.querySelectorAll(".modes button")) b.classList.toggle("on", b.dataset.mode === mode);
-        $("asServerRow").classList.toggle("hidden", mode !== "server");
-        $("asPassRow").classList.toggle("hidden", mode !== "server");
-        // 单机模式's 奥拉 are chosen after 开始 (accounts.js 选择奥拉): here only the mode.
-        $("asNameRow").classList.toggle("hidden", mode !== "server");
-        $("asRenameLinkRow").classList.toggle("hidden", mode !== "server");
-        if (mode !== "server") $("asRenameRow").classList.add("hidden");
-        $("asHint").textContent = mode === "server"
-          ? "和别的奥拉一起玩：存档在服务器上。第一次用这个名字登录，就会用这个密码注册。"
-          : "一个人玩：游戏在这个页面里运行，存档留在这个浏览器里。";
-        msg("");
-      };
-      for (const b of el.querySelectorAll(".modes button")) {
-        b.onclick = () => {
-          if (b.dataset.mode === mode) return;
-          names[mode] = $("asName").value;
-          mode = b.dataset.mode;
-          $("asName").value = names[mode];
-          show();
-        };
-      }
-      show();
-      $("asCheck").onclick = async () => {
-        const base = httpBase($("asServer").value);
-        if (!base) return msg("请先填写服务器地址。");
-        msg("正在连接服务器……", true);
-        try {
-          const r = await fetch(base + "/__api/status");
-          const j = await r.json();
-          msg(j.ok ? `服务器正常，现在有 ${j.online} 个奥拉在线。` : "服务器没有回应。", !!j.ok);
-        } catch (e) {
-          msg("连不上这个服务器。");
-        }
-      };
-      $("asRenameLink").onclick = () => { $("asRenameRow").classList.remove("hidden"); $("asNewName").focus(); };
-      $("asRenameCancel").onclick = () => $("asRenameRow").classList.add("hidden");
-      $("asRenameGo").onclick = async () => {
-        const from = $("asName").value.trim(), to = $("asNewName").value.trim();
-        if (!to) return msg("请输入新名字。");
-        const base = httpBase($("asServer").value);
-        if (!base) return msg("请先填写服务器地址。");
-        try {
-          const r = await fetch(base + "/__api/rename", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: from, pass: $("asPass").value, to }) });
-          const j = await r.json();
-          if (!j.ok) return msg(j.error || "没有改成。");
-          $("asName").value = to;
-          $("asRenameRow").classList.add("hidden");
-          msg("名字改好了！", true);
-        } catch (e) {
-          msg("连不上这个服务器。");
-        }
-      };
-      function finish() {
-        // 单机模式: no name here (the 选择奥拉 screen after 开始 asks).
-        const name = mode === "server" ? $("asName").value.trim() : "";
-        const out = { mode, server: $("asServer").value.trim(), name, pass: mode === "server" ? $("asPass").value : "" };
-        if (mode === "server") names.server = name;
-        store({
-          mode,
-          server: out.server,
-          name: String(names.inpage).trim() || "小奥拉",
-          serverName: String(names.server).trim(),
-          pass: mode === "server" && $("asRemember").checked ? out.pass : "",
-        });
-        resolve(out);
-      }
-      $("asGo").onclick = () => {
-        if (mode === "server" && !wsBase($("asServer").value)) return msg("请填写服务器地址。");
-        if (mode === "server" && !$("asPass").value) return msg("请输入密码。");
-        if (mode === "server" && !$("asName").value.trim()) return msg("请输入奥拉的名字。");
-        // The fields are read before the screen goes (once it is gone, they are not found).
-        finish();
-        el.remove();
-      };
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.id !== "asNewName") $("asGo").click(); });
-    });
+      return { mode: "server", server: q.get("server"), name: q.get("name"), pass: q.get("pass") || "" };
+    if (q.get("bare") === "1" || q.get("mode") === "inpage") return { mode: "inpage", name: q.get("name") || load().name || "小奥拉", pass: "" };
+    return null;
   }
 
-  window.AolaStart = { choose, wsBase, resume };
+  async function postJson(url, body) {
+    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    return r.json();
+  }
+
+  const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
+  const game = () => window.aola;
+
+  /** The 奥拉 of a 存档 file: [{key, name, rec}]. */
+  function rolesOf(j) {
+    const out = [];
+    if (!j || typeof j !== "object" || !j.data || typeof j.data !== "object" || Array.isArray(j.data)) return out;
+    for (const [k, v] of Object.entries(j.data)) {
+      if (!k.startsWith("user/") || !v || typeof v !== "object" || Array.isArray(v)) continue;
+      let name = typeof v.name === "string" ? v.name : "";
+      if (!name) {
+        try {
+          name = decodeURIComponent(k.slice(5));
+        } catch (e) {
+          continue;
+        }
+      }
+      out.push({ key: k, name, rec: v });
+    }
+    return out;
+  }
+
+  async function run(op, a, cfg) {
+    if (op === "check") {
+      const base = httpBase(a.server);
+      if (!base) return { error: "请先填写服务器地址。" };
+      try {
+        const j = await (await fetch(base + "/__api/status")).json();
+        return j.ok ? { online: j.online } : { error: "服务器没有回应。" };
+      } catch (e) {
+        return { error: "连不上这个服务器。" };
+      }
+    }
+    if (op === "rename") {
+      const base = httpBase(a.server);
+      if (!base) return { error: "请先填写服务器地址。" };
+      try {
+        const j = await postJson(base + "/__api/rename", { name: a.name, pass: a.pass, to: a.to });
+        return j.ok ? { ok: true } : { error: j.error || "没有改成。" };
+      } catch (e) {
+        return { error: "连不上这个服务器。" };
+      }
+    }
+    if (op === "begin") {
+      const server = a.mode === "server";
+      if (server && !wsBase(a.server)) return { error: "请填写服务器地址。" };
+      const r = await window.AolaBoot.begin({ mode: server ? "server" : "inpage", server: String(a.server || "").trim(), name: server ? String(a.name || "").trim() : "" });
+      if (r.error) return r;
+      const fields = { mode: server ? "server" : "inpage" };
+      if (server) Object.assign(fields, { server: String(a.server || "").trim(), serverName: String(a.name || "").trim(), pass: a.remember ? a.pass : "" });
+      remember(fields);
+      return { ok: true };
+    }
+    // 单机模式's 奥拉 (the page's game: server/src/game/sfs2013/game.ts listUsers, createUser,
+    // deleteUser, addUserFromFile, rename, exportSave), so its rules hold whatever the screen shows.
+    if (!game() || !game().users) return { error: "单机模式还没有开始。" };
+    if (op === "users") return { list: await game().users(), last: load().name || "" };
+    if (op === "create") return { error: (await game().createUser(String(a.name || "").trim())) || "" };
+    if (op === "renameRole") {
+      const err = await game().rename(String(a.from), String(a.to || "").trim());
+      if (!err && load().name === a.from) remember({ name: String(a.to).trim() });
+      return { error: err || "" };
+    }
+    if (op === "delete") return { error: (await game().deleteUser(String(a.name))) || "" };
+    if (op === "export") {
+      const out = await game().exportSave(String(a.name));
+      if (out.error || !out.save) return { error: out.error || "没有导出。" };
+      return { text: JSON.stringify(out.save, null, 1), file: `aola-save-${stamp()}.json` };
+    }
+    if (op === "exportAll") {
+      // Every 奥拉 of this browser, in one file (导入奥拉 takes them one at a time).
+      const list = await game().users();
+      const data = {};
+      for (const r of list) {
+        const out = await game().exportSave(r.name);
+        if (out.save) Object.assign(data, out.save.data);
+      }
+      data["meta/nextUserId"] = Math.max(0, ...list.map((r) => r.id));
+      return { text: JSON.stringify({ format: FORMAT, version: 1, saved: new Date().toISOString(), data }, null, 1), file: `aola-save-all-${stamp()}.json` };
+    }
+    if (op === "import") {
+      let j = null;
+      try {
+        j = JSON.parse(String(a.text || "").replace(/^﻿/, ""));
+      } catch (e) {}
+      if (!j || j.format !== FORMAT || typeof j.version !== "number") return { error: "这不是奥拉星的存档文件。" };
+      if (j.version > 1) return { error: "这个存档文件是更新的版本，这里读不了。" };
+      const list = rolesOf(j);
+      if (!list.length) return { error: "这个存档里没有奥拉。" };
+      const from = list.length === 1 ? list[0].name : a.from;
+      if (!from) return { roles: list.map((r) => r.name) };
+      const r = await game().addUser(j, { from, as: a.as || undefined, replace: !!a.replace });
+      if (r.name) return { name: r.name };
+      if (r.conflict && !r.error) return { conflict: r.conflict, from };
+      return { error: r.error || "没有导入。" };
+    }
+    if (op === "chosen") {
+      remember({ name: String(a.name) });
+      if (window.aolaSession) window.aolaSession.name = String(a.name);
+      return { ok: true };
+    }
+    return { error: "这个页面不能这样做。" };
+  }
+
+  /** What the start screen fills in: each mode's 奥拉, the address, the password if remembered. */
+  function saved(cfg) {
+    const s = load();
+    return {
+      mode: s.mode === "server" ? "server" : "inpage",
+      // The address last written, else the site's own (config.js server: a site made for one
+      // shared server fills it in).
+      server: s.server || cfg.server || "",
+      // Older pages kept one name for both modes.
+      serverName: s.serverName ?? (s.mode === "server" ? s.name || "" : ""),
+      pass: s.pass || "",
+    };
+  }
+
+  function install(cfg) {
+    window.aolaStartPage = (op, args, id) => {
+      if (op === "saved") return saved(cfg);
+      run(String(op), args || {}, cfg)
+        .catch((e) => ({ error: String((e && e.message) || e) }))
+        // Later: the call came from inside the game, which cannot be called back into then.
+        .then((r) =>
+          setTimeout(() => {
+            try {
+              window.aolaPlayer.revivalStart(String(id), r);
+            } catch (e) {
+              console.warn("[start]", e);
+            }
+          }, 0),
+        );
+      return true;
+    };
+  }
+
+  window.AolaStart = { preset, install, wsBase, resume };
 })();

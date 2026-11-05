@@ -398,6 +398,7 @@ export class BattleEngine {
     let mult = 1;
     let hits = 0;
     let selfHp = 0;
+    let shown = 0;
     if (sk.k !== 2) {
       mult = sk.t < 0 ? 1 : typeMultiplier(t.pm, sk.t, def.types);
       if (mult === 0) {
@@ -415,6 +416,8 @@ export class BattleEngine {
         dmg = def.pet.hp;
         lines.push("一击必杀！");
       }
+      // The number shown is the whole damage (RECONSTRUCTED); the HP lost is at most what was left.
+      shown = dmg;
       dmg = Math.min(dmg, def.pet.hp);
       def.pet.hp -= dmg;
       if (hits > 1) lines.push(`连续攻击了${hits}次！`);
@@ -428,8 +431,8 @@ export class BattleEngine {
         if (heal > 0) lines.push(`${name}回复了体力！`);
       }
       if ((fx.recoil || sk === STRUGGLE) && dmg > 0) {
-        const r = Math.min(att.pet.hp, Math.max(1, Math.floor(dmg * (fx.recoil ?? 0.25))));
-        att.pet.hp -= r;
+        const r = Math.max(1, Math.floor(dmg * (fx.recoil ?? 0.25)));
+        att.pet.hp -= Math.min(att.pet.hp, r);
         selfHp -= r;
         lines.push(`${name}受到了反作用伤害！`);
       }
@@ -466,7 +469,7 @@ export class BattleEngine {
     }
     if (def.pet.hp <= 0) lines.push(`${petName(t, def)}倒下了！`);
     if (att.pet.hp <= 0) lines.push(`${name}倒下了！`);
-    return report(landed || sk.k !== 2 || fx.heal ? 0 : 1, { cri, hits, hpInc: -dmg, selfHpInc: selfHp, eff: mult });
+    return report(landed || sk.k !== 2 || fx.heal ? 0 : 1, { cri, hits, hpInc: -shown, selfHpInc: selfHp, eff: mult });
   }
 
   private damage(att: Fighter, def: Fighter, sk: PmSkill, fx: SkillEffects, mult: number): { dmg: number; cri: boolean } {
@@ -533,8 +536,7 @@ export class BattleEngine {
         lines.push(f.bind > 0 ? `${name}受到了束缚的伤害！` : `${name}挣脱了束缚！`);
       }
       if (!lines.length) continue;
-      lost = Math.min(lost, f.pet.hp);
-      f.pet.hp -= lost;
+      f.pet.hp -= Math.min(lost, f.pet.hp);
       if (f.pet.hp <= 0) lines.push(`${name}倒下了！`);
       out.push(["2421", { slotId: f.slot, hpInc: -lost, desc: lines.join("\n"), pmmList: this.views(b) }]);
     }

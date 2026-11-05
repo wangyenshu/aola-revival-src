@@ -49,7 +49,7 @@ npm run serve       # serve dist/ at http://127.0.0.1:8080/
 The first `build:swf` downloads the compiler tools into `.toolchain/`. Open
 the page from `http://127.0.0.1`, `http://localhost` or an `https://`
 address; the page needs a service worker, which browsers allow only there.
-Choose 单机模式 and 进入, click 开始游戏, then make an 奥拉 on the 选择奥拉
+Click 开始游戏, choose 单机模式 and 进入, then make an 奥拉 on the 选择奥拉
 screen (新建奥拉, up to three a browser): the newbie quest starts.
 
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) describes the build in detail.
@@ -122,7 +122,7 @@ Notes:
 game/       archived game files at their 2013 URLs, listed in game/FILES.jsonl
 rebuild/    ActionScript sources (src/), generated sources (gen/), data (static/), build scripts (build/)
 server/     the server emulator, the in-page bundle, the service worker, the Node and Cloudflare servers, tests
-web/        the page, its boot script and settings, the start and 选择奥拉 screens, the save panels
+web/        the page, its boot script and settings, the page's side of the start screens and save panels
 scripts/    build-static.mjs (builds dist/), serve.mjs (local static server)
 tools/      archive, data generation and SWF tools (Python), the mod SDK
 tests/      Python tests and shared fixtures

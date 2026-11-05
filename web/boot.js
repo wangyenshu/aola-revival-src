@@ -59,70 +59,86 @@
       })
       .catch(() => {});
 
-    // 单机 or 联机, and which 奥拉 (start.js); the rebuilt login asks for it (aolaRevivalAccount).
-    const choice = window.AolaStart ? await window.AolaStart.choose(cfg) : { mode: cfg.mode, name: "", pass: "" };
-    if (choice.mode) cfg.mode = choice.mode;
-    // What the page's panels ask about this game (saves.js): the mode, the 奥拉, the server's
-    // HTTP address (no password: the 存档 panels of 联机模式 ask for it).
-    const serverWs = cfg.mode === "inpage" ? "" : (window.AolaStart && choice.server ? window.AolaStart.wsBase(choice.server) : "") || `${secure ? "wss" : "ws"}://${location.host}`;
-    window.aolaSession = { mode: cfg.mode, name: choice.name || "", server: serverWs.replace(/^ws/i, "http") };
-    // Read once by the login: the password is not kept in the page after that. 单机模式 with no
-    // 奥拉 named (the start screen): the 选择奥拉 screen (accounts.js), {wait: true} while it is up
-    // (the login asks again).
-    let chosen = choice.name ? { name: choice.name, pass: choice.pass || "" } : null;
+    // Ruffle's sockets go to one address, taken when the game connects (its login): the
+    // in-page game's (shim.ts, installed when 单机模式 starts) or a shared server's.
+    const PREFIX = "ws://in-page.aola/";
+    let serverWs = "";
+    const RealSocket = window.WebSocket;
+    window.WebSocket = new Proxy(RealSocket, {
+      construct(target, args) {
+        const u = String(args[0]);
+        if (serverWs && u.startsWith(PREFIX)) args = [`${serverWs}/__socket/${u.slice(PREFIX.length)}`, ...args.slice(1)];
+        return Reflect.construct(target, args);
+      },
+    });
+    const socketProxy = cfg.sockets.map((s) => ({ host: s.host, port: s.port, proxyUrl: PREFIX + s.port }));
+
+    // The game the player chose (start.js: the login's start screen, or chosen without it).
+    // What the page's panels ask about it (saves.js): the mode, the 奥拉, the server's HTTP
+    // address (no password: the 存档 panels of 联机模式 ask for it).
+    let begun = null;
+    async function begin(choice) {
+      // 联机模式 again (a login refused: another address, name or password); the other mode once
+      // a game has begun needs a new page (单机模式's game holds the page's sockets).
+      if (begun && begun.mode !== choice.mode) return { error: "请刷新页面再换模式。" };
+      if (choice.mode === "inpage" && !begun) {
+        // One tab of 单机模式 at a time: each runs its own game on the same saves, and the one
+        // behind would write its older 奥拉 over the other's.
+        if (navigator.locks && navigator.locks.request) {
+          const mine = await new Promise((r) => {
+            navigator.locks
+              .request("aola-revival-inpage", { ifAvailable: true }, (lock) => {
+                r(!!lock);
+                // Held while the page is open.
+                return lock ? new Promise(() => {}) : null;
+              })
+              .catch(() => r(true));
+          });
+          if (!mine) return { error: "单机模式已经在另一个标签页里打开了：请回到那个标签页玩，或者关掉它再刷新这一页。" };
+        }
+        say("Starting the in-page emulator…");
+        window.aola = window.AolaEmulator.startInPage({
+          proxyPrefix: PREFIX,
+          date: cfg.date,
+          framing: cfg.framing,
+          demo: !!cfg.demo,
+          verbose: !!cfg.verbose,
+          protocol: cfg.protocol,
+          // ?dev=1: test commands (items on request) for the automated walk-throughs.
+          dev: !!cfg.dev || /[?&]dev=1(&|$)/.test(location.search),
+        });
+      } else if (choice.mode !== "inpage") {
+        // A shared server: the address the start screen gave, else this page's own host.
+        serverWs = (choice.server && window.AolaStart ? window.AolaStart.wsBase(choice.server) : "") || `${secure ? "wss" : "ws"}://${location.host}`;
+        say("联机模式：" + serverWs);
+      }
+      const name = choice.name || (begun && window.aolaSession ? window.aolaSession.name : "");
+      cfg.mode = choice.mode;
+      begun = choice;
+      window.aolaSession = { mode: cfg.mode, name, server: serverWs.replace(/^ws/i, "http") };
+      return { ok: true };
+    }
+    window.AolaBoot = { begin };
+    if (window.AolaStart) window.AolaStart.install(cfg);
+    const preset = window.AolaStart ? window.AolaStart.preset() : { mode: cfg.mode, name: "", pass: "" };
+    let chosen = null;
+    if (preset) {
+      const r = await begin(preset);
+      if (r.error) throw new Error(r.error);
+      chosen = preset.name ? { name: preset.name, pass: preset.pass || "" } : null;
+    }
+    // The login asks who plays: the preset 奥拉 (read once: the password is not kept in the
+    // page after that), else {choose: true}, and it shows its start screen.
     window.aolaRevivalAccount = () => {
       if (chosen) {
-        const a = chosen;
+        const c = chosen;
         chosen = null;
-        choice.pass = "";
-        return a;
+        return c;
       }
-      if (cfg.mode === "inpage" && window.AolaAccounts && window.aola && window.aola.users) {
-        window.AolaAccounts.show(window.aola, (name) => {
-          window.aolaSession.name = name;
-          chosen = { name, pass: "" };
-        });
-        return { wait: true };
-      }
-      return null;
+      return begun ? null : { choose: true };
     };
     // The game asks the page's mode (the 信息卡: 改密码 on a shared server only).
-    window.aolaRevivalMode = () => cfg.mode;
-    let socketProxy;
-    if (cfg.mode === "inpage") {
-      // One tab of 单机模式 at a time: each runs its own game on the same saves, and the one
-      // behind would write its older 奥拉 over the other's.
-      if (navigator.locks && navigator.locks.request) {
-        const mine = await new Promise((r) => {
-          navigator.locks
-            .request("aola-revival-inpage", { ifAvailable: true }, (lock) => {
-              r(!!lock);
-              // Held while the page is open.
-              return lock ? new Promise(() => {}) : null;
-            })
-            .catch(() => r(true));
-        });
-        if (!mine) throw new Error("单机模式已经在另一个标签页里打开了：请回到那个标签页玩，或者关掉它再刷新这一页。");
-      }
-      say("Starting the in-page emulator…");
-      const prefix = "ws://in-page.aola/";
-      window.aola = window.AolaEmulator.startInPage({
-        proxyPrefix: prefix,
-        date: cfg.date,
-        framing: cfg.framing,
-        demo: !!cfg.demo,
-        verbose: !!cfg.verbose,
-        protocol: cfg.protocol,
-        // ?dev=1: test commands (items on request) for the automated walk-throughs.
-        dev: !!cfg.dev || /[?&]dev=1(&|$)/.test(location.search),
-      });
-      socketProxy = cfg.sockets.map((s) => ({ host: s.host, port: s.port, proxyUrl: prefix + s.port }));
-    } else {
-      // A shared server: the address the start screen gave, else this page's own host.
-      const base = serverWs;
-      say("联机模式：" + base);
-      socketProxy = cfg.sockets.map((s) => ({ host: s.host, port: s.port, proxyUrl: `${base}/__socket/${s.port}` }));
-    }
+    window.aolaRevivalMode = () => (begun ? cfg.mode : "");
     for (const src of cfg.pageScripts || []) {
       say("Loading page script " + src);
       await new Promise((resolve) => {

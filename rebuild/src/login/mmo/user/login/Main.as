@@ -1,13 +1,15 @@
 package mmo.user.login
 {
    import mmo.common.DateUtil;
+   import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
    import flash.display.Sprite;
+   import flash.geom.Rectangle;
    import flash.events.Event;
    import flash.external.ExternalInterface;
    import flash.net.SharedObject;
    import flash.text.TextField;
    import flash.text.TextFormat;
-   import flash.utils.setTimeout;
    import mmo.SSLEvent;
    import mmo.ServerClient;
    import mmo.common.user.UserInfo;
@@ -20,12 +22,11 @@ package mmo.user.login
     *
     * This replacement keeps the original hand-off: it creates the socket
     * ServerClient, logs in to the zone, fills mmo.common.user.UserInfo and calls
-    * LoaderFacade.loadPlay(), exactly where the original continued. The account
-    * and password form is the page's (web/boot.js, its start screen: 单机 or 联机, the
-    * 奥拉's name and, on a shared server, its password), asked for through
-    * ExternalInterface; without one (an old page) the name kept in a SharedObject. In
-    * 单机模式 the page shows its 选择奥拉 screen (web/accounts.js) here, after 开始: until
-    * one is chosen its answer is {wait: true}, and the login asks again.
+    * LoaderFacade.loadPlay(), exactly where the original continued. Who plays: the
+    * revival's screens (StartScreen: 单机 or 联机, and on a shared server the 奥拉's name
+    * and password; RolesScreen: 单机模式's 选择奥拉), or the 奥拉 the page already chose
+    * (web/boot.js aolaRevivalAccount: tests, a game the page came back to); without a
+    * page, the name kept in a SharedObject. A login refused goes back to the screen.
     */
    public class Main extends Sprite
    {
@@ -34,6 +35,8 @@ package mmo.user.login
       public static const ZONE:String = "aola";
 
       private var status:TextField;
+      private var start:StartScreen;
+      private var roles:RolesScreen;
 
       public function Main()
       {
@@ -58,31 +61,53 @@ package mmo.user.login
          {
             new ServerClient();
          }
-         ServerClient.instance.addEventListener(SSLEvent.onLogin, onLogin);
          RLog.log("login: connecting to", SERVER_HOST + ":" + SERVER_PORT, "zone", ZONE);
+         installTestHook();
          connect();
       }
 
-      /** Logs in as the page's 奥拉; while the page's 选择奥拉 screen is up, asks again a moment later. */
+      /** The page's 奥拉, or the start screen when the page leaves it to the player. */
       private function connect():void
+      {
+         var acc:Object = pageAccount();
+         if (acc != null && acc.choose)
+         {
+            say("");
+            start = new StartScreen(function(mode:String, name:String, pass:String):void
+            {
+               if (mode == "server") login(name, pass);
+               else if (roles != null) roles.again("");
+               else addChild(roles = new RolesScreen(function(n:String):void { login(n, ""); }));
+            });
+            addChild(start);
+            return;
+         }
+         login(acc ? String(acc.name) : localName(), acc && acc.pass ? String(acc.pass) : "");
+      }
+
+      private function login(name:String, pass:String):void
       {
          try
          {
-            var acc:Object = pageAccount();
-            if (acc != null && acc.wait)
-            {
-               say("请选择一个奥拉……");
-               setTimeout(connect, 300);
-               return;
-            }
             say("正在连接奥拉星……");
-            ServerClient.instance.login(SERVER_HOST, SERVER_PORT, ZONE, acc ? String(acc.name) : localName(), acc && acc.pass ? String(acc.pass) : "");
+            ServerClient.instance.addEventListener(SSLEvent.onLogin, onLogin);
+            ServerClient.instance.login(SERVER_HOST, SERVER_PORT, ZONE, name, pass);
          }
          catch (err:Error)
          {
             RLog.error("login.connect", err);
-            say("连接失败：" + err.message);
+            refused("连接失败：" + err.message);
          }
+      }
+
+      /** A login that did not go through: back to the screen it came from, else the reason. */
+      private function refused(why:String):void
+      {
+         // The next login connects again (to another server, perhaps).
+         try { ServerClient.instance.socketServerClient.disconnect(); } catch (e:Error) {}
+         if (roles != null) { say(""); roles.again(why); }
+         else if (start != null) { say(""); start.again(why); }
+         else say(why);
       }
 
       /**
@@ -95,7 +120,7 @@ package mmo.user.login
          {
             if (!ExternalInterface.available) return null;
             var a:Object = ExternalInterface.call("aolaRevivalAccount");
-            return a != null && (a.name || a.wait) ? a : null;
+            return a != null && (a.name || a.choose) ? a : null;
          }
          catch (err:Error) {}
          return null;
@@ -142,7 +167,7 @@ package mmo.user.login
          ServerClient.instance.removeEventListener(SSLEvent.onLogin, onLogin);
          if (!p.success)
          {
-            say("登录失败：" + p.error);
+            refused("登录失败：" + p.error);
             return;
          }
          // The server's clock (logOK lastLoginTime) for DateUtil.getServerTime, which
@@ -159,6 +184,47 @@ package mmo.user.login
          say("正在进入奥拉星……");
          RLog.log("login: user #" + UserInfo.userId, "-> LoaderFacade.loadPlay()");
          LoaderFacade.loadPlay();
+      }
+
+      /**
+       * The automated walk-throughs' hook while the login is up (tests/e2e; the control module's
+       * replaces it in the game): where a shown object of that name is, a text field's text.
+       */
+      private function installTestHook():void
+      {
+         try
+         {
+            if (!ExternalInterface.available) return;
+            ExternalInterface.addCallback("revival", function(cmd:String, arg:String = null):String
+            {
+               var d:DisplayObject = stage ? find(stage, String(arg)) : null;
+               if (cmd == "where")
+               {
+                  if (d == null) return "none";
+                  var r:Rectangle = d.getBounds(stage);
+                  return int(r.x + r.width / 2) + "," + int(r.y + r.height / 2);
+               }
+               if (cmd == "text") return d is TextField ? TextField(d).text : "none";
+               return cmd == "scene" || cmd == "busy" ? "" : "none";
+            });
+         }
+         catch (e:Error) {}
+      }
+
+      private static function find(c:DisplayObjectContainer, name:String):DisplayObject
+      {
+         for (var i:int = 0; i < c.numChildren; i++)
+         {
+            var d:DisplayObject = c.getChildAt(i);
+            if (!d.visible) continue;
+            if (d.name == name) return d;
+            if (d is DisplayObjectContainer)
+            {
+               var f:DisplayObject = find(DisplayObjectContainer(d), name);
+               if (f != null) return f;
+            }
+         }
+         return null;
       }
 
       private function say(text:String):void

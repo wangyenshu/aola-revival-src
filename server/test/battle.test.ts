@@ -53,6 +53,17 @@ test("skill effects are read from the descriptions", () => {
   assert.equal(parseEffects("攻击对方单体，下回合自己停止行动").recharge, true);
 });
 
+test("the number shown is the whole damage; the HP lost stops at what was left", () => {
+  const e = new BattleEngine(tables, () => 0.5);
+  const mine = makePet(tables, 1, 30, "d", 1);
+  const wild = makePet(tables, 43, 5, "d");
+  const b = e.start(1, "aixiscene1", { id: 7, name: "a" }, mine, wild, true);
+  b.wild.pet.hp = 1;
+  const [, r] = e.act(b, b.mine, b.wild, 1016);
+  assert.equal(b.wild.pet.hp, 0);
+  assert.ok(Number(r.hpInc) < -1, `shown ${r.hpInc}`);
+});
+
 test("levels, skills and the catch-level table", () => {
   assert.deepEqual(skillsAt(pm.species["1"], 5), [1016, 12002]);
   assert.deepEqual(catchLevel(0), { clv: 1, ccle: 0, cnx: 30, pct: 0 });

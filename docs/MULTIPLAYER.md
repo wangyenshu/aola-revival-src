@@ -1,6 +1,7 @@
 # 联机模式: a shared server
 
-The page starts with a choice (web/start.js):
+After the start page's 开始游戏, the game asks (its 进入奥拉星 screen; web/start.js
+keeps what it remembers):
 
 - **单机模式**: the game's server runs inside the page, for one 奥拉; saves stay
   in the browser. This is how the game always ran here.

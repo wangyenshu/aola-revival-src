@@ -4,7 +4,6 @@ package mmo.control
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.KeyboardEvent;
-   import flash.external.ExternalInterface;
    import flash.text.TextField;
    import mmo.config.ConfigReader;
    import mmo.common.member.MemberManager;
@@ -18,6 +17,7 @@ package mmo.control
    import mmo.play.scene.SceneManager;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
+   import mmo.revival.SavePanels;
 
    /**
     * The revival's 工具箱 (not of 2013): add 晶币, 星币, 晶豆 and 亚比 experience
@@ -150,8 +150,8 @@ package mmo.control
          sl.x = 30;
          sl.y = 408;
          box.addChild(sl);
-         box.addChild(place(RUI.button("导出存档", function():void { saves("aolaSaveExport"); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxExport"), 118, 405));
-         box.addChild(place(RUI.button("导入存档", function():void { saves("aolaSaveImport"); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxImport"), 216, 405));
+         box.addChild(place(RUI.button("导出存档", function():void { close(); SavePanels.exportSave(); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxExport"), 118, 405));
+         box.addChild(place(RUI.button("导入存档", function():void { close(); SavePanels.importSave(); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxImport"), 216, 405));
 
          said = RUI.text(12, 0x8A3B00, true, W - 40);
          said.height = 40;
@@ -261,22 +261,6 @@ package mmo.control
          }
          close();
          SceneManager.getInstance().loadScene(name);
-      }
-
-      /** The page's 存档 panel (web/saves.js): export to a file, import from one. */
-      private function saves(fn:String):void
-      {
-         try
-         {
-            if (ExternalInterface.available)
-            {
-               ExternalInterface.call(fn);
-               close();
-               return;
-            }
-         }
-         catch (e:Error) { RLog.error("toolbox saves", e); }
-         said.text = "这个页面不能导出导入存档";
       }
 
       private function getPet():void

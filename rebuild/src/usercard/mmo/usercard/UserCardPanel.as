@@ -36,6 +36,7 @@ package mmo.usercard
    import mmo.loader.scheduler.VersManager;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
+   import mmo.revival.SavePanels;
    import mmo.common.dialog.NewDialog;
    import mmo.framework.comm.SocketClientEvent;
 
@@ -210,18 +211,16 @@ package mmo.usercard
       }
 
       /**
-       * One's own card: 改名字 (both modes) and, on a shared server, 改密码. Their forms are the
-       * page's (web/saves.js aolaAccountRename / aolaAccountPassword): a rename ends the game,
-       * and the page logs in again with the new name.
+       * One's own card: 改名字 (both modes) and, on a shared server, 改密码 (SavePanels; the data is
+       * the page's, web/saves.js): a rename ends the game, and the page logs in again with the new name.
        */
       private function accountButtons():void
       {
-         var acts:Array = [["改名字", "aolaAccountRename"]];
-         if (pageMode() == "server") acts.push(["改密码", "aolaAccountPassword"]);
+         var acts:Array = [["改名字", SavePanels.rename]];
+         if (pageMode() == "server") acts.push(["改密码", SavePanels.password]);
          for (var i:int = 0; i < acts.length; i++)
          {
-            var fn:String = acts[i][1];
-            var b:Sprite = RUI.button(acts[i][0], pageCall(fn), 80, 24, 0x8FE3FF, 0x1E8FE0, "cardAccount" + i);
+            var b:Sprite = RUI.button(acts[i][0], closeThen(acts[i][1]), 80, 24, 0x8FE3FF, 0x1E8FE0, "cardAccount" + i);
             b.x = (acts.length == 1 ? 76 : 32 + i * 88);
             b.y = H - 46;
             box.addChild(b);
@@ -235,12 +234,13 @@ package mmo.usercard
          return "";
       }
 
-      private function pageCall(fn:String):Function
+      /** The card closes, then f. */
+      private function closeThen(f:Function):Function
       {
          return function():void
          {
             close();
-            try { if (ExternalInterface.available) ExternalInterface.call(fn); } catch (e:Error) { RLog.error("usercard " + fn, e); }
+            f();
          };
       }
 
