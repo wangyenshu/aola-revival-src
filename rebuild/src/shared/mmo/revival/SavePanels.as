@@ -1,5 +1,6 @@
 package mmo.revival
 {
+   import flash.display.DisplayObject;
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.IOErrorEvent;
@@ -12,6 +13,8 @@ package mmo.revival
    import flash.text.TextFormatAlign;
    import flash.ui.Keyboard;
    import flash.utils.ByteArray;
+   import flash.utils.clearTimeout;
+   import flash.utils.setTimeout;
    import mmo.common.AlignType;
    import mmo.common.utils.panel.PanelEffect;
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
@@ -28,6 +31,8 @@ package mmo.revival
       private static var current:SavePanels;
       private static var calls:Object = {};
       private static var nextCall:int;
+      /** A page call not answered by then: the panel says so and offers its buttons again. */
+      private static const WAIT_MS:int = 20000;
 
       private var box:Sprite;
       private var line:TextField;
@@ -39,6 +44,15 @@ package mmo.revival
       private var rowY:int;
       /** The file being saved or read (kept while its dialog is open). */
       private var file:FileReference;
+      /** Closed: what was under way does nothing more (no import, no rename after it). */
+      private var shut:Boolean;
+      /**
+       * An import or a rename sent to the page: it cannot be called back (the page ends the game
+       * and comes back), so the panel stays till it is answered.
+       */
+      private var sealed:Boolean;
+      /** The buttons to offer again when a page call gets no answer. */
+      private var lastButtons:Array = [];
 
       // ---------------------------------------------------------------- the four panels
 
@@ -50,19 +64,24 @@ package mmo.revival
          {
             if (server && !p.value("pass")) { p.say("请输入密码。"); return; }
             p.say("正在准备……");
-            p.buttons([]);
-            ask("export", { pass: p.value("pass") }, function(r:Object):void
+            p.wait(server ? [["确定", fetch]] : [["重试", fetch]]);
+            p.ask("export", { pass: p.value("pass") }, false, function(r:Object):void
             {
                if (r.error || !r.text)
                {
                   p.say(r.error || "没有导出。");
-                  p.buttons(server ? [["确定", fetch]] : []);
+                  p.buttons(server ? [["确定", fetch]] : [["重试", fetch]]);
                   return;
                }
                p.say("");
                p.setText("存档准备好了。");
-               // A file is saved from a click (the browser's rule).
-               p.buttons([["保存文件", function():void { p.save(String(r.text), String(r.file)); }]]);
+               // A file is saved from a click (the browser's rule); once, till its dialog is done.
+               var offer:Array = [["保存文件", function():void
+               {
+                  p.buttons([]);
+                  p.save(String(r.text), String(r.file), function():void { p.buttons(offer); });
+               }]];
+               p.buttons(offer);
             });
          };
          if (server) p.buttons([["确定", fetch]]);
@@ -77,11 +96,12 @@ package mmo.revival
          var text:String;
          var pass:String;
          var choose:Function;
+         var intro:String = "导入的存档会替换" + s.name + "现在的存档。";
          var send:Function = function(role:String):void
          {
             p.say("正在导入……");
-            p.buttons([]);
-            ask("import", { text: text, pass: pass, role: role }, function(r:Object):void
+            p.wait([["选择文件", choose]]);
+            p.ask("import", { text: text, pass: pass, role: role }, true, function(r:Object):void
             {
                if (r.roles is Array)
                {
@@ -92,7 +112,13 @@ package mmo.revival
                   p.buttons(list);
                   return;
                }
-               if (r.error) { p.say("导入失败：" + r.error); p.buttons([["选择文件", choose]]); return; }
+               if (r.error)
+               {
+                  p.setText(intro);
+                  p.say("导入失败：" + r.error);
+                  p.buttons([["选择文件", choose]]);
+                  return;
+               }
                p.say("正在重新进入……");
             });
          };
@@ -106,10 +132,11 @@ package mmo.revival
                send(null);
             });
          };
-         p.setText("导入的存档会替换" + s.name + "现在的存档。");
+         p.setText(intro);
          if (!server) { p.buttons([["选择文件", choose]]); return; }
          p.say("正在连接……");
-         ask("status", {}, function(r:Object):void
+         p.wait([["选择文件", choose]]);
+         p.ask("status", {}, false, function(r:Object):void
          {
             p.say("");
             if (r.imports === false) p.setText("这个服务器关闭了导入存档。");
@@ -129,8 +156,8 @@ package mmo.revival
             if (to == s.name) { p.close(); return; }
             if (server && !p.value("pass")) { p.say("请输入密码。"); return; }
             p.say("正在改名……");
-            p.buttons([]);
-            ask("rename", { to: to, pass: p.value("pass") }, function(r:Object):void
+            p.wait([["确定", go]]);
+            p.ask("rename", { to: to, pass: p.value("pass") }, true, function(r:Object):void
             {
                if (r.error) { p.say(r.error); p.buttons([["确定", go]]); return; }
                p.say("正在重新进入……");
@@ -153,8 +180,8 @@ package mmo.revival
             if (!p.value("to")) { p.say("请输入新密码。"); return; }
             if (p.value("to") != p.value("again")) { p.say("两次输入的新密码不一样。"); return; }
             p.say("正在改……");
-            p.buttons([]);
-            ask("password", { pass: p.value("pass"), to: p.value("to") }, function(r:Object):void
+            p.wait([["确定", go]]);
+            p.ask("password", { pass: p.value("pass"), to: p.value("to") }, false, function(r:Object):void
             {
                p.buttons([["确定", go]]);
                p.say(r.error ? String(r.error) : "改好了。");
@@ -182,28 +209,66 @@ package mmo.revival
          return { mode: "", name: "" };
       }
 
-      private static function ask(op:String, args:Object, then:Function):void
+      /**
+       * A page call for this panel: then(result) once, unless the panel was closed first; no
+       * answer in WAIT_MS, and the panel says so and offers the buttons wait() kept. seal: the
+       * panel cannot be closed meanwhile (an import, a rename).
+       */
+      private function ask(op:String, args:Object, seal:Boolean, then:Function):void
       {
+         var me:SavePanels = this;
+         var id:String = String(++nextCall);
+         var timer:uint;
+         if (seal) setSealed(true);
+         var done:Function = function(r:Object):void
+         {
+            clearTimeout(timer);
+            delete calls[id];
+            if (seal) me.setSealed(false);
+            if (!me.shut) then(r || {});
+         };
          try
          {
             if (ExternalInterface.available)
             {
                ExternalInterface.addCallback("revivalSaves", answer);
-               var id:String = String(++nextCall);
-               calls[id] = then;
+               calls[id] = done;
+               timer = setTimeout(function():void
+               {
+                  if (calls[id] == null) return;
+                  delete calls[id];
+                  if (seal) me.setSealed(false);
+                  if (me.shut) return;
+                  me.say("没有回应，请再试一次。");
+                  me.buttons(me.lastButtons);
+               }, WAIT_MS);
                if (ExternalInterface.call("aolaSaves", op, args, id) === true) return;
+               clearTimeout(timer);
                delete calls[id];
             }
          }
-         catch (e:Error) { RLog.error("saves " + op, e); }
-         then({ error: NO_PAGE });
+         catch (e:Error) { clearTimeout(timer); delete calls[id]; RLog.error("saves " + op, e); }
+         done({ error: NO_PAGE });
       }
 
       private static function answer(id:String, r:Object):void
       {
          var f:Function = calls[id] as Function;
-         delete calls[id];
          if (f != null) f(r || {});
+      }
+
+      private function setSealed(on:Boolean):void
+      {
+         sealed = on;
+         var c:DisplayObject = box.getChildByName("savesClose");
+         if (c != null) c.visible = !on;
+      }
+
+      /** Waiting for the page: no buttons meanwhile; these again if it never answers. */
+      private function wait(again:Array):void
+      {
+         buttons([]);
+         lastButtons = again;
       }
 
       // ---------------------------------------------------------------- the panel
@@ -211,10 +276,11 @@ package mmo.revival
       /** inputs: [key, label, password, maxChars]. */
       private static function open(title:String, fields:Array):SavePanels
       {
-         if (current != null) current.close();
+         if (current != null) current.close(true);
          current = new SavePanels(title, fields);
          ModalDialogManager.getInstance().addModalDialog(current, AlignType.NONE, PanelEffect.NONE, false);
-         if (current.firstInput != null && current.stage != null) current.stage.focus = current.firstInput;
+         // Typing (and Enter, its first button) goes to the panel: its first field, or the panel itself.
+         if (current.stage != null) current.stage.focus = current.firstInput != null ? current.firstInput : current;
          return current;
       }
 
@@ -222,7 +288,7 @@ package mmo.revival
       {
          super();
          addChild(RUI.dim());
-         var h:int = 56 + 44 + fields.length * 48 + 44 + 40 + 6;
+         var h:int = 56 + 44 + fields.length * 48 + 44 + 58 + 6;
          box = RUI.panel(W, h, title, close, "savesClose");
          box.x = (960 - W) / 2;
          box.y = (560 - h) / 2;
@@ -256,7 +322,7 @@ package mmo.revival
          said = centred(13, 0x8A3B00, W - 40);
          said.x = 20;
          said.y = rowY + 42;
-         said.height = 38;
+         said.height = 56;
          box.addChild(said);
          // Keys typed here are the panel's: Enter is its button, Esc closes it.
          addEventListener(KeyboardEvent.KEY_DOWN, function(e:KeyboardEvent):void
@@ -310,14 +376,21 @@ package mmo.revival
          row.x = (W - (x - 12)) / 2;
       }
 
-      /** Flash's save dialog for this text. */
-      private function save(text:String, name:String):void
+      /** Flash's save dialog for this text; after(), its dialog done (saved, failed or cancelled). */
+      private function save(text:String, name:String, after:Function):void
       {
-         file = new FileReference();
-         file.addEventListener(Event.COMPLETE, function(e:Event):void { say("已保存。"); });
-         file.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { say("没有保存。"); });
-         try { file.save(text, name); }
-         catch (err:Error) { say("没有保存：" + err.message); }
+         var f:FileReference = file = new FileReference();
+         var end:Function = function(m:String):void
+         {
+            if (shut || file != f) return;
+            if (m != null) say(m);
+            after();
+         };
+         f.addEventListener(Event.COMPLETE, function(e:Event):void { end("已保存。"); });
+         f.addEventListener(Event.CANCEL, function(e:Event):void { end(null); });
+         f.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { end("没有保存。"); });
+         try { f.save(text, name); }
+         catch (err:Error) { end("没有保存：" + err.message); }
       }
 
       /** Flash's open dialog: the chosen file's text to then. */
@@ -327,22 +400,28 @@ package mmo.revival
          var f:FileReference = file;
          f.addEventListener(Event.SELECT, function(e:Event):void
          {
+            if (shut || file != f) return;
             say("正在读取……");
             f.load();
          });
          f.addEventListener(Event.COMPLETE, function(e:Event):void
          {
+            if (shut || file != f) return;
             var b:ByteArray = f.data;
             b.position = 0;
             then(b.readUTFBytes(b.length));
          });
-         f.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { say("导入失败：读不了这个文件"); });
+         f.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { if (!shut && file == f) say("导入失败：读不了这个文件"); });
          try { f.browse([new FileFilter("奥拉星存档 (*.json)", "*.json")]); }
          catch (err:Error) { say("打不开选文件的窗口：" + err.message); }
       }
 
-      public function close():void
+      /** force: even while an import or a rename is under way (another panel takes its place). */
+      public function close(force:Boolean = false):void
       {
+         if (sealed && !force) return;
+         shut = true;
+         file = null;
          if (current == this) current = null;
          if (parent == null) return;
          if (!ModalDialogManager.getInstance().removeModalDialog(this, PanelEffect.NONE) && parent) parent.removeChild(this);

@@ -46,7 +46,7 @@ export function dicTop(t: PetTables): number {
 /** Raise a species' mark; true when it is new to the 图鉴 (was unknown, or met and now owned). */
 export function markDic(o: DicOwner, t: PetTables, race: number, state: number): boolean {
   if (!Number.isInteger(race) || race < 1 || race > dicTop(t) || !t.species[String(race)]) return false;
-  const s = o.dic ?? "";
+  const s = typeof o.dic === "string" ? o.dic : "";
   if (Number(s.charAt(race - 1) || "0") >= state) return false;
   o.dic = s.padEnd(race - 1, "0").slice(0, race - 1) + String(state) + s.slice(race);
   return true;
@@ -54,8 +54,8 @@ export function markDic(o: DicOwner, t: PetTables, race: number, state: number):
 
 /** The 54_5 marks, with the 亚比 the player has now counted as owned. */
 export function dicMarks(o: DicOwner, t: PetTables): string {
-  for (const p of [...(o.pets ?? []), ...(o.storage ?? [])]) markDic(o, t, p.race, OWNED);
-  return "0".repeat(10) + (o.dic ?? "").padEnd(dicTop(t), "0");
+  for (const p of [...(o.pets ?? []), ...(o.storage ?? [])]) if (p) markDic(o, t, Number(p.race), OWNED);
+  return "0".repeat(10) + (typeof o.dic === "string" ? o.dic : "").padEnd(dicTop(t), "0");
 }
 
 export const NEW_RECORD: [string, Record<string, unknown>] = ["LatePMChartNotify", {}];
