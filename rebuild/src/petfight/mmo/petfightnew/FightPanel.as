@@ -93,6 +93,9 @@ package mmo.petfightnew
       private var vs:Object;
       private var myView:FightPetView;
       private var vsView:FightPetView;
+      /** The 属性等级 of the 亚比 under the mouse (AttributeLevelPanel), and its slot (-1 none). */
+      private var levels:AttributeLevelPanel;
+      private var levelSlot:int = -1;
       private var hpShown:Array = [{v: 0}, {v: 0}];
 
       // my HUD (top right) and the wild one's label
@@ -194,6 +197,7 @@ package mmo.petfightnew
             if (int(o.battleView.slotId) == 0) me = o;
             else vs = o;
          }
+         if (levelSlot >= 0) showLevels(levelSlot);
       }
 
       private static function brief(v:Object):Object
@@ -251,6 +255,13 @@ package mmo.petfightnew
          addChild(popupLayer);
          addChild(floatLayer);
          floatLayer.mouseEnabled = floatLayer.mouseChildren = false;
+         addEventListener(MouseEvent.MOUSE_MOVE, onPointer);
+         addEventListener(MouseEvent.ROLL_OUT, onPointer);
+         levels = new AttributeLevelPanel();
+         levels.name = "attributeLevelPanel";
+         levels.visible = false;
+         popupLayer.addChild(levels);
+         if (levels.getChildByName("spAtt0") == null) RLog.log("fight: the 属性等级 panel has no art");
          buildHud();
          buildWheel();
          buildPanel();
@@ -614,6 +625,34 @@ package mmo.petfightnew
          vsName.y = 11;
          vsTag.addChild(vsName);
          ui.addChild(vsTag);
+      }
+
+      /** The mouse over a 亚比 (what it draws): its 属性等级 by it, as the later battle screen shows them. */
+      private function onPointer(e:MouseEvent):void
+      {
+         var slot:int = -1;
+         if (e.type == MouseEvent.MOUSE_MOVE && !closed)
+         {
+            if (vsView && vsView.hitTestPoint(e.stageX, e.stageY, true)) slot = 1;
+            else if (myView && myView.hitTestPoint(e.stageX, e.stageY, true)) slot = 0;
+         }
+         if (slot != levelSlot) showLevels(slot);
+      }
+
+      private function showLevels(slot:int):void
+      {
+         levelSlot = slot;
+         var v:FightPetView = slot >= 0 ? petViewOf(slot) : null;
+         if (v != null && levels.setLevels(String(view(sideView(slot)).bal || "").split("#")))
+         {
+            // Where the later AttributeLevelController puts it: 10 right of the 亚比, 150 above.
+            levels.x = v.x + 10;
+            levels.y = v.y - 150;
+            popupLayer.addChild(levels);
+            levels.visible = true;
+            return;
+         }
+         levels.visible = false;
       }
 
       private function makePetView(mine:Boolean, ready:Function):FightPetView
@@ -1653,6 +1692,8 @@ package mmo.petfightnew
          if (closed) return;
          closed = true;
          if (clockTimer != null) clockTimer.stop();
+         removeEventListener(MouseEvent.MOUSE_MOVE, onPointer);
+         removeEventListener(MouseEvent.ROLL_OUT, onPointer);
          SocketClient.instance.removeEventListener(SocketClientEvent.onPublicMessage, onChatHeard);
          TweenLite.killDelayedCallsTo(next);
          if (myView) myView.dispose();

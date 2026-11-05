@@ -18,6 +18,7 @@ const pm: PmData = {
     "4014": { n: "沙林毒气", p: -1, acc: 100, pp: 35, pri: 0, t: 3, k: 2, d: "命中则令对方单体中毒" },
     "15009": { n: "冰牙", p: 60, acc: 100, pp: 25, pri: 0, t: 14, k: 0, d: "10%概率令对方单体冰冻" },
     "1021": { n: "瞪眼", p: -1, acc: 100, pp: 30, pri: 0, t: 0, k: 2, d: "削弱对方单体防御等级1级" },
+    "1087": { n: "胜利意志", p: -1, acc: 100, pp: 99, pri: 0, t: 0, k: 2, d: "提升自己攻击等级6级" },
   },
   chart: { "14": { "11": 2 }, "11": { "14": 1 } },
   exp: { "0": Array.from({ length: 100 }, (_, i) => (i + 1) ** 3) },
@@ -79,6 +80,20 @@ test("a skill hits, drains, poisons; attributes multiply", () => {
   const [, ice] = e.act(b, b.wild, b.mine, 15009);
   assert.equal(ice.eff, 2);
   assert.match(String(ice.desc), /效果拔群/);
+});
+
+test("属性等级: at most +6 and -6, sent as bal (攻击#防御#特攻#特防#速度#命中#闪避#暴击)", () => {
+  const e = new BattleEngine(tables, () => 0.5);
+  const owner: PetOwner = { id: 7, name: "a" };
+  const b = e.start(1, "aixiscene1", owner, makePet(tables, 1, 10, "d", 1), makePet(tables, 43, 5, "d"), true);
+  e.act(b, b.mine, b.mine, 1087);
+  e.act(b, b.mine, b.mine, 1087);
+  assert.equal(b.mine.stages.atk, 6, "+12 asked: +6");
+  for (let i = 0; i < 8; i++) e.act(b, b.wild, b.mine, 1021);
+  assert.equal(b.mine.stages.def, -6, "-8 asked: -6");
+  const bal = (slot: 0 | 1) => (e.view(b, slot).battleView as { pmList: { pmSView: { bal?: string } }[] }).pmList[0].pmSView.bal;
+  assert.equal(bal(0), "6#-6#0#0#0#0#0#0");
+  assert.equal(bal(1), "0#0#0#0#0#0#0#0");
 });
 
 test("winning gives experience, levels and evolution", () => {

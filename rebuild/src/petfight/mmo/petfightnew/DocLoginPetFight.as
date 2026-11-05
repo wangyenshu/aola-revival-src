@@ -14,6 +14,7 @@ package mmo.petfightnew
       {
          var a:LoginPetFightService, b:FightPanel, d:FightPetView, e:FightButton, f:BackgroundMap;
          var g:FightSkin, h:WheelButton, i:SkillRow, j:SlotButton, k:PetRow;
+         var l:AttributeLevelPanel;
       }
    }
 }

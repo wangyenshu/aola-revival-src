@@ -146,8 +146,13 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/wildpetservice.swf)" --code 
   --note "REBUILT pet/wildpetservice (aola-revival) with the 2013 file's FightIcon" \
   --out "$W/pet/wildpetservice.swf%3F130124"
 export GEN="$HERE/../gen/petfight"
-build petfight mmo/petfightnew/DocLoginPetFight.as petfight.swf "pet/loginpetfightnew.swf%3F1210"
+build petfight mmo/petfightnew/DocLoginPetFight.as petfight.swf ""
 unset GEN
+# The 属性等级 shown over a 亚比 (AttributeLevelPanel): the art of that panel in the later
+# battle module (character 2837 of pet/petfightnew, the 2026 copy), taken out alone.
+rm -rf "$OUT/attrlevel"
+java -jar "$FFDEC" -selectid 2837 -format sprite:swf -export sprite "$OUT/attrlevel" "$(art pet/petfightnew.swf)" > /dev/null
+python3 "$TOOLS/swf_transplant.py" --art "$(ls "$OUT"/attrlevel/DefineSprite_2837*/1.swf)" --wrap-root 2837 --image-shapes --drop-art-abc   --code "$OUT/petfight.swf" --bind 0=mmo.petfightnew.DocLoginPetFight --bind 2837=mmo.petfightnew.AttributeLevelPanel   --note "REBUILT pet/loginpetfightnew (aola-revival); its 属性等级 panel is character 2837 of the later pet/petfightnew"   --out "$W/pet/loginpetfightnew.swf%3F1210"
 
 # The HELLO in scenes: rebuilt init/robotmanager (its menu, the wheel of December 2012, drawn:
 # HelloWheel).

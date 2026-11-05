@@ -507,5 +507,25 @@ class GenNpcDataTest(unittest.TestCase):
             self.assertIn('"library":[[10,1,100,300,0],[43,1,600,320,0],[99,2,400,300,0]]', out)
 
 
+
+class TestImageShapes(unittest.TestCase):
+    """swf_transplant --image-shapes: a picture placed directly becomes a shape filled with it."""
+
+    def test_placed_picture_becomes_a_shape(self):
+        import struct
+        import swf_transplant as t
+        bitmap = (36, struct.pack("<HBHH", 5, 5, 3, 2) + zlib.compress(b"\0" * 24))
+        place = (70, bytes([0x06, 0x10]) + struct.pack("<HH", 1, 5) + b"\0")  # character 5 at depth 1, image flag
+        sprite = (39, struct.pack("<HH", 9, 1) + t.write_tag(*place) + t.write_tag(1, b"") + t.write_tag(0, b""))
+        out = t.image_shapes([bitmap, sprite, (1, b""), (0, b"")])
+        self.assertEqual([c for c, _ in out], [36, 2, 39, 1, 0], "the shape right after its picture")
+        sid = struct.unpack_from("<H", out[1][1], 0)[0]
+        self.assertEqual(sid, 10, "numbered after every character")
+        self.assertEqual(struct.unpack_from("<H", out[1][1], 2 + t.rect_len(out[1][1][2:]) + 2)[0], 5, "filled with the picture")
+        inner = t.read_tags(out[2][1], 4)
+        self.assertEqual(inner[0][1][1] & 0x10, 0, "image flag cleared")
+        self.assertEqual(struct.unpack_from("<H", inner[0][1], 4)[0], sid)
+
+
 if __name__ == "__main__":
     unittest.main()

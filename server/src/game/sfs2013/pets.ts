@@ -237,9 +237,11 @@ export function skillList(p: PetRecord, t: PetTables) {
   });
 }
 
-export function briefOf(p: PetRecord, owner: Pick<PetOwner, "id">, t: PetTables, extra?: { st?: string }) {
+export function briefOf(p: PetRecord, owner: Pick<PetOwner, "id">, t: PetTables, extra?: { st?: string; bal?: string }) {
   const v = sView(p, owner, t);
   if (extra?.st) v.st = extra.st;
+  // In a battle: its 属性等级 (PetBriefInfo.attributeLevelArr, "攻击#防御#特攻#特防#速度#命中#闪避#暴击").
+  if (extra?.bal) (v as typeof v & { bal?: string }).bal = extra.bal;
   return { pmSView: v, skills: skillList(p, t), eqp: [] };
 }
 

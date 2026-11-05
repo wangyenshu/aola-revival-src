@@ -260,6 +260,8 @@ export function fighter(slot: 0 | 1, pet: PetRecord, owner: number, t: PetTables
 const stageMult = (s: number) => (s >= 0 ? (2 + s) / 2 : 2 / (2 - s));
 const accMult = (s: number) => (s >= 0 ? (3 + s) / 3 : 3 / (3 - s));
 const clampStage = (s: number) => Math.max(-6, Math.min(6, s));
+/** The stages as the later client's PetBriefInfo.bal reads them (攻击 防御 特攻 特防 速度 命中 闪避 暴击). */
+export const balOf = (st: Stages): string => [st.atk, st.def, st.satk, st.sdef, st.spd, st.acc, st.eva, st.crit].map(clampStage).join("#");
 
 function stat(f: Fighter, k: "atk" | "def" | "satk" | "sdef" | "spd"): number {
   const i = { atk: 1, def: 2, satk: 3, sdef: 4, spd: 5 }[k];
@@ -588,7 +590,7 @@ export class BattleEngine {
         locaId: slot,
         // Not a 2013 field: how my 亚比's attribute fares against the wild one's (the 强效 / 普通 / 弱效 row).
         ...(slot === 0 ? { mu: typeMultiplier(this.t.pm, b.mine.types[0], b.wild.types) } : {}),
-        pmList: list.map((p) => briefOf(p, own, this.t, p === f.pet ? { st } : undefined)),
+        pmList: list.map((p) => briefOf(p, own, this.t, p === f.pet ? { st, bal: balOf(f.stages) } : undefined)),
       },
     };
   }

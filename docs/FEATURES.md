@@ -846,7 +846,9 @@ run pays 晶豆, as its end panel says.
   A turn has 30 seconds (counted at the top of the battle screen); when they
   run out the screen uses the first skill with uses left, or waits if none
   has (the next 亚比 when a fallen one is to be replaced). The battle screen's
-  聊天 page and chat line speak to the room.
+  聊天 page and chat line speak to the room. The mouse over a 亚比 shows its
+  属性等级 (攻击 防御 特攻 特防 速度 命中 闪避 暴击 raised or lowered, at most 6
+  either way) on the later battle module's own panel (the 2013 one is lost).
 - Catching with 亚比球 (the 2013 balls and their rules).
 - Experience, levels, effort points, learning skills, evolution.
 - The 亚比 bag: details, healing, 更换技能 (choose four of the learnt skills).
