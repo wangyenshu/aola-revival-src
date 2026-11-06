@@ -7,7 +7,11 @@ import { WebSocketServer, type WebSocket } from "ws";
 import type { Emulator } from "../core/emulator.ts";
 import { isPolicyRequest, policyResponse } from "../core/policy.ts";
 
-const u8 = (b: Buffer): Uint8Array => new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+// A socket's data (no encoding is set, so always a Buffer; newer @types/node also allow a string).
+const u8 = (d: Buffer | string): Uint8Array => {
+  const b = typeof d === "string" ? Buffer.from(d, "latin1") : d;
+  return new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+};
 
 export function listenTcp(emu: Emulator, port: number, host: string): Promise<net.Server> {
   const server = net.createServer((sock) => {

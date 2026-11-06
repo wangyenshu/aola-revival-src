@@ -184,7 +184,8 @@ export class AolaGame {
     ws.accept();
     ws.binaryType = "arraybuffer";
     const session = this.host.attach(
-      { remote, send: (b) => ws.send(b), close: () => ws.close() },
+      // The emulator's bytes are of an ArrayBuffer of their own (never shared), as ws.send asks.
+      { remote, send: (b) => ws.send(b as Uint8Array<ArrayBuffer>), close: () => ws.close() },
       Number(m[1]),
     );
     ws.addEventListener("message", (e: MessageEvent) => {

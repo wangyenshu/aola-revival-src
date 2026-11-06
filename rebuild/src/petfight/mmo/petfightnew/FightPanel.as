@@ -1279,6 +1279,8 @@ package mmo.petfightnew
                // Mine, or the computer's 亚比 (its 高级活力豆 when out of PP: reqSId 1).
                if (int(p.hpInc) > 0) float(int(p.reqSId), "+" + int(p.hpInc), 0x3CC21E);
                refresh(true);
+               // My 道具 used: back to 战斗 (the skills) for the next turn.
+               if (int(p.reqSId) == 0 && current == "item") showPage("fight");
                later(0.8);
                break;
             case 2413:

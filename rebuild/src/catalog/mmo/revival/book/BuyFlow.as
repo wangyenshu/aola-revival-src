@@ -3,11 +3,14 @@ package mmo.revival.book
    import flash.display.DisplayObject;
    import flash.display.GradientType;
    import flash.display.Sprite;
+   import flash.events.Event;
+   import flash.events.FocusEvent;
    import flash.events.MouseEvent;
    import flash.filters.DropShadowFilter;
    import flash.geom.Matrix;
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
+   import flash.text.TextFieldType;
    import flash.text.TextFormat;
    import mmo.common.member.MemberManager;
    import mmo.common.user.UserInfo;
@@ -34,6 +37,10 @@ package mmo.revival.book
     * the half "蓝宝石价") are bought with 星币 (UserInfo.xingbi, which the
     * revival's 工具箱 adds): buyMaterial with ed = true, the server takes
     * the 星币 and pushes onXingBiUpdate.
+    *
+    * How many: the 2013 dialog's count, as the 2013 library's UseNumericComponent
+    * works it (mc_usenum: btnFirst, btnDec, txtValue for digits, btnAdd, btnEnd;
+    * from 1 to the most one may have, a plant one), the price following it.
     */
    public class BuyFlow
    {
@@ -63,6 +70,22 @@ package mmo.revival.book
             if (done != null) done(false);
             return;
          }
+         // How many more may be had (the server refuses more): packs of unitage each.
+         var owned:int = 0;
+         try
+         {
+            var mine:Object = service.getMyMaterialById(info.id);
+            if (mine != null) owned = int(mine.quantity);
+         }
+         catch (e:Error) {}
+         var room:int = Math.max(0, Math.max(1, material.maxQuantity) - owned);
+         var packs:int = info.type == 9 ? 1 : Math.min(9999, int(room / Math.max(1, info.unitage)));
+         if (packs < 1)
+         {
+            message("你的" + material.name + "已经满了，不能再买了哦！");
+            if (done != null) done(false);
+            return;
+         }
          // Clothes carry only a buy-back value; config.xml's buyback percent 0.5 makes the price twice that.
          var unit:int = material.price > 0 ? material.price : material.sale * 2;
          var member:Boolean = isMember();
@@ -75,10 +98,11 @@ package mmo.revival.book
             return;
          }
          // What is sent (realQuantity: packs × their size, a book's "×n" button) is what the server charges for.
-         var price:int = unit * Math.max(1, info.realQuantity);
-         confirm(material, info, price, service, starCoins, member, function(ok:Boolean):void
+         info.quantity = Math.max(1, Math.min(info.quantity, packs));
+         confirm(material, info, unit, packs, service, starCoins, member, function(ok:Boolean):void
          {
             if (!ok) { if (done != null) done(false); return; }
+            var price:int = unit * Math.max(1, info.realQuantity);
             if (!starCoins && UserInfo.score >= 0 && UserInfo.score < price)
             {
                message("你的晶币不够哦！");
@@ -117,9 +141,11 @@ package mmo.revival.book
          return false;
       }
 
-      private static function confirm(m:Material, info:BuyMaterialInfo, price:int, service:IMaterialService, starCoins:Boolean, member:Boolean, answer:Function):void
+      private static function confirm(m:Material, info:BuyMaterialInfo, unit:int, packs:int, service:IMaterialService, starCoins:Boolean, member:Boolean, answer:Function):void
       {
-         var box:Sprite = panel(360, 210);
+         var counted:Boolean = packs > 1;
+         var h:int = counted ? 250 : 210;
+         var box:Sprite = panel(360, h);
          var title:TextField = text(16, 0x1A5FA8, true);
          title.text = "确认购买";
          title.x = (360 - title.width) / 2;
@@ -144,31 +170,134 @@ package mmo.revival.book
          }
          catch (e:Error) {}
          var name:TextField = text(15, 0x333333, true);
-         name.text = m.name + (info.realQuantity > 1 ? " ×" + info.realQuantity : "");
+         name.text = m.name + (info.unitage > 1 ? "（每份" + info.unitage + "个）" : "");
          name.x = 150;
-         name.y = 66;
+         name.y = 58;
          box.addChild(name);
          var cost:TextField = text(14, 0xC77700, true);
-         cost.text = price <= 0 ? "免费" : starCoins ? "价格：" + price + " 星币" + (member ? "（蓝宝石价）" : "") : "价格：" + price + " 晶币";
          cost.x = 150;
-         cost.y = 96;
+         cost.y = 86;
          box.addChild(cost);
+         var each:TextField = text(12, 0x666666, false);
+         each.x = 150;
+         each.y = 108;
+         box.addChild(each);
          var have:TextField = text(12, 0x666666, false);
          have.text = starCoins ? "我的星币：" + UserInfo.xingbi : "我的晶币：" + (UserInfo.score < 0 ? "…" : String(UserInfo.score));
          have.x = 150;
-         have.y = 122;
+         have.y = 126;
          box.addChild(have);
+         var showPrice:Function = function():void
+         {
+            var price:int = unit * Math.max(1, info.realQuantity);
+            cost.text = price <= 0 ? "免费" : starCoins ? "价格：" + price + " 星币" + (member ? "（蓝宝石价）" : "") : "价格：" + price + " 晶币";
+            each.text = counted && unit > 0 ? "单价：" + unit + (starCoins ? " 星币" : " 晶币") : "";
+         };
+         showPrice();
+         if (counted) box.addChild(counter(info, packs, showPrice));
          var ok:Sprite = pill("购 买", 0x40A93C, function():void { remove(box); answer(true); });
          ok.name = "buyOk";
          ok.x = 70;
-         ok.y = 160;
+         ok.y = h - 50;
          box.addChild(ok);
          var no:Sprite = pill("取 消", 0x8A8A8A, function():void { remove(box); answer(false); });
          no.name = "buyCancel";
          no.x = 200;
-         no.y = 160;
+         no.y = h - 50;
          box.addChild(no);
          show(box);
+      }
+
+      /**
+       * 购买数量: |< − [n] + >| and the most, as UseNumericComponent: digits only, an empty or 0
+       * field goes back to 1, more than the most becomes the most; each change sets info.quantity.
+       */
+      private static function counter(info:BuyMaterialInfo, most:int, changed:Function):Sprite
+      {
+         var row:Sprite = new Sprite();
+         row.name = "buyCount";
+         row.x = 30;
+         row.y = 158;
+         var label:TextField = text(14, 0x333333, true);
+         label.text = "购买数量：";
+         label.y = 4;
+         row.addChild(label);
+         var field:TextField = new TextField();
+         field.name = "txtValue";
+         field.type = TextFieldType.INPUT;
+         field.defaultTextFormat = new TextFormat("Arial", 14, 0x333333, true, null, null, null, null, "center");
+         field.restrict = "0-9";
+         field.maxChars = 4;
+         field.border = true;
+         field.borderColor = 0x3A8FD9;
+         field.background = true;
+         field.backgroundColor = 0xFFFFFF;
+         field.width = 52;
+         field.height = 22;
+         field.x = 136;
+         field.y = 3;
+         var buttons:Array = [];
+         var put:Function = function(n:int):void
+         {
+            info.quantity = Math.max(1, Math.min(most, n));
+            field.text = String(info.quantity);
+            for each (var bt:Object in buttons) bt.b.alpha = bt.on() ? 1 : 0.4;
+            changed();
+         };
+         var button:Function = function(caption:String, x:int, to:Function, on:Function, name:String):void
+         {
+            var b:Sprite = new Sprite();
+            b.name = name;
+            b.buttonMode = true;
+            b.mouseChildren = false;
+            b.graphics.lineStyle(1, 0xFFFFFF);
+            b.graphics.beginFill(0x3A8FD9);
+            b.graphics.drawRoundRect(0, 0, 24, 22, 8, 8);
+            b.graphics.endFill();
+            var t:TextField = text(13, 0xFFFFFF, true);
+            t.text = caption;
+            t.x = (24 - t.width) / 2;
+            t.y = 2;
+            b.addChild(t);
+            b.x = x;
+            b.y = 3;
+            b.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); if (on()) put(to()); });
+            row.addChild(b);
+            buttons.push({b: b, on: on});
+         };
+         button("|<", 78, function():int { return 1; }, function():Boolean { return info.quantity > 1; }, "btnFirst");
+         button("-", 106, function():int { return info.quantity - 1; }, function():Boolean { return info.quantity > 1; }, "btnDec");
+         row.addChild(field);
+         button("+", 192, function():int { return info.quantity + 1; }, function():Boolean { return info.quantity < most; }, "btnAdd");
+         button(">|", 220, function():int { return most; }, function():Boolean { return info.quantity < most; }, "btnEnd");
+         var max:TextField = text(12, 0x666666, false);
+         max.text = "最多" + most;
+         max.x = 252;
+         max.y = 6;
+         row.addChild(max);
+         field.addEventListener(Event.CHANGE, function(e:Event):void
+         {
+            if (field.text == "") return;
+            var n:int = int(field.text);
+            if (n < 1 || n > most) put(n);
+            else
+            {
+               info.quantity = n;
+               for each (var bt:Object in buttons) bt.b.alpha = bt.on() ? 1 : 0.4;
+               changed();
+            }
+         });
+         field.addEventListener(FocusEvent.FOCUS_OUT, function(e:FocusEvent):void { put(int(field.text)); });
+         // A click into the field takes all of it, so that the number typed replaces it.
+         var fresh:Boolean = false;
+         field.addEventListener(FocusEvent.FOCUS_IN, function(e:FocusEvent):void { fresh = true; });
+         field.addEventListener(MouseEvent.MOUSE_UP, function(e:MouseEvent):void
+         {
+            if (fresh) field.setSelection(0, field.length);
+            fresh = false;
+         });
+         put(info.quantity);
+         return row;
       }
 
       public static function message(s:String):void
