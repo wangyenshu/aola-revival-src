@@ -177,11 +177,11 @@ package mmo.petfightnew
          refresh(false);
          showPage("fight");
          setCommands(false);
-         // 亚比对战 with another player (the revival's server, duel.ts): his name, not "野生的".
+         // 亚比对战 with another player (the revival's server, duel.ts): his name and his 亚比. Other
+         // battles open without a line.
          pvp = join.pvp ? String(join.pvp.vs || "") : null;
          // Names a player wrote (a 亚比's nickname from an imported save): as text, not markup.
          if (pvp != null) addLog("<font color='#7FE0FF'>" + esc(pvp) + "</font>派出了<font color='#FFE66A'>" + esc(petName(vs)) + "</font>！");
-         else addLog("野生的<font color='#FFE66A'>" + esc(petName(vs)) + "</font>出现了！");
       }
 
       /** The other player's name in a 亚比对战, or null. */
