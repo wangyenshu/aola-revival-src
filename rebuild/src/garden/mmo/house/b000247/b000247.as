@@ -57,7 +57,8 @@ package mmo.house.b000247
     * pictures plant/y<id>; PlantExtension), 亚比孵化器 (pet/pethatchegg),
     * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
     * 进入动物园 (the rebuilt zoo, furniture/b020000), 离开花园, 地图, 背包,
-    * 好友 and 图鉴 (what the control bar's open), 周刊. The others say they are not rebuilt yet.
+    * 好友 and 图鉴 (what the control bar's open), 放映厅 (奥拉星's films, the theatre's
+    * list), 周刊. The others say they are not rebuilt yet.
     */
    public class b000247 extends HouseBase
    {
@@ -179,7 +180,7 @@ package mmo.house.b000247
          button(190, 8, 52, 50, "相册", notYet);
          button(770, 8, 52, 50, "图鉴", function():void { bar("petdic"); });
          button(826, 8, 52, 50, "游戏", notYet);
-         button(904, 164, 50, 50, "放映厅", notYet);
+         button(904, 164, 50, 50, "放映厅", function():void { bar("theatre"); });
          button(904, 216, 50, 50, "健身房", notYet);
          button(904, 268, 50, 50, "最近访问", notYet);
          SocketClient.instance.addEventListener("revival_garden", onGarden);
@@ -331,7 +332,7 @@ package mmo.house.b000247
          hud.addChild(b);
       }
 
-      /** What the control bar's button of that name opens (the bar is put away here): 好友, 图鉴. */
+      /** What the control bar's button of that name opens (the bar is put away here): 好友, 图鉴, 放映厅. */
       private function bar(name:String):void
       {
          if (control == null) control = ServiceContainer.getService(IControlService) as IControlService;

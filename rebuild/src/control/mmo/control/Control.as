@@ -168,7 +168,7 @@ package mmo.control
          return null;
       }
 
-      /** A button of the bar pressed from elsewhere (the 家园's own bar: 好友, 图鉴), the bar put away or not. */
+      /** A button of the bar pressed from elsewhere (the 家园's own bar: 好友, 图鉴, 放映厅), the bar put away or not. */
       public function press(name:String):void
       {
          onButton(name);
@@ -241,6 +241,10 @@ package mmo.control
                   var c:DisplayObject = findNamed(LayerManager.stage, "btnCollection");
                   if (c != null) c.visible = false;
                });
+               break;
+            case "theatre":
+               // The 家园's 放映厅: 奥拉星's films (the 百田大剧场's list).
+               TheatrePanel.open("");
                break;
             case "toolbox":
                ToolboxPanel.toggle();
@@ -584,6 +588,12 @@ package mmo.control
                         if (wd.name.indexOf("wildpet") == 0) ws.push(wd.name + ":" + (wd.hasOwnProperty("race") ? wd.race : "?") + "@" + int(wd.x) + "," + int(wd.y) + "h" + int(wd.height));
                      }
                      return ws.join(",");
+                  case "press":
+                     // A click on the first shown object of that name, as the player's would arrive (tests/e2e).
+                     var pr:DisplayObject = LayerManager.stage ? findNamed(LayerManager.stage, arg) : null;
+                     if (pr == null) return "none";
+                     pr.dispatchEvent(new MouseEvent(MouseEvent.CLICK, true));
+                     return "ok";
                   case "clickwild":
                      // Click the n-th wild 亚比 of the scene (pet/wildpetservice names them wildpet0…).
                      var layer:DisplayObjectContainer = sm.loadedSceneInfo && sm.loadedSceneInfo.scene ? sm.loadedSceneInfo.scene.playerLayer : null;

@@ -5,8 +5,9 @@ Code: FFDec decompiles the classes named below, the lines quoted are
 replaced, and FFDec compiles the classes back into a copy of the SWF
 (-importScript); it can only where the class needs nothing from outside the
 SWF. Each line quoted must be found once, or the build stops: nothing is
-changed by guess. Pictures: a named child put into a symbol (FFDec swf2xml /
-xml2swf). Nothing is downloaded; the files come from game/.
+changed by guess. Pictures: a named child put into a symbol, or the blend
+mode of a symbol's parts set back to normal (FFDec swf2xml / xml2swf).
+Nothing is downloaded; the files come from game/.
 
   library/common (January 2013), PanelProxy.dispose: a panel of
       FloatPanelManager that removes itself in its own dispose() (the 2010
@@ -22,6 +23,11 @@ xml2swf). Nothing is downloaded; the files come from game/.
       that name at the middle of its frame (the icon is centred on it). The
       class declares no variable of that name: Ruffle says so and keeps the
       clip.
+  game/catchanimal (2017), 天空乐园's clouds (sprite 704, the map's layer1):
+      the game draws each layer of its map into a transparent bitmap; the
+      clouds are put on in hard light, which over nothing Flash showed as
+      they are and Ruffle shows black (the whole sky hidden): they are put
+      on normally.
 
   tools/patch_scripts.py --ffdec ffdec.jar --game <game root> --out-root <site root> [name ...]
 """
@@ -59,11 +65,13 @@ PROXY_DISPOSE = (
          }''',
 )
 
-# name: (file in www.9aola.com/, {class: [(old, new), ...]}, [(sprite id, child name, x, y in twips, depth), ...])
-PATCHES: dict[str, tuple[str, dict[str, list[tuple[str, str]]], list[tuple[int, str, int, int, int]]]] = {
-    "common": ("library/common.swf%3F130124", {"mmo.common.utils.panel.PanelProxy": [PROXY_DISPOSE]}, []),
+# name: (file in www.9aola.com/, {class: [(old, new), ...]}, [(sprite id, child name, x, y in twips, depth), ...],
+#        [sprite ids whose parts lose their blend mode])
+PATCHES: dict[str, tuple[str, dict[str, list[tuple[str, str]]], list[tuple[int, str, int, int, int]], list[int]]] = {
+    "common": ("library/common.swf%3F130124", {"mmo.common.utils.panel.PanelProxy": [PROXY_DISPOSE]}, [], []),
     # The frame (sprite 2 at 1.105 x 1.093) spans -20..980 x -14..984 twips: its middle.
-    "pettraining": ("pet/pettraining.swf%3F1210", {}, [(3, "iconcontainer", 530, 530, 2)]),
+    "pettraining": ("pet/pettraining.swf%3F1210", {}, [(3, "iconcontainer", 530, 530, 2)], []),
+    "catchanimal": ("game/catchanimal.swf%3F1210", {}, [], [704]),
 }
 
 
@@ -99,8 +107,9 @@ def patch(jar: str, src: Path, dst: Path, classes: dict[str, list[tuple[str, str
         shutil.copyfile(tmp_out, dst)
 
 
-def add_kids(jar: str, src: Path, dst: Path, kids: list[tuple[int, str, int, int, int]]) -> None:
-    """Put an empty clip, named, into each sprite listed (above what it has at that depth)."""
+def edit_art(jar: str, src: Path, dst: Path, kids: list[tuple[int, str, int, int, int]], plain: list[int]) -> None:
+    """Put an empty clip, named, into each sprite listed (above what it has at that depth);
+    the parts of the sprites in plain are put on without their blend mode."""
     with tempfile.TemporaryDirectory() as tmp:
         x = Path(tmp) / "swf.xml"
         ffdec(jar, "-swf2xml", str(src), str(x))
@@ -131,6 +140,18 @@ def add_kids(jar: str, src: Path, dst: Path, kids: list[tuple[int, str, int, int
             first_show = next(i for i, e in enumerate(list(sub)) if e.get("type") == "ShowFrameTag")
             sub.insert(first_show, place)
             new_id += 1
+        for sprite_id in plain:
+            host = next((e for e in tags if e.get("type") == "DefineSpriteTag" and e.get("spriteId") == str(sprite_id)), None)
+            if host is None:
+                sys.exit(f"patch_scripts: no sprite {sprite_id} in {src.name}")
+            n = 0
+            for e in host.find("subTags"):
+                if e.get("placeFlagHasBlendMode") == "true":
+                    e.set("placeFlagHasBlendMode", "false")
+                    e.attrib.pop("blendMode", None)
+                    n += 1
+            if n == 0:
+                sys.exit(f"patch_scripts: sprite {sprite_id} of {src.name} has no blend mode to take off")
         tree.write(x, encoding="utf-8", xml_declaration=True)
         dst.parent.mkdir(parents=True, exist_ok=True)
         ffdec(jar, "-xml2swf", str(x), str(dst))
@@ -144,14 +165,14 @@ def main() -> None:
     ap.add_argument("names", nargs="*", help="which (default: all)")
     a = ap.parse_args()
     for name in a.names or list(PATCHES):
-        rel, classes, kids = PATCHES[name]
+        rel, classes, kids, plain = PATCHES[name]
         src = Path(a.game, "www.9aola.com", rel)
         dst = Path(a.out_root, "www.9aola.com", rel)
         if classes:
             patch(a.ffdec, src, dst, classes)
             src = dst
-        if kids:
-            add_kids(a.ffdec, src, dst, kids)
+        if kids or plain:
+            edit_art(a.ffdec, src, dst, kids, plain)
         print(f"patched {rel}")
 
 

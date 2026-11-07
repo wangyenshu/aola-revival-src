@@ -321,7 +321,7 @@ The 功能 the 2012 world map lists for each place:
 | 传送核心 | 奥拉之辉融合 | 未验证 |
 | 极速俱乐部 | 教官先锋队 | 不可用 (its talk works; joining does not) |
 | 主题公园 | 舞会神秘来客、疯狂可乐盖、小问大冒险 | 未验证 |
-| 生态园 | 捕捉小动物 (动物捕捉) | 可用 |
+| 生态园 | 捕捉小动物 (动物捕捉: its panel with 购买道具 and the map of 大地乐园, 天空乐园, 海洋乐园, 狗狗之家; the 捕鱼 spot its 海洋乐园) | 可用 |
 | 生态园 | 动物协会 | 不可用 |
 | 生态园 | 狗狗之家 | 未验证 |
 | 奥拉广场 | 财富小管家 | 可用 |
@@ -856,7 +856,7 @@ run pays 晶豆, as its end panel says.
   January 2012 tutorial's picture of it): 亚比仓库 / 精英仓库 / 放生仓库, the 系
   icons, 按时间顺序 / 按等级顺序, pages of nine, and for the 亚比 chosen 技能 /
   能力 / 信息, 展示 (shown in the 家园 at once), 训练 (the 亚比特训: a 亚比 of the
-  仓库 and one of four lessons; the HELLO's 亚比训练), 设为精英 /
+  仓库 and one of four lessons, 一天 to 七天; the HELLO's 亚比训练), 设为精英 /
   取消精英, 放入背包, 放生 (kept seven days in the 放生仓库, RECONSTRUCTED), and its
   昵称 (the pen by its name). The bag's box button puts a 亚比 back (放回仓库).
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
@@ -905,7 +905,7 @@ run pays 晶豆, as its end panel says.
   water, feed, pick), the 亚比孵化器, the 经验分配器 (hands the HELLO's
   experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
   January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示; its
-  bar's 地图, 背包, 好友, 周刊, 勋章 and 图鉴.
+  bar's 地图, 背包, 好友, 周刊, 勋章, 图鉴 and 放映厅 (奥拉星's films).
 - The 小屋 (空间舱 and the other house types): furniture from the catalog,
   decorating, storage.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn

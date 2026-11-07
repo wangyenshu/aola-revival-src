@@ -42,8 +42,9 @@
 // a 礼包) is used before one is bought.
 //
 // The game SWFs in game/ are later copies (2017, 2020); the 2013 server is lost:
-// the rewards (晶币 for a won stage), the catch odds when the game leaves them to
-// the server (rate -1) and the free tools are RECONSTRUCTED.
+// the rewards (晶币 for a won stage) and the catch odds when the game leaves them to
+// the server (rate -1) are RECONSTRUCTED. 动物捕捉's things (items 424–430) are bought
+// (its panel's 购买道具: MaterialExtension buyMaterial, type 2).
 
 import type { World, XtContext } from "./server.ts";
 
@@ -65,8 +66,6 @@ export const TD_DAY_MAX = 3000;
 export const TD_PLACES_MAX = 9;
 export const TD_ZONES_MAX = 60;
 export const TD_STEPS_MAX = 99;
-/** 能源石 and 普通糖果 (items 424, 425; CatchAnimalClient keeps itemId - 424) one gets for a game when one has none (RECONSTRUCTED). */
-export const FREE_TOOLS = 5;
 export const ANIMAL_TYPE = "12";
 /** ZooItemData 饲料 kept in the bag (material type 13). */
 export const FODDER_TYPE = "13";
@@ -292,13 +291,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
   world.xt(`${ZOO_EXT}.97_104`, async (ctx) => {
     const o = await deps.me(ctx);
     const mine = items(o);
-    // 能源石 (424, the flyer's energy) and 普通糖果 (425, the plain catch): one never runs out of a few.
-    for (const id of ["424", "425"]) {
-      if ((mine[id] ?? 0) > 0) continue;
-      mine[id] = FREE_TOOLS;
-      ctx.reply({ amount: `2_${id}_0_${FREE_TOOLS}` }, "onAmountUpdated");
-    }
-    await deps.save(o);
+    // 能源石 (424, the flyer's energy) and the 糖果 are bought (the panel's 购买道具, MaterialExtension).
     const list = [];
     for (let id = 424; id <= 431; id++) if ((mine[String(id)] ?? 0) > 0) list.push({ itemId: id, num: mine[String(id)] });
     ctx.reply({ items: list }, "97_104");

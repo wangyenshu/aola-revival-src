@@ -30,6 +30,7 @@ package mmo.petwarehouse.service
    import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RArt;
    import mmo.revival.RLog;
+   import mmo.revival.RTraining;
    import mmo.revival.RNotice;
    import mmo.revival.RTimeline;
    import mmo.revival.RUI;
@@ -793,18 +794,7 @@ package mmo.petwarehouse.service
       private function train():void
       {
          close();
-         SocketClient.instance.addEventListener(RobotClient.cmdGetTrain, onTrainList);
-         RobotClient.instance.getTrain();
-      }
-
-      private static function onTrainList(e:SocketClientEvent):void
-      {
-         SocketClient.instance.removeEventListener(RobotClient.cmdGetTrain, onTrainList);
-         var name:String = ((e.params.ps as Array) || []).length > 0 ? "PetBeTraining" : "PetTraining";
-         ServiceContainer.instance.tryGetService(name, function(svc:IService, o:Object = null):void
-         {
-            try { IShowPanel(svc).showPanel(); } catch (err:Error) { RLog.error("warehouse " + name, err); }
-         });
+         RTraining.open();
       }
 
       /** 放生: 是否放生该亚比？ 是 lets it go into the 放生仓库; 否 does nothing. */

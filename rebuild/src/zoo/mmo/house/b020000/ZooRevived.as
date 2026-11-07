@@ -13,12 +13,12 @@ package mmo.house.b020000
    import mmo.common.utils.tips.TipsManager;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
-   import mmo.framework.comm.zoo.CatchAnimalClient;
    import mmo.housecommon.HouseBase;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.team.ITeamService;
    import mmo.loader.layer.LayerManager;
    import mmo.play.scene.SceneManager;
+   import mmo.revival.RCatchAnimal;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
    import mmo.revival.RUI;
@@ -165,19 +165,8 @@ package mmo.house.b020000
             SceneManager.getInstance().loadGame(room);
             return;
          }
-         CatchAnimalClient.instance.getGameItemGame();
-         SocketClient.instance.addEventListener(CatchAnimalClient.cmdEnterGame, function entered(ev:SocketClientEvent):void
-         {
-            SocketClient.instance.removeEventListener(CatchAnimalClient.cmdEnterGame, entered);
-            if (!ev.params.res)
-            {
-               NewDialog.showFailMessage("进入游戏失败。");
-               return;
-            }
-            SceneManager.getInstance().pushPreviousRoomName("ecologicalpark");
-            SceneManager.getInstance().loadGame(room);
-         });
-         CatchAnimalClient.instance.enterGame();
+         // 动物捕捉: its panel first (what one has of its things, 购买道具, the 乐园).
+         RCatchAnimal.open(-1);
       }
 
       private function onInfo(e:SocketClientEvent):void

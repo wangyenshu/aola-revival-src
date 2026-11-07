@@ -30,8 +30,9 @@ mkdir -p "$W/user"
 python3 "$TOOLS/clean_start.py" --ffdec "${FFDEC:?ffdec.jar}" --res "$(art user/yunyingres.swf)" --start "$(art user/yunyingstart.swf)" \
   --out-res "$W/user/yunyingres.swf%3F130124" --out-start "$W/user/yunyingstart.swf%3F121203"
 # Era files fixed where they cannot work as they are (tools/patch_scripts.py): a panel that
-# removes itself from FloatPanelManager went round without end (library/common), and the
-# 2010 亚比特训's cards had nowhere for the 亚比's icon (pet/pettraining).
+# removes itself from FloatPanelManager went round without end (library/common), the
+# 2010 亚比特训's cards had nowhere for the 亚比's icon (pet/pettraining), and 动物捕捉's
+# 天空乐园 clouds drew black (game/catchanimal).
 python3 "$TOOLS/patch_scripts.py" --ffdec "${FFDEC:?ffdec.jar}" --game "$GAME" --out-root "$DEST"
 # play.swf carries the rebuilt scene engine (mmo.play.*, sources in src/control):
 # it is in the main domain before any module loads. Everything else links
@@ -138,6 +139,14 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petitem.swf)" --code "$OUT/p
   --bind 0=mmo.pet.petitem.DocPetItem --bind 668=mmo.pet.petitem.PetItemPanel --bind 706=mmo.pet.petitem.ItemView \
   --note "REBUILT pet/petitem (aola-revival) on the art of its later copy" \
   --out "$W/pet/petitem.swf%3F130124"
+# 动物捕捉's panel: rebuilt game/catchanimalpanel (what one has, 进入 and its map of the four
+# 乐园, 操作说明, the tips; the lost 动物乐园购买册 drawn as CatchShop) on its later copy's art.
+build catchanimalpanel mmo/game/catchanimalpanel/DocCatchAnimalPanel.as catchanimalpanel-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art game/catchanimalpanel.swf)" --code "$OUT/catchanimalpanel-code.swf" --drop-art-abc \
+  --bind 0=mmo.game.catchanimalpanel.DocCatchAnimalPanel --bind 137=mmo.game.catchanimalpanel.StartPanel \
+  --bind 410=mmo.game.catchanimalpanel.CatchMap --bind 89=mmo.game.catchanimalpanel.HelpPanel --bind 26=mmo.game.catchanimalpanel.TipsPanel \
+  --note "REBUILT game/catchanimalpanel (aola-revival) on the art of its later copy" \
+  --out "$W/game/catchanimalpanel.swf%3F1210"
 
 # 亚比 battles: rebuilt pet/wildpetservice (wild 亚比 walking in scenes; their
 # points in rebuild/gen/wildpet from tools/gen_wildpets.py) and

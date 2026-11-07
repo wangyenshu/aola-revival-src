@@ -7,9 +7,6 @@ package mmo.scene.starland
    import flash.events.MouseEvent;
    import flash.geom.Point;
    import mmo.common.dialog.NewDialog;
-   import mmo.framework.comm.SocketClient;
-   import mmo.framework.comm.SocketClientEvent;
-   import mmo.framework.comm.zoo.CatchAnimalClient;
    import mmo.common.utils.tips.TipsManager;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.team.ITeamService;
@@ -17,6 +14,7 @@ package mmo.scene.starland
    import mmo.play.scene.SceneBase;
    import mmo.play.scene.SceneManager;
    import mmo.loader.layer.LayerManager;
+   import mmo.revival.RCatchAnimal;
    import mmo.revival.RUI;
 
    /**
@@ -29,8 +27,9 @@ package mmo.scene.starland
     * the three 保卫战 games (gamePvZ 动物保卫战, gameGuardNut 天空保卫战,
     * gameSeaDefend 海底保卫战; the later scene arrows of all three point at
     * that board, the panel it opened is lost and is drawn here), the 动物捕捉
-    * spot (game) gameCatchAnimal, and the fishing spot (btngamecatchfish;
-    * 捕鱼达人 came later) the 海底保卫战 too. The later code's activities (比巴卜, 卡牌, 职业 panels,
+    * spot (game) its panel (game/catchanimalpanel, rebuilt: the things one has, 购买道具,
+    * the map of the four 乐园), and the fishing spot (btngamecatchfish; 捕鱼达人 came
+    * later) the same panel going to its 海洋乐园. The later code's activities (比巴卜, 卡牌, 职业 panels,
     * the zoo door of 2014's 动物公会) are left out.
     */
    public class EcologicalParkRevived extends SceneBase
@@ -67,10 +66,10 @@ package mmo.scene.starland
          addEntrances(e3, "gymnasium", locationKey, null, FaceDirectionTypes.FACERIGHTDOWN);
          game(background.pvzgame, "保卫战", "");
          game(background.game, "动物捕捉", "gameCatchAnimal");
-         game(backGround.getChildByName("btngamecatchfish"), "海底保卫战", "gameSeaDefend");
+         game(backGround.getChildByName("btngamecatchfish"), "动物捕捉·海洋乐园", "gameCatchAnimal", 2);
       }
 
-      private function game(spot:*, tip:String, room:String):void
+      private function game(spot:*, tip:String, room:String, map:int = -1):void
       {
          var io:InteractiveObject = spot as InteractiveObject;
          if (io == null) return;
@@ -95,17 +94,8 @@ package mmo.scene.starland
                SceneManager.getInstance().loadGame(room);
                return;
             }
-            // 动物捕捉 reads its tools from CatchAnimalClient (97_104) and
-            // is entered on the server first (97_100), as the later
-            // catchanimalpanel does before it loads the game.
-            CatchAnimalClient.instance.getGameItemGame();
-            SocketClient.instance.addEventListener(CatchAnimalClient.cmdEnterGame, function entered(ev:SocketClientEvent):void
-            {
-               SocketClient.instance.removeEventListener(CatchAnimalClient.cmdEnterGame, entered);
-               if (ev.params.res) SceneManager.getInstance().loadGame(room);
-               else NewDialog.showFailMessage("进入游戏失败。");
-            });
-            CatchAnimalClient.instance.enterGame();
+            // 动物捕捉: its panel first (what one has of its things, 购买道具, the 乐园).
+            RCatchAnimal.open(map);
          });
       }
 

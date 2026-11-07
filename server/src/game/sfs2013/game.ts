@@ -1098,9 +1098,16 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //   2-15 train {pi, c}    -> 2-15 {res, pi, c}   res 1, -1 no such 亚比 in the 仓库, -2 two in training
   //   2-14 getTrain {}      -> 2-14 {ps: [{pi, c, lt}]}   lt: seconds of the lesson left (0 done)
   //   2-16 trainStop {pi}   -> 2-16 {res, pi, exp, lv}   the experience of the time trained
-  // The lessons' lengths and experience are lost: RECONSTRUCTED as TRAIN_LESSONS (the panel has
-  // four: 一天, 三天, 五天, 七天).
-  const TRAIN_LESSONS: Record<number, [seconds: number, exp: number]> = { 1: [3600, 1500], 2: [4 * 3600, 5000], 3: [8 * 3600, 9000], 4: [12 * 3600, 12000] };
+  // The lessons are the panel's: 一天 (20×经验奖励), 三天 (15×), 五天 (10×) and 七天 (no
+  // figure on it). Their experience is lost: RECONSTRUCTED as ten times the figure an hour
+  // (七天 eight times).
+  const DAY = 24 * 3600;
+  const TRAIN_LESSONS: Record<number, [seconds: number, exp: number]> = {
+    1: [DAY, 24 * 20 * 10],
+    2: [3 * DAY, 72 * 15 * 10],
+    3: [5 * DAY, 120 * 10 * 10],
+    4: [7 * DAY, 168 * 8 * 10],
+  };
   /** The lessons of 亚比 still had (one released or fused since leaves its place free). */
   const training = (rec: UserRecord) => {
     const has = (pi: number) => (rec.storage ?? []).some((p) => p.id === pi) || (rec.pets ?? []).some((p) => p.id === pi);

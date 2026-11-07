@@ -74,6 +74,9 @@ test("保卫战 stages are kept per place and pay 晶币; 动物捕捉 catches z
   assert.equal((await call("ZooExtension.97_203", { place: 1 }))[0][1].gameInfo, "1:3");
   assert.equal((await call("ZooExtension.97_203", { place: 2 }))[0][1].gameInfo, "");
   assert.equal(owner.score, 2 * TD_WIN_SCORE);
+  // Its things are bought (none are given).
+  assert.deepEqual((await call("ZooExtension.97_104")).at(-1)![1].items, []);
+  owner.items!["2"] = { "424": 5, "425": 5 };
   const tools = (await call("ZooExtension.97_104")).at(-1)![1].items;
   assert.deepEqual(tools.map((t: { itemId: number }) => t.itemId), [424, 425]);
   const caught = (await call("ZooExtension.97_103", { raceId: 2, itemId: 425, rate: -1 })).at(-1)![1];

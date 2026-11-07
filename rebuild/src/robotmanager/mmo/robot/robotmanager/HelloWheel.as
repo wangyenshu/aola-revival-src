@@ -30,6 +30,7 @@ package mmo.robot.robotmanager
    import mmo.interfaces.task.ITaskService;
    import mmo.revival.RExpPanel;
    import mmo.revival.RLog;
+   import mmo.revival.RTraining;
 
    /**
     * The HELLO's menu of December 2012 (a guide page of 百田's 新手 section shows it): a click
@@ -486,15 +487,7 @@ package mmo.robot.robotmanager
       {
          close();
          // The 亚比 in training first (pet/petbetraining), else the lessons (pet/pettraining).
-         SocketClient.instance.addEventListener(RobotClient.cmdGetTrain, onTrainList);
-         RobotClient.instance.getTrain();
-      }
-
-      private static function onTrainList(e:SocketClientEvent):void
-      {
-         SocketClient.instance.removeEventListener(RobotClient.cmdGetTrain, onTrainList);
-         var ps:Array = (e.params.ps as Array) || [];
-         panel(ps.length > 0 ? "PetBeTraining" : "PetTraining");
+         RTraining.open();
       }
    }
 }
