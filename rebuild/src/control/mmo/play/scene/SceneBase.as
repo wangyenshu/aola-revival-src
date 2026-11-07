@@ -372,6 +372,12 @@ package mmo.play.scene
       // ───── driven by SceneManager ─────
 
       /** REVIVAL: the entrances added so far, {area, scene, key} or {area, action} (tests/e2e). */
+      /** REVIVAL. Where the scene puts a player entering it by "default" (the 沙盒's rooms on a scene's art). */
+      revival function get defaultPoint():Point
+      {
+         return _defaultLocation ? _defaultLocation.clone() : null;
+      }
+
       revival function get entranceList():Array
       {
          return _entrances.concat();

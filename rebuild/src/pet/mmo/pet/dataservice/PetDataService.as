@@ -14,6 +14,8 @@ package mmo.pet.dataservice
    import mmo.interfaces.pet.data.PetDetailedInfo;
    import mmo.interfaces.pet.data.PlayerBriefInfo;
    import mmo.revival.RLog;
+   import mmo.common.dialog.NewDialog;
+   import flash.utils.getDefinitionByName;
 
    /**
     * REBUILT pet/petdataservice (mmo.pet.dataservice.PetDataService,
@@ -227,6 +229,17 @@ package mmo.pet.dataservice
 
       public function recureAllPet(callback:Function = null):void
       {
+         // A mod's party that heals nobody (control ModRun.healRefused): its words, and nothing healed.
+         try
+         {
+            var refused:* = getDefinitionByName("mmo.control.ModRun").healRefused;
+            if (refused)
+            {
+               NewDialog.showMessage(String(refused));
+               return;
+            }
+         }
+         catch (e:Error) {}
          setAllPmHpPPFull();
          SocketClient.instance.sendXtMessage("PocketMonsterExtension", "revival_heal", {});
          // The era callers pass function(ok:Boolean) (雷霆之塔's ThunderTowerController): called with

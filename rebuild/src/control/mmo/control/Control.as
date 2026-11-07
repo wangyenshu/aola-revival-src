@@ -12,6 +12,8 @@ package mmo.control
    import flash.utils.ByteArray;
    import mmo.loader.scheduler.VersManager;
    import flash.events.Event;
+   import mmo.common.dialog.NewDialog;
+   import mmo.play.scene.SceneManagerEvent;
    import flash.events.IEventDispatcher;
    import flash.utils.setTimeout;
    import mmo.interfaces.InitServiceEvent;
@@ -94,7 +96,42 @@ package mmo.control
          Social.start();
          ToolboxPanel.watchMoney();
          watchSpinner();
-         afterClothes(function():void { SceneManager.getInstance().loadDefaultScene(); });
+         // A mod played as a game of its own goes straight into its first room (no room of the game first).
+         afterClothes(function():void { if (!startStandalone()) SceneManager.getInstance().loadDefaultScene(); });
+      }
+
+      /**
+       * REVIVAL. A mod exported as a game of its own (tools/mod-sdk/export.mjs; the page's
+       * AOLA_CONFIG.standalone {mod, name}): the mod is loaded from revival/mods/ and started at
+       * once, so that its first room is the first room shown; the bar keeps only what the mod's
+       * rooms use, and leaving the mod starts it again (ModRun.standalone). False when the page
+       * plays no mod so (or it cannot be loaded: the game's first room then).
+       */
+      private function startStandalone():Boolean
+      {
+         var cfg:Object = null;
+         try { if (ExternalInterface.available) cfg = ExternalInterface.call("aolaRevivalStandalone"); } catch (e:Error) {}
+         if (cfg == null || !cfg.mod || !/^[A-Za-z0-9_.-]+\.swf$/.test(String(cfg.mod))) return false;
+         ModRun.standalone = true;
+         bar.standalone();
+         var fail:Function = function(why:String):void
+         {
+            NewDialog.showMessage(why);
+            SceneManager.getInstance().loadDefaultScene();
+         };
+         var ml:URLLoader = new URLLoader();
+         ml.dataFormat = URLLoaderDataFormat.BINARY;
+         ml.addEventListener(Event.COMPLETE, function(me:Event):void
+         {
+            ModRun.instance.load(ml.data as ByteArray, function(err:String, mi:Object):void
+            {
+               if (err != null) fail("模组没能载入：" + err);
+               else ModRun.instance.startMod();
+            });
+         });
+         ml.addEventListener(IOErrorEvent.IO_ERROR, function(me:Event):void { fail("找不到模组 " + cfg.mod); });
+         ml.load(VersManager.getVerURLRequest("revival/mods/" + cfg.mod));
+         return true;
       }
 
       /**
@@ -510,6 +547,12 @@ package mmo.control
                      ml.addEventListener(IOErrorEvent.IO_ERROR, function(me:Event):void { RLog.log("mod hook: no revival/mods/" + arg); });
                      ml.load(VersManager.getVerURLRequest("revival/mods/" + arg));
                      return "ok";
+                  case "modenter":
+                     // A room of the mod shown, entered as its doors would (tests/e2e, the export's tour).
+                     return ModRun.instance.debugEnter(arg) ? "ok" : "none";
+                  case "modrooms":
+                     // The rooms the mod shown has defined (the export's tour).
+                     return ModRun.instance.debugRooms().join(",");
                   case "modroom":
                      // The mod loaded and the room of it shown.
                      var mr:Object = ModRun.instance.loaded;

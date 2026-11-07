@@ -106,6 +106,8 @@
           protocol: cfg.protocol,
           // ?dev=1: test commands (items on request) for the automated walk-throughs.
           dev: !!cfg.dev || /[?&]dev=1(&|$)/.test(location.search),
+          // A mod played as a game of its own: no newbie quest for its 奥拉.
+          standalone: !!cfg.standalone,
         });
       } else if (choice.mode !== "inpage") {
         // A shared server: the address the start screen gave, else this page's own host.
@@ -151,6 +153,30 @@
         };
         document.head.appendChild(s);
       });
+    }
+    // A mod played as a game of its own (cfg.standalone): the loader skips its start page (it does
+    // when the page's query names an account, getQS "u"), and the game asks for the mod.
+    if (cfg.standalone) {
+      const qs = window.getQS;
+      window.getQS = (k) => (k === "u" ? "standalone" : typeof qs === "function" ? qs(k) : null);
+      window.aolaRevivalStandalone = () => cfg.standalone;
+      if (cfg.standalone.name) document.title = String(cfg.standalone.name);
+      // Its cover over the game while the game loads, gone once the mod's first room is shown.
+      const stage = document.getElementById("stage");
+      if (stage) {
+        const cover = document.createElement("div");
+        cover.id = "cover";
+        cover.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;display:flex;align-items:flex-end;justify-content:center;" +
+          "background:#0b1b3a center/cover no-repeat;color:#fff;font:bold 16px sans-serif;text-shadow:0 1px 3px #000";
+        if (cfg.standalone.cover) cover.style.backgroundImage = `url("${String(cfg.standalone.cover).replace(/"/g, "")}")`;
+        const note = document.createElement("div");
+        note.style.cssText = "margin-bottom:72px;padding:6px 16px;border-radius:14px;background:rgba(11,27,58,.6)";
+        note.textContent = "正在载入……";
+        cover.appendChild(note);
+        stage.style.position = "relative";
+        stage.appendChild(cover);
+        window.aolaRevivalReady = () => cover.remove();
+      }
     }
     // The 百田大剧场: the page script's video functions open the game's own (theatre.js).
     if (window.AolaTheatre) window.AolaTheatre.install();

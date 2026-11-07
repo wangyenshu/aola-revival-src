@@ -361,6 +361,8 @@ export function installGyms(world: World, deps: GymDeps): void {
     const t = await deps.tables();
     // nd: PetClient2.pmRevealAllHpFree, the free 恢复 of an activity's run (最强防御PK战 before each 局).
     const cost = o.vip || ctx.params.nd ? 0 : 50;
+    // A mod's party out that heals nobody (mods.ts).
+    if ((o as { modParty?: { noHeal?: string } }).modParty?.noHeal) return ctx.reply({ res: false }, "54_4");
     if ((o.score ?? 0) < cost) return ctx.reply({ res: false }, "54_4");
     o.score = (o.score ?? 0) - cost;
     for (const p of o.pets ?? []) {

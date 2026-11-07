@@ -310,6 +310,13 @@ export function taskList(rec: TaskOwner): { s: string; a: number; f: number }[] 
   return Object.entries(rec.tasks ?? {}).map(([ti, r]) => ({ s: `${ti},${r.st},${r.ex}`, a: r.ad, f: r.fd }));
 }
 
+/** The newbie quest done, every step of it, and the HELLO it gives (a mod played as a game of its own). */
+export function finishNewbie(rec: TaskOwner, now: number): void {
+  const b = book(rec);
+  for (const t of [NEWBIE_TASK, 140, 150]) for (const s of [...(TASK_DEFS[t]?.steps ?? []), t]) b[s] = { st: 1, ex: 0, ad: now, fd: now };
+  rec.robot ??= { name: "HELLO", exp: 0, follow: true, born: new Date(now).toISOString().slice(0, 10) };
+}
+
 /** A new player (no task, no 亚比) starts the newbie quest. */
 export function isNewPlayer(rec: TaskOwner): boolean {
   return Object.keys(rec.tasks ?? {}).length === 0 && (rec.pets ?? []).length === 0;
@@ -323,6 +330,8 @@ export interface TaskDeps {
   ready?: Promise<unknown> | (() => Promise<unknown>);
   /** Answer the test command revival_task (web/?dev=1). */
   dev?: boolean;
+  /** New players have the newbie quest done (a mod played as a game of its own: game.ts). */
+  standalone?: boolean;
   /** A task finished: rewards beside the score (QUEST_REWARDS), as replies [cmd, body]. */
   onFinish?: (rec: TaskOwner, task: number) => Promise<[string, Record<string, unknown>][]>;
   /** Another player's record by user name (their HELLO's card, RobotClient.getOtherRobot). */
@@ -385,7 +394,8 @@ export function installTasks(world: World, deps: TaskDeps): void {
   world.xt("TaskExtension.10-0", async (ctx) => {
     const rec = await load(ctx);
     if (isNewPlayer(rec)) {
-      startTask(rec, NEWBIE_TASK, deps.now());
+      if (deps.standalone) finishNewbie(rec, deps.now());
+      else startTask(rec, NEWBIE_TASK, deps.now());
       await deps.save(rec);
     }
     ctx.reply({ t: taskList(rec), ou: false });

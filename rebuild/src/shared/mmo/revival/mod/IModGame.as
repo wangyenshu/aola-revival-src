@@ -9,7 +9,7 @@ package mmo.revival.mod
     */
    public interface IModGame
    {
-      /** The API version (2: music() and a room's music take a mod's own Sound; 3: 组队). */
+      /** The API version (2: music() and a room's music take a mod's own Sound; 3: 组队; 4: rooms on the game's scenes, party, items, playerLook). */
       function get apiVersion():int;
 
       /** The player's name. */
@@ -29,6 +29,9 @@ package mmo.revival.mod
        *   spawns      {name: [x, y]}; "start" is used when enter() names none
        *   build       function(room:IModRoom):void, called each time the room is
        *               shown: put its NPCs, opponents, doors and pictures there
+       *   scene       (API 4) a scene of the game ("fbsiwude1"): the room is drawn with
+       *               its art and walked as it is (background, walk and width unused);
+       *               IModRoom.part finds its pieces by name
        */
       function room(id:String, def:Object):void;
 
@@ -132,5 +135,42 @@ package mmo.revival.mod
 
       /** f(from:String, data:*) when another member sends event. */
       function onTeam(event:String, f:Function):void;
+
+      // API 4.
+
+      /**
+       * The mod's own 亚比 and 道具 instead of the player's, until the mod's rooms are left (or
+       * endParty). def:
+       *   pets      [{race, level, keep, follow}, …] (1 to 12; the first six in the bag)
+       *             keep: this one must stay in the bag, and its fall ends a fight as lost
+       *             follow: this one follows the player
+       *   items     {道具 id: count} (type 2 of the game: 61 高级体力糖, 104 高级活力豆 …)
+       *   noHeal    words: healing all (the bag's 恢复, the HELLO's 亚比治疗) is refused with
+       *             them, and fights heal nobody
+       *   keepText  the battle's words when the one to keep falls
+       *   fresh     a new party, though the mod's from the last time is kept
+       * The party is kept for the mod when it ends and comes back as it was the next time
+       * (unless fresh). done(state) as partyState gives it, or done(null) if refused.
+       */
+      function party(def:Object, done:Function = null):void;
+
+      /** The player's own 亚比 and 道具 back (the party kept for the mod). done(). */
+      function endParty(done:Function = null):void;
+
+      /**
+       * done({party, pets: [{id, race, level, hp, maxHp, bag, keep}], items: {id: count}}):
+       * the 亚比 and 道具 as they are now (the party's while it is out).
+       */
+      function partyState(done:Function):void;
+
+      /** n (or -n) of the 道具 id: done(count) with the count now, or done(-1) if refused. */
+      function giveItem(id:int, n:int = 1, done:Function = null):void;
+
+      /**
+       * Show the player as look in the mod's rooms: a race (a 亚比 of the game or the mod's),
+       * "npc:<id>" (an NPC of the game), a DisplayObject or a Class; null: as the player is.
+       * name: the name shown under the player there instead of the player's (null: the player's).
+       */
+      function playerLook(look:*, name:String = null):void;
    }
 }

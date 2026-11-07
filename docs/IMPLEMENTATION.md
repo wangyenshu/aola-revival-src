@@ -178,7 +178,7 @@ extension name and command (`PetExtension.54_16`).
 | `costumes.ts` | the 2012 套装 the 守护者 and 武神大陆's generals leave a part of |
 | `godbosses.ts` | 天空之神 (拉诺斯), 施瓦辛格, 波塞冬 and 魔龙之战 (赤翼魔龙王), with the helpers that come out after the boss (`ActFight.team`) |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
-| `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
+| `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比, gifts and parties (their own 亚比 and 道具) |
 | `petcards.ts`, `petitems.ts`, `giftbags.ts` | 战术卡, 亚比道具, what each 礼包 holds |
 | `host.ts`, `accounts.ts`, `api.ts`, `saves.ts` | the game for any host; names and passwords (the lock on wrong ones); the shared server's small API; 存档 files, and the page's own 奥拉 |
 | `social.ts`, `duel.ts` | 好友, 组队, where a friend is; 亚比对战 between players |

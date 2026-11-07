@@ -23,7 +23,7 @@ import { installMiniGames, type LimitBombRec, type LimitBombRow } from "./miniga
 import { installPlanetActs } from "./planetacts.ts";
 import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
-import { installMods, stashModPets, type ModRec } from "./mods.ts";
+import { endModParty, installMods, stashModPets, type ModRec } from "./mods.ts";
 import { World, type XtContext } from "./server.ts";
 import { installHonour } from "./honour.ts";
 import { installGarden, type Board } from "./garden.ts";
@@ -186,6 +186,12 @@ export interface Sfs2013Options {
    * own game; a shared server's owner may close them (fair play: the others, 亚比对战).
    */
   toolbox?: boolean;
+  /**
+   * A mod played as a game of its own (the page's AOLA_CONFIG.standalone): a new 奥拉 has the
+   * newbie quest done (and its HELLO) instead of starting it, so that it does not lead the player
+   * into the game's rooms.
+   */
+  standalone?: boolean;
 }
 
 /**
@@ -397,6 +403,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       rec = await newUser(emu, name);
       if (acc?.required && pass) rec.pass = await hashPass(pass);
     }
+    // A mod's own 亚比 and 道具 out when the last session ended (mods.ts party): the player's own
+    // back; the mod takes its own out again when it is started.
+    endModParty(rec as UserRecord & ModRec);
     // A mod's 亚比 the game does not know now (their mod not started yet in this page): aside.
     const known = await tables();
     stashModPets(rec as UserRecord & ModRec, (race) => !!speciesOf(known, race));
@@ -930,6 +939,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     now: () => emu.clock.now().getTime(),
     ready: taskTables,
     dev: opts.dev,
+    standalone: opts.standalone,
     onFinish: async (o, task) => {
       const rw = QUEST_REWARDS[task];
       if (!rw) return [];
@@ -1098,6 +1108,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     tables,
     today,
     gifts: toolbox,
+    isItem: async (id) => Object.hasOwn((await table())["2"] ?? {}, String(id)),
+    maxHp: (pet, t) => maxHpOf(pet, t),
+    follow: (ctx, rec, pet) => {
+      world.setUserVars(ctx.session, { p: pet ? followVar(pet) : NO_FOLLOW });
+      if (pet) ctx.broadcast({ name: rec.name, pRId: pet.race, pVId: pet.race, pId: pet.id, dr: "", ind: "", indLv: 0 }, "54_8", true);
+      else ctx.broadcast({ name: rec.name }, "54_9", true);
+    },
   });
 
   // 亚比融合 and 天赋启迪 (亚比研究中心): yabistudy.ts.

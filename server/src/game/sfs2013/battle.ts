@@ -208,6 +208,9 @@ export interface Battle {
   foes?: PetRecord[];
   /** 最强防御PK战: the rounds to stand (won once they are over, the 亚比 standing); no switching. */
   insist?: number;
+  /** A mod's party (mods.ts): the player's 亚比 whose fall ends the battle as lost, and the words then. */
+  keep?: number;
+  keepText?: string;
   /** 亚比对战 with another player (duel.ts): the battle of both, its commands are the duel's. */
   duel?: Duel;
   /** 全场 X系威力提升: the 属性 up and down, for some turns. */
@@ -2061,7 +2064,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     onLose?: Battle["onLose"],
     copyId?: number,
     /** 沙盒: the opponent's stats multiplied, and no award for the win. */
-    sandbox?: { mul: number[] },
+    sandbox?: { mul: number[]; keep?: number; keepText?: string },
     /** The battle made, before it is sent (the 道馆: 幻冥's 命运 on the player's 亚比). */
     adjust?: (b: Battle) => void,
   ): Promise<boolean> => {
@@ -2096,6 +2099,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
     b.asked = asked;
     b.copyId = copyId;
     b.noAward = !!sandbox;
+    if (sandbox?.keep) {
+      b.keep = sandbox.keep;
+      b.keepText = sandbox.keepText;
+    }
     adjust?.(b);
     // 自动战斗仪 (44, petitems.ts): "开启后，在场景中会自动与野外怪对战。每个可使用100次": a wild
     // battle while it lasts is fought by the battle screen itself (auto), one use each.
@@ -2829,7 +2836,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
       return out;
     }
     if (b.mine.pet.hp <= 0) {
-      if (!b.insist && (o.pets ?? []).some((p) => p.hp > 0)) {
+      const keepFell = b.keep !== undefined && b.mine.pet.id === b.keep;
+      if (!b.insist && !keepFell && (o.pets ?? []).some((p) => p.hp > 0)) {
         b.mustSwitch = true;
         out.push(["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]);
         return out;
@@ -2837,7 +2845,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
       b.over = true;
       if (b.onLose) out.push(...b.onLose(o));
       const healed = autoRestore(b, o, t);
-      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, myFinalRaceId: b.mine.pet.race, desc: healed ? `战斗失败了……${healed}` : "你的亚比都倒下了……快带它们去治疗吧！", pmmList: e.views(b) }]);
+      const lostDesc = keepFell ? b.keepText || `${nameOf(t, b.mine.pet.race)}倒下了……` : healed ? `战斗失败了……${healed}` : "你的亚比都倒下了……快带它们去治疗吧！";
+      out.push(["2403", { isWin: false, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, myFinalRaceId: b.mine.pet.race, desc: lostDesc, pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }

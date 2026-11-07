@@ -36,6 +36,15 @@ window.AOLA_CONFIG = {
   // 服务器地址 starts as this ("" asks the player). Set it before npm run build.
   server: "",
 
+  // A mod exported as a game of its own (tools/mod-sdk/export.mjs writes it): {mod: "x.swf" in
+  // revival/mods/, name: shown as the page's title, player: the 奥拉's name}. The game skips its
+  // start page and screens, starts the mod in the first room, and keeps only what the mod uses.
+  // ?standalone=<mod>.swf plays one of the site's mods that way.
+  standalone: (function () {
+    var m = /[?&]standalone=([A-Za-z0-9_.-]+\.swf)(&|$)/.exec(location.search);
+    return m ? { mod: m[1], player: "小奥拉" } : null;
+  })(),
+
   // Game clock anchor (China time) and stream framing, as in the Node server.
   date: "2012-08-15",
   framing: "raw",

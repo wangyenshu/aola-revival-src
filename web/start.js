@@ -73,6 +73,9 @@
   /** The game chosen without the screens ({mode, server, name, pass}), or null. */
   function preset() {
     const q = new URLSearchParams(location.search);
+    // A mod played as a game of its own: its 奥拉, no screens.
+    const solo = window.AOLA_CONFIG && window.AOLA_CONFIG.standalone;
+    if (solo) return { mode: "inpage", name: String(solo.player || "小奥拉"), pass: "" };
     const back = takeResume();
     if (back) return { mode: back.mode, server: back.server || "", name: back.name, pass: back.pass || "" };
     if (q.get("mode") === "server" && q.get("server") && q.get("name"))

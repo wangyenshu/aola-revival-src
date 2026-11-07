@@ -58,6 +58,8 @@ const KINDS: Record<string, "array" | "object" | "number" | "string" | "boolean"
   wushen: "object",
   gods: "object",
   wnk: "object",
+  modParty: "object",
+  modParties: "object",
   score: "number",
   xingbi: "number",
   jingdou: "number",
@@ -199,6 +201,35 @@ export function adoptRecord(from: Record<string, unknown>, here: Record<string, 
     if (want === "number" && !Number.isFinite(v)) continue;
     out[k] = v;
   }
+  // A mod's party out when the file was made (mods.ts): the player's own back first, the mod's
+  // kept for it, as at the next login.
+  const party = out.modParty as { aside?: Record<string, unknown>; mod?: unknown } | undefined;
+  if (party && isObject(party.aside) && typeof party.mod === "string") {
+    const kept = (isObject(out.modParties) ? out.modParties : (out.modParties = {})) as Record<string, unknown>;
+    const items = isObject(out.items) ? (out.items as Record<string, unknown>) : {};
+    kept[party.mod] = { pets: out.pets ?? [], storage: out.storage ?? [], released: out.released ?? [], items: items["2"] ?? {}, follow: out.followPet };
+    out.pets = party.aside.pets;
+    out.storage = party.aside.storage;
+    out.released = party.aside.released;
+    out.items = { ...items, "2": party.aside.items ?? {} };
+    out.followPet = party.aside.followPet ?? 0;
+  }
+  delete out.modParty;
+  // The parties kept: their 亚比 rebuilt as the bag's (below), their 道具 as the player's.
+  const partyIds: unknown[] = [];
+  if (isObject(out.modParties)) {
+    for (const [mod, v] of Object.entries(out.modParties)) {
+      if (!isObject(v)) {
+        delete (out.modParties as Record<string, unknown>)[mod];
+        continue;
+      }
+      for (const k of ["pets", "storage", "released"] as const) {
+        v[k] = Array.isArray(v[k]) ? (v[k] as unknown[]).flatMap((p) => fitPet(p) ?? []) : [];
+        for (const p of v[k] as { id: unknown }[]) partyIds.push(p.id);
+      }
+      v.items = fitItems({ "2": v.items })["2"] ?? {};
+    }
+  }
   // Rebuilt, and each id once in the bag and the 仓库 (an id twice would be one 亚比 to the game).
   const seen = new Set<unknown>();
   for (const k of ["pets", "storage"] as const) {
@@ -218,7 +249,7 @@ export function adoptRecord(from: Record<string, unknown>, here: Record<string, 
   if (out.items !== undefined) out.items = fitItems(out.items);
   // The 亚比 id counter (the last id given, pets.ts) at least the highest id there: a file whose
   // counter is behind would give an id twice.
-  const ids = [...((out.pets as { id: number }[]) ?? []), ...((out.storage as { id: number }[]) ?? [])].map((p) => p.id);
+  const ids = [...((out.pets as { id: number }[]) ?? []), ...((out.storage as { id: number }[]) ?? [])].map((p) => p.id).concat(partyIds.map(Number).filter(Number.isFinite));
   if (ids.length) out.nextPetId = Math.max(Number(out.nextPetId) || 0, ...ids);
   for (const k of SERVER_FIELDS) if (here[k] !== undefined) out[k] = structuredClone(here[k]);
   if (out.createdAt === undefined && here.createdAt !== undefined) out.createdAt = here.createdAt;

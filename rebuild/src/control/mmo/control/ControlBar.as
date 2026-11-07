@@ -1,6 +1,7 @@
 package mmo.control
 {
    import flash.display.DisplayObject;
+   import flash.events.Event;
    import flash.display.Graphics;
    import flash.display.InteractiveObject;
    import flash.display.Shape;
@@ -89,6 +90,29 @@ package mmo.control
          buildClock();
          addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { if (e.target != input) e.stopPropagation(); });
          addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); });
+      }
+
+      /**
+       * REVIVAL. A mod played as a game of its own (Control.startStandalone): only what its rooms
+       * use stays (亚比, 物品, the HELLO, the sound and the clock); the map, home, the shops,
+       * friends and teams, the 工具箱 and 沙盒, the 图鉴, the chat line, phrases, faces, actions,
+       * shooting, the player card and the 任务 button (taskpanelnew's, beside the bar) go.
+       */
+      public function standalone():void
+      {
+         for each (var n:String in ["btnMap", "btn_home", "btn_mall", "btn_friend", "btn_team", "btn_squad", "btn_toolbox", "btn_sandbox",
+            "btn_petdic", "btn_shoot", "btn_card", "btn_phrase", "btn_face", "btn_action", "mctalkbar"])
+         {
+            var b:DisplayObject = getChildByName(n);
+            if (b != null) b.visible = false;
+         }
+         var frames:int = 0;
+         addEventListener(Event.ENTER_FRAME, function(e:Event):void
+         {
+            if (++frames % 25 != 0 || parent == null) return;
+            var t:DisplayObject = parent.getChildByName("taskIcon");
+            if (t != null) t.visible = false;
+         });
       }
 
       /** A button's icon: drawn (BarIcons), then the 2012 one (ShotIcons) where there is one. */

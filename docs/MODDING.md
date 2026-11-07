@@ -13,6 +13,7 @@ This page covers:
 - the API, with every class, method and field;
 - how a mod's 亚比 work;
 - the examples;
+- exporting a mod as a game of its own;
 - the 对手关卡 file format;
 - how it all works inside the game.
 
@@ -194,8 +195,10 @@ in the order of the file. A static constant initialised with one of them
 (`static const Bg:Class = Garden;`) is null if that class comes later in the
 file; use the class itself where it is needed instead.
 
-A mod is at most 16 MB. It cannot use the game's own art files (百田's), and
-should not try to: those are 百田's.
+A mod is at most 16 MB. It does not embed the game's own art files (百田's):
+it draws its own, or (API 4) refers to the game's at run time: a room on a
+scene of the game (`scene`), an NPC of the game (`"npc:<id>"`), a 亚比 of the
+game by its number, a music file of the game.
 
 ## Loading a mod
 
@@ -268,6 +271,7 @@ The fields of a room's `def`:
 | `width` | the room's width when there is no background (960–2880, default 960; the room is then dark blue) |
 | `walk` | where the player may walk. `function(x, y):Boolean` returning true for a wall; or a picture (BitmapData, DisplayObject or Class) stretched over the room: black is wall, white or transparent is floor. Default: everywhere |
 | `music` | the room's music: the class of an embedded MP3, or a Sound (the mod's own music); or a music file of the game, such as `"music/themeparknew4.mp3"` |
+| `scene` | (API 4) a scene of the game, by its name in `config.xml` (`"fbsiwude1"`, `"maintown2"`): the room is drawn with that scene's art (its background, foreground and topground, the pieces of its overlap among the players) and its obstruction is the room's walls; `background`, `width` and `walk` are then not used. The scene's own code does not run and none of it answers the mouse; its doors' areas are not shown. A player put on its walls is moved to the nearest free spot. Without `spawns`, the player comes in where the scene puts players. `IModRoom.part` finds its pieces by name |
 | `spawns` | entry points: `{name: [x, y], …}`. `"start"` is used when `enter` names none. A name the room does not have, or no spawns, puts the player at 480, 470 |
 | `build` | `function(room:IModRoom):void`, called each time the room is shown, to put its characters, opponents, doors and pictures. A room is built anew every time it is entered: keep what must last with `setData` |
 
@@ -297,7 +301,7 @@ The fields of a room's `def`:
 | `after(seconds, f)` | call `f()` after `seconds`, unless the room has been left by then. Asked for before a room is shown (in `start`, a door's handler), the time counts from when it is |
 | `log(...parts)` | write to the browser's console |
 | `get playerName():String` | the player's name as the game shows it (as `#username#`) |
-| `get apiVersion():int` | 3 |
+| `get apiVersion():int` | 4 |
 
 **组队 (API 3)**
 
@@ -329,6 +333,32 @@ mod together, when every member has loaded the same mod (the same `id` and
 
 The `hello` example has a door, in a team, that waves to the others.
 
+**The mod's own 亚比 and 道具 (API 4)**
+
+A mod can give the player a team of its own for its rooms, instead of the
+player's: a story that starts from nothing, with its own rules.
+
+| Member | |
+| --- | --- |
+| `party(def, done = null)` | the mod's own 亚比 and 道具 instead of the player's (`def` below); `done(state)` as `partyState` gives it, or `done(null)` if refused. The player's own are put aside and come back when the mod's rooms are left (`leave()`, the map, the mod removed) or at the next login; the party is kept for the mod and comes back as it was the next time `party` is called (unless `fresh`) |
+| `endParty(done = null)` | the player's own back now |
+| `partyState(done)` | `done({party, pets: [{id, race, level, hp, maxHp, bag, keep}], items: {道具 id: count}})`: as they are now |
+| `giveItem(id, n = 1, done = null)` | n of a 道具 (type 2 of the game: 61 高级体力糖, 104 高级活力豆 …), or `-n` to take some; `done(count)`, or `done(-1)` if refused |
+| `playerLook(look, name = null)` | the player shown as `look` in the mod's rooms: a race (a 亚比 of the game or of the mod), `"npc:<id>"`, a DisplayObject or a Class; `null`: as the player is. `name`: shown under the player there instead of the player's own |
+
+The fields of a party's `def`:
+
+| Field | |
+| --- | --- |
+| `pets` | `[{race, level, keep, follow}, …]`: 1–12 亚比 (the first six in the bag). `keep: true`: this one must stay in the bag (moving it to the 仓库 or letting it go is refused), and its fall ends a fight as lost even if others could fight on. `follow: true`: this one follows the player |
+| `items` | `{道具 id: count}` (at most 999 each) |
+| `noHeal` | words: healing all (the bag's 恢复, the HELLO's 亚比治疗, the 治疗 of the panels) is refused with them, and the mod's fights heal nobody whatever their `heal` says. 体力糖 and the like still work |
+| `keepText` | the battle's words when the `keep` one falls |
+| `fresh` | a new party, though the mod's from the last time is kept |
+
+`giveItem` and `givePet` give to the party while it is out. `fight`'s `done(win)` does not say
+why a fight was lost: `partyState` does (the `keep` one's `hp` is 0, or not: the player ran).
+
 ### `IModRoom`
 
 The room that is shown. The room's `build` function receives it, and
@@ -346,6 +376,12 @@ The room that is shown. The room's `build` function receives it, and
 | `get player():Point` | where the player stands |
 | `walkTo(x, y, then = null)` | walk the player there; `then()` on arrival |
 | `onLeave(f)` | `f()` when the room is left |
+| `part(name):DisplayObject` | (API 4) a piece of the scene a room on the game's art is drawn with (`et1`, `btn_general` …), or null. Its bounds in the room: `part.getBounds(DisplayObject(room))`; hide it with `visible = false` |
+| `blocked(x, y):Boolean` | (API 4) whether the point is off the floor (a wall of the room, or outside it): where a character can stand |
+
+A conversation's speaker may be `{name, picture: "npc:<id>"}` (API 4): that NPC's own picture;
+or `{name, picture: "pet:<race>"}`: that 亚比's picture (a character whose look is a 亚比 of the
+game talks with it).
 
 The fields of a character (`npc`, `foe`):
 
@@ -354,6 +390,7 @@ The fields of a character (`npc`, `foe`):
 | `name` | shown under it (an opponent also shows its team's size and first level) |
 | `look` | a DisplayObject, a Class, or a race: a 亚比 of the mod (its `walk` picture, or its icon, made at most 110 high) or of the game (dressed as that 亚比, as the wild 亚比 are). Default: 兔小子 (race 1) |
 | `picture` | its picture in `talk()`. Default: the look's class, the mod 亚比's icon, or a snapshot of the look |
+| `look` (API 4) | also `"npc:<id>"` (or `"npc:<id>:<view>"`): an NPC of the game (`tasknpc/npc<id>`), and in `talk()` that NPC's own picture. A 亚比 of the game that has no figure for rooms is shown as its picture |
 | `x`, `y` | where it stands (its feet) |
 | `scale` | default 1 |
 | `tip` | the text shown when the mouse is over it (default: none; an opponent: 点击挑战) |
@@ -438,7 +475,7 @@ panels get that one.
 
 ## Examples
 
-`tools/mod-sdk/examples/` holds three examples. The site serves them as
+`tools/mod-sdk/examples/` holds four examples. The site serves them as
 `revival/mods/*.swf`, and the 模组 page lists them. Each example's
 `about.json` holds its name and description for that page.
 
@@ -447,6 +484,61 @@ panels get that one.
 | `hello` | one room drawn in code, a walk function, a character with a question, a door out, saved data (visits) |
 | `story` | two rooms joined by doors (a wide room of 1400), conversations with choices, a film drawn in code (ended with `Event.COMPLETE`), an opponent with a team of the game's 亚比, progress kept with `setData`, a 亚比 given as a reward, music of its own (an embedded MP3) and of the game |
 | `yabi` | a 亚比 of the mod (`species`) standing in the room, fought, and given to the player |
+| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`), each keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, `giveItem` for the 体力糖), then the 变异蚁将军, 小奥拉 and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; three difficulties; its `about.json` says how to export it |
+
+## Exporting a mod
+
+A mod can be made into a game of its own: a folder (and a .zip) with the page,
+Ruffle, the server emulator, the mod and only the game files the mod uses,
+which any static web server serves. It starts straight in the mod's first
+room (no start page, no 奥拉 to choose, no room of the game before), with the
+mod's cover over the game while it loads, and only the bar's 亚比 and 物品,
+the HELLO and the sound switch; leaving the mod starts it again.
+
+```bash
+npm run build:swf && npm run build                 # the site the export is taken from
+node tools/mod-sdk/export.mjs tools/mod-sdk/examples/antwar
+# build/export/antwar/ and build/export/antwar.zip
+```
+
+The game files kept are those the game loads while the mod is walked through
+(`tools/mod-sdk/export-tour.mjs`, in the test browser: every room the mod
+defines, its conversations answered with their first choice, a battle, the
+bag), and by rule those `about.json` names under `export`:
+
+```json
+{
+  "name": "蚁族的反击",
+  "description": "…",
+  "export": {
+    "player": "兵蚁",
+    "cover": "cover.jpg",
+    "races": [216, 217, 1648],
+    "npcs": [28, 94],
+    "music": ["music/siwudefb.mp3"],
+    "files": []
+  }
+}
+```
+
+| Field | |
+| --- | --- |
+| `player` | the 奥拉's name in the export |
+| `cover` | a picture of the mod's folder shown over the game while it loads (960 × 560). Whatever the author wants said, such as whose the game's art is, can be drawn on it: 蚁族的反击's (made by its `art/make_cover.py` from the game's 蚁神巨像 and the two ants' battle figures) says that 奥拉星's art and music are 百田's |
+| `races` | 亚比 the mod fights or gives: each one's battle sprite, pictures and the animations of the skills it knows by Lv100 |
+| `npcs` | NPCs of the game the mod shows (`"npc:<id>"`) |
+| `music`, `files` | more game files, by path |
+
+Options: `--out <dir>` (default `build/export`), `--seconds <n>` for the
+walk-through (default 900), `--no-record` (by rule only), `--no-zip`.
+
+Browsers run the game only from a web server, not from a file opened on the
+disk (service workers): the export comes with `serve.py` (`play.bat`,
+`play.sh`), which serves it at `http://127.0.0.1:8000/`. Its saves are the
+browser's, for that address.
+
+On the site itself, `index.html?standalone=<file>.swf` plays one of its mods
+(`revival/mods/`) the same way.
 
 ## The 对手关卡 file
 
@@ -510,3 +602,25 @@ The runtime has the following parts:
     in the game, to the rebuilt PMService (`pet/pmservice`, `addPM`).
 - **Saved data and gifts.** They go through `SundriesExtension.revival_mod`
   (`mods.ts`). The data is kept in the player's record, under `modData`.
+- **Parties (API 4).** `revival_mod` ops `party`, `unparty`, `state`, `item`
+  (`mods.ts`): the player's bag, 仓库 and 道具 are kept in `modParty.aside`
+  while the mod's are out, the mods' parties in `modParties`; `endModParty`
+  at login, and a save file made meanwhile is read the same way (`saves.ts`).
+  The rules: the 仓库's moves and 放生 (`pets.ts`, result -4 with the words),
+  `revival_heal` and `54_4`, the 沙盒's fights (`sandbox.ts`: no healing; the
+  `keep` one's fall ends the battle, `Battle.keep` in `battle.ts`); the
+  client refuses healing all first (`ModRun.healRefused`, pet/dataservice).
+- **Rooms on scenes (API 4).** `ModRun` loads the scene's file before the room
+  is shown; `SandboxRoom` builds the scene from its document each time and
+  takes its layers (`SceneBase.revival::defaultPoint` is where players enter).
+- **Standalone (exports).** `AOLA_CONFIG.standalone` (`web/config.js`): the
+  page answers the loader's `getQS("u")` so it skips its start page, the start
+  preset logs the 奥拉 in, `Control.startStandalone` loads and starts the mod
+  instead of the game's first room and trims the bar (`ControlBar.standalone`),
+  `ModRun.standalone` makes leaving start the mod again, and the first room
+  shown calls the page's `aolaRevivalReady` (the cover goes). The emulator is
+  told too (`standalone` of `installSfs2013`): a new 奥拉 has the newbie quest
+  done, with its HELLO, instead of being sent into the game's rooms by it.
+- **Conversations.** A mod's conversation puts the bar's HELLO away while it
+  is open (it stands by the panel's picture and is not the one speaking);
+  `game.message` is the game's message box, which shows the HELLO.

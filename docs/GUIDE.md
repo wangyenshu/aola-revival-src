@@ -254,5 +254,16 @@ server (at most 64 KB per mod). 亚比 a mod gives go to the bag, or to the
 is known to the game only while that mod is running: after a reload it is
 put aside until the mod is started again.
 
+A mod may bring its own 亚比 and 道具 while you play it (蚁族的反击, one of the
+examples, gives you a 兵蚁 and a 工蚁 and its own 体力糖): yours are put aside
+and come back when you leave its rooms (or at the next login), and the mod's
+are kept for the next time you start it. Such a mod may refuse the bag's 恢复
+and the HELLO's 亚比治疗, and may keep one 亚比 in the bag.
+
+`index.html?standalone=<file>.swf` plays one of the site's mods as a game of
+its own: straight into its first room, with only the buttons its rooms use.
+A mod can also be exported that way as a small site of its own
+([MODDING.md](MODDING.md#exporting-a-mod)).
+
 A mod is a program and runs with the game's rights, so it could change your
 save. Only load mods whose source you have read or whose author you trust.

@@ -2,17 +2,21 @@ package mmo.control
 {
    import flash.display.Loader;
    import flash.events.Event;
+   import flash.external.ExternalInterface;
    import flash.events.IOErrorEvent;
    import flash.media.Sound;
    import flash.system.ApplicationDomain;
    import flash.system.LoaderContext;
    import flash.utils.ByteArray;
    import flash.utils.setTimeout;
+   import mmo.framework.comm.PetClient;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
    import mmo.common.dialog.NewDialog;
+   import mmo.loader.LoadingSpriteType;
+   import mmo.loader.SimpleCustomLoader;
    import mmo.play.scene.SceneManager;
    import mmo.play.scene.SceneManagerEvent;
    import mmo.revival.RLog;
@@ -39,11 +43,16 @@ package mmo.control
     * for the room to show and hands itself (IModRoom) to the mod that owns
     * it; the fights are SandboxRun's; 亚比, data and gifts go through
     * SundriesExtension.revival_mod (server mods.ts).
+    *
+    * API 4: a room on the art of a scene of the game (its def's scene: the
+    * scene file is loaded before the room is shown, and each showing builds
+    * the scene anew from it); a mod's own 亚比 and 道具 (party: the player's
+    * own come back when the mod's rooms are left or the mod is removed).
     */
    public class ModRun
    {
       public static const ROOM:String = "sandboxroom";
-      public static const API_VERSION:int = 3;
+      public static const API_VERSION:int = 4;
       /** The largest mod file. */
       public static const MAX_BYTES:int = 16000000;
       /** Mods' own 亚比 numbers. */
@@ -70,6 +79,17 @@ package mmo.control
       /** Replies awaited: "op:tag" -> {game, f}. */
       private var waiting:Object = {};
       private var listening:Boolean;
+      /** Scenes of the game loaded for rooms on their art: name -> the scene document's class. */
+      private var sceneDocs:Object = {};
+      /** The mod whose party is out (ModGame.party), or null. */
+      internal var partyGame:ModGame;
+      /**
+       * While a mod's party heals nobody: the words for the healing that is refused (the bag's
+       * 恢复, the HELLO's 亚比治疗: rebuilt pet/dataservice's recureAllPet asks), else null.
+       */
+      public static var healRefused:String;
+      /** A mod played as a game of its own (Control.startStandalone): leaving it starts it again. */
+      public static var standalone:Boolean;
 
       public static function get instance():ModRun
       {
@@ -215,6 +235,7 @@ package mmo.control
             }
             if (pendingEnter != null && pendingEnter.game == g) pendingEnter = null;
             for (var n:String in talks) if (talks[n].game == g) delete talks[n];
+            if (partyGame == g) endParty();
             g.dispose();
             // Its saves are sent (dispose); other replies to it are dropped.
             for (var k:String in waiting) if (waiting[k].game == g && !waiting[k].keep) delete waiting[k];
@@ -245,10 +266,60 @@ package mmo.control
          else back = inf.inHouse || inf.isFB ? sm.lastOutdoorScene : String(inf.sceneName);
       }
 
+      /** Test hook: show room id of the mod last started. */
+      public function debugEnter(id:String):Boolean
+      {
+         var g:ModGame = shown || (games.length ? games[games.length - 1] : null);
+         if (g == null || g.roomFor(id) == null) return false;
+         g.enter(id);
+         return true;
+      }
+
+      /** Test hook: the rooms of the mod last started. */
+      public function debugRooms():Array
+      {
+         var g:ModGame = shown || (games.length ? games[games.length - 1] : null);
+         return g != null ? g.roomIds() : [];
+      }
+
+      /** The class of a scene's document loaded for a room on its art (SandboxRoom asks), or null. */
+      public function sceneDoc(name:String):Class
+      {
+         return sceneDocs[name] as Class;
+      }
+
       /** ModGame.enter: show a room of the mod g. */
       internal function enterRoom(g:ModGame, roomId:String, def:Object, spawn:String):void
       {
          var sm:SceneManager = SceneManager.getInstance();
+         // A room on a scene of the game: its file first (once), then the room.
+         var sceneName:String = def.scene is String ? String(def.scene) : null;
+         if (sceneName && !/^[A-Za-z0-9_]+$/.test(sceneName)) sceneName = null;
+         if (sceneName && sceneDocs[sceneName] === undefined && !sm.isLoading)
+         {
+            var self0:ModRun = this;
+            var waitFor:Object = pendingEnter = {game: g, room: roomId, spawn: spawn};
+            var arrived:Boolean = false;
+            SimpleCustomLoader.loadSingleResource("scene/" + sceneName, null, LoadingSpriteType.FULL_SCREEN, "请稍等……", function(content:Object):void
+            {
+               arrived = true;
+               var doc:Object = content;
+               if (doc != null && !(doc.hasOwnProperty("scene")) && doc.hasOwnProperty("content")) doc = doc["content"];
+               sceneDocs[sceneName] = doc != null && doc.hasOwnProperty("scene") ? Object(doc).constructor as Class : null;
+               if (sceneDocs[sceneName] == null) RLog.log("mod: scene " + sceneName + " is not a scene of the game");
+            }, this, function():void
+            {
+               // Called on success, error and cancel alike: the room either way (plain, when the scene is not there).
+               setTimeout(function():void
+               {
+                  if (!arrived) sceneDocs[sceneName] = null;
+                  if (pendingEnter != waitFor) return;
+                  pendingEnter = null;
+                  if (games.indexOf(g) >= 0 && g.roomFor(roomId) === def) self0.enterRoom(g, roomId, def, spawn);
+               }, 0);
+            });
+            return;
+         }
          if (sm.isLoading)
          {
             // A scene is on its way (the room left when a mod was removed there): enter once it is
@@ -340,9 +411,17 @@ package mmo.control
             NewDialog.showMessage("只有队长才能决定去哪里哦！");
             return;
          }
+         // Played as a game of its own: nothing outside the mod to go back to; it starts again.
+         if (standalone && shown != null)
+         {
+            var again:ModGame = shown;
+            setTimeout(function():void { startMod(again.info.id); }, 0);
+            return;
+         }
          pendingEnter = null;
          follow = null;
          SceneManager.sandboxRoom = null;
+         if (partyGame != null) endParty();
          if (shown != null) shown.leftRooms();
          shown = null;
          SandboxRun.reset();
@@ -368,6 +447,17 @@ package mmo.control
       public function attach(r:IModRoom):void
       {
          if (shown != null) shown.attach(r);
+         readyOnce();
+      }
+
+      private var toldReady:Boolean;
+
+      /** A mod played as a game of its own: the page's cover goes once its first room is shown. */
+      internal function readyOnce():void
+      {
+         if (!standalone || toldReady) return;
+         toldReady = true;
+         try { if (ExternalInterface.available) ExternalInterface.call("aolaRevivalReady"); } catch (e:Error) {}
       }
 
       public function detach(r:IModRoom):void
@@ -378,6 +468,30 @@ package mmo.control
       public function leave():void
       {
          leaveMods();
+      }
+
+      // ---------------------------------------------------------------- a mod's party
+
+      /** ModGame.party: g's party is out (healing all refused with those words, or null). */
+      internal function partyOut(g:ModGame, noHeal:String):void
+      {
+         if (partyGame != null && partyGame != g) endParty();
+         partyGame = g;
+         healRefused = noHeal || null;
+      }
+
+      /** The player's own 亚比 and 道具 back (the mod's kept for it on the server). */
+      internal function endParty():void
+      {
+         var g:ModGame = partyGame;
+         partyGame = null;
+         healRefused = null;
+         if (g == null) return;
+         g.partyEnded();
+         ask(g, {op: "unparty", mod: g.info.id}, function(p:Object):void
+         {
+            try { PetClient.instance.viewAllPM(); } catch (e:Error) {}
+         }, true);
       }
 
       // ---------------------------------------------------------------- the server and conversations
@@ -398,6 +512,13 @@ package mmo.control
             }
          });
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_TASK_ACTION, onTalkAction);
+         // A scene of the game shown while a party is out (left by the map, not by leave()): the
+         // player's own back.
+         SceneManager.getInstance().addEventListener(SceneManagerEvent.SCENE_INITED, function(e:Event):void
+         {
+            var inf:Object = SceneManager.getInstance().loadedSceneInfo;
+            if (partyGame != null && inf != null && String(inf.sceneName) != ROOM) endParty();
+         });
          // A team member's mod told the team something (ModGame.sendTeam, server social.ts).
          SocketClient.instance.addEventListener("revival_team_mod", function(e:SocketClientEvent):void
          {

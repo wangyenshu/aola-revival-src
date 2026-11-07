@@ -24,7 +24,7 @@ were reconstructed; [IMPLEMENTATION.md](IMPLEMENTATION.md) explains how.
 | 四大副本 | 幻影冰宫, 倒立金字塔, 蚁族王朝, 恐龙博物馆, three modes each |
 | Mini games | 85 of the 87 game rooms of the 2013 config |
 | 亚比 | 1,604 species in the 图鉴 (1–1651); battles, catching, skills, evolution, eggs, following, riding |
-| Added by the revival | the 工具箱 and the 沙盒 ([GUIDE.md](GUIDE.md)) |
+| Added by the revival | the 工具箱 and the 沙盒 with its mods ([GUIDE.md](GUIDE.md)); a mod played or exported as a game of its own ([MODDING.md](MODDING.md)) |
 
 ## Places and NPCs
 

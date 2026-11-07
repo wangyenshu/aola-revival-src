@@ -741,6 +741,7 @@ package mmo.petwarehouse.service
          }
          if (r == -2) RNotice.show(root, "背包里已经有6只亚比了，先把一只放回仓库吧！");
          else if (r == -3) RNotice.show(root, "背包里至少要留一只亚比哦！");
+         else if (r == -4 && e.params.msg) RNotice.show(root, String(e.params.msg));
          if (r != 1) return;
          if (int(e.params.loc) == 0) RNotice.show(root, nameOf(p) + "放进背包了！");
          ask();
@@ -837,6 +838,8 @@ package mmo.petwarehouse.service
          busy = false;
          var r:int = int(e.params.result);
          if (r == -3) RNotice.show(root, "背包里至少要留一只亚比哦！");
+         // -4: a mod's 亚比 that must stay in the bag (server mods.ts party), its words.
+         if (r == -4 && e.params.msg) RNotice.show(root, String(e.params.msg));
          if (r != 1) return;
          RNotice.show(root, nameOf(current()) + "被放生了，在放生仓库里还能找回它。");
          ask();

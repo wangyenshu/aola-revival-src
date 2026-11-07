@@ -23,6 +23,8 @@ export interface InPageConfig {
   protocol?: string;
   /** Test commands (PocketMonsterExtension.revival_give) for the automated walk-throughs. */
   dev?: boolean;
+  /** A mod played as a game of its own (web/config.js standalone): no newbie quest. */
+  standalone?: boolean;
 }
 
 /** Frames the page keeps (window.aola.frames). */
@@ -42,6 +44,7 @@ export function startInPage(cfg: InPageConfig) {
         fetch(`${location.protocol === "https:" ? "https" : "http"}://www.9aola.com/${path}`).then((r) => (r.ok ? r.json() : undefined)),
       date: cfg.date,
       dev: cfg.dev,
+      standalone: cfg.standalone,
       recorder: cfg.verbose ? new TeeRecorder(memory, new ConsoleRecorder()) : memory,
     });
     installInPageSockets(host.emulator, {

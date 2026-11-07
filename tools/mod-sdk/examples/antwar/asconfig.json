@@ -1,0 +1,21 @@
+{
+	"config": "royale",
+	"compilerOptions": {
+		"targets": [
+			"SWF"
+		],
+		"source-path": [
+			"src"
+		],
+		"external-library-path": [
+			"../../../../build/mod-sdk/aola-mod-api.swc"
+		],
+		"library-path": [
+			"../../../../build/mod-sdk/aola-mod-embed.swc"
+		],
+		"output": "bin/antwar.swf",
+		"target-player": "10.1",
+		"swf-version": 10
+	},
+	"mainClass": "AntWarMod"
+}

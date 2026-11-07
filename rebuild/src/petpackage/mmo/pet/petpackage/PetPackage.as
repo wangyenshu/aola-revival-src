@@ -410,6 +410,7 @@ package mmo.pet.petpackage
             SocketClient.instance.removeEventListener("2224", done);
             var r:int = int(e.params.result);
             if (r == -3) RNotice.show(LayerManager.getBaseTop(), "背包里至少要留一只亚比哦！");
+            if (r == -4 && e.params.msg) RNotice.show(LayerManager.getBaseTop(), String(e.params.msg));
             if (r != 1) return;
             RNotice.show(LayerManager.getBaseTop(), who + "放回亚比仓库了。");
             selected = 0;

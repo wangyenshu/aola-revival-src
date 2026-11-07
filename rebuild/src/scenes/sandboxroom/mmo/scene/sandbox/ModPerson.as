@@ -118,7 +118,13 @@ package mmo.scene.sandbox
       public function talk(pages:Array, done:Function = null):void
       {
          if (run == null) return;
-         run.talk({name: def.name ? String(def.name) : "", picture: portrait()}, pages, done);
+         // An NPC of the game ("npc:<id>"): the conversation panel's own picture of it.
+         // A 亚比 of the game (its race as look): its picture ("pet:<race>").
+         var npc:* = def.picture is String ? def.picture : def.picture == null && def.look is String ? def.look : null;
+         if (npc == null && def.picture == null && !(def.look is DisplayObject) && !(def.look is Class) && int(def.look) > 0 && !RDef.has("mmo.pet.peticon" + int(def.look) + "_L"))
+            npc = "pet:" + int(def.look);
+         var named:Boolean = npc is String && (String(npc).indexOf("npc:") == 0 || String(npc).indexOf("pet:") == 0);
+         run.talk({name: def.name ? String(def.name) : "", picture: named ? npc : portrait()}, pages, done);
       }
 
       /** The picture for a conversation: the mod's, its 亚比's, or one taken of its look. */

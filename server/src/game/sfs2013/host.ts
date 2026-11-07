@@ -23,6 +23,8 @@ export interface GameHostOptions {
   accounts?: AccountOptions;
   /** Test commands of the automated walk-throughs. Never on a server for players. */
   dev?: boolean;
+  /** A mod played as a game of its own: its new 奥拉 skip the newbie quest (game.ts). */
+  standalone?: boolean;
   recorder?: Recorder;
   /** Answer <policy-file-request/> (a Flash projector over TCP). */
   answerPolicy?: boolean;
@@ -78,7 +80,7 @@ export function createGameHost(o: GameHostOptions): GameHost {
     recorder: o.recorder ?? new MemoryRecorder(),
     answerPolicy: o.answerPolicy ?? false,
   });
-  const w = installSfs2013(emulator, { loadJson: o.loadJson, dev: o.dev, accounts: o.accounts, toolbox: o.toolbox });
+  const w = installSfs2013(emulator, { loadJson: o.loadJson, dev: o.dev, accounts: o.accounts, toolbox: o.toolbox, standalone: o.standalone });
   world = w;
   const playing = (name: string) => [...emulator.sessions].some((s) => w.player(s)?.name === name);
   const imports = o.imports ?? o.toolbox ?? true;

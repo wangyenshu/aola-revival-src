@@ -13,10 +13,13 @@ package mmo.scene.sandbox
    import flash.geom.Matrix;
    import flash.geom.Point;
    import flash.text.TextField;
+   import flash.system.ApplicationDomain;
    import flash.utils.getDefinitionByName;
    import mmo.common.utils.tips.TipsManager;
+   import mmo.loader.scheduler.ResScheduler;
    import mmo.play.player.PlayerManager;
    import mmo.play.player.sceneplayer.ScenePetAvatar;
+   import mmo.interfaces.pet.data.PetClothesMap;
    import mmo.play.scene.SceneBase;
    import mmo.play.scene.helper.cilckandhit.ClickAndHitEvent;
    import mmo.play.scene.helper.cilckandhit.ClickAndHitHelper;
@@ -37,6 +40,14 @@ package mmo.scene.sandbox
     *
     * It asks for the run by name, so that this file needs nothing of the
     * control module to be built.
+    *
+    * API 4: a room on a scene of the game (def.scene): the scene is built anew
+    * from its document (loaded by ModRun before the room is shown); its
+    * background, foreground and topground are drawn in the room's layers, the
+    * pieces of its overlap among the players, its obstruction is the room's
+    * walls; nothing of it answers the mouse and its own code (onJoinRoom) does
+    * not run. NPCs of the game ("npc:<id>") and the player's look
+    * (IModGame.playerLook).
     */
    public class SandboxRoom extends SceneBase implements IModRoom
    {
@@ -56,6 +67,18 @@ package mmo.scene.sandbox
       private var screen:Sprite;
       private var leaveFns:Array = [];
       private var people:Array = [];
+      /** A room on a scene of the game: the scene, its obstruction, and its layers as they were. */
+      private var sceneArt:Object;
+      private var sceneObs:DisplayObject;
+      private var sceneParts:Array = [];
+      /** The player's look put on (IModGame.playerLook), what it was made of, and the avatar hidden. */
+      private var myLook:DisplayObject;
+      private var myLookOf:* = undefined;
+      private var myNameOf:String;
+      private var myLabel:TextField;
+      private var hiddenAvatar:DisplayObject;
+      private var modRun:Object;
+      private var freeTries:int;
 
       public function SandboxRoom()
       {
@@ -81,6 +104,7 @@ package mmo.scene.sandbox
          {
             var C:Object = getDefinitionByName("mmo.control.ModRun");
             run = C ? C.instance : null;
+            modRun = run;
             shown = run ? run.roomToShow() : null;
             // The mod whose room this is (several may be loaded): it gets the room, the fights, the talks.
             if (shown != null && shown.game != null) run = shown.game;
@@ -115,6 +139,7 @@ package mmo.scene.sandbox
 
       private function draw(def:Object):void
       {
+         if (def.scene is String && drawScene(String(def.scene), def)) return;
          var b:DisplayObject = display(def.background);
          if (b != null)
          {
@@ -175,6 +200,109 @@ package mmo.scene.sandbox
          bg.addChildAt(full, 0);
       }
 
+      /** A room on a scene of the game; false when the scene is not there (the room is drawn as usual). */
+      private function drawScene(name:String, def:Object):Boolean
+      {
+         var D:Class = null;
+         try { D = modRun ? modRun.sceneDoc(name) as Class : null; } catch (e:Error) {}
+         if (D == null) return false;
+         var scene:Object;
+         try { scene = Object(new D()).scene; } catch (e2:Error) { RLog.error("mod scene " + name, e2); return false; }
+         if (scene == null) return false;
+         sceneArt = scene;
+         var layer:Function = function(n:String):DisplayObjectContainer
+         {
+            try { return scene.getChildByName(n) as DisplayObjectContainer; } catch (e3:Error) {}
+            return null;
+         };
+         var quiet:Function = function(d:DisplayObject):void
+         {
+            if (d is Sprite) Sprite(d).mouseEnabled = false;
+            if (d is DisplayObjectContainer) DisplayObjectContainer(d).mouseChildren = false;
+            if (d is Sprite) Sprite(d).buttonMode = false;
+         };
+         var back:DisplayObjectContainer = layer("background");
+         if (back != null) { quiet(back); bg.addChildAt(back, 0); sceneParts.push(back); }
+         var front:DisplayObjectContainer = layer("foreground");
+         if (front != null)
+         {
+            quiet(front);
+            fg.addChild(front);
+            sceneParts.push(front);
+            // Its doors' areas (et1 …), drawn for the editor: unseen, as the scene's own doors are.
+            for (var ei:int = 0; ei < front.numChildren; ei++) if (/^et\d*$/.test(front.getChildAt(ei).name)) front.getChildAt(ei).alpha = 0;
+         }
+         var top:DisplayObjectContainer = layer("topground");
+         if (top != null) { quiet(top); fg.addChild(top); sceneParts.push(top); }
+         var over:DisplayObjectContainer = layer("overlap");
+         if (over != null)
+         {
+            sceneParts.push(over);
+            while (over.numChildren > 0)
+            {
+               var piece:DisplayObject = over.getChildAt(0);
+               var at:Point = new Point(piece.x + over.x, piece.y + over.y);
+               quiet(piece);
+               playerLayer.addChild(piece);
+               piece.x = at.x;
+               piece.y = at.y;
+               sceneParts.push(piece);
+            }
+         }
+         var obs:DisplayObject = layer("obstruction");
+         if (obs != null)
+         {
+            quiet(obs);
+            var mine:DisplayObjectContainer = obStruction as DisplayObjectContainer;
+            if (mine != null) { mine.addChild(obs); sceneObs = obs; }
+         }
+         var r:Object = back != null ? back.getBounds(back.parent) : null;
+         roomW = Math.max(960, Math.min(2880, r ? Math.floor(r.right) : 960));
+         var spawns:Object = def.spawns || {};
+         var first:Point = null;
+         for (var k:String in spawns)
+         {
+            var sp:Array = spawns[k] as Array;
+            if (sp == null || sp.length < 2) continue;
+            var pt:Point = new Point(Number(sp[0]), Number(sp[1]));
+            addInitLocation(k, pt);
+            if (first == null || k == "start") first = pt;
+         }
+         var own:Point = null;
+         try { own = Object(scene).revival::defaultPoint as Point; } catch (e4:Error) {}
+         addInitLocation("start", first || own || new Point(Math.min(480, roomW / 2), 470));
+         return true;
+      }
+
+      /**
+       * A room on a scene's art: a player put on its walls (a spawn the scene does not leave free)
+       * is moved to the nearest free spot, once the room is shown.
+       */
+      private function freeSpot(e:Event):void
+      {
+         if (++freeTries < 3) return;
+         removeEventListener(Event.ENTER_FRAME, freeSpot);
+         var me:Object = PlayerManager.getInstance().myPlayer;
+         if (me == null || !isBlocked(me.x, me.y)) return;
+         var p:Point = freeNear(me.x, me.y, 500);
+         if (p != null) try { me.jumpTo(int(p.x), int(p.y)); } catch (e2:Error) {}
+      }
+
+      /** The nearest point off the walls within radius of x, y, or null. */
+      private function freeNear(x:Number, y:Number, radius:int):Point
+      {
+         for (var r:int = 10; r <= radius; r += 10)
+         {
+            for (var a:int = 0; a < 24; a++)
+            {
+               var px:Number = x + r * Math.cos(a * Math.PI / 12);
+               var py:Number = y + r * Math.sin(a * Math.PI / 12);
+               if (!isBlocked(px, py)) return new Point(px, py);
+            }
+         }
+         return null;
+      }
+
       private function drawEmpty():void
       {
          bg.graphics.beginFill(0x2A3B4E);
@@ -193,6 +321,7 @@ package mmo.scene.sandbox
       override public function isBlocked(x:Number, y:Number):Boolean
       {
          if (x < 0 || y < 0 || x >= roomW || y >= H) return true;
+         if (sceneObs != null) return super.isBlocked(x, y);
          if (wallTest != null)
          {
             try { return Boolean(wallTest(x, y)); } catch (e:Error) { wallTest = null; RLog.error("mod walk", e); }
@@ -220,12 +349,15 @@ package mmo.scene.sandbox
             return;
          }
          addEventListener(Event.ENTER_FRAME, keepUi);
+         if (sceneObs != null) addEventListener(Event.ENTER_FRAME, freeSpot);
          if (run != null) run.attach(this);
       }
 
       override protected function onLeaveRoom():void
       {
          removeEventListener(Event.ENTER_FRAME, keepUi);
+         removeEventListener(Event.ENTER_FRAME, freeSpot);
+         dropLook();
          for each (var p:ModPerson in people) p.dispose();
          people = [];
          var fns:Array = leaveFns;
@@ -263,6 +395,8 @@ package mmo.scene.sandbox
          leave.x = 244;
          leave.y = 14;
          ui.addChild(leave);
+         // A mod played as a game of its own (ModRun.standalone): there is nowhere to leave to.
+         try { if (getDefinitionByName("mmo.control.ModRun").standalone) leave.visible = false; } catch (e:Error) {}
          screen = new Sprite();
          screen.name = "modScreen";
          ui.addChildAt(screen, 0);
@@ -272,6 +406,80 @@ package mmo.scene.sandbox
       private function keepUi(e:Event):void
       {
          if (ui != null) ui.x = -x;
+         keepLook();
+      }
+
+      // ---------------------------------------------------------------- the player's look
+
+      /** ModGame.playerLook: the look changed. */
+      public function lookChanged():void
+      {
+         keepLook();
+      }
+
+      /** The player shown as the mod says (each frame: the game may draw the avatar anew). */
+      private function keepLook():void
+      {
+         var want:* = null;
+         var wantName:String = null;
+         try
+         {
+            want = run != null && "lookOfPlayer" in run ? run.lookOfPlayer : null;
+            wantName = run != null && "nameOfPlayer" in run ? run.nameOfPlayer : null;
+         }
+         catch (e:Error) {}
+         var me:Object = PlayerManager.getInstance().myPlayer;
+         if (want !== myLookOf || wantName != myNameOf || (myLook != null && me != null && myLook.parent != me))
+         {
+            dropLook();
+            myLookOf = want;
+            myNameOf = wantName;
+            if (want != null && me is DisplayObjectContainer)
+            {
+               myLook = lookOf(want);
+               if (myLook != null)
+               {
+                  myLook.name = "modPlayerLook";
+                  DisplayObjectContainer(me).addChildAt(myLook, Math.min(1, DisplayObjectContainer(me).numChildren));
+               }
+            }
+            // The mod's name for the player, under the player, the player's own hidden.
+            if (wantName && me is DisplayObjectContainer)
+            {
+               myLabel = RUI.text(12, 0xFFFFFF, true);
+               myLabel.filters = [new GlowFilter(0x0B2440, 1, 3, 3, 6)];
+               myLabel.text = wantName;
+               myLabel.x = -myLabel.width / 2;
+               myLabel.y = 6;
+               myLabel.mouseEnabled = false;
+               DisplayObjectContainer(me).addChild(myLabel);
+               try { me.setNickNameVisible(false); } catch (e4:Error) {}
+            }
+         }
+         if (myLook == null || me == null) return;
+         var av:DisplayObject = null;
+         try { av = me.avatarSprite as DisplayObject; } catch (e2:Error) {}
+         if (av != hiddenAvatar && hiddenAvatar != null) hiddenAvatar.visible = true;
+         hiddenAvatar = av;
+         if (av != null) av.visible = false;
+         // Facing as the player walks.
+         try { myLook.scaleX = Math.abs(myLook.scaleX) * (String(me.directionCode).indexOf("r") >= 0 ? -1 : 1); } catch (e3:Error) {}
+      }
+
+      private function dropLook():void
+      {
+         if (myLook != null && myLook.parent != null) myLook.parent.removeChild(myLook);
+         myLook = null;
+         if (myLabel != null)
+         {
+            if (myLabel.parent != null) myLabel.parent.removeChild(myLabel);
+            myLabel = null;
+            try { Object(PlayerManager.getInstance().myPlayer).setNickNameVisible(true); } catch (e:Error) {}
+         }
+         myNameOf = null;
+         if (hiddenAvatar != null) hiddenAvatar.visible = true;
+         hiddenAvatar = null;
+         myLookOf = undefined;
       }
 
       // ---------------------------------------------------------------- IModRoom
@@ -360,13 +568,38 @@ package mmo.scene.sandbox
          var view:DisplayObject = lookOf(def.look);
          var p:ModPerson = new ModPerson(this, def, view, foe, run);
          people.push(p);
+         // On a scene's art: one put on its walls stands on the nearest floor (it could not be walked up to).
+         if (sceneObs != null && stage != null && isBlocked(p.x, p.y))
+         {
+            var near:Point = freeNear(p.x, p.y, 160);
+            if (near != null) { p.x = near.x; p.y = near.y; }
+         }
          return p;
       }
 
-      /** A look: a DisplayObject, a Class, or a race (the mod's 亚比: its figure; the game's: dressed as it). */
+      /** "npc:<id>[:view]": an NPC of the game, its art (tasknpc/npc<id>, mmo.tasknpc.Npc<id>_<view>) when loaded. */
+      private static function npcLook(look:String):DisplayObject
+      {
+         var m:Array = /^npc:(\d+)(?::(\d+))?/.exec(look);
+         if (m == null) return null;
+         var id:int = int(m[1]);
+         var cls:String = "mmo.tasknpc.Npc" + id + "_" + (m[2] ? int(m[2]) : 1);
+         var holder:Sprite = new Sprite();
+         holder.mouseChildren = false;
+         var put:Function = function(d:*):void
+         {
+            if (holder.numChildren > 0 || !ApplicationDomain.currentDomain.hasDefinition(cls)) return;
+            try { holder.addChild(new (getDefinitionByName(cls) as Class)() as DisplayObject); } catch (e:Error) { RLog.error("mod npc look " + look, e); }
+         };
+         try { ResScheduler.getResource("tasknpc/npc" + id, put, cls); } catch (e2:Error) { RLog.error("mod npc look " + look, e2); }
+         return holder;
+      }
+
+      /** A look: a DisplayObject, a Class, "npc:<id>", or a race (the mod's 亚比: its figure; the game's: dressed as it). */
       private static function lookOf(look:*):DisplayObject
       {
          if (look is DisplayObject || look is Class) return display(look);
+         if (look is String && String(look).indexOf("npc:") == 0) return npcLook(String(look));
          var race:int = int(look);
          if (race <= 0) race = 1;
          if (RDef.has("mmo.revival.modwalk" + race))
@@ -384,9 +617,34 @@ package mmo.scene.sandbox
                return holder;
             }
          }
+         // A 亚比 of the game with no scene clothes: its picture (not the stand-in clothes).
+         if (PetClothesMap.getClothesId(race % 10000) <= 0) return petPicture(race);
          var pet:ScenePetAvatar = new ScenePetAvatar(race, null);
          pet.mouseEnabled = pet.mouseChildren = false;
          return pet;
+      }
+
+      /** A 亚比's large picture (peticon<race>_L), at most 110 high, its feet at 0, 0. */
+      private static function petPicture(race:int):DisplayObject
+      {
+         var holder:Sprite = new Sprite();
+         holder.mouseChildren = false;
+         var cls:String = "mmo.pet.peticon" + race + "_L";
+         var put:Function = function(... a):void
+         {
+            if (holder.numChildren > 0 || !RDef.has(cls)) return;
+            var d:DisplayObject = RDef.make(cls) as DisplayObject;
+            if (d == null) return;
+            var b:Object = d.getBounds(d);
+            var k:Number = Math.min(1, 110 / Math.max(1, b.height));
+            d.scaleX = d.scaleY = k;
+            d.x = -(b.left + b.width / 2) * k;
+            d.y = -b.bottom * k;
+            holder.addChild(d);
+         };
+         if (RDef.has(cls)) put();
+         else try { ResScheduler.getResource("peticon/peticon" + race, put, cls, function(e:* = null):void {}); } catch (e2:Error) {}
+         return holder;
       }
 
       /** Called by ModPerson: put it among the players and make it clickable (walked up to first). */
@@ -450,6 +708,36 @@ package mmo.scene.sandbox
       public function onLeave(f:Function):void
       {
          if (f != null) leaveFns.push(f);
+      }
+
+      public function blocked(x:Number, y:Number):Boolean
+      {
+         return isBlocked(x, y);
+      }
+
+      public function part(name:String):DisplayObject
+      {
+         if (name == null) return null;
+         for each (var d:DisplayObject in sceneParts)
+         {
+            if (d.name == name) return d;
+            var found:DisplayObject = find(d as DisplayObjectContainer, name, 3);
+            if (found != null) return found;
+         }
+         return null;
+      }
+
+      private static function find(c:DisplayObjectContainer, name:String, depth:int):DisplayObject
+      {
+         if (c == null || depth <= 0) return null;
+         var direct:DisplayObject = c.getChildByName(name);
+         if (direct != null) return direct;
+         for (var i:int = 0; i < c.numChildren; i++)
+         {
+            var f:DisplayObject = find(c.getChildAt(i) as DisplayObjectContainer, name, depth - 1);
+            if (f != null) return f;
+         }
+         return null;
       }
    }
 }

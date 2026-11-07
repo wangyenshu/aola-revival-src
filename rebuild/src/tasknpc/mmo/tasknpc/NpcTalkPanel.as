@@ -1,6 +1,9 @@
 package mmo.tasknpc
 {
    import flash.display.DisplayObject;
+   import flash.events.Event;
+   import flash.utils.getQualifiedClassName;
+   import flash.display.DisplayObjectContainer;
    import flash.display.GradientType;
    import flash.display.Shape;
    import flash.display.Sprite;
@@ -80,17 +83,28 @@ package mmo.tasknpc
        * REVIVAL: a conversation of a mod (mmo.control.ModRun): the speaker's name and picture
        * are given (picture: a DisplayObject, drawn at the left as the NPCs' half-length ones).
        */
-      public static function showAs(xml:XML, name:String, picture:DisplayObject = null):void
+      public static function showAs(xml:XML, name:String, picture:DisplayObject = null, npcId:int = 0):void
       {
          closeCurrent();
          if (xml == null) return;
-         current = new NpcTalkPanel(0, 1);
+         // npcId (a mod's speaker "npc:<id>"): that NPC's own picture.
+         current = new NpcTalkPanel(npcId, 1);
+         current.hideHello = true;
+         current.putHelloAway();
+         // The HELLO may come (its module loaded) while the panel is open: put away then too.
+         current.addEventListener(Event.ENTER_FRAME, current.keepHelloAway);
          current.customName = name || "";
          current.customPicture = picture;
          current.start(xml.context);
       }
 
       private var customName:String;
+      /**
+       * A mod's conversation (showAs): the bar's HELLO, which stands over the panel's corner where
+       * the speaker's picture is, is put away while it is open (it is not the one speaking).
+       */
+      private var hideHello:Boolean;
+      private var helloHidden:Array = [];
       private var customPicture:DisplayObject;
 
       /** Test hook (tests/e2e, through the control's "talk" command): the open conversation. */
@@ -379,6 +393,33 @@ package mmo.tasknpc
       private function remove():void
       {
          if (parent) parent.removeChild(this);
+         removeEventListener(Event.ENTER_FRAME, keepHelloAway);
+         for each (var h:DisplayObject in helloHidden) h.visible = true;
+         helloHidden = [];
+      }
+
+      private var helloFrames:int;
+
+      private function keepHelloAway(e:Event):void
+      {
+         if (++helloFrames % 12 == 0) putHelloAway();
+      }
+
+      private function putHelloAway():void
+      {
+         if (!hideHello) return;
+         try
+         {
+            var bar:DisplayObjectContainer = LayerManager.getBaseControl().getChildByName("controlBar") as DisplayObjectContainer;
+            for (var i:int = 0; bar != null && i < bar.numChildren; i++)
+            {
+               // The HELLO on its stand (helloicon's ComeOut and its button), left of the panel.
+               var h:DisplayObject = bar.getChildAt(i);
+               var hello:Boolean = h.name == "hello" || h.name == "btnHello" || getQualifiedClassName(h).indexOf("ComeOut") >= 0;
+               if (hello && h.visible) { h.visible = false; helloHidden.push(h); }
+            }
+         }
+         catch (e:Error) {}
       }
 
       private function personalise(s:String):String

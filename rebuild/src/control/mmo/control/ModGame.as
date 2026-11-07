@@ -22,6 +22,7 @@ package mmo.control
    import mmo.framework.comm.SocketClient;
    import mmo.interfaces.ServiceContainer;
    import mmo.loader.layer.LayerManager;
+   import mmo.loader.scheduler.ResScheduler;
    import mmo.play.player.PlayerManager;
    import mmo.play.scene.SceneManager;
    import mmo.revival.RDef;
@@ -49,6 +50,7 @@ package mmo.control
       /** 亚比 numbers this mod has defined. */
       internal var races:Array = [];
       private var rooms:Object = {};
+      private var roomOrder:Array = [];
       internal var roomDef:Object;
       internal var roomName:String;
       private var _room:IModRoom;
@@ -61,6 +63,14 @@ package mmo.control
       /** after() asked for before a room was shown: [{seconds, f}]. */
       private var afters:Array = [];
       private var gone:Boolean;
+      /** A room's build function is running (after() then counts from now: the room is shown). */
+      private var building:Boolean;
+      /** playerLook: how the player is shown in this mod's rooms (null: as the player is). */
+      public var lookOfPlayer:* = null;
+      /** playerLook's name: shown under the player in this mod's rooms (null: the player's own). */
+      public var nameOfPlayer:String = null;
+      /** The party's def as sent (for its words), while it is out. */
+      private var partyDef:Object;
 
       public function ModGame(run:ModRun, mod:IMod, info:Object, holder:Loader)
       {
@@ -138,18 +148,21 @@ package mmo.control
       /** The 沙盒 room is shown with a room of this mod: its build function (SandboxRoom). */
       public function attach(r:IModRoom):void
       {
+         run.readyOnce();
          _room = r;
          // after() asked for before a room was shown: counted from now.
          var waitingAfters:Array = afters;
          afters = [];
          for each (var a:Object in waitingAfters) startAfter(a.seconds, a.f, r);
          if (roomDef == null || !(roomDef.build is Function)) return;
+         building = true;
          try { roomDef.build(r); }
          catch (err:Error)
          {
             RLog.error("mod room " + roomName, err);
             NewDialog.showMessage("模组的房间出错了：" + err.message);
          }
+         building = false;
       }
 
       public function detach(r:IModRoom):void
@@ -188,6 +201,7 @@ package mmo.control
       public function room(id:String, def:Object):void
       {
          if (id == null || def == null || gone) return;
+         if (rooms[id] == null) roomOrder.push(id);
          rooms[id] = def;
       }
 
@@ -222,6 +236,12 @@ package mmo.control
       internal function roomFor(roomId:String):Object
       {
          return rooms[roomId];
+      }
+
+      /** The ids of the rooms it has defined, in the order defined. */
+      internal function roomIds():Array
+      {
+         return roomOrder.concat();
       }
 
       public function leave():void
@@ -264,13 +284,66 @@ package mmo.control
             xml.appendChild(ctx);
          }
          run.talkChoices(n, fns);
-         var pic:DisplayObject = picture(speaker ? speaker.picture : null);
-         try
+         var who:String = speaker && speaker.name ? String(speaker.name) : "";
+         var show:Function = function(pic:DisplayObject, npcId:int):void
          {
-            var panel:Object = getDefinitionByName("mmo.tasknpc.NpcTalkPanel");
-            panel.showAs(xml, speaker && speaker.name ? String(speaker.name) : "", pic);
+            try
+            {
+               var panel:Object = getDefinitionByName("mmo.tasknpc.NpcTalkPanel");
+               panel.showAs(xml, who, pic, npcId);
+            }
+            catch (err:Error) { RLog.error("mod talk", err); }
+         };
+         // "pet:<race>": the 亚比's large picture (loaded first: the panel sizes it as it opens).
+         var race:int = speaker ? petOf(speaker.picture) : 0;
+         if (race > 0)
+         {
+            var cls:String = "mmo.pet.peticon" + race + "_L";
+            var shown:Boolean = false;
+            var go:Function = function(... a):void
+            {
+               if (shown) return;
+               shown = true;
+               var d:DisplayObject = null;
+               try { if (RDef.has(cls)) d = RDef.make(cls) as DisplayObject; } catch (e1:Error) {}
+               // Drawn as large as the panel's NPC pictures (it only ever makes pictures smaller).
+               if (d != null)
+               {
+                  var b:Rectangle = d.getBounds(d);
+                  var k:Number = Math.min(2.5, 140 / Math.max(1, b.height), 128 / Math.max(1, b.width));
+                  d.scaleX = d.scaleY = k;
+                  var holder:Sprite = new Sprite();
+                  holder.addChild(d);
+                  d = holder;
+               }
+               show(d, 0);
+            };
+            if (RDef.has(cls)) go();
+            else
+            {
+               try { ResScheduler.getResource("peticon/peticon" + race, go, cls, function(e:* = null):void { go(); }); }
+               catch (e2:Error) { go(); }
+            }
+            return;
          }
-         catch (err:Error) { RLog.error("mod talk", err); }
+         var npcId:int = speaker ? npcOf(speaker.picture) : 0;
+         show(npcId > 0 ? null : picture(speaker ? speaker.picture : null), npcId);
+      }
+
+      /** "pet:<race>" (a 亚比's picture): its race, else 0. */
+      public static function petOf(p:*):int
+      {
+         if (!(p is String)) return 0;
+         var m:Array = /^pet:(\d+)/.exec(String(p));
+         return m ? int(m[1]) : 0;
+      }
+
+      /** "npc:<id>" (an NPC of the game): its id, else 0. */
+      public static function npcOf(p:*):int
+      {
+         if (!(p is String)) return 0;
+         var m:Array = /^npc:(\d+)/.exec(String(p));
+         return m ? int(m[1]) : 0;
       }
 
       /** A DisplayObject from a DisplayObject or a Class (or null). */
@@ -510,7 +583,7 @@ package mmo.control
       {
          if (f == null || gone) return;
          // Asked for before a room of it is shown (in start(), a door's handler): counted once it is.
-         if (_room == null || SceneManager.getInstance().isLoading)
+         if (_room == null || (SceneManager.getInstance().isLoading && !building))
          {
             afters.push({seconds: seconds, f: f});
             return;
@@ -600,6 +673,67 @@ package mmo.control
          {
             try { f(from, data); } catch (err:Error) { RLog.error("mod " + info.id + " onTeam " + event, err); }
          }
+      }
+
+      // ---------------------------------------------------------------- API 4
+
+      public function party(def:Object, done:Function = null):void
+      {
+         if (gone || def == null) { if (done != null) done(null); return; }
+         var self:ModGame = this;
+         var sent:Object = {pets: def.pets, items: def.items, noHeal: def.noHeal ? String(def.noHeal) : "", keepText: def.keepText ? String(def.keepText) : "", fresh: def.fresh === true};
+         run.ask(this, {op: "party", mod: info.id, def: RJson.encode(sent)}, function(p:Object):void
+         {
+            if (p.res != 1)
+            {
+               if (p.msg) RLog.log("mod: party refused: " + p.msg);
+               if (done != null) done(null);
+               return;
+            }
+            partyDef = sent;
+            run.partyOut(self, sent.noHeal);
+            try { PetClient.instance.viewAllPM(); } catch (e:Error) {}
+            if (done != null) done({party: true, pets: p.pets, items: p.items});
+         });
+      }
+
+      public function endParty(done:Function = null):void
+      {
+         if (run.partyGame == this) run.endParty();
+         if (done != null) setTimeout(done, 0);
+      }
+
+      /** ModRun.endParty: no party of this mod is out any more. */
+      internal function partyEnded():void
+      {
+         partyDef = null;
+      }
+
+      public function partyState(done:Function):void
+      {
+         if (gone || done == null) return;
+         run.ask(this, {op: "state", mod: info.id}, function(p:Object):void
+         {
+            done({party: Boolean(p.party), pets: p.pets || [], items: p.items || {}});
+         });
+      }
+
+      public function giveItem(id:int, n:int = 1, done:Function = null):void
+      {
+         if (gone) return;
+         run.ask(this, {op: "item", mod: info.id, id: id, n: n}, function(p:Object):void
+         {
+            if (p.res != 1 && p.msg) RLog.log("mod: item " + id + ": " + p.msg);
+            if (done != null) done(p.res == 1 ? int(p.count) : -1);
+         });
+      }
+
+      public function playerLook(look:*, name:String = null):void
+      {
+         lookOfPlayer = look;
+         nameOfPlayer = name;
+         // The room shown puts it on at once (SandboxRoom keeps it on).
+         if (_room != null && "lookChanged" in Object(_room)) try { Object(_room).lookChanged(); } catch (e:Error) {}
       }
 
       public function log(... parts):void

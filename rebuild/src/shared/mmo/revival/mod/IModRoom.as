@@ -31,8 +31,9 @@ package mmo.revival.mod
       /**
        * A character. def:
        *   name      shown under it
-       *   look      a DisplayObject, a Class, or a race (a 亚比 of the game or of the mod)
-       *   picture   for talk(): DisplayObject or Class (default: look, when not a race)
+       *   look      a DisplayObject, a Class, a race (a 亚比 of the game or of the mod), or
+       *             (API 4) "npc:<id>": an NPC of the game (its picture in talk() too)
+       *   picture   for talk(): DisplayObject, Class or "npc:<id>" (default: look, when not a race)
        *   x, y      where it stands (its feet)
        *   scale     default 1
        *   tip       the mouse's tip (default: name)
@@ -58,5 +59,14 @@ package mmo.revival.mod
 
       /** f() when the room is left. */
       function onLeave(f:Function):void;
+
+      /**
+       * (API 4) A piece of the scene a room on the game's art is drawn with (IModGame.room's
+       * scene), found by its name ("et1", "btn_general" …), or null.
+       */
+      function part(name:String):DisplayObject;
+
+      /** (API 4) Whether x, y is off the floor: a wall of the room, or outside it. */
+      function blocked(x:Number, y:Number):Boolean;
    }
 }

@@ -326,6 +326,10 @@ export interface PetDeps {
 const STARTERS = new Set([1, 4, 7]);
 
 const EXT = "PocketMonsterExtension";
+/** A mod's party out (mods.ts): the 亚比 that must stay in the bag, and healing all refused. */
+const partyRules = (o: object) => (o as { modParty?: { keep?: number; noHeal?: string } }).modParty;
+/** A mod's 亚比 that must stay in the bag: the words when it is asked to leave it. */
+const KEEP_IN_BAG = (name: string) => `${name}必须留在亚比背包里！`;
 
 export const NO_FOLLOW = "0#0#0";
 
@@ -439,6 +443,7 @@ export function installPets(world: World, deps: PetDeps): void {
     if (i < 0) return answer(-1);
     if (loc === 0 && bag.length >= 6) return answer(-2);
     if (loc === 1 && bag.length <= 1) return answer(-3);
+    if (loc === 1 && partyRules(o)?.keep === id) return ctx.reply({ result: -4, id, loc, msg: KEEP_IN_BAG(from[i].nick || nameOf(await deps.tables(), from[i].race)) }, "2224");
     const [p] = from.splice(i, 1);
     to.push(p);
     if (loc === 1 && o.followPet === id) o.followPet = 0;
@@ -470,6 +475,7 @@ export function installPets(world: World, deps: PetDeps): void {
     const inStore = store.findIndex((p) => p.id === id);
     if (inBag < 0 && inStore < 0) return answer(-1);
     if (inBag >= 0 && bag.length <= 1) return answer(-3);
+    if (partyRules(o)?.keep === id) return ctx.reply({ result: -4, id, msg: KEEP_IN_BAG(bag[inBag].nick || nameOf(await deps.tables(), bag[inBag].race)) }, "revival_release");
     const [p] = inBag >= 0 ? bag.splice(inBag, 1) : store.splice(inStore, 1);
     p.relAt = now();
     delete p.elite;
@@ -598,6 +604,8 @@ export function installPets(world: World, deps: PetDeps): void {
   world.xt(`${EXT}.revival_heal`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
     if (inFight(world, o.id)) return ctx.reply({ ok: 0 });
+    const noHeal = partyRules(o)?.noHeal;
+    if (noHeal) return ctx.reply({ ok: 0, msg: noHeal });
     for (const p of list(o)) {
       p.hp = statsOf(p, t)[0];
       for (const s of p.skills) s.pp = s.max;

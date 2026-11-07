@@ -71,7 +71,7 @@ export function parseSandboxLevel(text: unknown, fights: (race: number) => boole
 }
 
 /** Starts the fight; false when it could not (a battle still open, no 亚比 able to fight: told in a 2303). */
-export type SandboxBegin = (ctx: XtContext, race: number, level: number, sandbox: { mul: number[] }) => Promise<boolean>;
+export type SandboxBegin = (ctx: XtContext, race: number, level: number, sandbox: { mul: number[]; keep?: number; keepText?: string }) => Promise<boolean>;
 
 export interface SandboxDeps {
   load: (ctx: XtContext) => Promise<PetOwner>;
@@ -87,7 +87,9 @@ export function installSandbox(world: World, deps: SandboxDeps): void {
     if (typeof lv === "string") return ctx.reply({ res: 0, msg: lv });
     const i = clamp(Math.floor(Number(ctx.params.i)) || 0, 0, lv.enemies.length - 1);
     const e = lv.enemies[i];
-    if (lv.heal) {
+    // A mod's party out (mods.ts): healing as it says, and the 亚比 that must not fall.
+    const party = (await deps.load(ctx) as { modParty?: { keep?: number; keepText?: string; noHeal?: string } }).modParty;
+    if (lv.heal && !party?.noHeal) {
       const o = await deps.load(ctx);
       for (const p of o.pets ?? []) {
         p.hp = statsOf(p, t)[0];
@@ -98,6 +100,6 @@ export function installSandbox(world: World, deps: SandboxDeps): void {
     // Told before the battle starts (the client then knows the opponent it waits for); a start
     // that is refused says so again, with no words of its own (the 2303 said why).
     ctx.reply({ res: 1, i, n: lv.enemies.length, race: e.race, level: e.level });
-    if (!(await deps.begin(ctx, e.race, e.level, { mul: e.mul }))) ctx.reply({ res: 0, msg: "" });
+    if (!(await deps.begin(ctx, e.race, e.level, { mul: e.mul, keep: party?.keep, keepText: party?.keepText }))) ctx.reply({ res: 0, msg: "" });
   });
 }

@@ -12,6 +12,21 @@
 //                                                             refused (also an id another mod has made known)
 //   {op: "give", mod, race, level}    -> {op, tag, res, msg}  a 亚比 for the player (the game's or one
 //                                                             the mod has made known), to the bag or the 仓库
+//   {op: "party", mod, def}           -> {op, tag, res, msg,  the mod's own 亚比 and 道具 instead of the
+//                                         pets, items}        player's (API 4; def below), the player's put
+//                                                             aside until "unparty" (or the next login)
+//   {op: "unparty", mod}              -> {op, tag, res}       the player's own back, the mod's kept for it
+//   {op: "state", mod}                -> {op, tag, res,       the 亚比 and 道具 as they are now (party: the
+//                                         party, pets, items} mod's own are out)
+//   {op: "item", mod, id, n}          -> {op, tag, res, msg,  n of the 道具 id (type 2) more (or fewer)
+//                                         count}
+//
+// A party's def (JSON text): {pets: [{race, level, keep, follow}], items: {id: n}, fresh, keepText,
+// noHeal}. keep: the 亚比 that must stay in the bag, whose fall ends a fight as lost (keepText the
+// battle's words then); follow: the one that follows the player; noHeal: healing all (the bag's
+// 恢复, the HELLO's 亚比治疗, the 治疗 of the panels) is refused with these words; fresh: a new party
+// even if the mod has one kept. While a party is out, the mod's fights (sandbox.ts) heal nobody
+// when noHeal is set.
 //
 // A mod's 亚比 (MOD_RACE_MIN–MOD_RACE_MAX) are known only while the page runs, once their mod has
 // told them: at login those the player has are put aside (modPets) and given back when their
@@ -48,12 +63,70 @@ const ownersOf = (t: PetTables) => {
   return m;
 };
 
+/** A mod's own 亚比 and 道具 (type 2), as kept while they are not out. */
+export interface ModPartyState {
+  pets: PetRecord[];
+  storage: PetRecord[];
+  released?: PetRecord[];
+  items: Record<string, number>;
+  keep?: number;
+  keepText?: string;
+  noHeal?: string;
+  /** The pet id following the player. */
+  follow?: number;
+}
+
+/** The party out: the mod's, its rules, and the player's own put aside. */
+export interface ModParty {
+  mod: string;
+  /** The pet id that must stay in the bag (its fall ends a fight). */
+  keep?: number;
+  keepText?: string;
+  /** Healing all is refused, with these words. */
+  noHeal?: string;
+  aside: { pets: PetRecord[]; storage: PetRecord[]; released: PetRecord[]; items: Record<string, number>; followPet?: number };
+}
+
 export interface ModRec extends PetOwner {
   /** Saved data by mod id (JSON text). */
   modData?: Record<string, string>;
   /** A mod's 亚比 put aside while their mod is not running: where each was (pet.mod: its mod). */
   modPets?: { pet: PetRecord; bag: boolean }[];
+  /** The mod's own 亚比 and 道具 out (IModGame.party), and those of each mod kept. */
+  modParty?: ModParty;
+  modParties?: Record<string, ModPartyState>;
+  items?: Record<string, Record<string, number>>;
 }
+
+/** A party's 亚比 at most, and 道具 counts. */
+export const PARTY_MAX = 12;
+export const ITEM_COUNT_MAX = 999;
+
+/** The player's own 亚比 and 道具 back (the mod's kept for it); false when no party is out. */
+export function endModParty(rec: ModRec): boolean {
+  const p = rec.modParty;
+  if (!p) return false;
+  (rec.modParties ??= {})[p.mod] = {
+    pets: rec.pets ?? [],
+    storage: rec.storage ?? [],
+    released: rec.released ?? [],
+    items: rec.items?.["2"] ?? {},
+    keep: p.keep,
+    keepText: p.keepText,
+    noHeal: p.noHeal,
+    follow: rec.followPet,
+  };
+  rec.pets = p.aside.pets;
+  rec.storage = p.aside.storage;
+  rec.released = p.aside.released;
+  (rec.items ??= {})["2"] = p.aside.items;
+  rec.followPet = p.aside.followPet ?? 0;
+  delete rec.modParty;
+  return true;
+}
+
+/** The rules of the party out, for the other modules (battle, pets): keep, noHeal. */
+export const partyOf = (o: object): ModParty | undefined => (o as ModRec).modParty;
 
 export interface ModDeps<R extends ModRec> {
   load: (ctx: XtContext) => Promise<R>;
@@ -62,6 +135,12 @@ export interface ModDeps<R extends ModRec> {
   today: () => string;
   /** A mod may give 亚比 (off where the 工具箱 is closed: game.ts toolbox). */
   gifts?: boolean;
+  /** Whether a 道具 (type 2) is the game's. */
+  isItem?: (id: number) => Promise<boolean>;
+  /** The 亚比 following the player changed (null: none): the room's follow variable. */
+  follow?: (ctx: XtContext, rec: R, pet: PetRecord | null) => void;
+  /** Fills a pet's derived fields (HP) as the bag shows them. */
+  maxHp?: (pet: PetRecord, t: PetTables) => number;
 }
 
 export const isModRace = (race: number) => race >= MOD_RACE_MIN && race <= MOD_RACE_MAX;
@@ -174,6 +253,104 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       }
       const def = { id: sp.id, name: sp.name, attr: sp.attr, stats: sp.stats, skills: sp.learn, exp: sp.exp };
       return reply({ res: 1, back: back.length, def: JSON.stringify(def) });
+    }
+    if (op === "party" || op === "unparty" || op === "state" || op === "item") {
+      if (!isModId(mod)) return reply({ res: 0, msg: "模组的编号不对" });
+      const t = await deps.tables();
+      const state = () => {
+        const view = (p: PetRecord, bag: boolean) => ({ id: p.id, race: p.race, level: p.level, hp: p.hp, maxHp: deps.maxHp ? deps.maxHp(p, t) : p.hp, bag, keep: rec.modParty?.keep === p.id });
+        return {
+          party: rec.modParty?.mod === mod,
+          pets: [...(rec.pets ?? []).map((p) => view(p, true)), ...(rec.storage ?? []).map((p) => view(p, false))],
+          items: { ...(rec.items?.["2"] ?? {}) },
+        };
+      };
+      const followNow = () => deps.follow?.(ctx, rec, (rec.pets ?? []).find((p) => p.id === rec.followPet) ?? null);
+      if (op === "state") return reply({ res: 1, ...state() });
+      if (op === "unparty") {
+        if (rec.modParty?.mod === mod) {
+          endModParty(rec);
+          await deps.save(rec);
+          followNow();
+        }
+        return reply({ res: 1 });
+      }
+      if (op === "item") {
+        if (deps.gifts === false) return reply({ res: 0, msg: "这个服务器上，模组不能送道具。" });
+        const id = Math.floor(Number(p.id));
+        const n = Math.max(-ITEM_COUNT_MAX, Math.min(ITEM_COUNT_MAX, Math.floor(Number(p.n)) || 0));
+        if (!(id > 0) || !(await (deps.isItem?.(id) ?? Promise.resolve(true)))) return reply({ res: 0, msg: "游戏里没有这个道具" });
+        const bag = ((rec.items ??= {})["2"] ??= {});
+        const before = bag[String(id)] ?? 0;
+        const now = Math.max(0, Math.min(ITEM_COUNT_MAX, before + n));
+        if (now) bag[String(id)] = now;
+        else delete bag[String(id)];
+        await deps.save(rec);
+        if (now !== before) ctx.reply({ amount: `2_${id}_0_${now - before}` }, "onAmountUpdated");
+        return reply({ res: 1, count: now });
+      }
+      // party
+      if (deps.gifts === false) return reply({ res: 0, msg: "这个服务器上，模组不能带自己的亚比。" });
+      let def: Record<string, unknown>;
+      try {
+        def = JSON.parse(String(p.def ?? "{}")) ?? {};
+      } catch {
+        return reply({ res: 0, msg: "队伍的定义不对" });
+      }
+      const fresh = def.fresh === true;
+      if (rec.modParty && rec.modParty.mod !== mod) endModParty(rec);
+      if (rec.modParty?.mod === mod && !fresh) {
+        followNow();
+        return reply({ res: 1, ...state() });
+      }
+      const kept = fresh ? undefined : rec.modParties?.[mod];
+      let made: ModPartyState;
+      if (kept) made = kept;
+      else {
+        const list = Array.isArray(def.pets) ? def.pets.slice(0, PARTY_MAX) : [];
+        if (!list.length) return reply({ res: 0, msg: "队伍里没有亚比" });
+        made = { pets: [], storage: [], items: {} };
+        for (const d of list as Record<string, unknown>[]) {
+          const race = Math.floor(Number(d?.race));
+          const level = Math.max(1, Math.min(MOD_LEVEL_MAX, Math.floor(Number(d?.level)) || 1));
+          if (!Object.hasOwn(t.pm.species, String(race))) return reply({ res: 0, msg: `游戏里没有亚比${race}` });
+          if (isModRace(race) && ownersOf(t).get(race) !== mod) return reply({ res: 0, msg: "这个亚比不是这个模组的" });
+          const pet = newPet(rec, t, race, level, deps.today());
+          if (isModRace(race)) pet.mod = mod;
+          if (pet.iv) pet.iv = pet.iv.map((v) => Math.min(MAX_IV, v));
+          (made.pets.length < BAG_MAX ? made.pets : made.storage).push(pet);
+          if (d.keep === true && made.keep === undefined) made.keep = pet.id;
+          if (d.follow === true) made.follow = pet.id;
+        }
+        for (const [id, n] of Object.entries((def.items ?? {}) as Record<string, unknown>)) {
+          const k = Math.floor(Number(id));
+          const v = Math.max(0, Math.min(ITEM_COUNT_MAX, Math.floor(Number(n)) || 0));
+          if (k > 0 && v > 0 && (await (deps.isItem?.(k) ?? Promise.resolve(true)))) made.items[String(k)] = v;
+        }
+        made.keepText = def.keepText ? String(def.keepText).slice(0, 100) : undefined;
+        made.noHeal = def.noHeal ? String(def.noHeal).slice(0, 100) : undefined;
+      }
+      if (rec.modParty?.mod === mod) {
+        // fresh: the party out is dropped; the player's own stay aside.
+        delete rec.modParty.keep;
+      } else {
+        rec.modParty = {
+          mod,
+          aside: { pets: rec.pets ?? [], storage: rec.storage ?? [], released: rec.released ?? [], items: rec.items?.["2"] ?? {}, followPet: rec.followPet },
+        };
+      }
+      rec.modParty.keep = made.keep;
+      rec.modParty.keepText = made.keepText;
+      rec.modParty.noHeal = made.noHeal;
+      rec.pets = made.pets;
+      rec.storage = made.storage;
+      rec.released = made.released ?? [];
+      (rec.items ??= {})["2"] = made.items;
+      rec.followPet = (rec.pets ?? []).some((q) => q.id === made.follow) ? made.follow : 0;
+      if (rec.modParties) delete rec.modParties[mod];
+      await deps.save(rec);
+      followNow();
+      return reply({ res: 1, ...state() });
     }
     if (op === "give") {
       if (deps.gifts === false) return reply({ res: 0, msg: "这个服务器上，模组不能送亚比。" });
