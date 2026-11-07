@@ -56,6 +56,7 @@ import {
   type PetTables,
 } from "./pets.ts";
 import { PET_CARD, PET_CARDS, cardDrop } from "./petcards.ts";
+import { costumeDrop, GUARDIAN_SUITS, WUSHEN_RACES, WUSHEN_SUIT } from "./costumes.ts";
 import { installSandbox } from "./sandbox.ts";
 import { applyFate, dollLevel, gymOf, gymWon, installGyms, mazeDoll, rollFate, towerFloorWon, waterAttacker, waterRunEnd, GYM_DARK, WATER_BLESS, WATER_ROUNDS, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
 import { sceneOfRoom, type World, type XtContext } from "./server.ts";
@@ -217,6 +218,11 @@ export interface Battle {
   nextHeal?: boolean[];
   /** The side a skill forces to switch (威吓: 强制对方单体替换亚比战斗); the battle's turn does it. */
   forceOut?: 0 | 1;
+  /**
+   * An activity boss's own trait, at the end of each round: knocks out the player's 亚比 every
+   * killEvery rounds ("每5回合会秒掉你一只亚比"), gets back healFrac of its 体力 ("每回合会恢复部分血量").
+   */
+  boss?: { killEvery?: number; healFrac?: number };
 }
 
 export type Msg = [cmd: string, body: Record<string, unknown>];
@@ -1571,6 +1577,14 @@ export class BattleEngine {
       else if (d.kind === "hpTo1") lose(f, f.pet.hp - 1);
     }
     if (b.delayed) b.delayed = b.delayed.filter((d) => d.left >= 0);
+    // An activity boss's trait (Battle.boss).
+    if (b.boss && b.wild.pet.hp > 0) {
+      const foe = petName(this.t, b.wild);
+      if (b.boss.healFrac) gain(b.wild, b.wild.stats[0] * b.boss.healFrac, `${foe}恢复了部分体力！`);
+      if (b.boss.killEvery && (b.turn + 1) % b.boss.killEvery === 0 && b.mine.pet.hp > 0) {
+        lose(b.mine, b.mine.pet.hp, `${foe}秒杀了${petName(this.t, b.mine)}！`);
+      }
+    }
     // Turns run out.
     for (const f of [b.mine, b.wild]) {
       for (const x of f.timed) {
@@ -1845,6 +1859,8 @@ export interface ActFight {
   adjust?: (b: Battle) => void;
   /** 亚比 that come out one after another when the first falls (an activity boss's helpers). */
   team?: { race: number; level: number }[];
+  /** The boss's trait (Battle.boss). */
+  boss?: Battle["boss"];
 }
 export type ActFightSpec = (ctx: XtContext, o: PetOwner, t: PetTables) => Promise<ActFight | string> | ActFight | string;
 const ACT_FIGHTS = new WeakMap<World, Map<number, ActFightSpec>>();
@@ -1854,6 +1870,23 @@ export function addActFight(world: World, type: number, spec: ActFightSpec): voi
   let m = ACT_FIGHTS.get(world);
   if (!m) ACT_FIGHTS.set(world, (m = new Map()));
   m.set(type, spec);
+}
+const HANDLER_FIGHTS = new WeakMap<World, Map<string, ActFightSpec>>();
+/**
+ * A fight of the activity panels of 2013 that start type 99 with the activity's handler
+ * ({handler: "BW0118"}, {handler: "holiday.NWKChallenge", t, id}): each module adds its own.
+ */
+export function addHandlerFight(world: World, handler: string, spec: ActFightSpec): void {
+  let m = HANDLER_FIGHTS.get(world);
+  if (!m) {
+    const all = (m = new Map());
+    HANDLER_FIGHTS.set(world, all);
+    addActFight(world, 99, (ctx, o, t) => {
+      const h = all.get(String(ctx.params.handler ?? ""));
+      return h ? h(ctx, o, t) : "这个挑战现在还不能进行哦！";
+    });
+  }
+  m.set(handler, spec);
 }
 /**
  * The 守护者 of BossTimeHelper.bossTimeConfig (2013 interfaces): each scene's boss forms as
@@ -2296,9 +2329,13 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const team = (f.team ?? []).filter((m) => speciesOf(t, m.race)).map((m) => makePet(t, m.race, Math.max(1, Math.min(100, m.level)), deps.today()));
       const adjust = (b: Battle) => {
         if (team.length) b.foes = team;
+        if (f.boss) b.boss = f.boss;
         f.adjust?.(b);
       };
-      return void (await begin(ctx, f.race, f.level, false, f.onWin ? (owner) => f.onWin!(owner, t) : undefined, f.asked, f.onLose ? (owner) => f.onLose!(owner, t) : undefined, undefined, undefined, adjust));
+      // 武神服装: the generals of 武神大陆 now and then leave a part of the 武神套装 (costumes.ts).
+      const suit = WUSHEN_RACES.includes(f.race) ? WUSHEN_SUIT : undefined;
+      const onWin = f.onWin || suit !== undefined ? (owner: PetOwner) => [...(f.onWin?.(owner, t) ?? []), ...costumeDrop(owner as never, suit, deps.rng ?? Math.random)] : undefined;
+      return void (await begin(ctx, f.race, f.level, false, onWin, f.asked, f.onLose ? (owner) => f.onLose!(owner, t) : undefined, undefined, undefined, adjust));
     }
     if (type !== FIGHT_IN_NPCCHALLENGE) {
       // A kind of fight not played here: the panel is told (2303 with msg: PetFightEvent.ENTER_FIGHT_FAIL),
@@ -2612,6 +2649,13 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ res: true, pid: pet.id, sid }, "54e_5");
   });
 
+  // 传送核心 (scene/maintown1): before 维克's talk 356 (the task action 13_356_checkPM) the room asks
+  // 54e_19 {} -> {lv}, the highest level of the bag's 亚比 ("要有一只80级以上的亚比…"; RECONSTRUCTED).
+  world.xt("PetExtension2.54e_19", async (ctx) => {
+    const o = await deps.load(ctx);
+    ctx.reply({ lv: Math.max(0, ...(o.pets ?? []).map((p) => p.level)) }, "54e_19");
+  });
+
   // 友人契约书's panel (activityres/activity121018/friendcontract): 54_19 {} -> {bo: "id,id"}, the
   // bosses' marks the player has won (1257: 友人契约书 beaten, its egg film then not shown again).
   world.xt("PetExtension.54_19", async (ctx) => {
@@ -2644,6 +2688,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
         cards[String(card)] = (cards[String(card)] ?? 0) + 1;
         out.push(["onAmountUpdated", { amount: `${PET_CARD}_${card}_0_1` }], [NOTE, { text: `获得了战术卡「${PET_CARDS[card].name}」！`, bn: { type: PET_CARD, id: card, num: 1 } }]);
       }
+      // 守护者服装: now and then a part of the 守护者's suit (costumes.ts).
+      out.push(...costumeDrop(o as never, GUARDIAN_SUITS[species], deps.rng ?? Math.random));
       let again = false;
       if (mark) {
         const marks = ((o as { bossMarks?: number[] }).bossMarks ??= []);

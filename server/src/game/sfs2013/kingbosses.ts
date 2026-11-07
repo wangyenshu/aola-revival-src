@@ -14,7 +14,7 @@
 //        修罗's 光之祝福 双攻 +150, 体力 +200; 凯撒's 暗之祝福 双防 +150, 体力 +200, on the 亚比 that fights
 //   0118BW_buy {index}   -> {res}    "星币的强大力量可以帮助你直接获得修罗": 200 星币 for the 亚比蛋 (伊修
 //        730, 阿凯 727; res 1, else the day's limit)
-//   54_22 {type: 99, handler: "BW0118", index}   the fight (battle.ts addActFight)
+//   54_22 {type: 99, handler: "BW0118", index}   the fight (battle.ts addHandlerFight)
 // 召唤奇灵王, HolidayExtension:
 //   0201qiling_panel {}    -> {info: "red:blue:green:state"}   each 奇灵玉 got (1), and the state: 0
 //        not all three, 1 all three, 2 奇灵王 called (its 亚比蛋 got), 3 the 终极挑战 won
@@ -27,7 +27,7 @@
 // 终极挑战 at Lv120) are RECONSTRUCTED; the purple titles the Lv120 wins gave (修罗终结者, 凯撒终结者,
 // 奇灵王者) are not kept (the revival has no titles). The eggs go into the 亚比孵化器 (eggs.ts).
 
-import { addActFight, type Battle } from "./battle.ts";
+import { addHandlerFight, type Battle } from "./battle.ts";
 import type { PetOwner } from "./pets.ts";
 import type { World, XtContext } from "./server.ts";
 import { eggNow } from "./sevenstar.ts";
@@ -137,58 +137,56 @@ export function installKingBosses(world: World, deps: KingDeps): void {
     b.mine.pet.hp += BLESSING.hp;
   };
 
-  addActFight(world, 99, (ctx, owner) => {
+  addHandlerFight(world, "BW0118", (ctx, owner) => {
     const o = owner as KingOwner;
-    const handler = String(ctx.params.handler ?? "");
     const index = Number(ctx.params.index) | 0;
-    if (handler === "BW0118") {
-      const boss = BW_BOSSES[index];
-      if (!boss) return "这个挑战现在还不能进行哦！";
-      const r = bwOf(o, boss.index);
-      const status = r.status ?? 0;
-      if (status >= 2) return "你已经战胜了它并获得了亚比蛋和称号！";
-      return {
-        race: boss.race,
-        level: BW_LEVELS[status],
-        adjust: (r.until ?? 0) > deps.now() ? blessing(boss.up) : undefined,
-        onWin: (w) => {
-          const rec = bwOf(w as KingOwner, boss.index);
-          const was = rec.status ?? 0;
-          rec.status = Math.min(2, was + 1);
-          return was === 0 ? eggNow(w as KingOwner, boss.egg) : [];
-        },
-      };
-    }
-    if (handler === "qiling0201") {
-      const q = recOf(o).qiling ?? {};
-      if (index === 3) {
-        if (!q.called) return "集齐三色奇灵玉才能召唤奇灵王哦！快去挑战吧！";
-        if (q.won) return "你已经通过终极挑战了哦！";
-        return {
-          race: QILING.race,
-          level: QILING.final,
-          onWin: (w) => {
-            ((recOf(w as KingOwner).qiling ??= {})).won = true;
-            return [];
-          },
-        };
-      }
-      const stone = QILING.stones[index];
-      if (stone === undefined) return "这个挑战现在还不能进行哦！";
+    const boss = BW_BOSSES[index];
+    if (!boss) return "这个挑战现在还不能进行哦！";
+    const r = bwOf(o, boss.index);
+    const status = r.status ?? 0;
+    if (status >= 2) return "你已经战胜了它并获得了亚比蛋和称号！";
+    return {
+      race: boss.race,
+      level: BW_LEVELS[status],
+      adjust: (r.until ?? 0) > deps.now() ? blessing(boss.up) : undefined,
+      onWin: (w) => {
+        const rec = bwOf(w as KingOwner, boss.index);
+        const was = rec.status ?? 0;
+        rec.status = Math.min(2, was + 1);
+        return was === 0 ? eggNow(w as KingOwner, boss.egg) : [];
+      },
+    };
+  });
+  addHandlerFight(world, "qiling0201", (ctx, owner) => {
+    const o = owner as KingOwner;
+    const index = Number(ctx.params.index) | 0;
+    const q = recOf(o).qiling ?? {};
+    if (index === 3) {
+      if (!q.called) return "集齐三色奇灵玉才能召唤奇灵王哦！快去挑战吧！";
+      if (q.won) return "你已经通过终极挑战了哦！";
       return {
         race: QILING.race,
-        level: QILING.levels[index],
+        level: QILING.final,
         onWin: (w) => {
-          const k = w as KingOwner;
-          const qq = (recOf(k).qiling ??= {});
-          (qq.passed ??= [false, false, false])[index] = true;
-          if (qq.called || stoneOwned(k, stone)) return [];
-          const bag = ((k.items ??= {})["2"] ??= {});
-          bag[String(stone)] = 1;
-          return [["onAmountUpdated", { amount: `2_${stone}_0_1` }]];
+          ((recOf(w as KingOwner).qiling ??= {})).won = true;
+          return [];
         },
       };
     }
-    return "这个挑战现在还不能进行哦！";
+    const stone = QILING.stones[index];
+    if (stone === undefined) return "这个挑战现在还不能进行哦！";
+    return {
+      race: QILING.race,
+      level: QILING.levels[index],
+      onWin: (w) => {
+        const k = w as KingOwner;
+        const qq = (recOf(k).qiling ??= {});
+        (qq.passed ??= [false, false, false])[index] = true;
+        if (qq.called || stoneOwned(k, stone)) return [];
+        const bag = ((k.items ??= {})["2"] ??= {});
+        bag[String(stone)] = 1;
+        return [["onAmountUpdated", { amount: `2_${stone}_0_1` }]];
+      },
+    };
   });
 }

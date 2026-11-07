@@ -69,3 +69,4 @@ pet/pmservice
 # The pet bag's 道具 page and the HELLO物品 page: rebuilt (all.sh).
 pet/petitem
 robot/robotitem
+pet/petridepanel

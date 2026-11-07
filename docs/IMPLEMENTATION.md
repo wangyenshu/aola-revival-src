@@ -174,6 +174,8 @@ extension name and command (`PetExtension.54_16`).
 | `gyms.ts` | the 道馆 |
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |
 | `sevenstar.ts`, `kingbosses.ts`, `fightking.ts` | 黑暗三连星 and 魔将挑战; 修罗, 凯撒 and 召唤奇灵王; 武神大陆 (their fights through `54_22` and `addActFight`) |
+| `wnking.ts` | 狼王再现 and 夜王回归 (February 2013): the 分身's fights, the 光之星 / 幽之星, 召唤狼王 / 召唤夜王, the 终极试炼 |
+| `costumes.ts` | the 2012 套装 the 守护者 and 武神大陆's generals leave a part of |
 | `godbosses.ts` | 天空之神 (拉诺斯), 施瓦辛格, 波塞冬 and 魔龙之战 (赤翼魔龙王), with the helpers that come out after the boss (`ActFight.team`) |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
@@ -223,6 +225,11 @@ The 2013 server's rules are lost. The main reconstructions:
   1,000 a day); 副本 levels, chests, pay and rating; the 道馆 skill stones;
   the 财富小管家's interest (its later panel's words); prices in 星币 for
   real-money goods (half for 蓝宝石).
+- **套装 parts**: a 守护者 of a known 套装 (its 2012 costume, from the
+  material table's names) or a general of 武神大陆 leaves a part of it not
+  yet had one win in five (`COSTUME_CHANCE`).
+- **大战TT兔**: 1 + 2 + … 积分 for the 关 passed (what its end panel shows),
+  20 of them for 糖糖 (the game's own text), once.
 - **礼包**: opened when bought (the 2013 client has no command to open
   one); what each holds comes from its 2013 description or catalog page.
 
@@ -268,7 +275,7 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 
 | Folder | Module |
 | --- | --- |
-| `control` | the control bar, the engine classes (see above), the 工具箱, the 沙盒, the 物品 panel, the place picker, the debug hook |
+| `control` | the control bar (its icons cut from the 2012 picture of it in the 小屋 tutorial film, `ShotIcons`), the engine classes (see above), the 工具箱, the 沙盒, the 物品 panel, the place picker, the debug hook |
 | `play`, `login` | the boot modules |
 | `shared` | code compiled into several modules: `mmo.revival.*` (logging, JSON, base64, UI drawing, `RDef`), the mod API `mmo.revival.mod` |
 | `scenes` | rebuilt scenes: 奥拉广场 and 流星购物街 (`starland`), 主题公园, 亚比研究中心, 奥拉之树, 生态园, 十字大道, 图书馆, 欢乐岛, 烈焰洞穴 (`feier4`), 崩坏的上古神殿 (`temple1`), 道具店, 奇草树林, the 沙盒 room |
@@ -286,6 +293,9 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 | `shoot`, `shooteffect` | 射击 (later code on the 2013 interfaces) |
 | `usercard`, `face`, `scenetalk`, `helloicon`, `robotmanager`, `map`, `weekly`, `notifyview`, `scenearrow`, `sceneinit`, `antiaddiction`, `yakestarpanel` | the player card, faces, chat, the HELLO, the world map, the 奥拉周刊, notices, scene arrows, scene music, the play-time limit (never reached), 巨锁石灵's panel |
 | `starcoin` | fortunemanager/starcoin (the later copy): the 星币 machine's exchange panel (奥币铸造星币, 碎片铸造星币, the 财富小管家's 晶豆储蓄), its code on the 2013 libraries without the real-money 购买星币 panel; fortunemanager/fortunemanager (later) is served as it is |
+| `wnking` | 狼王再现 and 夜王回归 (activity130221/wolfandnightking, 2016) on the 2013 libraries |
+| `petridepanel` | 亚比骑乘训练 (pet/petridepanel, its 2021 copy) on the 2013 libraries |
+| `helloskillicons` | the HELLO menu's skill icons, from the HELLO's own panels of 2012 (`robot/revival/helloskillicons`) |
 | `abyssevil` | 魔龙之战's panel (activity121220/abyssevilmainpanel, 2015) on the 2013 libraries, without the later buff bar |
 
 ### Stand-ins
@@ -318,7 +328,7 @@ the 2013 libraries do not have. They are handled in these ways:
 
 ### Build output
 
-`npm run build:swf` writes 257 files into `build/rebuilt/` at their 2013 URLs.
+`npm run build:swf` writes 286 files into `build/rebuilt/` at their 2013 URLs.
 The static build serves `build/rebuilt/` above `game/`: a rebuilt file
 replaces the original of the same path.
 
@@ -426,7 +436,12 @@ show the buttons were (拉诺斯 in 天神圣殿, whose 2012 room has none) and 
 activity's boss may bring helpers that come out one after another (`ActFight.team`, sent
 as the opponent's switch, `2413` with `foe`). The 道馆's 最强防御PK战 (局 won by standing
 their rounds, `Battle.insist`, sent by the rebuilt `insistFight`) and 玩偶迷阵 are
-`gyms.ts`'s. The battle screen puts the open panels away when a battle starts
+`gyms.ts`'s. 狼王再现 and 夜王回归 (`wnking.ts`) are the module of their 2016 copy
+(`activity130221/wolfandnightking`) compiled against the 2013 libraries without its
+later features, on the art of its own and its 2013–16 panels, opened by 狼王迪洛斯 and
+夜王狄米特 at 魂塔顶端; their fights come through `addHandlerFight` (`54_22 {type: 99,
+handler}`), and a 分身's trick (one of the player's 亚比 felled every fifth round, or
+health back each round) is `Battle.boss`. The battle screen puts the open panels away when a battle starts
 (`ModalDialogManager.clearAll`, as the era fight did); they show themselves again
 at its end.
 

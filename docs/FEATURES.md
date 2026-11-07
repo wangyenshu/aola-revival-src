@@ -6,9 +6,9 @@ as in the game; room ids (`aixiscene2`) are those of the 2013 `config.xml`.
 Status marks used below:
 
 - **可用**: works as in 2012, or as close to it as the surviving files allow.
-- **不可用**: the button exists but shows 这个功能还在修复中 or a message.
-- **未验证**: the panel opens, but the function was not checked from start
-  to end.
+- **部分**: some of it works; the note says what does not.
+- **不可用**: the button exists but shows 这个功能还在修复中 or a message, or
+  the place's surviving file has no button for it.
 
 Values the 2013 server decided (levels, rewards, odds, limits) are lost and
 were reconstructed; [IMPLEMENTATION.md](IMPLEMENTATION.md) explains how.
@@ -315,27 +315,27 @@ The 功能 the 2012 world map lists for each place:
 | 地点 | 功能 | 状态 |
 | --- | --- | --- |
 | 指挥中心 | 新手报到 | 可用 (the newbie quest) |
-| 指挥中心 | 指挥航行、管理星球 | 未验证 |
+| 指挥中心 | 指挥航行、管理星球 | 不可用 (the room's surviving file is later and has no button for them) |
 | 传送核心 | 异星传送枢纽 | 可用 (opens the world map) |
 | 传送核心 | 冒险协会 | 不可用 |
-| 传送核心 | 奥拉之辉融合 | 未验证 |
+| 传送核心 | 奥拉之辉融合 | 部分 (a step of the quests 257 and 258, whose scripts are lost) |
 | 极速俱乐部 | 教官先锋队 | 不可用 (its talk works; joining does not) |
-| 主题公园 | 舞会神秘来客、疯狂可乐盖、小问大冒险 | 未验证 |
+| 主题公园 | 舞会神秘来客、疯狂可乐盖、小问大冒险 | 不可用 (the redrawn room has no buttons for them; 小问大冒险's panel survives but is a timed game of several players) |
 | 生态园 | 捕捉小动物 (动物捕捉: its panel with 购买道具 and the map of 大地乐园, 天空乐园, 海洋乐园, 狗狗之家; the 捕鱼 spot its 海洋乐园) | 可用 |
 | 生态园 | 动物协会 | 不可用 |
-| 生态园 | 狗狗之家 | 未验证 |
+| 生态园 | 狗狗之家 | 可用 (the fourth map of 动物捕捉) |
 | 奥拉广场 | 财富小管家 | 可用 (the later machine's panel: 晶豆储蓄, 奥币铸造星币, 碎片铸造星币) |
-| 奥拉广场 | 设置密码保护、最强训练师召集令 | 未验证 |
+| 奥拉广场 | 设置密码保护、最强训练师召集令 | 不可用 (the redrawn room has no buttons for them) |
 | HELLO学院 | HELLO技能学习 | 可用 |
 | 十字大道 | 爱心捐赠、爱心领取 | 可用 |
 | 十字大道 | 星际兑换机 | 不可用 |
 | 太空港 | 组建战队、执行战队任务、发布招募信息、战队荣誉排行 | 不可用 |
 | 银河商会 | 职业亚比进化 | 可用 |
 | 银河商会 | 星际航线 | 不可用 |
-| 银河商会 | 乔布斯的宝藏 | 未验证 |
+| 银河商会 | 乔布斯的宝藏 | 不可用 (its 2012 panel is lost) |
 | 蓝宝石要塞 | 蓝宝石礼包派送 | 可用 |
-| 蓝宝石要塞 | 亚比骑乘训练 | 不可用 (riding itself works, see below) |
-| 蓝宝石要塞 | 财富小管家、祈愿图腾 | 未验证 |
+| 蓝宝石要塞 | 亚比骑乘训练 | 可用 (训练官卢卡斯's 坐骑训练机, its panel of 2021; every 亚比 of the ride list is a 坐骑 without training, so it answers 你选择的亚比已经训练过了) |
+| 蓝宝石要塞 | 财富小管家、祈愿图腾 | 部分 (the room is a later copy without them; the 财富小管家 works in 奥拉广场) |
 | 奥拉之树 | 星愿气球、奥拉星历史漫画 | 可用 |
 | 战斗星域 | 亚比对战空间 | 不可用 (the room's own function is lost; 亚比对战 is on the 信息卡 in 联机模式) |
 | 流星购物街 | 购买服装、家具、道具和树苗 | 可用 |
@@ -345,26 +345,27 @@ The 功能 the 2012 world map lists for each place:
 | 亚比研究中心 | 亚比超进化 | 不可用 |
 | 星光游乐场 | 欢乐券兑换 | 可用 |
 | 欢乐岛 | 亚比成长计划、百田卡通大剧院 | 可用 |
-| 欢乐岛 | 魔法秋游 | 未验证 |
+| 欢乐岛 | 魔法秋游 | 不可用 (the room is of December 2012, after the 秋游, and has no button for it) |
 | 百田大剧场 | 观看卡通片 | 可用 (the two 奥拉星 films that survive) |
 | 亚比协会 | 亚比协会 | 不可用 |
 | 上古神殿 | 龙族力量、小雪球成长记、赤羽修行者修炼台 | 不可用 (their panels are lost) |
 | 大地迷城 | 挑战友人契约书 | 可用 |
 | 糖果星 | 小白吐获得、守护者超T兔 | 可用 |
-| 糖果星 | 糖糖获得 | 未验证 |
+| 糖果星 | 糖糖获得 | 可用 (大战TT兔: each game gives 1 + 2 + … 积分 for the 关 passed; 20 积分 for 糖糖, once) |
 | 骑士王国 | 骑士王座 | 可用 |
-| M7星云 | 传说斗士、万龙之王 | 未验证 |
+| M7星云 | 传说斗士、万龙之王 | 不可用 (唤醒传说斗士 of December 2012 was a button of 古代遗迹, whose surviving file is of August 2013; 万龙之王 was a 2012 充值活动) |
 | 惊雷道馆 | 踢馆！挑战幻雷！、雷霆之塔 | 可用 |
-| 惊雷道馆 | 幻雷的试炼 | 未验证 |
+| 惊雷道馆 | 幻雷的试炼 | 可用 |
 | 炼火道馆 | 踢馆！挑战幻炎！ | 可用 |
-| 炼火道馆 | 最强力量PK战、爆发力大冲击 | 未验证 |
+| 炼火道馆 | 爆发力大冲击 | 可用 |
+| 炼火道馆 | 最强力量PK战 | 不可用 (its panel opens empty; its fights, record, 祝福 and rewards are not answered) |
 | 御水道馆 | 踢馆！挑战幻流！ | 可用 |
-| 御水道馆 | 幻流特训营 | 未验证 |
+| 御水道馆 | 幻流特训营 | 可用 |
 | 御水道馆 | 最强防御pk战 | 可用 (30 局 standing a number of rounds with the first 亚比; the day's rewards at 5, 10, 15, 20 局) |
 | 命运道馆 | 踢馆！挑战幻冥！、命运玩偶 | 可用 |
 | 命运道馆 | 玩偶迷阵 | 可用 (命运玩偶 one after another, 幻冥's 战斗祝福 on both sides; the run's 战斗力评价 and its rewards) |
 | 光明道馆 | 踢馆！挑战幻光、友情的试炼 | 不可用 (need a team of two and a friend's 亚比) |
-| 光明道馆 | 我的伙伴我做主 | 未验证 |
+| 光明道馆 | 我的伙伴我做主 | 不可用 (its panel opens empty; its mini game's 积分 and the 幻光 bought for 10000 of them are not answered) |
 
 ### Activities of the planets
 
@@ -387,6 +388,7 @@ The 功能 the 2012 world map lists for each place:
 | 地之神兽 施瓦辛格 (with one or two of 雏菊仙子, 莫莫亚特, 友人契约书, 多古拉伯爵; five tries a day; or 200 星币) | 零时迷城 (施瓦辛格 offers it) | 辛格's egg |
 | 海洋之神 波塞冬 (five tries a day; or 200 星币) | 海洋神域 (波塞冬 offers it) | 波塞's egg |
 | 魔龙之战 (赤翼魔龙王's three 分身 in turn, five tries a day; or the three 魂石 for 星币) | 深渊魔域 (赤翼魔龙王 offers it) | 小魔龙's egg |
+| 狼王再现, 夜王回归 (February 2013: three 分身 each, Lv80, 90 and 100, for the three 剑魂 or 封印, or 70–130 星币 each; a lost fight with the first lights a 光之星 or 幽之星, one a day, and three give its item; then 召唤狼王 / 召唤夜王; with both, the 终极试炼 against the two kings at Lv100, five tries a day) | 魂塔顶端 (狼王迪洛斯 and 夜王狄米特 offer them) | 洛洛's, 小夜's egg |
 | 武神战争: 黄巾军旗 (黄巾战魂 from 恶人山道's 黄巾小兵; 注入 to make a 黄巾小兵 张角 or 张梁), 关羽, 赵云, 张飞, 诸葛亮, 吕布, 刘备, 将军令 (five a day), 将军榜 | 武神大陆 | the generals' eggs |
 
 The wild 亚比 of these planets drop the items the activities need (弹珠,
@@ -623,7 +625,10 @@ Each boss stands in its room as its own picture (or dressed as its 亚比 where
 the picture is lost), wakes, talks and fights as in the later client. A
 click offers the fight; the forms are fought in order, a loss starts again
 from the first, and beating the last form gives the 亚比蛋 of the boss's
-line. Bosses cannot be caught. In the 形态 column, the number before each
+line. Bosses cannot be caught. A 守护者 whose 2012 套装 is known (金刚库巴,
+冰霜之王 and 12 others), and the generals of 武神大陆 (the 武神套装), sometimes
+leave a part of it the player has not got (one win in five, RECONSTRUCTED),
+shown at the end of the battle. In the 形态 column, the number before each
 name is the battle id (variant × 10000 + species). The levels come from the
 2013 boss table (`BossTimeHelper`) where a boss is in it; the others are
 estimates.
@@ -948,13 +953,15 @@ run pays 晶豆, as its end panel says.
 ### Interface and world
 
 - The control bar of December 2011 with its phrases, faces, actions, chat
-  log and music switch; the player card and wardrobe; the 物品 panel.
+  log and music switch (its icons cut from the 2012 house tutorial film's
+  picture of the bar); the player card and wardrobe; the 物品 panel.
 - The world map of November 2012.
 - Walking round obstacles; other players and their 亚比 drawn in rooms.
 - Each room's music, and battle music; the game's music up to the end of 2014
   (100 pieces, those after January 2013 from the later game's files), any of
   them played from the 工具箱.
-- The HELLO walking behind the player.
+- The HELLO walking behind the player; its menu's skills with the 2012
+  icons of the HELLO's own panels.
 - Gathering in the 27 rooms with gathering points.
 - 射击 with 射击卡 and their effects.
 - The 奥拉周刊 of every week from July 2010 (126 issues) and the 亚比手册 in the
@@ -975,13 +982,13 @@ run pays 晶豆, as its end panel says.
 - Daily tasks, the NPC guide.
 - Most time-limited activities of 2012–13 (their panels show
   这个功能还在修复中). Not recovered, their files lost: 星际寻宝, the 四灵兽挑战 and the
-  终极道馆 (only later re-runs of 2013–15 survive); 黑炎龙 (January 2013: only a 2015 panel
+  终极道馆 (only later re-runs of 2013–15 survive: the 四灵兽挑战 file is the
+  September 2013 one); 黑炎龙 (January 2013: only a 2015 panel
   much changed survives, and 夜影之渊's button for it is lost); 永夜三巨头 (红魔, 绿焰, 紫渊:
-  a team of two or more, its team panel lost). 狼王 and 夜王 (activity130221/wolfandnightking,
-  February 2013) survive and are not yet recovered. The titles some activities gave (修罗终结者,
+  a team of two or more, its team panel lost). The titles some activities gave (修罗终结者,
   奇灵王者, 镇蜀大将军) are not kept.
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
-  亚比骑乘训练, 上古神殿's panels, 模拟空间.
+  上古神殿's panels, 模拟空间.
 - Quests that call services that are still stand-ins may stop partway.
 - 风暴星系's two mini games, 天降神饼 (斗魂平原) and 斗魂小星猴 (虚无长廊): the
   games and their start panels are there, but the surviving (later) files of

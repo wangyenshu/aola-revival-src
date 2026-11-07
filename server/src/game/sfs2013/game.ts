@@ -32,6 +32,7 @@ import { installSevenStar, type SevenStarRec } from "./sevenstar.ts";
 import { installKingBosses, type KingRec } from "./kingbosses.ts";
 import { installFightKing, type WushenRec } from "./fightking.ts";
 import { installGodBosses, SOUL_STONE_PRICE, ABYSS, type GodRec } from "./godbosses.ts";
+import { installWnKing, WNK_ITEM_ROWS, type WnkRec } from "./wnking.ts";
 import { isGiftBag, openGiftBag, openHeldGiftBags } from "./giftbags.ts";
 
 export interface UserRecord {
@@ -91,6 +92,8 @@ export interface UserRecord {
   wushen?: WushenRec;
   /** 天空之神, 施瓦辛格, 波塞冬, 魔龙之战 (godbosses.ts). */
   gods?: GodRec;
+  /** 狼王 and 夜王 (wnking.ts). */
+  wnk?: WnkRec;
   /** Messages left today on others' 留言板 (garden.ts). */
   boardDay?: { day: string; n: number };
   /** Friends and asks to be friends (social.ts), by player id. */
@@ -100,6 +103,8 @@ export interface UserRecord {
   pass?: PassRec;
   /** Mini games that open their levels one by one: game name -> the last level finished. */
   gameLevels?: Record<string, number>;
+  /** 大战TT兔's 积分 (game/chocolaterabbit) and whether 糖糖 was taken for them. */
+  ttRabbit?: { jifen: number; got?: boolean };
   /** Wins left of the 经验器, 学习器, 寻宝雷达 and 自动战斗仪 used (petitems.ts). */
   boosts?: Boosts;
   /** The trees of the 家园 (plants.ts). */
@@ -160,6 +165,11 @@ export const START_SCORE = 2000;
  * are bought from 米娜 in the newbie quest (step 143).
  */
 export const START_ITEMS: Record<string, number> = { "30": 3 };
+
+/** 大战TT兔: its game room, the 积分 糖糖 costs (the game's own text) and 糖糖's race. */
+export const TT_RABBIT_GAME = "gameChocolateRabbit";
+export const TT_RABBIT_COST = 20;
+export const TT_RABBIT_PET = 848;
 
 /** Price table written by tools/gen_materials.py: type -> id -> [price, buyback, rmb, maxQ, vip, name]. */
 export type MaterialTable = Record<string, Record<string, [number, number, number, number, number, string]>>;
@@ -336,7 +346,18 @@ export function siteTable<T>(load: () => Promise<unknown>, empty: T, retryMs = T
 
 export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World {
   const site = (path: string): Promise<unknown> => (opts.loadJson ? opts.loadJson(path) : Promise.resolve(undefined));
-  const table = siteTable<MaterialTable>(() => site("revival/materials.json"), {});
+  // The rows of items the January 2013 table lacks or has otherwise than the activities after it
+  // (wnking.ts: the 剑魂 and 封印 of February 2013).
+  const table = siteTable<MaterialTable>(
+    () =>
+      site("revival/materials.json").then((t) => {
+        if (t == null || typeof t !== "object") return t;
+        const m = t as MaterialTable;
+        Object.assign((m["2"] ??= {}), WNK_ITEM_ROWS);
+        return m;
+      }),
+    {},
+  );
   const species = siteTable<SpeciesTable>(() => site("revival/pets.json"), {});
   const pmData = siteTable<PmData>(() => site("revival/pmdata.json"), EMPTY_PMDATA);
   // One object for the 亚比 tables (mods add their species to it, mods.ts), its parts as they come.
@@ -577,9 +598,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const game = String(ctx.params.gameName ?? "");
     const lv = Number(ctx.params.level) | 0;
     if (game && lv > 0) (rec.gameLevels ??= {})[game] = Math.max(rec.gameLevels[game] ?? 0, lv);
+    // 大战TT兔: 积分 for the 关 passed, as its end panel counts them (1 + 2 + … + the last 关 passed).
+    const jifen = game === TT_RABBIT_GAME && lv > 0 ? (lv * (lv + 1)) / 2 : 0;
+    if (jifen) (rec.ttRabbit ??= { jifen: 0 }).jifen += jifen;
     await save(rec);
     if (coins > 0) ctx.reply({ score: rec.score }, "onScoreUpdated");
-    ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? "") }, "increaseScore");
+    ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? ""), addScore: jifen > 0 }, "increaseScore");
   });
 
   // MaterialClient.buyBack (61_2) {tp, mi, qt}: the 兜兜回收器 buys things back for their buyback
@@ -881,6 +905,24 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     (rec.storage ??= []).push(pet);
     return [];
   };
+  // 大战TT兔 (game/chocolaterabbit, its later copy; 糖果博物馆): "玩小游戏，获得 20 积分，即可兑换暴力萌糖糖哦！"
+  //   UserGameExtension 89_6 {name} -> {score, gainEgg}   the 积分, 糖糖 taken
+  //   UserGameExtension 89_7 {name} -> {suc}              糖糖 (848) for TT_RABBIT_COST 积分, once
+  world.xt("UserGameExtension.89_6", async (ctx) => {
+    const r = (await me(ctx)).ttRabbit;
+    ctx.reply({ score: r?.jifen ?? 0, gainEgg: !!r?.got }, "89_6");
+  });
+  world.xt("UserGameExtension.89_7", async (ctx) => {
+    const rec = await me(ctx);
+    const r = (rec.ttRabbit ??= { jifen: 0 });
+    if (r.got || r.jifen < TT_RABBIT_COST) return ctx.reply({ suc: false }, "89_7");
+    r.jifen -= TT_RABBIT_COST;
+    r.got = true;
+    const msgs = await givePetTo(rec, TT_RABBIT_PET, 1);
+    await save(rec);
+    for (const [c, b] of msgs) ctx.reply(b, c);
+    ctx.reply({ suc: true }, "89_7");
+  });
   installTasks(world, {
     load: me,
     byName: (name) => userRecord(emu, name),
@@ -1010,6 +1052,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
 
   // 天空之神, 施瓦辛格, 波塞冬 and 魔龙之战: godbosses.ts.
   installGodBosses(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    today,
+  });
+
+  // 狼王 and 夜王 (白灵圣殿's 魂塔顶端): wnking.ts.
+  installWnKing(world, {
     me,
     save: (o) => save(o as UserRecord),
     today,

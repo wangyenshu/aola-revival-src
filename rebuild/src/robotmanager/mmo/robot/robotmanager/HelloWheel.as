@@ -3,12 +3,16 @@ package mmo.robot.robotmanager
    import flash.display.DisplayObject;
    import flash.display.GradientType;
    import flash.display.Graphics;
+   import flash.display.MovieClip;
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
    import flash.filters.DropShadowFilter;
    import flash.filters.GlowFilter;
    import flash.geom.Matrix;
+   import flash.geom.Rectangle;
+   import flash.system.ApplicationDomain;
+   import flash.utils.getDefinitionByName;
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
@@ -28,6 +32,7 @@ package mmo.robot.robotmanager
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.interfaces.robot.IRobotService;
    import mmo.interfaces.task.ITaskService;
+   import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RExpPanel;
    import mmo.revival.RLog;
    import mmo.revival.RTraining;
@@ -45,8 +50,10 @@ package mmo.robot.robotmanager
     *   远程亚比仓库       the 亚比仓库 (PetWareHouse), a 蓝宝石 skill
     *   技能替换          which learnt skills a 亚比 carries (the 亚比背包's 更换技能)
     *   亚比训练          the era pet/pettraining (2010; pet/petbetraining while some train)
-    * The wheel's own art is lost: it is drawn here (plain circles and signs); the HELLO in its
-    * middle is the game's own HELLO (RobotAvatar). RECONSTRUCTED after the guide's picture.
+    * The wheel's own art is lost: it is drawn here (plain circles); the skills' icons are the game's
+    * own of May 2012 (the skill bar of another player's HELLO, robot/robotanothermes, bound to
+    * classes of their own in robot/revival/helloskillicons; plain signs until it is loaded), the
+    * HELLO in its middle the game's own HELLO (RobotAvatar). RECONSTRUCTED after the guide's picture.
     */
    public class HelloWheel extends Sprite
    {
@@ -95,21 +102,23 @@ package mmo.robot.robotmanager
          addChild(roundButton("服装", "shirt", 34, 62, 24, onClothes, 0xFFE9A8, 0xF2A33A));
          var following:Boolean = robots() != null && robots().getIsFollow();
          var skills:Array = [
-            [following ? "HELLO回家" : "HELLO跟随", "house", following ? onGoHome : onFollow],
-            ["亚比治疗", "cross", onHeal],
-            ["经验分配", "split", onExp],
-            ["亚比孵化", "egg", onHatch],
-            ["稀有亚比\n搜索仪", "lens", onRare],
-            ["亚比技能\n排序", "updown", onSort],
-            ["远程亚比\n仓库", "box", onWarehouse],
-            ["技能替换", "swap", onReplace],
-            ["亚比训练", "dumbbell", onTrain]
+            [following ? "HELLO回家" : "HELLO跟随", "house", following ? onGoHome : onFollow, "Follow"],
+            ["亚比治疗", "cross", onHeal, "Heal"],
+            ["经验分配", "split", onExp, "Exp"],
+            ["亚比孵化", "egg", onHatch, "Hatch"],
+            ["稀有亚比\n搜索仪", "lens", onRare, "Rare"],
+            ["亚比技能\n排序", "updown", onSort, "Sort"],
+            ["远程亚比\n仓库", "box", onWarehouse, "Warehouse"],
+            ["技能替换", "swap", onReplace, "Replace"],
+            ["亚比训练", "dumbbell", onTrain, "Train"]
          ];
          for (var i:int = 0; i < skills.length; i++)
          {
             var ang:Number = (-90 + i * 360 / skills.length) * Math.PI / 180;
             addChild(pointer(ang));
-            addChild(roundButton(skills[i][0], skills[i][1], Math.cos(ang) * R_RING, Math.sin(ang) * R_RING, R_BUTTON, skills[i][2], 0x8FE3FF, 0x1E8FE0));
+            var b:Sprite = roundButton(skills[i][0], skills[i][1], Math.cos(ang) * R_RING, Math.sin(ang) * R_RING, R_BUTTON, skills[i][2], 0x8FE3FF, 0x1E8FE0);
+            addChild(b);
+            skillIcon(b, skills[i][3]);
          }
          var close:Sprite = closeButton();
          close.x = R_RING + 30;
@@ -180,6 +189,7 @@ package mmo.robot.robotmanager
          g.endFill();
          var icon:Shape = glyph(sign, r * (text.indexOf("\n") >= 0 ? 0.42 : 0.5));
          icon.y = -r * (text.indexOf("\n") >= 0 ? 0.32 : 0.22);
+         icon.name = "glyph";
          b.addChild(icon);
          var t:TextField = label(text, r >= 30 ? 12 : 11, 0xFFFFFF, true);
          t.x = -t.width / 2;
@@ -202,7 +212,53 @@ package mmo.robot.robotmanager
          return b;
       }
 
-      /** Plain signs for the skills (the era's pictures are lost). */
+      private static const ICONS:String = "robot/revival/helloskillicons";
+      private static const ICON_CLS:String = "mmo.revival.helloskill.HelloSkill";
+      private static var iconsWaiting:Array = [];
+      private static var iconsAsked:Boolean;
+
+      /** The skill's icon of 2012 in place of the button's sign, once its file is loaded. */
+      private static function skillIcon(b:Sprite, cls:String):void
+      {
+         iconsWaiting.push([b, cls]);
+         if (ApplicationDomain.currentDomain.hasDefinition(ICON_CLS + "Follow")) return putIcons();
+         if (iconsAsked) return;
+         iconsAsked = true;
+         ResScheduler.getResource(ICONS, function(d:* = null):void { putIcons(); }, ICON_CLS + "Follow", function(e:* = null):void
+         {
+            iconsAsked = false;
+            RLog.log("hello wheel: no skill icons");
+         });
+      }
+
+      private static function putIcons():void
+      {
+         var list:Array = iconsWaiting;
+         iconsWaiting = [];
+         for each (var w:Array in list)
+         {
+            try
+            {
+               var b:Sprite = w[0];
+               var sign:DisplayObject = b.getChildByName("glyph");
+               if (sign == null || !ApplicationDomain.currentDomain.hasDefinition(ICON_CLS + w[1])) continue;
+               var mc:MovieClip = new (getDefinitionByName(ICON_CLS + w[1]) as Class)() as MovieClip;
+               mc.gotoAndStop(1);
+               var r:Rectangle = mc.getBounds(mc);
+               // As big as the sign was (its square), at the sign's place.
+               var size:Number = sign.height > 0 ? Math.max(sign.width, sign.height) * 1.15 : 36;
+               var k:Number = size / Math.max(1, Math.max(r.width, r.height));
+               mc.scaleX = mc.scaleY = k;
+               mc.x = -(r.x + r.width / 2) * k;
+               mc.y = sign.y + sign.getBounds(sign).y + sign.height / 2 - (r.y + r.height / 2) * k;
+               b.addChildAt(mc, b.getChildIndex(sign));
+               b.removeChild(sign);
+            }
+            catch (e:Error) { RLog.error("hello wheel icon " + w[1], e); }
+         }
+      }
+
+      /** Plain signs for the skills until their icons of 2012 are loaded. */
       private static function glyph(kind:String, s:Number):Shape
       {
          var sh:Shape = new Shape();

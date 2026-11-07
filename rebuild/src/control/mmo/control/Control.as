@@ -86,6 +86,7 @@ package mmo.control
          LayerManager.getBaseControl().addChild(bar);
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
+         LaterItems.install();
          TheatrePanel.install();
          // The 图鉴: a grey 亚比's page opens too.
          PetDicPeek.install(LayerManager.stage);

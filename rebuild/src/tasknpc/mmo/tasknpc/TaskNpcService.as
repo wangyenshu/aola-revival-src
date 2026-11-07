@@ -220,8 +220,11 @@ package mmo.tasknpc
        * in the 亚比研究中心 (his era default talk is in ERA_TALK / NpcDefaultTalk). 修罗 (517) in
        * 奇灵神树: the room's January 2013 scene, with the buttons of 修罗's and 凯撒's challenges, is
        * lost; he stands there and offers them (control ScenePatches MENUS; RECONSTRUCTED).
+       * 狼王迪洛斯 (744) and 夜王狄米特 (750) on the 魂塔顶端: the opener of their activity of February
+       * 2013 is lost (the room's 2014 file has none); they stand there and offer it.
        */
-      private static const RESIDENTS:Object = {"yabistudy": [11], "yabistudycopy": [11], "hexagrampalace3": [517]};
+      private static const RESIDENTS:Object = {"yabistudy": [11], "yabistudycopy": [11], "hexagrampalace3": [517],
+         "bailingstar4": [744, 750]};
 
       /**
        * NPCs the later scene table does not place, standing where a room's lost button was and
@@ -230,10 +233,11 @@ package mmo.tasknpc
        * (mysticearth4_at_20121101_schwarzenegger, mysticocean5_at_20121204_PoseidonChallenge,
        * msevenstar5_sb_20121220_abyssevil) show where they were: 施瓦辛格 (817) in 零时迷城, 波塞冬
        * (853) in 海洋神域, 赤翼魔龙王 (862) in 深渊魔域; 拉诺斯 (795) in 天神圣殿, whose 2012 room has
-       * no opener for the 天空之神's challenge. [id, view, x, y]
+       * no opener for the 天空之神's challenge. 狼王迪洛斯 (744) on the 魂塔顶端 stands aside from
+       * 洛洛, whose place the later table gives him too. [id, view, x, y]
        */
       private static const HOSTS:Object = {"cloudstar6": [[795, 1, 650, 330]], "mysticearth4": [[817, 1, 705, 300]],
-         "mysticocean5": [[853, 1, 410, 230]], "msevenstar5": [[862, 1, 300, 240]]};
+         "mysticocean5": [[853, 1, 410, 230]], "msevenstar5": [[862, 1, 300, 240]], "bailingstar4": [[744, 2, 600, 450]]};
 
       private static function isResident(npcId:int, scene:String):Boolean
       {

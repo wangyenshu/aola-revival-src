@@ -426,9 +426,12 @@ export function installPlanetActs(world: World, deps: PlanetActsDeps): void {
     send(ctx, msgs);
     ctx.reply({ res: 0, pid: pet.id, raceId: pet.race }, "54e_1");
   });
-  world.xt("SynthesizeExtension.57_8", async (ctx) => {
-    const o = await deps.load(ctx);
+  // The other exchanges of 57_8 (installed before: the 魂石's 亚比蛋, 召唤狼王 / 夜王) answer their own ids.
+  const before = world.handlers?.get("SynthesizeExtension.57_8");
+  world.xt("SynthesizeExtension.57_8", async (ctx, cmd) => {
     const part = ARMOR_PARTS[Number(ctx.params.id) | 0];
+    if (!part && before) return before(ctx, cmd);
+    const o = await deps.load(ctx);
     if (!part || countOf(o, ARMOR_FRAG) < 5 || countOf(o, part) > 0) return ctx.reply({ res: 0 }, "57_8");
     const msgs = [...addItem(o, ARMOR_FRAG, -5), ...addItem(o, part, 1)];
     await deps.save(o);

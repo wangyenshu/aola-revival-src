@@ -33,7 +33,8 @@ package mmo.control
     * newBieHelpSystem module) and the HELLO on its glowing stand at the left;
     * 发言 表情 动作 射击; the chat line (当前, the box, ↵, and the △ for what was
     * said); 信息卡 好友 组队 战队 亚比 (the 2013 背包) 回家; the cart of the 商城, the sound
-    * switch and the clock at the right. The icons are drawn (BarIcons).
+    * switch and the clock at the right. The icons are those of 2012, cut out of an era tutorial's
+    * screenshot (ShotIcons; drawn, BarIcons, until it is loaded and for the revival's own buttons).
     */
    public class ControlBar extends Sprite
    {
@@ -69,13 +70,13 @@ package mmo.control
          hello.x = 110;
          hello.y = 536;
          addChild(hello);
-         for each (var l:Array in LEFT) addButton(new BarButton("btn_" + l[0], BarIcons.make(l[0]), l[1], 0, LABEL_DY, click), l[2], ICON_Y);
-         for each (var r:Array in RIGHT) addButton(new BarButton("btn_" + r[0], BarIcons.make(r[0]), r[1], 0, LABEL_DY, click), r[2], ICON_Y);
-         var mall:BarButton = new BarButton("btn_mall", BarIcons.make("mall"), null, 0, 0, click);
-         mall.scaleX = mall.scaleY = 1.15;
+         // The icons of 2012 once the tutorial they are cut from is loaded (ShotIcons); drawn until then.
+         for each (var l:Array in LEFT) addButton(new BarButton("btn_" + l[0], icon(l[0]), l[1], 0, LABEL_DY, click), l[2], ICON_Y);
+         for each (var r:Array in RIGHT) addButton(new BarButton("btn_" + r[0], icon(r[0]), r[1], 0, LABEL_DY, click), r[2], ICON_Y);
+         var mall:BarButton = new BarButton("btn_mall", icon("mall"), null, 0, 0, click);
          addButton(mall, 938, 512);
          // 副本 mode: the way out (IControl.fbLeaveButton; the 四大副本's FBButtonManager listens on it), where 回家 is.
-         addButton(new BarButton("btn_fbleave", BarIcons.make("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
+         addButton(new BarButton("btn_fbleave", icon("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
          // The 亚比图鉴 (pet/petdictionary), under the task icon; its 2012 icon (PetDicIcon) once loaded.
          var dicIcon:Sprite = BarIcons.make("petdic");
          addButton(new BarButton("btn_petdic", dicIcon, "图鉴", 0, 20, click), 936, 114);
@@ -88,6 +89,14 @@ package mmo.control
          buildClock();
          addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { if (e.target != input) e.stopPropagation(); });
          addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); });
+      }
+
+      /** A button's icon: drawn (BarIcons), then the 2012 one (ShotIcons) where there is one. */
+      private static function icon(name:String):Sprite
+      {
+         var s:Sprite = BarIcons.make(name);
+         ShotIcons.put(name, s);
+         return s;
       }
 
       private function click(btnName:String):void

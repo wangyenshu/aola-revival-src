@@ -201,8 +201,8 @@ rm -rf "$OUT/attrlevel"
 java -jar "$FFDEC" -selectid 2837 -format sprite:swf -export sprite "$OUT/attrlevel" "$(art pet/petfightnew.swf)" > /dev/null
 python3 "$TOOLS/swf_transplant.py" --art "$(ls "$OUT"/attrlevel/DefineSprite_2837*/1.swf)" --wrap-root 2837 --image-shapes --drop-art-abc   --code "$OUT/petfight.swf" --bind 0=mmo.petfightnew.DocLoginPetFight --bind 2837=mmo.petfightnew.AttributeLevelPanel   --note "REBUILT pet/loginpetfightnew (aola-revival); its 属性等级 panel is character 2837 of the later pet/petfightnew"   --out "$W/pet/loginpetfightnew.swf%3F1210"
 
-# The HELLO in scenes: rebuilt init/robotmanager (its menu, the wheel of December 2012, drawn:
-# HelloWheel).
+# The HELLO in scenes: rebuilt init/robotmanager (its menu, the wheel of December 2012, drawn,
+# with the skills' icons of 2012 from robot/revival/helloskillicons: HelloWheel).
 build robotmanager mmo/robot/robotmanager/DocClass.as robotmanager.swf "init/robotmanager.swf%3F130103"
 # The HELLO's own panels: rebuilt robot/robotmes (基本资料) and robot/robotitem (HELLO物品)
 # on the art of their copies of 2015 and 2016.
@@ -467,6 +467,14 @@ build spacetime mmo/spacetime/DocClass.as spacetime.swf "spacetime/spacetimeserv
 
 # 坐骑: pet/petride (RideService, lost; the copy under its URL is of 2021) rebuilt.
 build petride mmo/pet/petride/DocPetRide.as petride.swf "pet/petride.swf%3F121227"
+# 亚比骑乘训练 (训练官卢卡斯, the PetRideTrannig service): pet/petridepanel's copy of 2021 (the 2013 one is
+# lost), its code compiled against the 2013 libraries as it is, on its own art; it trains through
+# the rebuilt RideService (54_11).
+build petridepanel mmo/pet/petride/DocPetRidePanel.as petridepanel-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petridepanel.swf)" --code "$OUT/petridepanel-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.pet.petride.DocPetRidePanel --bind 57=mmo.pet.petride.PetRidePanel --bind 20=mmo.pet.petride.PetRideTranningPetBriefCard \
+  --note "LATER pet/petridepanel (2021) on the 2013 libraries (aola-revival)" \
+  --out "$W/pet/petridepanel.swf%3F1210"
 
 # The 四大副本 (奥拉战记): the later fbservice and fbteam modules (2025 copies; the
 # 2013 ones are lost) on the 2013 interfaces, and the later choose panel (2016)
@@ -586,6 +594,39 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art activityres/activity121220/abyss
   --bind 231=mmo.activity121220.abyssevil.BuyPanel --bind 234=mmo.activity121220.abyssevil.BuyLimitPanel --bind 25=mmo.activity121220.abyssevil.Need100LevelPanel \
   --note "LATER activityres/activity121220/abyssevilmainpanel (2015) on the 2013 libraries (aola-revival): the buff bar (IBuffCache) taken out" \
   --out "$W/activityres/activity121220/abyssevilmainpanel.swf%3F121227"
+
+# 夜王复出！狼王再现！ (魂塔顶端; activityres/activity130221/wolfandnightking, February 2013, the module's
+# copy of 2016): its decompiled code compiled against the 2013 libraries, on its own art, the later
+# re-run's additions taken out. The two kings' panels (challenge0, challenge1, of 2016) bound to their
+# art alone, without the later dialogs they carry. The server side: server/src/game/sfs2013/wnking.ts.
+build wnking mmo/revival/wnking/DocWNKing.as wnking-code.swf ""
+build wnking mmo/revival/wnking/DocWNKingRes.as wnkingres-code.swf ""
+# The HELLO skills' icons of May 2012 (robot/robotanothermes, its skill bar of another player's
+# HELLO) bound to classes of their own, for the rebuilt HELLO's menu (robotmanager HelloWheel).
+build helloskillicons mmo/revival/helloskill/DocHelloSkill.as helloskill-code.swf ""
+mkdir -p "$W/robot/revival"
+HS=mmo.revival.helloskill.HelloSkill
+python3 "$TOOLS/swf_transplant.py" --art "$(art robot/robotanothermes.swf)" --code "$OUT/helloskill-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.helloskill.DocHelloSkill --bind 5=${HS}Follow --bind 28=${HS}Heal --bind 9=${HS}Exp --bind 12=${HS}Hatch \
+  --bind 44=${HS}Rare --bind 40=${HS}Sort --bind 78=${HS}Warehouse --bind 17=${HS}Replace --bind 33=${HS}Train \
+  --note "the HELLO skill icons of robot/robotanothermes (May 2012) for the rebuilt HELLO menu (aola-revival)" \
+  --out "$W/robot/revival/helloskillicons.swf%3F1210"
+
+WNK=activityres/activity130221/wolfandnightking
+mkdir -p "$W/$WNK"
+python3 "$TOOLS/swf_transplant.py" --art "$(art $WNK/wolfandnightking.swf)" --code "$OUT/wnking-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.wnking.DocWNKing --bind 64=mmo.activity130221.wolfandnightking.WNKingChallengeMainPanel \
+  --bind 110=mmo.activity130221.wolfandnightking.WNKingFinalChallengePanel --bind 175=mmo.activity130221.wolfandnightking.WNKingFinalTipsPanel \
+  --note "LATER $WNK/wolfandnightking (2016) on the 2013 libraries (aola-revival): the main panel shown again, the later buttons taken out" \
+  --out "$W/$WNK/wolfandnightking.swf%3F1210"
+python3 "$TOOLS/swf_transplant.py" --art "$(art $WNK/wolfandnightkingchallenge0.swf)" --code "$OUT/wnkingres-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.wnking.DocWNKingRes --bind 122=mmo.activity130221.wolfandnightking.ChallengePanel0 \
+  --note "LATER $WNK/wolfandnightkingchallenge0 (2016): the 狼王 panel alone (aola-revival)" \
+  --out "$W/$WNK/wolfandnightkingchallenge0.swf%3F1210"
+python3 "$TOOLS/swf_transplant.py" --art "$(art $WNK/wolfandnightkingchallenge1.swf)" --code "$OUT/wnkingres-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.wnking.DocWNKingRes --bind 198=mmo.activity130221.wolfandnightking.ChallengePanel1 \
+  --note "LATER $WNK/wolfandnightkingchallenge1 (2016): the 夜王 panel alone (aola-revival)" \
+  --out "$W/$WNK/wolfandnightkingchallenge1.swf%3F1210"
 
 # 魔将挑战 (深渊之门 msevenstar4; the era activityres/activity121213/evilgeneralmainpanel): its win and
 # 星币 films are lost, and the panel waits for their last frame to show 魔洛's 亚比蛋. Stand-ins of

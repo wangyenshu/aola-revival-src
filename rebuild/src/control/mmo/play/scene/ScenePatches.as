@@ -62,6 +62,7 @@ package mmo.play.scene
       private static const P121115:String = "revival_panel:activityres/activity121115/";
       private static const P121122:String = "revival_panel:activityres/activity121122/";
       private static const P130117:String = "revival_panel:activityres/activity130117/";
+      private static const WNK:String = "activityres/activity130221/wolfandnightking/wolfandnightking|mmo.activity130221.wolfandnightking.WNKingManager";
 
       /** room -> [npcId, choice text, action] (texts and actions of the later NpcMenu unless marked). */
       private static const MENUS:Object = {
@@ -99,7 +100,7 @@ package mmo.play.scene
          // SquadService itself is not rebuilt).
          // 蓝宝石要塞 (its later scene answers none of its 2012 functions): 军需官亨特's weekly
          // 蓝宝石礼包 (the era VipGiftService's week panel) and 训练官卢卡斯's 亚比骑乘训练
-         // (PetRideTrannig, pet/petridepanel, not rebuilt: its stand-in says so).
+         // (PetRideTrannig, pet/petridepanel: its copy of 2021 on the 2013 libraries).
          "bluesquare": [[142, "我要领取蓝宝石礼包！", "revival_vipgift"], [148, "亚比骑乘训练", "revival_service:PetRideTrannig"]],
          // 上古使者 (312) of the 灵兽宫: the scene answers knowinfo (his conversation) and secret
          // (the 玄武 water panel, activityres/watercleanpanel of January 2012).
@@ -122,6 +123,10 @@ package mmo.play.scene
          "mysticearth4": [[817, "挑战地之神兽", "revival_panel:activityres/activity121101/schwarzenegger/challengepanel|mmo.activity121101.schwarzenegger.MainPanel"]],
          "mysticocean5": [[853, "挑战海洋之神", "revival_panel:activityres/activity121206/poseidon_challenge|mmo.activity121206.poseidonchallenge.PoseidonChallenge"]],
          "msevenstar5": [[862, "魔龙之战", "revival_panel:activityres/activity121220/abyssevilmainpanel|mmo.activity121220.abyssevil.MainPanel"]],
+         // 魂塔顶端: 狼王迪洛斯 and 夜王狄米特 (residents of the rebuilt TaskNpcService) open 夜王复出！狼王再现！
+         // of February 2013 (activity130221/wolfandnightking, rebuilt on its 2016 copy); the opener
+         // of 2013 is lost (RECONSTRUCTED).
+         "bailingstar4": [[744, "狼王再现！", "revival_panel:" + WNK], [750, "夜王回归！", "revival_panel:" + WNK]],
          // 恶人山顶 (武神大陆): 关羽 (599) offers his challenge, as the later NpcMenu has it; the scene
          // answers the choice (599_showchallengepanel: fightkingwar/guangyu).
          "fightkingwar3": [[599, "挑战关羽", "599_showchallengepanel"]],
