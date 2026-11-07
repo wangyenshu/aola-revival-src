@@ -19,6 +19,8 @@ package mmo.scene.sandbox
    import mmo.loader.scheduler.ResScheduler;
    import mmo.play.player.PlayerManager;
    import mmo.play.player.sceneplayer.ScenePetAvatar;
+   import mmo.play.player.sceneplayer.ScenePlayer;
+   import mmo.interfaces.material.clothes.AvatarInfo;
    import mmo.interfaces.pet.data.PetClothesMap;
    import mmo.play.scene.SceneBase;
    import mmo.play.scene.helper.cilckandhit.ClickAndHitEvent;
@@ -374,29 +376,29 @@ package mmo.scene.sandbox
          ui = new Sprite();
          ui.name = "sandboxUi";
          topGround.addChild(ui);
+         // The mod's name and the room's, on a plate as wide as they are (and 离开沙盒 in the 沙盒).
          var plate:Shape = new Shape();
-         plate.graphics.beginFill(0x0B2440, 0.6);
-         plate.graphics.drawRoundRect(0, 0, 330, 40, 14, 14);
-         plate.graphics.endFill();
-         plate.x = 10;
-         plate.y = 8;
          ui.addChild(plate);
-         var title:TextField = RUI.text(14, 0xFFFFFF, true);
+         var title:TextField = RUI.text(13, 0xFFFFFF, true);
          var def:Object = shown ? shown.def : null;
          title.text = shown ? String(shown.mod || "") + (def && def.name ? " · " + String(def.name) : "") : "沙盒";
-         if (title.width > 210) title.width = 210;
-         title.x = 20;
-         title.y = 18;
+         if (title.width > 300) title.width = 300;
+         title.x = 18;
+         title.y = 14;
          ui.addChild(title);
          var leave:Sprite = RUI.button("离开沙盒", function():void
          {
             if (run != null) run.leave();
-         }, 88, 28, 0x6CC0F5, 0x2E86D6, "sandboxLeave");
-         leave.x = 244;
-         leave.y = 14;
+         }, 80, 24, 0x6CC0F5, 0x2E86D6, "sandboxLeave");
+         leave.x = title.x + title.width + 10;
+         leave.y = 12;
          ui.addChild(leave);
          // A mod played as a game of its own (ModRun.standalone): there is nowhere to leave to.
          try { if (getDefinitionByName("mmo.control.ModRun").standalone) leave.visible = false; } catch (e:Error) {}
+         var right:Number = leave.visible ? leave.x + 80 : title.x + title.width;
+         plate.graphics.beginFill(0x0B2440, 0.55);
+         plate.graphics.drawRoundRect(10, 8, right - 10 + 8, 32, 8, 8);
+         plate.graphics.endFill();
          screen = new Sprite();
          screen.name = "modScreen";
          ui.addChildAt(screen, 0);
@@ -600,6 +602,7 @@ package mmo.scene.sandbox
       {
          if (look is DisplayObject || look is Class) return display(look);
          if (look is String && String(look).indexOf("npc:") == 0) return npcLook(String(look));
+         if (look is String && String(look).indexOf("avatar:") == 0) return avatarLook(String(look).substr(7));
          var race:int = int(look);
          if (race <= 0) race = 1;
          if (RDef.has("mmo.revival.modwalk" + race))
@@ -622,6 +625,22 @@ package mmo.scene.sandbox
          var pet:ScenePetAvatar = new ScenePetAvatar(race, null);
          pet.mouseEnabled = pet.mouseChildren = false;
          return pet;
+      }
+
+      /** "avatar:<clothes>": an 奥拉 dressed in those clothes ("6;7;126;127;129;130;131;132": the starting 酷蓝 set). */
+      private static function avatarLook(clothes:String):DisplayObject
+      {
+         var p:ScenePlayer = new ScenePlayer("modavatar");
+         try { Object(p).setNickNameVisible(false); } catch (e:Error) {}
+         try
+         {
+            var info:AvatarInfo = new AvatarInfo();
+            info.setAvatarInfoWithString(clothes);
+            p.setAvatar(info);
+         }
+         catch (e2:Error) { RLog.error("mod avatar look", e2); }
+         p.mouseEnabled = p.mouseChildren = false;
+         return p;
       }
 
       /** A 亚比's large picture (peticon<race>_L), at most 110 high, its feet at 0, 0. */
@@ -724,7 +743,8 @@ package mmo.scene.sandbox
             var found:DisplayObject = find(d as DisplayObjectContainer, name, 3);
             if (found != null) return found;
          }
-         return null;
+         // The obstruction's pieces too (a roadblock the scene's own code took away to open a way).
+         return sceneObs != null ? find(sceneObs as DisplayObjectContainer, name, 3) : null;
       }
 
       private static function find(c:DisplayObjectContainer, name:String, depth:int):DisplayObject

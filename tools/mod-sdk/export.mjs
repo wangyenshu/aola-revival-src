@@ -3,10 +3,16 @@
 // server emulator, the mod, and only the game files the mod uses, which any static web server
 // can serve (docs/MODDING.md, "Exporting a mod").
 //
-//   node tools/mod-sdk/export.mjs <mod folder> [--out build/export] [--seconds 900] [--no-record] [--no-zip]
+//   npm run export:mod -- <mod folder | mod.swf> [--out build/export] [--seconds 900] [--no-record] [--no-zip]
+//   (node tools/mod-sdk/export.mjs … is the same)
 //
-// The mod folder is one tools/mod-sdk/build.mjs builds (asconfig.json); its about.json gives the
-// name and, under "export", what to keep besides what is seen played:
+// What it needs is made first when it is missing or older than its sources: the game's rebuilt
+// modules (npm run build:swf), the site (npm run build), the mod. The test browser (Playwright's
+// Chromium) is asked for once: npx playwright install chromium.
+//
+// The mod folder is one tools/mod-sdk/build.mjs builds (asconfig.json); or a mod's .swf already
+// built, with its about.json beside it (<name>.json or about.json) if it has one. about.json gives
+// the name and, under "export", what to keep besides what is seen played:
 //   {"name": "…", "description": "…",
 //    "export": {"player": "the 奥拉's name", "cover": "cover.svg",
 //               "races": [216, …], "npcs": [28, …], "music": ["music/…mp3"], "files": ["www.9aola.com/…"]}}
@@ -37,14 +43,17 @@ const { values: a, positionals } = parseArgs({
   },
 });
 if (positionals.length !== 1) {
-  console.error("usage: node tools/mod-sdk/export.mjs <mod folder> [--out dir] [--seconds n] [--no-record] [--no-zip]");
+  console.error("usage: npm run export:mod -- <mod folder | mod.swf> [--out dir] [--seconds n] [--no-record] [--no-zip]");
   process.exit(2);
 }
-const modDir = path.resolve(positionals[0]);
-const about = JSON.parse(readFileSync(path.join(modDir, "about.json"), "utf8"));
-const asconfig = JSON.parse(readFileSync(path.join(modDir, "asconfig.json"), "utf8"));
+const given = path.resolve(positionals[0]);
+const fromSwf = /\.swf$/i.test(given);
+const modDir = fromSwf ? path.dirname(given) : given;
+const readJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null);
+const about = (fromSwf ? readJson(given.replace(/\.swf$/i, ".json")) ?? readJson(path.join(modDir, "about.json")) : readJson(path.join(modDir, "about.json"))) ?? {};
 const ex = about.export ?? {};
-const swf = path.resolve(modDir, asconfig.compilerOptions.output);
+const swf = fromSwf ? given : path.resolve(modDir, readJson(path.join(modDir, "asconfig.json")).compilerOptions.output);
+if (fromSwf && !existsSync(swf)) throw new Error(`no ${positionals[0]}`);
 const file = path.basename(swf);
 if (!/^[A-Za-z0-9_.-]+\.swf$/.test(file)) throw new Error(`the mod's file name ${file}: letters, digits, _ . - only`);
 const id = file.replace(/\.swf$/, "");
@@ -52,13 +61,31 @@ const out = path.resolve(a.out, id);
 const rebuilt = path.join(root, "build/rebuilt");
 const game = path.join(root, "game");
 const dist = path.join(root, "dist");
-for (const [p, why] of [[rebuilt, "npm run build:swf"], [game, "the game files"], [dist, "npm run build"]]) {
-  if (!existsSync(p)) throw new Error(`missing ${path.relative(root, p)} (${why})`);
+if (!existsSync(game)) throw new Error("missing game/ (the game files)");
+const newest = (dir) => (existsSync(dir) ? readdirSync(dir, { withFileTypes: true, recursive: true }).reduce((t, e) => (e.isFile() ? Math.max(t, statSync(path.join(e.parentPath ?? e.path, e.name)).mtimeMs) : t), 0) : 0);
+const npm = (script) => {
+  console.log(`npm run ${script} …`);
+  execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", script], { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+};
+// The game's rebuilt modules, then the site the export is taken from: made when missing or older
+// than their sources.
+if (!existsSync(rebuilt)) npm("build:swf");
+const distAt = existsSync(path.join(dist, "index.html")) ? statSync(path.join(dist, "index.html")).mtimeMs : 0;
+if (!distAt || Math.max(newest(path.join(root, "web")), newest(path.join(root, "server/src"))) > distAt) npm("build");
+// The browser the walk-through plays in.
+if (!a["no-record"]) {
+  let browser = "";
+  try {
+    browser = (await import("playwright")).chromium.executablePath();
+  } catch {}
+  if (!browser || !existsSync(browser)) {
+    console.error("The walk-through needs Playwright's Chromium: npx playwright install chromium (once), or --no-record.");
+    process.exit(1);
+  }
 }
 
 // The mod, built when its sources are newer than its SWF.
-const newest = (dir) => readdirSync(dir, { withFileTypes: true, recursive: true }).reduce((t, e) => (e.isFile() ? Math.max(t, statSync(path.join(e.parentPath ?? e.path, e.name)).mtimeMs) : t), 0);
-if (!existsSync(swf) || newest(path.join(modDir, "src")) > statSync(swf).mtimeMs) {
+if (!fromSwf && (!existsSync(swf) || newest(path.join(modDir, "src")) > statSync(swf).mtimeMs)) {
   console.log("building the mod …");
   execFileSync(process.execPath, [path.join(root, "tools/mod-sdk/build.mjs"), modDir], { stdio: "inherit" });
 }
@@ -212,12 +239,12 @@ with S(("127.0.0.1", 8000), H) as s:
     "怎么玩：游戏在浏览器里运行，要通过网页服务器打开（直接双击 index.html 不行）。",
     "  Windows：双击 play.bat（需要 Python 3）。macOS / Linux：运行 ./play.sh 或 python3 serve.py。",
     "  也可以把整个文件夹放到任何静态网站服务器上，打开 index.html。",
-    "进度保存在浏览器里（这个网址的 IndexedDB）。",
+    "进度自动保存在浏览器里（这个网址的 IndexedDB）。屏幕下方的「存档」可以把进度导出成文件，在别的浏览器或电脑上导入。",
     "",
     "How to play: the game runs in a browser, from a web server (not by opening index.html as a file).",
     "  Windows: double-click play.bat (Python 3 needed). macOS / Linux: ./play.sh, or python3 serve.py.",
     "  Any static web server works too (put this folder on it and open index.html).",
-    "The game is saved in the browser (IndexedDB of the page's address).",
+    "The game is saved in the browser as it goes (IndexedDB of the page's address). 存档 on the bar exports it to a file, to import in another browser or computer.",
     "",
   ].join("\n"));
   let total = 0;

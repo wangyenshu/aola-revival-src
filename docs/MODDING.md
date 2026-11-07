@@ -343,8 +343,9 @@ player's: a story that starts from nothing, with its own rules.
 | `party(def, done = null)` | the mod's own 亚比 and 道具 instead of the player's (`def` below); `done(state)` as `partyState` gives it, or `done(null)` if refused. The player's own are put aside and come back when the mod's rooms are left (`leave()`, the map, the mod removed) or at the next login; the party is kept for the mod and comes back as it was the next time `party` is called (unless `fresh`) |
 | `endParty(done = null)` | the player's own back now |
 | `partyState(done)` | `done({party, pets: [{id, race, level, hp, maxHp, bag, keep}], items: {道具 id: count}})`: as they are now |
-| `giveItem(id, n = 1, done = null)` | n of a 道具 (type 2 of the game: 61 高级体力糖, 104 高级活力豆 …), or `-n` to take some; `done(count)`, or `done(-1)` if refused |
+| `giveItem(id, n = 1, done = null, shown = true)` | n of a 道具 (type 2 of the game: 61 高级体力糖, 104 高级活力豆 …), or `-n` to take some; `done(count)`, or `done(-1)` if refused. What is got is shown in the game's own window (as a boss's 亚比蛋 is) unless `shown` is false |
 | `playerLook(look, name = null)` | the player shown as `look` in the mod's rooms: a race (a 亚比 of the game or of the mod), `"npc:<id>"`, a DisplayObject or a Class; `null`: as the player is. `name`: shown under the player there instead of the player's own |
+| `gameArt(file, className, done)` | (API 4) a picture of the game: a new `className` of the game's file (as its modules load them: `"fbteam/fbsiwude_res"`, `"mmo.scene.fbsiwude.ShowArrowhead_R"`), given to `done(DisplayObject)`, or `done(null)` |
 
 The fields of a party's `def`:
 
@@ -376,7 +377,7 @@ The room that is shown. The room's `build` function receives it, and
 | `get player():Point` | where the player stands |
 | `walkTo(x, y, then = null)` | walk the player there; `then()` on arrival |
 | `onLeave(f)` | `f()` when the room is left |
-| `part(name):DisplayObject` | (API 4) a piece of the scene a room on the game's art is drawn with (`et1`, `btn_general` …), or null. Its bounds in the room: `part.getBounds(DisplayObject(room))`; hide it with `visible = false` |
+| `part(name):DisplayObject` | (API 4) a piece of the scene a room on the game's art is drawn with (`et1`, `btn_general` …), or null. Its bounds in the room: `part.getBounds(DisplayObject(room))`; hide it with `visible = false`. The scene's obstruction's pieces too (`roadblock`): one taken out of its parent before the player walks opens that way |
 | `blocked(x, y):Boolean` | (API 4) whether the point is off the floor (a wall of the room, or outside it): where a character can stand |
 
 A conversation's speaker may be `{name, picture: "npc:<id>"}` (API 4): that NPC's own picture;
@@ -390,7 +391,7 @@ The fields of a character (`npc`, `foe`):
 | `name` | shown under it (an opponent also shows its team's size and first level) |
 | `look` | a DisplayObject, a Class, or a race: a 亚比 of the mod (its `walk` picture, or its icon, made at most 110 high) or of the game (dressed as that 亚比, as the wild 亚比 are). Default: 兔小子 (race 1) |
 | `picture` | its picture in `talk()`. Default: the look's class, the mod 亚比's icon, or a snapshot of the look |
-| `look` (API 4) | also `"npc:<id>"` (or `"npc:<id>:<view>"`): an NPC of the game (`tasknpc/npc<id>`), and in `talk()` that NPC's own picture. A 亚比 of the game that has no figure for rooms is shown as its picture |
+| `look` (API 4) | also `"npc:<id>"` (or `"npc:<id>:<view>"`): an NPC of the game (`tasknpc/npc<id>`), and in `talk()` that NPC's own picture; or `"avatar:<clothes>"`: an 奥拉 dressed in those clothes of the game, the bare head and body first (`"avatar:6;7;126;127;129;130;131;132"`: a new player's 酷蓝 set). A 亚比 of the game that has no figure for rooms is shown as its picture |
 | `x`, `y` | where it stands (its feet) |
 | `scale` | default 1 |
 | `tip` | the text shown when the mouse is over it (default: none; an opponent: 点击挑战) |
@@ -484,7 +485,7 @@ panels get that one.
 | `hello` | one room drawn in code, a walk function, a character with a question, a door out, saved data (visits) |
 | `story` | two rooms joined by doors (a wide room of 1400), conversations with choices, a film drawn in code (ended with `Event.COMPLETE`), an opponent with a team of the game's 亚比, progress kept with `setData`, a 亚比 given as a reward, music of its own (an embedded MP3) and of the game |
 | `yabi` | a 亚比 of the mod (`species`) standing in the room, fought, and given to the player |
-| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`), each keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, `giveItem` for the 体力糖), then the 变异蚁将军, 小奥拉 and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; three difficulties; its `about.json` says how to export it |
+| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`) who stop the player coming near and challenge them, most keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, and `giveItem`'s window for the 体力糖), then the 变异蚁将军, 小奥拉 (`"avatar:…"`, a new player's 酷蓝 set) and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; a 提示 for each room; three difficulties; its `about.json` says how to export it |
 
 ## Exporting a mod
 
@@ -493,13 +494,21 @@ Ruffle, the server emulator, the mod and only the game files the mod uses,
 which any static web server serves. It starts straight in the mod's first
 room (no start page, no 奥拉 to choose, no room of the game before), with the
 mod's cover over the game while it loads, and only the bar's 亚比 and 物品,
-the HELLO and the sound switch; leaving the mod starts it again.
+存档, the HELLO and the sound switch; leaving the mod starts it again. The
+game is kept in the browser as it goes; 存档 (the 工具箱's 导出存档 and 导入存档,
+nothing else of it) takes it to a file and back.
 
 ```bash
-npm run build:swf && npm run build                 # the site the export is taken from
-node tools/mod-sdk/export.mjs tools/mod-sdk/examples/antwar
+npx playwright install chromium                    # once: the browser the walk-through plays in
+npm run export:mod -- tools/mod-sdk/examples/antwar
 # build/export/antwar/ and build/export/antwar.zip
+npm run export:mod -- path/to/mymod.swf            # a mod already built (its about.json beside it)
 ```
+
+What the export needs is made first when it is missing or older than its
+sources: the game's rebuilt modules (`npm run build:swf`), the site
+(`npm run build`) and the mod. A mod given as its `.swf` takes its
+`about.json` from beside it (`mymod.json`, or `about.json`).
 
 The game files kept are those the game loads while the mod is walked through
 (`tools/mod-sdk/export-tour.mjs`, in the test browser: every room the mod

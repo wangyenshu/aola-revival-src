@@ -39,7 +39,7 @@ package mmo.control
     */
    public class ControlBar extends Sprite
    {
-      /** Called with a button name: map phrase face action shoot card friend team squad pet items home mall history toolbox sandbox. */
+      /** Called with a button name: map phrase face action shoot card friend team squad pet items home mall history toolbox sandbox saves. */
       public var onButton:Function;
       /** Called with the line typed into the chat box. */
       public var onSay:Function;
@@ -78,6 +78,8 @@ package mmo.control
          addButton(mall, 938, 512);
          // 副本 mode: the way out (IControl.fbLeaveButton; the 四大副本's FBButtonManager listens on it), where 回家 is.
          addButton(new BarButton("btn_fbleave", icon("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
+         // A mod played as a game of its own: its 存档 (to a file and back), where 回家 is.
+         addButton(new BarButton("btn_saves", BarIcons.make("saves"), "存档", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
          // The 亚比图鉴 (pet/petdictionary), under the task icon; its 2012 icon (PetDicIcon) once loaded.
          var dicIcon:Sprite = BarIcons.make("petdic");
          addButton(new BarButton("btn_petdic", dicIcon, "图鉴", 0, 20, click), 936, 114);
@@ -94,7 +96,8 @@ package mmo.control
 
       /**
        * REVIVAL. A mod played as a game of its own (Control.startStandalone): only what its rooms
-       * use stays (亚比, 物品, the HELLO, the sound and the clock); the map, home, the shops,
+       * use stays (亚比, 物品, the HELLO, the sound and the clock), and 存档 comes (the 工具箱's
+       * 导出存档 and 导入存档, nothing else of it); the map, home, the shops,
        * friends and teams, the 工具箱 and 沙盒, the 图鉴, the chat line, phrases, faces, actions,
        * shooting, the player card and the 任务 button (taskpanelnew's, beside the bar) go.
        */
@@ -106,6 +109,8 @@ package mmo.control
             var b:DisplayObject = getChildByName(n);
             if (b != null) b.visible = false;
          }
+         solo = true;
+         setMode("common");
          var frames:int = 0;
          addEventListener(Event.ENTER_FRAME, function(e:Event):void
          {
@@ -424,6 +429,9 @@ package mmo.control
 
       /** In a 副本: map, 背包, 物品 and 离开 (the 2013 bar's fb mode). */
       private static const FB_BUTTONS:Array = ["btnMap", "btn_pet", "btn_items", "btn_fbleave"];
+      /** A mod played as a game of its own (standalone): 背包, 物品 and 存档. */
+      private static const SOLO_BUTTONS:Array = ["btn_pet", "btn_items", "btn_saves"];
+      private var solo:Boolean;
 
       public function setMode(mode:String):void
       {
@@ -432,9 +440,10 @@ package mmo.control
          {
             if (k == "btnMap") continue;
             if (mode == "fb") buttons[k].visible = FB_BUTTONS.indexOf(k) >= 0;
-            else buttons[k].visible = (mode == "common") && k != "btn_fbleave";
+            else if (solo) buttons[k].visible = SOLO_BUTTONS.indexOf(k) >= 0;
+            else buttons[k].visible = (mode == "common") && k != "btn_fbleave" && k != "btn_saves";
          }
-         if (chat) chat.visible = mode != "spacetime";
+         if (chat) chat.visible = mode != "spacetime" && !solo;
       }
    }
 }

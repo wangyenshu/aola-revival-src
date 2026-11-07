@@ -15,12 +15,14 @@ package mmo.control
    import flash.media.Sound;
    import flash.utils.Dictionary;
    import flash.utils.Timer;
+   import flash.system.ApplicationDomain;
    import flash.utils.getDefinitionByName;
    import flash.utils.setTimeout;
    import mmo.common.dialog.NewDialog;
    import mmo.framework.comm.PetClient;
    import mmo.framework.comm.SocketClient;
    import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.material.IMaterialGetPanel;
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.play.player.PlayerManager;
@@ -718,14 +720,44 @@ package mmo.control
          });
       }
 
-      public function giveItem(id:int, n:int = 1, done:Function = null):void
+      public function giveItem(id:int, n:int = 1, done:Function = null, shown:Boolean = true):void
       {
          if (gone) return;
          run.ask(this, {op: "item", mod: info.id, id: id, n: n}, function(p:Object):void
          {
             if (p.res != 1 && p.msg) RLog.log("mod: item " + id + ": " + p.msg);
+            // What was got, in the game's own window (the one of a boss's 亚比蛋: "n 个 …").
+            if (p.res == 1 && n > 0 && shown)
+            {
+               try
+               {
+                  var panel:IMaterialGetPanel = ServiceContainer.getService(IMaterialGetPanel) as IMaterialGetPanel;
+                  if (panel != null) panel.showPanel(2, id, n);
+               }
+               catch (e:Error) { RLog.error("mod item window", e); }
+            }
             if (done != null) done(p.res == 1 ? int(p.count) : -1);
          });
+      }
+
+      public function gameArt(file:String, className:String, done:Function):void
+      {
+         if (done == null || !file || !className || gone) return;
+         var give:Function = function(d:* = null):void
+         {
+            var shown:DisplayObject = null;
+            try
+            {
+               if (ApplicationDomain.currentDomain.hasDefinition(className))
+                  shown = new (getDefinitionByName(className) as Class)() as DisplayObject;
+            }
+            catch (e:Error) { RLog.error("mod game art " + className, e); }
+            if (gone) return;
+            try { done(shown); } catch (e2:Error) { RLog.error("mod game art", e2); }
+         };
+         if (ApplicationDomain.currentDomain.hasDefinition(className)) { give(); return; }
+         try { ResScheduler.getResource(file, give, className); }
+         catch (e3:Error) { RLog.error("mod game art " + file, e3); done(null); }
       }
 
       public function playerLook(look:*, name:String = null):void

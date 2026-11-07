@@ -38,6 +38,7 @@ package mmo.control
             case "sandbox": sandbox(g); break;
             case "petdic": petdic(g); break;
             case "items": items(g); break;
+            case "saves": saves(g); break;
          }
          s.filters = [new DropShadowFilter(1.5, 90, 0x0B3F70, 0.45, 3, 3, 1)];
          return s;
@@ -299,6 +300,34 @@ package mmo.control
          g.endFill();
          g.lineStyle();
          BarSkin.shine(g, -6, -5, 10, 4, 0.6);
+      }
+
+      /** The revival's 存档 (a mod played as a game of its own): a disk, in the bar's style. */
+      private static function saves(g:Graphics):void
+      {
+         g.lineStyle(1.5, 0x123F7A);
+         BarSkin.vgrad(g, 26, 26, [0x7FC4FF, 0x2C74D6], -13);
+         g.moveTo(-13, -10); g.curveTo(-13, -13, -10, -13); g.lineTo(8, -13); g.lineTo(13, -8);
+         g.lineTo(13, 10); g.curveTo(13, 13, 10, 13); g.lineTo(-10, 13); g.curveTo(-13, 13, -13, 10); g.lineTo(-13, -10);
+         g.endFill();
+         // the shutter and the label
+         g.lineStyle(1.2, 0x123F7A);
+         g.beginFill(0xDDE8F5);
+         g.drawRect(-7, -13, 13, 9);
+         g.endFill();
+         g.lineStyle();
+         g.beginFill(0x2C74D6);
+         g.drawRect(1.5, -11.5, 3, 6);
+         g.endFill();
+         g.lineStyle(1.2, 0x123F7A);
+         g.beginFill(0xFFFDF2);
+         g.drawRoundRect(-9, 1, 18, 10, 3, 3);
+         g.endFill();
+         g.lineStyle(1, 0xE0702A);
+         g.moveTo(-6, 4.5); g.lineTo(6, 4.5);
+         g.moveTo(-6, 7.5); g.lineTo(3, 7.5);
+         g.lineStyle();
+         BarSkin.shine(g, -9, -2, 8, 3, 0.5);
       }
 
       /** The revival's 工具箱 (not of 2013): a chest with a star, in the bar's style. */

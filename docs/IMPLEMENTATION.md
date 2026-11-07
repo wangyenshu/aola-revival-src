@@ -203,7 +203,10 @@ The 2013 server's rules are lost. The main reconstructions:
   points), draining, healing, PP, shields and counters, effects that last
   some turns, charging and multi-turn skills. Every description of the
   图鉴's 亚比 is read to the last word; how much a "一定概率" is, or how
-  strong "越少越大" grows, is a guess. A 回复 is shown whole, though the 体力
+  strong "越少越大" grows, is a guess. 混乱 lasts 2 or 3 of the confused one's
+  actions (or a skill's own 回合), each with a 1/3 chance that it hits itself
+  instead (a 40-power blow of its own 攻击, its 攻击等级 counted) — the rule
+  the later 奥拉星 states (the 2013 one is lost). A 回复 is shown whole, though the 体力
   stops at its maximum; 嗜血之矛's heal past it becomes 护盾 points, which take
   the next blows. A 蓄力 or 连续攻击N回合 skill goes on by itself (the player
   chooses nothing on those turns); a 连续攻击N回合 skill's power grows each

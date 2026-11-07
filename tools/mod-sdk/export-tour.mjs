@@ -7,7 +7,9 @@
 //   - the bag, the 物品 panel and the HELLO's menu are opened and closed.
 export default async function run(h) {
   const room = () => h.hook("modroom");
-  if (!(await h.until(async () => !/ -$/.test(String(await room())) && !/^none/.test(String(await room())), true, 300))) {
+  // "<mod> <room>" once the mod shows a room (before that: "none …", "<mod> -", or an error while
+  // the game itself is still loading).
+  if (!(await h.until(room, /^(?!none |error)\S+ (?!-$)\S+$/, 300))) {
     h.log("export tour: the mod did not show a room");
     return;
   }
@@ -20,7 +22,7 @@ export default async function run(h) {
   };
   await h.sleep(4000);
   await answer(25);
-  const rooms = String(await h.hook("modrooms")).split(",").filter(Boolean);
+  const rooms = String(await h.hook("modrooms")).split(",").filter((r) => r && r !== "none" && !r.startsWith("error"));
   h.log("export tour: rooms " + rooms.join(" "));
   for (const r of rooms) {
     await h.revival("modenter", r);

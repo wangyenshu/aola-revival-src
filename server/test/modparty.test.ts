@@ -120,3 +120,20 @@ test("a mod played as a game of its own: a new 奥拉 has the newbie quest done 
   for (const t of ["135", "140", "150"]) assert.equal(rec.tasks[t].st, 1, `task ${t} done`);
   assert.ok(rec.robot, "the HELLO");
 });
+
+test("the game is told the 道具 a party swaps (its 物品 and bag show the party's)", async () => {
+  const h = await setup();
+  const amounts = async (params: Record<string, unknown>) =>
+    (await h.call("SundriesExtension.revival_mod", { mod: "antwar", ...params }))
+      .filter(([c]) => c === "onAmountUpdated")
+      .flatMap(([, b]) => String(b.amount).split("#"))
+      .sort();
+  // Out: the player's 初级体力糖 go, the party's 体力糖 and 活力豆 come.
+  const own = (await h.rec()).items["2"]["30"];
+  assert.ok(own > 0);
+  assert.deepEqual(await amounts({ op: "party", def: JSON.stringify(PARTY) }), ["2_104_0_2", `2_30_0_-${own}`, "2_61_0_3"]);
+  // Out already: nothing changes.
+  assert.deepEqual(await amounts({ op: "party", def: JSON.stringify(PARTY) }), []);
+  // Back: the other way.
+  assert.deepEqual(await amounts({ op: "unparty" }), ["2_104_0_-2", `2_30_0_${own}`, "2_61_0_-3"]);
+});

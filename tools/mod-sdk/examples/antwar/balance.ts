@@ -11,12 +11,13 @@ import { SFS2013_FRAMING, sfs2013Codec, type XtContext, type XtHandler } from ".
 
 const site = new URL("../../../../rebuild/static/www.9aola.com/", import.meta.url);
 const MODES: Record<string, any> = {
-  easy: { lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2 },
-  normal: { lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 1, winBean: 1, bossCandy: 2 },
-  hard: { lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1 },
+  easy: { team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2 },
+  normal: { team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2 },
+  hard: { team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1 },
 };
 const G = [
-  ["nike", 36, 55], ["guard1", 18, 60], ["hade", 72, 65, 244], ["hunter", 21, 70, 242], ["guard2", 189, 70, 241], ["lucas", 299, 72, 243],
+  ["tom", 81, 48], ["kevin", 183, 50], ["nike", 36, 55], ["allen", 153, 56], ["sam", 78, 58], ["guard1", 18, 60],
+  ["roy", 87, 62], ["jason", 75, 63], ["hade", 72, 65, 244], ["guard2", 189, 68, 241], ["hunter", 21, 70, 242], ["lucas", 299, 72, 243],
   ["mach", 99, 75], ["knight1", 45, 80, 218], ["knight3", 204, 80, 219], ["vick", 63, 85, 220], ["bluebrook", 293, 85, 221],
   ["arthur", 290, 90, 225], ["knight2", 45, 90, 223], ["magellan", 236, 92, 224], ["lanbao", 33, 92, 222],
   ["mutant", 227, 100, 226, true], ["kid", [502, 501, 500], 100, 0, true], ["landing", 1648, 100, 0, true], ["flora", 1649, 100, 0, true], ["rabel", 323, 100, 0, true],
@@ -51,7 +52,18 @@ async function campaign(seed: number) {
   for (const [id, raceDef, level, captive, boss] of G) {
     const race = Array.isArray(raceDef) ? raceDef[seed % 3] : (raceDef as number);
     const pct = boss ? m.boss : m.foe;
-    const lv = JSON.stringify({ format: "aola-revival-level", version: 1, heal: false, enemies: [{ race, level: boss ? level : level + m.lv, hp: boss ? m.bossHp : pct, at: pct, de: pct, sa: pct, sd: pct, sp: pct }] });
+    // AntWarMod.teamOf.
+    const L = boss ? level : Math.min(100, level + m.lv);
+    const one = (r2: number, l2: number, main = false) => ({ race: r2, level: Math.max(1, Math.min(100, l2)), hp: main && boss ? m.bossHp : pct, at: pct, de: pct, sa: pct, sd: pct, sp: pct });
+    let enemies = [one(race, L, true)];
+    const gi = G.findIndex((g) => g[0] === id);
+    if (id === "mutant") for (let k = 1; k < m.team; k++) enemies.unshift(one(216, 97 - k));
+    else if (!boss) {
+      const partner = G[gi > 0 ? gi - 1 : gi + 1];
+      const pr = partner[4] ? race : (partner[1] as number);
+      enemies = [one(pr - 2, L - 9), one(race - 2, L - 8), one(pr - 1, L - 6), one(race - 1, L - 5), one(pr, L - 3), one(race, L, true)].slice(6 - Math.min(6, m.team));
+    }
+    const lv = JSON.stringify({ format: "aola-revival-level", version: 1, heal: false, enemies });
     let won = false;
     for (let attempt = 0; attempt < 3 && !won; attempt++) {
       // Heal outside the fight with 体力糖 (the bag's 道具) the hurt ones, keeping two for the fights.

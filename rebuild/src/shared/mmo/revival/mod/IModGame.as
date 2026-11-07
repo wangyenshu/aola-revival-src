@@ -163,8 +163,11 @@ package mmo.revival.mod
        */
       function partyState(done:Function):void;
 
-      /** n (or -n) of the 道具 id: done(count) with the count now, or done(-1) if refused. */
-      function giveItem(id:int, n:int = 1, done:Function = null):void;
+      /**
+       * n (or -n) of the 道具 id: done(count) with the count now, or done(-1) if refused. shown
+       * (API 4): what is got (n > 0) is shown in the game's own window, as a boss's 亚比蛋 is.
+       */
+      function giveItem(id:int, n:int = 1, done:Function = null, shown:Boolean = true):void;
 
       /**
        * Show the player as look in the mod's rooms: a race (a 亚比 of the game or the mod's),
@@ -172,5 +175,11 @@ package mmo.revival.mod
        * name: the name shown under the player there instead of the player's (null: the player's).
        */
       function playerLook(look:*, name:String = null):void;
+
+      /**
+       * (API 4) A picture of the game: a new className of the game's file (as the game's own
+       * modules load them, "fbteam/fbsiwude_res"), given to done(DisplayObject), or done(null).
+       */
+      function gameArt(file:String, className:String, done:Function):void;
    }
 }

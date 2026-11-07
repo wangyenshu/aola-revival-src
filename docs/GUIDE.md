@@ -261,8 +261,10 @@ are kept for the next time you start it. Such a mod may refuse the bag's 恢复
 and the HELLO's 亚比治疗, and may keep one 亚比 in the bag.
 
 `index.html?standalone=<file>.swf` plays one of the site's mods as a game of
-its own: straight into its first room, with only the buttons its rooms use.
-A mod can also be exported that way as a small site of its own
+its own: straight into its first room, with only the buttons its rooms use
+and 存档 (to save the game to a file and load it back; it is also kept in the
+browser as it goes). A mod can also be exported that way as a small site of
+its own: `npm run export:mod -- <mod folder or .swf>`
 ([MODDING.md](MODDING.md#exporting-a-mod)).
 
 A mod is a program and runs with the game's rights, so it could change your

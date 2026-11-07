@@ -266,12 +266,25 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
         };
       };
       const followNow = () => deps.follow?.(ctx, rec, (rec.pets ?? []).find((p) => p.id === rec.followPet) ?? null);
+      // The 道具 the game shows (its 物品, the bag's) follow the swap: told as changes of each count.
+      const itemsNow = () => ({ ...(rec.items?.["2"] ?? {}) });
+      const tellItems = (before: Record<string, number>) => {
+        const after = itemsNow();
+        const changes: string[] = [];
+        for (const id of new Set([...Object.keys(before), ...Object.keys(after)])) {
+          const d = (after[id] ?? 0) - (before[id] ?? 0);
+          if (d) changes.push(`2_${id}_0_${d}`);
+        }
+        if (changes.length) ctx.reply({ amount: changes.join("#") }, "onAmountUpdated");
+      };
       if (op === "state") return reply({ res: 1, ...state() });
       if (op === "unparty") {
         if (rec.modParty?.mod === mod) {
+          const before = itemsNow();
           endModParty(rec);
           await deps.save(rec);
           followNow();
+          tellItems(before);
         }
         return reply({ res: 1 });
       }
@@ -298,6 +311,7 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
         return reply({ res: 0, msg: "队伍的定义不对" });
       }
       const fresh = def.fresh === true;
+      const itemsBefore = itemsNow();
       if (rec.modParty && rec.modParty.mod !== mod) endModParty(rec);
       if (rec.modParty?.mod === mod && !fresh) {
         followNow();
@@ -350,6 +364,7 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       if (rec.modParties) delete rec.modParties[mod];
       await deps.save(rec);
       followNow();
+      tellItems(itemsBefore);
       return reply({ res: 1, ...state() });
     }
     if (op === "give") {

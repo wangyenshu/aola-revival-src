@@ -19,6 +19,7 @@ const pm: PmData = {
     "15009": { n: "冰牙", p: 60, acc: 100, pp: 25, pri: 0, t: 14, k: 0, d: "10%概率令对方单体冰冻" },
     "1021": { n: "瞪眼", p: -1, acc: 100, pp: 30, pri: 0, t: 0, k: 2, d: "削弱对方单体防御等级1级" },
     "1087": { n: "胜利意志", p: -1, acc: 100, pp: 99, pri: 0, t: 0, k: 2, d: "提升自己攻击等级6级" },
+    "1106": { n: "狂暴诅咒", p: -1, acc: 100, pp: 15, pri: 0, t: 0, k: 2, d: "令对方单体混乱，并提升对方攻击等级2级" },
   },
   chart: { "14": { "11": 2 }, "11": { "14": 1 } },
   exp: { "0": Array.from({ length: 100 }, (_, i) => (i + 1) ** 3) },
@@ -299,4 +300,38 @@ test("自动战斗仪: after each of its battles every 亚比 of the bag has all
   await c2("PetExtension.54_2", { raceId: 43, level: -1, sw: true, id: -1 });
   for (let i = 0; i < 20; i++) if ((await c2("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 })).some(([c]) => c === "2403")) break;
   assert.ok(o2.pets![0].skills.some((s) => s.pp < s.max));
+});
+
+test("狂暴诅咒: 混乱 for 2 or 3 of the foe's actions, each a 1/3 chance of hitting itself (harder, its 攻击 up 2)", () => {
+  let confusedActions = 0;
+  let selfHits = 0;
+  let applied = 0;
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  for (let run = 0; run < 400; run++) {
+    const e = new BattleEngine(tables, rnd);
+    const mine = makePet(tables, 2, 50, "d", 1);
+    const wild = makePet(tables, 2, 50, "d");
+    const b = e.start(1, "aixiscene1", { id: 7, name: "a" }, mine, wild, true);
+    const lines: string[] = [];
+    assert.equal(e.applyStatus(b.wild, "混乱", lines), true);
+    applied++;
+    const span = b.wild.confuse - 1;
+    assert.ok(span === 2 || span === 3, `confused for ${span}`);
+    for (let k = 0; k < 4 && b.wild.confuse > 0; k++) {
+      const before = b.wild.pet.hp;
+      const was = b.wild.confuse;
+      e.act(b, b.wild, b.mine, 1016);
+      if (was > 1) confusedActions++;
+      if (b.wild.pet.hp < before) selfHits++;
+      b.wild.pet.hp = before;
+    }
+    assert.equal(b.wild.confuse, 0);
+  }
+  const rate = selfHits / confusedActions;
+  assert.ok(applied === 400 && rate > 0.27 && rate < 0.4, `self-hit rate ${rate}`);
+  // The skill: 混乱 and the foe's 攻击 up 2.
+  const fx = parseEffects("令对方单体混乱，并提升对方攻击等级2级");
+  assert.deepEqual(fx.status, { name: "混乱", chance: 100 });
+  assert.deepEqual(fx.stages, [{ self: false, stats: ["atk"], delta: 2, chance: 100 }]);
 });

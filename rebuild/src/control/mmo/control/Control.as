@@ -288,6 +288,9 @@ package mmo.control
             case "toolbox":
                ToolboxPanel.toggle();
                break;
+            case "saves":
+               SaveMenu.toggle();
+               break;
             case "sandbox":
                SandboxPanel.toggle();
                break;
@@ -597,6 +600,8 @@ package mmo.control
                      return names.join(",");
                   case "layers": return describe(LayerManager.stage, int(arg) || 3);
                   case "pet": showPanel("NewPetPackage"); return "ok";
+                  case "items": ItemsPanel.toggle(); return "ok";
+                  case "saves": SaveMenu.toggle(); return "ok";
                   case "panel": showPanel(arg); return "ok";
                   case "book":
                      // Open a shop book of the era book list by its number (tests/e2e).
@@ -722,7 +727,7 @@ package mmo.control
                      {
                         var uc:Array = [];
                         for (var ud:DisplayObject = objs[ui]; ud != null && ud != ud.stage; ud = ud.parent)
-                           uc.push((ud.name || "?") + ":" + getQualifiedClassName(ud).replace(/.*::/, "") + (ud is InteractiveObject && !InteractiveObject(ud).mouseEnabled ? "(nomouse)" : ""));
+                           uc.push((ud.name || "?") + ":" + getQualifiedClassName(ud).replace(/.*::/, "") + (ud is InteractiveObject && !InteractiveObject(ud).mouseEnabled ? "(nomouse)" : "") + (ud is DisplayObjectContainer && !DisplayObjectContainer(ud).mouseChildren ? "(nochildren)" : ""));
                         outs.push(uc.join("<"));
                      }
                      return outs.join(" || ");

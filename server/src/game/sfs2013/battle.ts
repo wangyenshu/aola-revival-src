@@ -569,7 +569,9 @@ export class BattleEngine {
     }
     if (s === "混乱") {
       if (f.confuse > 0) return false;
-      f.confuse = n || this.int(2, 4);
+      // Its actions confused: 2 to 3 (or the skill's own turns), each a 1/3 chance of hitting
+      // itself; the counter has one more, spent on the action that snaps out of it.
+      f.confuse = (n || this.int(2, 3)) + 1;
       lines.push(`${name}混乱了！`);
       return true;
     }

@@ -32,7 +32,9 @@ package mmo.revival.mod
        * A character. def:
        *   name      shown under it
        *   look      a DisplayObject, a Class, a race (a 亚比 of the game or of the mod), or
-       *             (API 4) "npc:<id>": an NPC of the game (its picture in talk() too)
+       *             (API 4) "npc:<id>": an NPC of the game (its picture in talk() too), or
+       *             "avatar:<clothes>": an 奥拉 in those clothes of the game, "6;7;…" (the bare
+       *             head and body first; "avatar:6;7;126;127;129;130;131;132": the starting 酷蓝 set)
        *   picture   for talk(): DisplayObject, Class or "npc:<id>" (default: look, when not a race)
        *   x, y      where it stands (its feet)
        *   scale     default 1
@@ -62,7 +64,8 @@ package mmo.revival.mod
 
       /**
        * (API 4) A piece of the scene a room on the game's art is drawn with (IModGame.room's
-       * scene), found by its name ("et1", "btn_general" …), or null.
+       * scene), found by its name ("et1", "btn_general" …), or null. Its obstruction's pieces
+       * too ("roadblock"): one taken out of its parent before the player walks opens the way.
        */
       function part(name:String):DisplayObject;
 
