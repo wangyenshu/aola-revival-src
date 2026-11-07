@@ -125,3 +125,61 @@ test("摘果子 from afar: a visitor's commands are about the home he is in, not
   assert.equal((await call("客人", "客人_247_Home", "PlantExtension.80_3", ask)).at(-1)![1].result.result, -19, "from his own garden");
   assert.equal((await call("客人", "主人_247_Home", "PlantExtension.80_5", ask)).at(-1)![1].result.extData, 1, "in the owner's garden");
 });
+
+test("the owner's 雨露 and 养料 cost 50 晶币; a visitor's are free and remembered (植物心声)", async () => {
+  const { owner, call } = setup();
+  await call("SundriesExtension.revival_garden", { op: "buy", plantId: 5 });
+  const tree = owner.plants![0];
+  const before = owner.score!;
+  const r = await call("PlantExtension.80_3", { owner: owner.name, userPlantId: tree.id });
+  assert.equal(r.at(-1)![1].result.result, 0);
+  assert.equal(owner.score, before - 50);
+  assert.deepEqual(r[0], [ "onScoreUpdated", { score: before - 50 } ]);
+  owner.score = 10;
+  assert.equal((await call("PlantExtension.80_4", { owner: owner.name, userPlantId: tree.id })).at(-1)![1].result.result, -2);
+});
+
+test("盆栽道具: 极速雨露 outside the day's growth, 基因药剂 raise it, 增产养料 doubles a fruiting, 繁盛养料 adds two, 铲子 digs up", async () => {
+  const { owner, call, clock } = setup();
+  owner.items = { "10": { "1": 2, "3": 1, "5": 2, "6": 1, "7": 1 } };
+  await call("SundriesExtension.revival_garden", { op: "buy", plantId: 5 });
+  const tree = owner.plants![0];
+  const use = async (itemId: number) => (await call("PlantItemExtension.81_1", { owner: owner.name, userPlantId: tree.id, itemId, quantity: 1 })).at(-1)![1].result;
+  assert.deepEqual((await call("PlantItemExtension.81_2")).at(-1)![1].items.map((i: { id: number }) => i.id), [1, 3, 5, 6, 7]);
+  // Level 0 (10/10): 极速雨露 fills the health, the day's growth untouched.
+  assert.equal((await use(1)).result, 0);
+  assert.equal(tree.health, 10);
+  assert.equal(owner.items["10"]["1"], 1);
+  assert.equal((await use(1)).result, -17);
+  assert.equal(owner.items["10"]["1"], 1, "a refused 道具 is kept");
+  // 健康基因药剂: the day's health growth 20 -> 25.
+  assert.equal((await use(3)).userPlant.healthCeil, 25);
+  assert.equal((await use(2)).result, -3, "none of it");
+  // Not bearing fruit yet.
+  assert.equal((await use(5)).result, -18);
+  // Grow it to 月亮树's mature level 2 (10+10, 20+20).
+  Object.assign(tree, { level: 2, health: 0, nutrition: 0, remainProductTime: 2, fruitLeft: 10, remainFruit: 0, nextFruitTime: clock.now + 3600_000 });
+  assert.equal((await use(5)).result, 0);
+  assert.equal((await use(5)).result, -5, "once a fruiting");
+  assert.equal((await use(6)).result, 0);
+  assert.deepEqual([tree.remainProductTime, tree.fruitLeft], [4, 20]);
+  clock.now += 3600_000;
+  const picked = (await call("PlantExtension.80_5", { owner: owner.name, userPlantId: tree.id })).at(-1)![1].result;
+  assert.equal(picked.extData, 10, "a fruiting of 5, doubled");
+  // 铲子.
+  const dug = await call("PlantItemExtension.81_1", { owner: owner.name, userPlantId: tree.id, itemId: 7, quantity: 1 });
+  assert.equal(dug.at(-1)![1].result.dug, 1);
+  assert.equal(owner.plants!.length, 0);
+});
+
+test("守护亚比: one of the owner's 亚比, shown in the tree", async () => {
+  const { owner, call } = setup();
+  owner.pets = [{ id: 7 }];
+  await call("SundriesExtension.revival_garden", { op: "buy", plantId: 1 });
+  const tree = owner.plants![0];
+  assert.equal((await call("PlantExtension.80_12", { userPlantId: tree.id, petId: 9 })).at(-1)![1].result.result, -8);
+  const r = (await call("PlantExtension.80_12", { userPlantId: tree.id, petId: 7 })).at(-1)![1].result;
+  assert.equal(r.result, 0);
+  assert.equal(r.userPlant.petId, 7);
+  assert.equal((await call("PlantExtension.80_12", { userPlantId: tree.id, petId: 0 })).at(-1)![1].result.userPlant.petId, 0);
+});

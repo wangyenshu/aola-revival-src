@@ -53,8 +53,8 @@ package mmo.house.b000247
     * the picture here (RECONSTRUCTED).
     *
     * Working: 我的家 (the main house), 亚比仓库 (pet/petwarehouse), the 植树盆
-    * (PlantPanel: the trees of PlantData, drawn from their June 2012
-    * pictures plant/y<id>; PlantExtension), 亚比孵化器 (pet/pethatchegg),
+    * (the trees of PlantData, drawn from their June 2012 pictures plant/y<id>;
+    * its panel the rebuilt yz/treemanager; the 种植手册 sells them; PlantExtension), 亚比孵化器 (pet/pethatchegg),
     * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
     * 进入动物园 (the rebuilt zoo, furniture/b020000), 离开花园, 地图, 背包,
     * 好友 and 图鉴 (what the control bar's open), 放映厅 (奥拉星's films, the theatre's
@@ -185,6 +185,8 @@ package mmo.house.b000247
          button(904, 268, 50, 50, "最近访问", notYet);
          SocketClient.instance.addEventListener("revival_garden", onGarden);
          SocketClient.instance.addEventListener("revival_show", onShown);
+         SocketClient.instance.addEventListener("onAmountUpdated", onAmount);
+         pot.addEventListener(MouseEvent.ROLL_OVER, onPotOver);
          SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
       }
 
@@ -192,7 +194,9 @@ package mmo.house.b000247
       {
          SocketClient.instance.removeEventListener("revival_garden", onGarden);
          SocketClient.instance.removeEventListener("revival_show", onShown);
-         PlantPanel.closeIfOpen();
+         SocketClient.instance.removeEventListener("onAmountUpdated", onAmount);
+         pot.removeEventListener(MouseEvent.ROLL_OVER, onPotOver);
+         treePanel("hide");
          taskIconOverPicture(false);
          var hatcher:Sprite = hatcherOnScreen();
          if (hatcher != null) hatcher.visible = false;
@@ -416,9 +420,56 @@ package mmo.house.b000247
          return true;
       }
 
+      /**
+       * The 植树盆: with a tree, its panel (the rebuilt yz/treemanager, over the tree as the
+       * pointer comes onto it, or a click); empty, the owner's 种植手册, whose trees grow here.
+       */
       private function openPot():void
       {
-         PlantPanel.show(owner(), isMine(), tree, showTree);
+         if (tree != null) treePanel("show");
+         else if (isMine())
+            ServiceContainer.instance.tryGetService("SellBookService", function(svc:IService, o:Object):void
+            {
+               try { Object(svc).showPage("catalog201102"); } catch (e:Error) { RLog.error("garden plant book", e); }
+            });
+         else RNotice.show(LayerManager.getBaseTop(), "植树盆里还没有种树。");
+      }
+
+      private function onPotOver(e:MouseEvent):void
+      {
+         if (tree != null) treePanel("show");
+      }
+
+      /** The tree panel of yz/treemanager (rebuilt), the module loaded first. */
+      private function treePanel(what:String):void
+      {
+         var cls:String = "mmo.treemanager.treepanel.TreePanel";
+         var go:Function = function(d:* = null):void
+         {
+            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
+            var C:Object = ApplicationDomain.currentDomain.getDefinition(cls);
+            try
+            {
+               if (what == "hide" || tree == null || pot.stage == null) C.hide();
+               else C.show(hud, pot, tree, owner(), isMine(), showTree, visit);
+            }
+            catch (err:Error) { RLog.error("garden tree panel", err); }
+         };
+         if (ApplicationDomain.currentDomain.hasDefinition(cls)) go();
+         else if (what != "hide") ResScheduler.getResource("yz/treemanager", go, "", function(e:* = null):void { RLog.log("garden: yz/treemanager not loaded"); });
+      }
+
+      /** 植物心声's button: to that player's home. */
+      private function visit(name:String):void
+      {
+         try { loader.loadHouse(name); } catch (e:Error) { RLog.error("garden visit", e); }
+      }
+
+      /** A tree bought in the 种植手册 (it goes into the 植树盆): the garden shows it. */
+      private function onAmount(e:SocketClientEvent):void
+      {
+         if (!isMine() || String(e.params.amount || "").indexOf("9_") != 0) return;
+         SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
       }
 
       private function onGarden(e:SocketClientEvent):void

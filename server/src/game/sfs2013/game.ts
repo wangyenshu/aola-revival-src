@@ -162,7 +162,6 @@ export interface Sfs2013Options {
 const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
   "MaterialExtension.61_5": { pd: [] }, // PetClothesService
   "MaterialExtension.61-8": { cards: [] }, // PetCard2Service
-  "PlantItemExtension.81_2": { items: [] }, // PlantItemService
   "SundriesExtension.70-1": { b: [] }, // BadgeService
 };
 

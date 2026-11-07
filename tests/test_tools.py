@@ -527,5 +527,26 @@ class TestImageShapes(unittest.TestCase):
         self.assertEqual(struct.unpack_from("<H", inner[0][1], 4)[0], sid)
 
 
+class TestOnlyBinds(unittest.TestCase):
+    """swf_transplant --only-binds: the art's own class names for symbols left unbound are dropped."""
+
+    def test_unbound_names_dropped(self):
+        import struct
+        import swf_transplant as t
+        with tempfile.TemporaryDirectory() as d:
+            def swf(path, tags):
+                body = bytes([0x78, 0x00, 0x05, 0x5F, 0x00, 0x00, 0x0F, 0xA0, 0x00]) + struct.pack("<HH", 0x1900, 1)
+                body += b"".join(t.write_tag(c, x) for c, x in tags)
+                Path(path).write_bytes(b"FWS" + bytes([10]) + struct.pack("<I", 8 + len(body)) + body)
+            art, code = Path(d, "art.swf"), Path(d, "code.swf")
+            swf(art, [(69, b"\x08\0\0\0"), (76, t.symbol_class({5: "a.Kept", 7: "a.Gone", 0: "a.Doc"})), (1, b""), (0, b"")])
+            swf(code, [(82, b"\0" * 8), (0, b"")])
+            for only, want in ((False, {5: "b.New", 7: "a.Gone", 0: "a.Doc"}), (True, {5: "b.New"})):
+                res = Path(d, "out.swf")
+                res.write_bytes(t.transplant(art, code, {5: "b.New"}, "x", drop_art_abc=True, only_binds=only))
+                tags = t.parse(res)[2]
+                self.assertEqual([t.parse_symbol_class(x) for c, x in tags if c == 76], [want])
+
+
 if __name__ == "__main__":
     unittest.main()

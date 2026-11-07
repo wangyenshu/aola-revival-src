@@ -11,6 +11,10 @@
 //   80_3 {owner, userPlantId}       -> {result: {result, userPlant, surprise}}   雨露 (health)
 //   80_4 {owner, userPlantId}       -> the same for 养料 (nutrition)
 //   80_5 {owner, userPlantId}       -> {result: {result, extData, userPlant}}    采摘 (pick the fruit)
+//   80_12 {userPlantId, petId}      -> {result: {result, userPlant}}   守护亚比 (0: none), the owner's
+//   81_1 {itemId, userPlantId, quantity, owner} (PlantItemExtension) -> {result: {result, userPlant}}
+//                                      a 盆栽道具 used (PlantItemData 1–7; 7 铲子 digs the tree up)
+//   81_2 {}                         -> {items: [{id, qt, uq}]}           the 盆栽道具 one has
 //   revival_garden {op: "buy", plantId} | {op: "dig", userPlantId} | {op: "info", un}
 //                                   -> {op, result, plant, plants, score, show}
 //                                      show: the 亚比 the owner 展示 {i, r, lv, nm} or null
@@ -20,10 +24,18 @@
 // gives, how often, and when fruit comes are RECONSTRUCTED from the texts of
 // the later tree panel (yz/treemanager: "你每天只能为这棵…添加两次雨露哦",
 // "健康值是有上限的，在到达下一等级之前已经不能增加了", "下次结果时间为今天…：00，
-// 还可以结果…次"). Result codes are that panel's: 0 done, 1 done and grown a
-// level, -1 no fruit, -2 too little 晶币, -5 twice today already, -9 top level,
-// -17 full until the next level, -19 no such tree, -21 the pot is taken, -22 (the revival's) a
-// visitor has picked of this fruiting already, or only the owner's last fruit is left.
+// 还可以结果…次", "添加雨露需要50晶币"). Result codes are that panel's: 0 done, 1 done and
+// grown a level, -1 no fruit, -2 too little 晶币, -3 no such 道具, -4 the day's growth is full,
+// -5 twice today already (a 道具: as often as it may be), -8 no such 亚比, -9 top level,
+// -14 the 守护亚比 saw the picker, -17 full until the next level, -18 not bearing fruit, -19 no
+// such tree, -20 not one's own tree, -21 the pot is taken, -22 (the revival's) a visitor has
+// picked of this fruiting already, or only the owner's last fruit is left.
+// A 雨露 or 养料 gives half the day's growth (健康值 or 营养值 每日成长上限, 20, +5 a 基因药剂),
+// two a day; the owner pays 50 晶币 for one, a visitor nothing and is remembered (植物心声, the
+// last five). The 盆栽道具 do what PlantItemData says: 极速雨露 / 极速养料 +20 outside the day's
+// growth (five a day), 基因药剂 +5 to the day's growth (five a tree), 增产养料 the next fruiting
+// twice, 繁盛养料 two fruitings more, 铲子 the tree dug up. A visitor picking a guarded tree is
+// seen one time in three (RECONSTRUCTED: the 2013 panel fought the 守护亚比 then).
 
 import type { World, XtContext } from "./server.ts";
 
@@ -37,6 +49,13 @@ export const GROWTH_PER_CARE = 10;
 export const CARE_PER_DAY = 2;
 /** Fruit comes back at a whole hour, at least this long after the last picking (RECONSTRUCTED). */
 export const FRUIT_WAIT_MS = 60 * 60 * 1000;
+/** What the owner pays for a 雨露 or 养料 (the 2013 panel: "添加雨露需要50晶币"). */
+export const CARE_COST = 50;
+/** PlantItemData: [affected (0 health, 1 nutrition, 2 health ceiling, 3 nutrition ceiling, 4 doubled fruit, 5 more fruitings, 6 dig), value, use (1 a day, 2 a tree), at most]. */
+export const PLANT_ITEMS: Record<number, [number, number, number, number]> = {
+  1: [0, 20, 1, 5], 2: [1, 20, 1, 5], 3: [2, 5, 2, 5], 4: [3, 5, 2, 5], 5: [4, 1, 0, 0], 6: [5, 2, 0, 0], 7: [6, 0, 0, 0],
+};
+export const PLANT_ITEM_TYPE = "10";
 
 /** materialdata PlantData: [maxHealth, maxNutrition, productTime, productFruit] per level. */
 export interface PlantKind {
@@ -75,6 +94,18 @@ export interface PlantRec {
   care: { day: string; rain: number; fat: number };
   /** Visitors (ids) who picked of this fruiting: one fruit each, the last left to the owner. */
   pickers?: number[];
+  /** Today's growth from 雨露 and 养料 (each half the day's ceiling). */
+  grown?: { day: string; health: number; nutrition: number };
+  /** The 基因药剂's raise of the day's growth ceilings. */
+  ceilUp?: { health: number; nutrition: number };
+  /** 盆栽道具 used today on this tree (a day's limit), by item id. */
+  tools?: { day: string; n: Record<string, number> };
+  /** 增产养料: the next fruiting twice. */
+  doubled?: boolean;
+  /** 守护亚比 (a 亚比 id of the owner's; 0 or none: none). */
+  petId?: number;
+  /** 植物心声: who cared for it lately, "name|name", the latest first. */
+  visitors?: string[];
 }
 
 export interface PlantOwner {
@@ -84,6 +115,9 @@ export interface PlantOwner {
   items?: Record<string, Record<string, number>>;
   plants?: PlantRec[];
   nextPlantId?: number;
+  /** The 亚比 of the bag and the 仓库 (守护亚比 is one of them). */
+  pets?: { id: number }[];
+  storage?: { id: number }[];
 }
 
 export interface PlantDeps {
@@ -93,6 +127,8 @@ export interface PlantDeps {
   /** The 亚比 the owner shows in the garden (展示 in the 亚比仓库), for revival_garden's info. */
   shown?(o: PlantOwner): Promise<{ i: number; r: number; lv: number; nm: string } | null>;
   now(): number;
+  /** 0 ≤ x < 1 (Math.random without). */
+  random?(): number;
 }
 
 const dayOf = (ms: number) => new Date(ms + 8 * 3600_000).toISOString().slice(0, 10); // China time
@@ -106,7 +142,8 @@ export function nextFruitAt(now: number): number {
 export function ripen(p: PlantRec, now: number): void {
   if (p.remainFruit > 0 || p.remainProductTime <= 0 || now < p.nextFruitTime) return;
   const n = Math.max(1, Math.ceil(p.fruitLeft / p.remainProductTime));
-  p.remainFruit = n;
+  p.remainFruit = p.doubled ? n * 2 : n;
+  p.doubled = false;
   p.pickers = [];
   p.fruitLeft = Math.max(0, p.fruitLeft - n);
   p.remainProductTime -= 1;
@@ -128,14 +165,19 @@ export function plantView(p: PlantRec, now: number): Record<string, unknown> {
     remainFruit: p.remainFruit,
     remainProductTime: p.remainProductTime,
     nextFruitTime: p.nextFruitTime,
-    healthCeil: GROWTH_PER_CARE * CARE_PER_DAY,
-    nutritionCeil: GROWTH_PER_CARE * CARE_PER_DAY,
-    petId: 0,
-    visitors: "",
+    healthCeil: dayCeil(p, "health"),
+    nutritionCeil: dayCeil(p, "nutrition"),
+    petId: p.petId ?? 0,
+    visitors: (p.visitors ?? []).join("#"),
     isFurniture: false,
     rainLeft: CARE_PER_DAY - today.rain,
     fatLeft: CARE_PER_DAY - today.fat,
   };
+}
+
+/** The day's growth ceiling of 健康值 or 营养值. */
+export function dayCeil(p: PlantRec, key: "health" | "nutrition"): number {
+  return GROWTH_PER_CARE * CARE_PER_DAY + (p.ceilUp?.[key] ?? 0);
 }
 
 /** Both full: one level up; from the mature level on it bears fruit. */
@@ -166,9 +208,63 @@ export function care(p: PlantRec, what: "rain" | "fat", now: number): number {
   const key = what === "rain" ? "health" : "nutrition";
   const top = what === "rain" ? mh : mn;
   if (p[key] >= top) return -17;
-  p[key] = Math.min(top, p[key] + GROWTH_PER_CARE);
+  if (p.grown?.day !== day) p.grown = { day, health: 0, nutrition: 0 };
+  const ceil = dayCeil(p, key);
+  if (p.grown[key] >= ceil) return -4;
+  const add = Math.min(ceil - p.grown[key], Math.ceil(ceil / CARE_PER_DAY));
+  p[key] = Math.min(top, p[key] + add);
+  p.grown[key] += add;
   p.care[what] += 1;
   return growUp(p, kind, now) ? 1 : 0;
+}
+
+/**
+ * A 盆栽道具 on a tree (the item is taken by the caller when the result is not negative):
+ * the result code; 2 for the 铲子 (the tree to be dug up).
+ */
+export function useTool(p: PlantRec, item: number, now: number, mine: boolean): number {
+  const kind = PLANTS[p.plantId];
+  const info = PLANT_ITEMS[item];
+  if (!kind || !info) return -19;
+  const [what, value, use, most] = info;
+  const max = kind.levels.length - 1;
+  const day = dayOf(now);
+  if (use === 1) {
+    if (p.tools?.day !== day) p.tools = { day, n: {} };
+    if ((p.tools.n[item] ?? 0) >= most) return -5;
+  }
+  let result = 0;
+  if (what === 0 || what === 1) {
+    if (p.level >= max) return -9;
+    const key = what === 0 ? "health" : "nutrition";
+    const top = kind.levels[p.level][what === 0 ? 0 : 1];
+    if (p[key] >= top) return -17;
+    p[key] = Math.min(top, p[key] + value);
+    result = growUp(p, kind, now) ? 1 : 0;
+  } else if (what === 2 || what === 3) {
+    const key = what === 2 ? "health" : "nutrition";
+    p.ceilUp ??= { health: 0, nutrition: 0 };
+    if (p.ceilUp[key] >= value * most) return -5;
+    p.ceilUp[key] += value;
+  } else if (what === 4 || what === 5) {
+    const bearing = p.level >= kind.mature && (p.remainProductTime > 0 || p.remainFruit > 0);
+    if (!bearing) return -18;
+    if (what === 4) {
+      if (p.doubled) return -5;
+      p.doubled = true;
+    } else {
+      const [, , times, fruit] = kind.levels[p.level];
+      const each = times > 0 ? Math.ceil(fruit / times) : 0;
+      if (p.remainProductTime <= 0 && p.remainFruit <= 0) p.nextFruitTime = nextFruitAt(now);
+      p.remainProductTime += value;
+      p.fruitLeft += each * value;
+    }
+  } else {
+    if (!mine) return -20;
+    return 2;
+  }
+  if (use === 1) p.tools!.n[item] = (p.tools!.n[item] ?? 0) + 1;
+  return result;
 }
 
 /**
@@ -229,11 +325,67 @@ export function installPlants(world: World, deps: PlantDeps): void {
       const p = byId(o, ctx.params.userPlantId);
       if (!o || !p) return ctx.reply({ result: { result: -19 } });
       const now = deps.now();
+      const own = o.name === ctx.player.name;
+      if (own && (o.score ?? 0) < CARE_COST) return ctx.reply({ result: { result: -2, userPlant: plantView(p, now), surprise: 0 } });
       const result = care(p, what, now);
-      if (result >= 0) await deps.save(o);
+      if (result >= 0) {
+        if (own) {
+          o.score = (o.score ?? 0) - CARE_COST;
+          ctx.reply({ score: o.score }, "onScoreUpdated");
+        } else {
+          const me = `${ctx.player.name}|${ctx.player.name}`;
+          p.visitors = [me, ...(p.visitors ?? []).filter((v) => v !== me)].slice(0, 5);
+        }
+        await deps.save(o);
+      }
       ctx.reply({ result: { result, userPlant: plantView(p, now), surprise: 0 } });
     });
   }
+
+  // 守护亚比: one of the owner's 亚比 (0: none).
+  world.xt(`${PLANT_EXT}.80_12`, async (ctx) => {
+    const o = await deps.me(ctx);
+    const p = byId(o, ctx.params.userPlantId);
+    const now = deps.now();
+    if (!p) return ctx.reply({ result: { result: -19 } });
+    const pet = Number(ctx.params.petId) | 0;
+    if (pet > 0 && ![...(o.pets ?? []), ...(o.storage ?? [])].some((x) => x.id === pet)) return ctx.reply({ result: { result: -8, userPlant: plantView(p, now) } });
+    p.petId = Math.max(0, pet);
+    await deps.save(o);
+    ctx.reply({ result: { result: 0, userPlant: plantView(p, now) } });
+  });
+
+  // 盆栽道具 (PlantItemExtension): bought in the 种植手册, used from the tree's panel.
+  world.xt("PlantItemExtension.81_2", async (ctx) => {
+    const o = await deps.me(ctx);
+    const have = o.items?.[PLANT_ITEM_TYPE] ?? {};
+    ctx.reply({ items: Object.entries(have).filter(([, q]) => q > 0).map(([id, q]) => ({ id: Number(id), qt: q, uq: 0 })) });
+  });
+  world.xt("PlantItemExtension.81_1", async (ctx) => {
+    const o = await target(ctx);
+    const p = byId(o, ctx.params.userPlantId);
+    const now = deps.now();
+    if (!o || !p) return ctx.reply({ result: { result: -19 } });
+    const user = o.name === ctx.player.name ? o : await deps.me(ctx);
+    const item = Number(ctx.params.itemId) | 0;
+    const have = ((user.items ??= {})[PLANT_ITEM_TYPE] ??= {});
+    if (!((have[String(item)] ?? 0) > 0)) return ctx.reply({ result: { result: -3, userPlant: plantView(p, now) } });
+    const result = useTool(p, item, now, user === o);
+    if (result < 0) return ctx.reply({ result: { result, userPlant: plantView(p, now) } });
+    have[String(item)] -= 1;
+    if (have[String(item)] <= 0) delete have[String(item)];
+    ctx.reply({ amount: `${PLANT_ITEM_TYPE}_${item}_0_-1` }, "onAmountUpdated");
+    if (result === 2) {
+      // 铲子: the pot is empty again.
+      o.plants = mine(o).filter((x) => x !== p);
+      await deps.save(o);
+      ctx.reply({ amount: `9_${p.plantId}_0_-1_${p.id}` }, "onAmountUpdated");
+      return ctx.reply({ result: { result: 0, userPlant: null, dug: 1 } });
+    }
+    await deps.save(o);
+    if (user !== o) await deps.save(user);
+    ctx.reply({ result: { result, userPlant: plantView(p, now) } });
+  });
 
   world.xt(`${PLANT_EXT}.80_5`, async (ctx) => {
     const o = await target(ctx);
@@ -244,6 +396,9 @@ export function installPlants(world: World, deps: PlantDeps): void {
     if (p.remainFruit <= 0) return ctx.reply({ result: { result: -1, userPlant: plantView(p, now) } });
     const visitor = o.name !== ctx.player.name;
     const picker = visitor ? await deps.me(ctx) : o;
+    // A guarded tree: its 守护亚比 sees a visitor one time in three.
+    if (visitor && (p.petId ?? 0) > 0 && (deps.random ? deps.random() : Math.random()) < 1 / 3)
+      return ctx.reply({ result: { result: -14, userPlant: plantView(p, now) } });
     // 摘果子 at a friend's: one fruit a visitor a fruiting, never the last (RECONSTRUCTED).
     if (visitor && (p.remainFruit <= 1 || (p.pickers ?? []).includes(picker.id ?? 0)))
       return ctx.reply({ result: { result: -22, userPlant: plantView(p, now) } });

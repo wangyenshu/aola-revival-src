@@ -901,8 +901,10 @@ run pays 晶豆, as its end panel says.
 
 ### Home
 
-- The 家园 (garden of 2012): the 植树盆 with the eight trees of 2012 (plant,
-  water, feed, pick), the 亚比孵化器, the 经验分配器 (hands the HELLO's
+- The 家园 (garden of 2012): the 植树盆 with the eight trees of 2012 and its
+  2012 tree panel (雨露 and 养料 for 50 晶币, 采摘, 植物心声 with the last
+  visitors, the 盆栽道具 from 极速雨露 to 铲子, a 守护亚比 against pickers; an
+  empty pot opens the 种植手册), the 亚比孵化器, the 经验分配器 (hands the HELLO's
   experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
   January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示; its
   bar's 地图, 背包, 好友, 周刊, 勋章, 图鉴 and 放映厅 (奥拉星's films).
@@ -943,6 +945,7 @@ run pays 晶豆, as its end panel says.
   这个功能还在修复中).
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
   亚比骑乘训练, 上古神殿's panels, 模拟空间.
+- The 植树盆's 收为家具 (a grown tree put into the 空间舱 as furniture).
 - Quests that call services that are still stand-ins may stop partway.
 - Several rooms are later redrawings, because the January 2013 files are
   lost: 奥拉广场 (on the July 2012 art), 主题公园 (on the June 2012 art),

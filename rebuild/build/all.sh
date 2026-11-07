@@ -139,6 +139,37 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petitem.swf)" --code "$OUT/p
   --bind 0=mmo.pet.petitem.DocPetItem --bind 668=mmo.pet.petitem.PetItemPanel --bind 706=mmo.pet.petitem.ItemView \
   --note "REBUILT pet/petitem (aola-revival) on the art of its later copy" \
   --out "$W/pet/petitem.swf%3F130124"
+# The 植树盆's tree panel: rebuilt yz/treemanager (on the art of its 2016 build) and the
+# panels it opens, yz/panel_res (盆栽道具, 守护亚比; on their April 2012 art).
+build treemanager mmo/treemanager/DocTreeManager.as treemanager-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art yz/treemanager.swf)" --code "$OUT/treemanager-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.treemanager.DocTreeManager --bind 290=mmo.treemanager.treepanel.TreePanel --bind 15=mmo.treemanager.treepanel.VisitorPanel \
+  --bind 236=mmo.treemanager.treepanel.Pickfruit --bind 206=mmo.treemanager.treepanel.UseTool --bind 221=mmo.treemanager.treepanel.UseTool7 \
+  --bind 119=mmo.treemanager.treepanel.LevelUp --bind 156=mmo.treemanager.treepanel.LevelUpDown --bind 50=mmo.treemanager.treepanel.Nutrtion \
+  --bind 33=mmo.treemanager.treepanel.AddHealthMovie \
+  --note "REBUILT yz/treemanager (aola-revival) on the art of its later copy" \
+  --out "$W/yz/treemanager.swf%3F1210"
+build treepanelres mmo/treemanager/DocTreePanelRes.as treepanelres-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art yz/panel_res.swf)" --code "$OUT/treepanelres-code.swf" --drop-art-abc \
+  --bind 0=mmo.treemanager.DocTreePanelRes --bind 91=mmo.treemanager.treepanel.SelectPlantToolPanel --bind 57=mmo.treemanager.treepanel.GuardYabiPanel \
+  --bind 94=mmo.treemanager.treepanel.PlantItemView --bind 22=mmo.treemanager.treepanel.PetBriefCard \
+  --note "REBUILT yz/panel_res (aola-revival) on its April 2012 art" \
+  --out "$W/yz/panel_res.swf%3F1210"
+# The 盆栽道具's pictures, plantitem/view1 … view7 (the era files are lost): six
+# pictures of the 种植手册's 种植道具 page (catalog/zhongzhi2) and the shovel of the
+# tree manager's 铲除 film, each made a SWF of its own bound to mmo.plantitem.view<id>.
+build plantitemview mmo/plantitem/DocPlantItemViews.as plantitemview-code.swf ""
+rm -rf "$OUT/plantitem"
+java -jar "$FFDEC" -selectid 54,56,69,79,81,84 -format sprite:swf -export sprite "$OUT/plantitem" "$(art catalog/zhongzhi2.swf)" > /dev/null
+java -jar "$FFDEC" -selectid 208 -format sprite:swf -export sprite "$OUT/plantitem" "$(art yz/treemanager.swf)" > /dev/null
+n=1
+for s in 54 56 69 79 81 84 208; do
+  python3 "$TOOLS/swf_transplant.py" --art "$OUT/plantitem/DefineSprite_$s/1.swf" --wrap-root $s --code "$OUT/plantitemview-code.swf" \
+    --drop-art-abc --only-binds --bind $s=mmo.plantitem.view$n \
+    --note "REBUILT plantitem/view$n (aola-revival): character $s of the era catalog/zhongzhi2 or the later yz/treemanager" \
+    --out "$W/plantitem/view$n.swf%3F1210"
+  n=$((n + 1))
+done
 # 动物捕捉's panel: rebuilt game/catchanimalpanel (what one has, 进入 and its map of the four
 # 乐园, 操作说明, the tips; the lost 动物乐园购买册 drawn as CatchShop) on its later copy's art.
 build catchanimalpanel mmo/game/catchanimalpanel/DocCatchAnimalPanel.as catchanimalpanel-code.swf ""

@@ -204,7 +204,8 @@ def image_shapes(tags: list[tuple[int, bytes]]) -> list[tuple[int, bytes]]:
     return out
 
 
-def transplant(art: Path, code: Path, binds: dict[int, str], note: str, drop_art_abc: bool = False, wrap: int = 0, shapes: bool = False) -> bytes:
+def transplant(art: Path, code: Path, binds: dict[int, str], note: str, drop_art_abc: bool = False, wrap: int = 0, shapes: bool = False,
+               only_binds: bool = False) -> bytes:
     version, header, tags = parse(art)
     if wrap:
         tags = wrap_root(tags, wrap)
@@ -233,7 +234,7 @@ def transplant(art: Path, code: Path, binds: dict[int, str], note: str, drop_art
             out.append((c, xmp))
         elif c == T_SYMBOLCLASS and not placed:
             old_binds = parse_symbol_class(d)
-            merged = {**old_binds, **binds}
+            merged = dict(binds) if only_binds else {**old_binds, **binds}
             out.extend(abc)
             out.append((c, symbol_class(merged)))
             placed = True
@@ -258,9 +259,10 @@ def main(argv=None) -> None:
     p.add_argument("--drop-art-abc", action="store_true", help="leave out the art SWF's own bytecode (the code SWF must define every bound class)")
     p.add_argument("--wrap-root", type=int, default=0, metavar="ID", help="make the art SWF's first frame a sprite with this character ID")
     p.add_argument("--image-shapes", action="store_true", help="pictures placed directly (PlaceObject3 image flag) become shapes filled with them")
+    p.add_argument("--only-binds", action="store_true", help="the SymbolClass names only the --bind classes (symbols left unused lose their art class names)")
     a = p.parse_args(argv)
     binds = {int(k): v for k, v in (b.split("=", 1) for b in a.bind)}
-    data = transplant(Path(a.art), Path(a.code), binds, a.note, a.drop_art_abc, a.wrap_root, a.image_shapes)
+    data = transplant(Path(a.art), Path(a.code), binds, a.note, a.drop_art_abc, a.wrap_root, a.image_shapes, a.only_binds)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_bytes(data)
     print(f"wrote {a.out} ({len(data)} bytes)")
