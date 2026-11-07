@@ -19,14 +19,17 @@
 //
 // The 动物园 (the zoo house furniture/b020000, rebuilt; ZooClient, mmo.framework.comm.zoo):
 //
-//   97_1  getZooInfo {un}                 -> {un, lv, exp, next, cap, n}
-//   97_4  getAnimalInfos {un}             -> {un, animals: [{id, raceId, mature, left (s), rate}]}
+//   97_1  getZooInfo {un}                 -> {un, lv, exp, next, cap, n, fodder, fodderMax, fillCost}
+//   97_4  getAnimalInfos {un}             -> {un, animals: [{id, raceId, mature, left (s), rate, hungry}]}
 //   97_9  getAllBabyAnimals {}            -> {babys: [{raceId, type: 1, num}]}   (AnimalData, as zoores_1 reads it)
 //   97_10 getAllMatureAnimals {}          -> {matrues: [{raceId, type: 2, num, price}]}   (price: what 97_21 pays)
 //   97_11 getZooItems {}                  -> {items: [{id, num}]}   the 饲料 in the bag (the 动物仓库's 道具)
 //   97_5  putAnimal2Zoo {raceId}          -> {res (1, -1 none, -2 full), animal}
 //   97_7  harvestAnimal {id}              -> {res (1, -1 none, -2 not grown), id, raceId, petRace, petName, exp, lv}
-//   97_12 addFodder {un, id, itemId}      -> {res (1, -1 none, -2 晶币, -3 used, -4 grown), id, itemId, left, rate}
+//   97_12 addFodder {un, id, itemId}      -> {res (1, -1 none, -2 晶币, -3 used, -4 grown), id, itemId, left, rate}   a 饲料 for one
+//   97_12 addFodder {name, itemId, num}   -> {res (1, -1 none, -2 晶币, -3 full), itemId, num, fodder, fodderMax, fillCost}
+//                                            the 饲料机 (itemId -1: filled for 晶币)
+//   97_13 amuseAnimal {name, animalId}    -> {res (1, -3 played this hour, -4 grown, -5 hungry), animalId, left …}   玩耍
 //   97_6  dropAnimal {id}                 -> {res, id}
 //   97_21 sell mature animals {raceId, num} -> {res, raceId, num, score}   (the revival's; the era sold them
 //                                             back through MaterialClient)
@@ -38,8 +41,8 @@
 // are sold here for 晶币 and used at once on one animal: 加速饲料 take 1, 6 or 24
 // hours off, 普通变异饲料 adds 10 percent (once an animal), the 一星…四星变异饲料
 // make 变异 certain for animals of that many stars or fewer. The zoo's levels,
-// room, the 晶币 prices (the era sold most 饲料 for 星币) and the free 喂食 of the
-// 饲料机 (an hour off, every half hour) are RECONSTRUCTED. A 饲料 the bag holds (type 13, from
+// room, the 晶币 prices (the era sold most 饲料 for 星币) and 玩耍 are RECONSTRUCTED; the 饲料机
+// keeps the era's numbers (see FODDER_MAX). A 饲料 the bag holds (type 13, from
 // a 礼包) is used before one is bought.
 //
 // The game SWFs in game/ are later copies (2017, 2020); the 2013 server is lost:
@@ -80,14 +83,19 @@ export interface ZooAnimalRec {
   cut: number;
   /** Extra 变异 percent (普通变异饲料), 100 for a certain one. */
   boost: number;
-  /** Last free 喂食 (ms). */
-  fed?: number;
+  /** Time it went hungry, the 饲料机 empty (ms): its growth waits that long. */
+  hungry?: number;
+  /** Last 玩耍 (ms). */
+  played?: number;
 }
 
 export interface ZooRec {
   exp: number;
   nextId: number;
   animals: ZooAnimalRec[];
+  /** The 饲料机: 饲料 points in it, and when what the animals ate was last counted (ms). */
+  fodder?: number;
+  fedTo?: number;
 }
 
 export interface ZooOwner {
@@ -170,9 +178,24 @@ export function animalsOwned(o: ZooOwner): Record<string, number> {
   return zoo;
 }
 const HOUR = 3600 * 1000;
-/** The free 喂食 of the 饲料机: an hour off, once each half hour per animal (RECONSTRUCTED). */
-export const FEED_CUT = HOUR;
-export const FEED_EVERY = HOUR / 2;
+/**
+ * The 饲料机 (era zoo/zoores_5 FeedingMachinePanel, ZooCommonConfig): it holds at most
+ * 800 points of 饲料; every animal still growing eats 6 an hour; when it is empty the
+ * animals are hungry and stop growing until it is filled. It is filled with gathered
+ * things (炎冰, 蓝晶, 金块 …: the era FeedingCommonConfig, item id -> points) or at once for 晶币 (2 points for 5 晶币 short
+ * of full, as the era 快速添加饲料 counted them). A new zoo's 饲料机 starts full.
+ */
+export const FODDER_MAX = 800;
+export const FODDER_PER_HOUR = 6;
+export const FODDER_POINTS: Record<number, number> = {
+  38: 31, 39: 31, 40: 30, 84: 28, 85: 29, 86: 71, 87: 69, 90: 32, 91: 71, 93: 71, 122: 32, 124: 71,
+  133: 70, 165: 32, 167: 70, 198: 28, 211: 31, 212: 29, 213: 72,
+};
+/** 晶币 to fill the 饲料机 from fodder points (快速添加饲料). */
+export const fillCost = (fodder: number) => Math.ceil((2 * Math.max(0, FODDER_MAX - fodder)) / 5);
+/** 玩耍 with an animal: once an hour, ten minutes off its growth (RECONSTRUCTED: the era raised its mood). */
+export const PLAY_EVERY = HOUR;
+export const PLAY_CUT = 10 * 60 * 1000;
 /** ZooItemData 饲料: id -> [晶币 (RECONSTRUCTED but 1, the era's), hours off, stars for a certain 变异 (0 none), extra percent]. */
 export const FODDER: Record<number, [number, number, number, number]> = {
   1: [1000, 0, 0, 10],
@@ -197,7 +220,25 @@ export const zooRoom = (lv: number) => Math.min(20, 6 + 2 * lv);
 export function animalLeft(a: ZooAnimalRec, now: number): number {
   const def = ANIMAL.get(a.race);
   const grow = (def ? def[5] : 1) * HOUR;
-  return Math.max(0, Math.ceil((a.at + grow - a.cut - now) / 1000));
+  return Math.max(0, Math.ceil((a.at + grow + (a.hungry ?? 0) - a.cut - now) / 1000));
+}
+
+/**
+ * What the animals ate since it was last counted: FODDER_PER_HOUR each animal still growing
+ * (as it was then); the time the 饲料机 was empty they waited, hungry.
+ */
+export function settleFodder(z: ZooRec, now: number): void {
+  if (z.fodder === undefined) z.fodder = FODDER_MAX;
+  const from = z.fedTo ?? now;
+  z.fedTo = now;
+  if (now <= from) return;
+  const growing = z.animals.filter((a) => animalLeft(a, from) > 0);
+  if (growing.length === 0) return;
+  const perMs = (growing.length * FODDER_PER_HOUR) / HOUR;
+  const fedMs = Math.min(now - from, z.fodder / perMs);
+  z.fodder = Math.max(0, z.fodder - fedMs * perMs);
+  const hungryMs = now - from - fedMs;
+  if (hungryMs > 0) for (const a of growing) a.hungry = (a.hungry ?? 0) + hungryMs;
 }
 
 export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): void {
@@ -339,7 +380,11 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
 
   // The 动物园.
   const now = deps.now ?? Date.now;
-  const zooOf = (o: ZooOwner): ZooRec => (o.zoo ??= { exp: 0, nextId: 1, animals: [] });
+  const zooOf = (o: ZooOwner): ZooRec => {
+    const z = (o.zoo ??= { exp: 0, nextId: 1, animals: [] });
+    settleFodder(z, now());
+    return z;
+  };
   const owned = animalsOwned;
   const whose = async (ctx: XtContext): Promise<O> => {
     const un = typeof ctx.params.un === "string" ? ctx.params.un : "";
@@ -347,10 +392,11 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     if (!un || !deps.byName || un === (mine as { name?: string }).name) return mine;
     return (await deps.byName(un)) ?? mine;
   };
-  const view = (a: ZooAnimalRec) => {
+  const view = (a: ZooAnimalRec, z?: ZooRec) => {
     const left = animalLeft(a, now());
     const def = ANIMAL.get(a.race);
-    return { id: a.id, raceId: a.race, mature: left === 0 ? 1 : 0, left, rate: Math.min(100, (def ? Number(def[9].split("_")[0]) : 0) + a.boost) };
+    const hungry = left > 0 && z !== undefined && (z.fodder ?? 0) <= 0;
+    return { id: a.id, raceId: a.race, mature: left === 0 ? 1 : 0, left, rate: Math.min(100, (def ? Number(def[9].split("_")[0]) : 0) + a.boost), hungry: hungry ? 1 : 0 };
   };
   const take = (o: ZooOwner, id: string, n: number, ctx: XtContext) => {
     const mine = owned(o);
@@ -363,12 +409,13 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const o = await whose(ctx);
     const z = zooOf(o);
     const { lv, next } = zooLevel(z.exp);
-    ctx.reply({ un: (o as { name?: string }).name ?? "", lv, exp: z.exp, next, cap: zooRoom(lv), n: z.animals.length }, "97_1");
+    ctx.reply({ un: (o as { name?: string }).name ?? "", lv, exp: z.exp, next, cap: zooRoom(lv), n: z.animals.length, fodder: Math.floor(z.fodder ?? 0), fodderMax: FODDER_MAX, fillCost: fillCost(z.fodder ?? 0) }, "97_1");
   });
 
   world.xt(`${ZOO_EXT}.97_4`, async (ctx) => {
     const o = await whose(ctx);
-    ctx.reply({ un: (o as { name?: string }).name ?? "", animals: zooOf(o).animals.map(view) }, "97_4");
+    const z = zooOf(o);
+    ctx.reply({ un: (o as { name?: string }).name ?? "", animals: z.animals.map((a) => view(a, z)) }, "97_4");
   });
 
   world.xt(`${ZOO_EXT}.97_9`, async (ctx) => {
@@ -455,6 +502,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
 
   world.xt(`${ZOO_EXT}.97_12`, async (ctx) => {
     const o = await deps.me(ctx);
+    if (ctx.params.num !== undefined && ctx.params.id === undefined) return fillMachine(o, ctx);
     const id = Number(ctx.params.id) | 0;
     const item = Number(ctx.params.itemId) | 0;
     const a = zooOf(o).animals.find((x) => x.id === id);
@@ -462,12 +510,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     if (!a) return reply(-1);
     const t = now();
     if (animalLeft(a, t) === 0) return reply(-4);
-    if (item === 0) {
-      // 喂食 at the 饲料机.
-      if (a.fed !== undefined && t - a.fed < FEED_EVERY) return reply(-3);
-      a.fed = t;
-      a.cut += FEED_CUT;
-    } else {
+    {
       const f = FODDER[item];
       if (!f) return reply(-1);
       const [price, hours, stars, extra] = f;
@@ -487,6 +530,57 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
       a.cut += hours * HOUR;
       if (extra > 0) a.boost = Math.min(100, a.boost + extra);
     }
+    await deps.save(o);
+    reply(1);
+  });
+
+  /**
+   * 添加饲料 at the 饲料机 (era ZooClient.addFodder {name, itemId, num}): itemId -1 fills it
+   * for 晶币 (fillCost), a crop of FODDER_POINTS adds its points, num of them (no more than
+   * fill it).
+   */
+  const fillMachine = async (o: O, ctx: XtContext) => {
+    const z = zooOf(o);
+    const item = Number(ctx.params.itemId) | 0;
+    const room = FODDER_MAX - (z.fodder ?? 0);
+    const reply = (res: number, extra: Record<string, unknown> = {}) =>
+      ctx.reply({ res, itemId: item, fodder: Math.floor(z.fodder ?? 0), fodderMax: FODDER_MAX, fillCost: fillCost(z.fodder ?? 0), ...extra }, "97_12");
+    if (room < 1) return reply(-3);
+    if (item === -1) {
+      const cost = fillCost(z.fodder ?? 0);
+      if ((o.score ?? 0) < cost) return reply(-2);
+      o.score = (o.score ?? 0) - cost;
+      z.fodder = FODDER_MAX;
+      await deps.save(o);
+      ctx.reply({ score: o.score }, "onScoreUpdated");
+      return reply(1, { num: 0, cost });
+    }
+    const points = FODDER_POINTS[item];
+    const have = items(o)[String(item)] ?? 0;
+    const n = Math.min(Number(ctx.params.num) | 0, have, Math.ceil(room / (points || 1)));
+    if (!points || n <= 0) return reply(-1);
+    items(o)[String(item)] = have - n;
+    if (items(o)[String(item)] <= 0) delete items(o)[String(item)];
+    z.fodder = Math.min(FODDER_MAX, (z.fodder ?? 0) + points * n);
+    await deps.save(o);
+    ctx.reply({ amount: `2_${item}_0_${-n}` }, "onAmountUpdated");
+    reply(1, { num: n });
+  };
+
+  // 玩耍 (era ZooClient.amuseAnimal {name, animalId}): one's own animal still growing, not hungry.
+  world.xt(`${ZOO_EXT}.97_13`, async (ctx) => {
+    const o = await deps.me(ctx);
+    const z = zooOf(o);
+    const id = Number(ctx.params.animalId) | 0;
+    const a = z.animals.find((x) => x.id === id);
+    const t = now();
+    const reply = (res: number) => ctx.reply({ res, animalId: id, ...(a ? view(a, z) : {}) }, "97_13");
+    if (!a) return reply(-1);
+    if (animalLeft(a, t) === 0) return reply(-4);
+    if ((z.fodder ?? 0) <= 0) return reply(-5);
+    if (a.played !== undefined && t - a.played < PLAY_EVERY) return reply(-3);
+    a.played = t;
+    a.cut += PLAY_CUT;
     await deps.save(o);
     reply(1);
   });

@@ -912,9 +912,11 @@ run pays 晶豆, as its end panel says.
 - The 小屋 (空间舱 and the other house types): furniture from the catalog,
   decorating, storage; the trees made furniture (收为家具) put down there.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn
-  into 亚比; the 饲料机, the 手册, selling grown animals; its 2012 panels on
-  their art: the 动物仓库 strip (幼仔, 成熟动物, 道具), an animal's panel (收获,
-  道具, 玩耍, 放生) and 动物园信息.
+  into 亚比; the 手册, selling grown animals; its 2012 panels on their art: the
+  动物仓库 strip (幼仔, 成熟动物, 道具), an animal's panel (收获, 道具, 玩耍, 放生),
+  动物园信息, and the 饲料机 with the era's rules (it holds 800 points of 饲料, each
+  growing animal eats 6 an hour, an empty machine leaves them hungry and not
+  growing; filled with gathered things such as 炎冰 or for 晶币).
 - On a shared server: friends' homes (家园, 小屋, 动物园), 摘果子 there, and the
   小屋's 足迹 (docs/MULTIPLAYER.md).
 
@@ -924,7 +926,9 @@ run pays 晶豆, as its end panel says.
   log and music switch; the player card and wardrobe; the 物品 panel.
 - The world map of November 2012.
 - Walking round obstacles; other players and their 亚比 drawn in rooms.
-- Each room's music, and battle music.
+- Each room's music, and battle music; the game's music up to the end of 2014
+  (100 pieces, those after January 2013 from the later game's files), any of
+  them played from the 工具箱.
 - The HELLO walking behind the player.
 - Gathering in the 27 rooms with gathering points.
 - 射击 with 射击卡 and their effects.
@@ -949,6 +953,9 @@ run pays 晶豆, as its end panel says.
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
   亚比骑乘训练, 上古神殿's panels, 模拟空间.
 - Quests that call services that are still stand-ins may stop partway.
+- 风暴星系's two mini games, 天降神饼 (斗魂平原) and 斗魂小星猴 (虚无长廊): the
+  games and their start panels are there, but the surviving (later) files of
+  the two rooms no longer have their entrances.
 - Several rooms are later redrawings, because the January 2013 files are
   lost: 奥拉广场 (on the July 2012 art), 主题公园 (on the June 2012 art),
   亚比研究中心 (2014 art), 奥拉之树 (2014–24 art) and others with later art

@@ -1,6 +1,7 @@
 package mmo.control
 {
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
+   import mmo.loader.scheduler.ResScheduler;
    import flash.display.DisplayObject;
    import mmo.common.ProgressFullSprite;
    import flash.events.TimerEvent;
@@ -535,6 +536,15 @@ package mmo.control
                      return "ok";
                   case "busy": return sm.isLoading ? "1" : "0";
                   case "unloadgame": sm.unloadGame(); return "ok";
+                  case "minigame":
+                     // A mini game's entrance (GameManager.showGame, GameTable id).
+                     ServiceContainer.instance.tryGetService("GameManager", function(g:Object, o:Object = null):void { g.showGame(int(arg)); });
+                     return "ok";
+                  case "respanel":
+                     // A panel of a resource SWF, "path|class", as a modal (a scene's own entrance).
+                     var rp:Array = String(arg).split("|");
+                     ResScheduler.getResource(String(rp[0]), function(d:*):void { if (d is DisplayObject) ModalDialogManager.getInstance().addModalDialog(DisplayObject(d)); }, String(rp[1]));
+                     return "ok";
                   case "top":
                      // The names of what lies on the top layer (revivalComic, panels …).
                      var tl:DisplayObjectContainer = LayerManager.getBaseTop();

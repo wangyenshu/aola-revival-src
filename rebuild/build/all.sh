@@ -305,8 +305,8 @@ java -jar "$FFDEC" -swf2swc "$OUT/swc/housecommon.swc" "$OUT/housecommon.swf" > 
 export EXTRA_SWC="$OUT/swc/play.swc $OUT/swc/housecommon.swc"
 build garden mmo/house/b000247/b000247_Doc.as garden.swf "furniture/b000247.swf%3F130117"
 # The zoo's 2012 panels (the era code is a later one the 2013 files cannot run): rebuilt code
-# on their art, each a module of its own: the 动物仓库 (zoo/zoores_1), 动物园信息 (zoo/zoores)
-# and an animal's panel (zoo/petbreedingservice).
+# on their art, each a module of its own: the 动物仓库 (zoo/zoores_1), 动物园信息 (zoo/zoores),
+# the 饲料机 (zoo/zoores_5) and an animal's panel (zoo/petbreedingservice).
 build zoopanels mmo/zoo/revival/DocZooStore.as zoostore-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/zoores_1.swf)" --code "$OUT/zoostore-code.swf" --drop-art-abc --only-binds \
   --bind 0=mmo.zoo.revival.DocZooStore --bind 179=mmo.zoo.revival.ZooStorePanel --bind 43=mmo.zoo.revival.BabyCard \
@@ -316,6 +316,11 @@ build zoopanels mmo/zoo/revival/DocZooInfo.as zooinfo-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/zoores.swf)" --code "$OUT/zooinfo-code.swf" --drop-art-abc --only-binds \
   --bind 0=mmo.zoo.revival.DocZooInfo --bind 115=mmo.zoo.revival.InfoPanel \
   --note "REBUILT zoo 动物园信息 (aola-revival) on the art of zoo/zoores" --out "$W/zoo/revival/zooinfo.swf%3F1210"
+build zoopanels mmo/zoo/revival/DocZooFeeder.as zoofeeder-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/zoores_5.swf)" --code "$OUT/zoofeeder-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.zoo.revival.DocZooFeeder --bind 208=mmo.zoo.revival.FeederPanel --bind 44=mmo.zoo.revival.FodderIcon \
+  --bind 30=mmo.zoo.revival.FodderAdd --bind 216=mmo.zoo.revival.FodderQuick --bind 35=mmo.zoo.revival.FodderFull --bind 286=mmo.zoo.revival.FodderHow \
+  --note "REBUILT zoo 饲料机 (aola-revival) on the art of zoo/zoores_5" --out "$W/zoo/revival/zoofeeder.swf%3F1210"
 build zoopanels mmo/zoo/revival/DocZooAnimal.as zooanimal-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/petbreedingservice.swf)" --code "$OUT/zooanimal-code.swf" --drop-art-abc --only-binds \
   --bind 0=mmo.zoo.revival.DocZooAnimal --bind 898=mmo.zoo.revival.AnimalPanel \

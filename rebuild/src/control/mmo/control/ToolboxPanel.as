@@ -15,6 +15,7 @@ package mmo.control
    import mmo.interfaces.pet.data.PetDictionaryDataItem;
    import mmo.loader.layer.LayerManager;
    import mmo.play.scene.SceneManager;
+   import flash.utils.getDefinitionByName;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
    import mmo.revival.SavePanels;
@@ -28,7 +29,7 @@ package mmo.control
    public class ToolboxPanel extends Sprite
    {
       private static const W:int = 470;
-      private static const H:int = 492;
+      private static const H:int = 536;
       private static var current:ToolboxPanel;
 
       private var box:Sprite;
@@ -153,10 +154,27 @@ package mmo.control
          box.addChild(place(RUI.button("导出存档", function():void { close(); SavePanels.exportSave(); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxExport"), 118, 405));
          box.addChild(place(RUI.button("导入存档", function():void { close(); SavePanels.importSave(); }, 90, 24, 0x6CC0F5, 0x2E86D6, "toolboxImport"), 216, 405));
 
+         // 音乐: a piece of the game's music (by its number or from the list) in place of the
+         // scene's, until the next scene or a mini game with its own (SceneMusic.playChosen).
+         box.addChild(RUI.well(16, 442, W - 32, 44));
+         var ml:TextField = RUI.text(14, RUI.BLUE, true);
+         ml.text = "音乐    编号";
+         ml.x = 30;
+         ml.y = 454;
+         box.addChild(ml);
+         musicIn = RUI.input(56, "1", null, 30, "toolboxMusic");
+         musicIn.x = 118;
+         musicIn.y = 452;
+         musicIn.addEventListener(KeyboardEvent.KEY_DOWN, function(e:KeyboardEvent):void { if (e.keyCode == 13) playMusic(); });
+         box.addChild(musicIn);
+         box.addChild(place(RUI.button("播放", playMusic, 56, 26, 0xFFC45A, 0xF07812, "toolboxMusicPlay"), 182, 450));
+         box.addChild(place(RUI.button("选音乐", openMusic, 70, 26, 0x6CC0F5, 0x2E86D6, "toolboxMusicPick"), 244, 450));
+         box.addChild(place(RUI.button("场景音乐", function():void { sceneMusic("restoreScene"); said.text = "换回了场景的音乐"; }, 84, 26, 0x6CC0F5, 0x2E86D6, "toolboxMusicScene"), 320, 450));
+
          said = RUI.text(12, 0x8A3B00, true, W - 40);
          said.height = 40;
          said.x = 20;
-         said.y = 440;
+         said.y = 490;
          box.addChild(said);
 
          SocketClient.instance.addEventListener("revival_toolbox", onReply);
@@ -232,7 +250,50 @@ package mmo.control
          return null;
       }
 
+      private var musicIn:TextField;
+      private var musicPicker:MusicPicker;
       private var picker:PlacePicker;
+
+      private function openMusic():void
+      {
+         if (musicPicker != null && musicPicker.parent != null) return;
+         musicPicker = new MusicPicker(function(o:Object):void
+         {
+            musicIn.text = String(o.id);
+            playMusic();
+         }, function():void { if (musicPicker && musicPicker.parent) musicPicker.parent.removeChild(musicPicker); });
+         musicPicker.x = 16;
+         musicPicker.y = 50;
+         box.addChild(musicPicker);
+      }
+
+      private function playMusic():void
+      {
+         var q:String = musicIn.text.replace(/^\s+|\s+$/g, "");
+         if (!q) return;
+         var o:Object = MusicPicker.find(q);
+         if (o == null)
+         {
+            said.text = "找不到音乐「" + q + "」";
+            return;
+         }
+         said.text = sceneMusic("playChosen", o.file) ? "正在播放：" + o.id + " " + o.name : "现在不能换音乐";
+      }
+
+      /** SceneMusic (mmo.sceneinit, the scene music's module) does it. */
+      private static function sceneMusic(what:String, arg:String = null):Boolean
+      {
+         try
+         {
+            var sm:Object = getDefinitionByName("mmo.sceneinit.SceneMusic").instance;
+            if (sm == null) return false;
+            if (arg != null) sm[what](arg);
+            else sm[what]();
+            return true;
+         }
+         catch (e:Error) { RLog.error("toolbox music", e); }
+         return false;
+      }
 
       private function openPicker():void
       {

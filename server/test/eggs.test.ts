@@ -110,10 +110,30 @@ test("the 动物园 grows the animals put in it, feeds them, and 收获 gives th
   assert.equal(owner.items!["12"]["10001"], 1);
   const id = put.animal.id;
   assert.equal((await call("ZooExtension.97_7", { id })).at(-1)![1].res, -2);
-  // 喂食: an hour off, not again within half an hour.
-  assert.equal((await call("ZooExtension.97_12", { id, itemId: 0 })).at(-1)![1].left, 3600);
-  assert.equal((await call("ZooExtension.97_12", { id, itemId: 0 })).at(-1)![1].res, -3);
-  // 初级加速饲料 (200 晶币) takes the last hour.
+  // The 饲料机 starts full (800): the animal eats 6 an hour and grows.
+  clock.now += 3600 * 1000;
+  let mi = (await call("ZooExtension.97_1", {})).at(-1)![1];
+  assert.deepEqual([mi.fodder, mi.fodderMax], [794, 800]);
+  // 玩耍: ten minutes off, not again within the hour.
+  assert.equal((await call("ZooExtension.97_13", { animalId: id })).at(-1)![1].left, 3000);
+  assert.equal((await call("ZooExtension.97_13", { animalId: id })).at(-1)![1].res, -3);
+  // An empty 饲料机: hungry, it waits (an hour later it still has 50 minutes to go).
+  owner.zoo!.fodder = 0;
+  clock.now += 3600 * 1000;
+  const hungry = (await call("ZooExtension.97_4", {})).at(-1)![1].animals[0];
+  assert.deepEqual([hungry.left, hungry.hungry], [3000, 1]);
+  assert.equal((await call("ZooExtension.97_13", { animalId: id })).at(-1)![1].res, -5);
+  // 快速添加饲料: full for 2 晶币 a 5 points short (320), or with what one gathers (炎冰 38: 31 points each).
+  (owner.items!["2"] ??= {})["38"] = 3;
+  const crop = (await call("ZooExtension.97_12", { name: owner.name, itemId: 38, num: 2 })).at(-1)![1];
+  assert.deepEqual([crop.res, crop.num, crop.fodder], [1, 2, 62]);
+  assert.equal(owner.items!["2"]["38"], 1);
+  const filled = (await call("ZooExtension.97_12", { name: owner.name, itemId: -1, num: 0 })).at(-1)![1];
+  assert.deepEqual([filled.res, filled.cost, filled.fodder], [1, Math.ceil((2 * (800 - 62)) / 5), 800]);
+  owner.score = 5000;
+  mi = (await call("ZooExtension.97_1", {})).at(-1)![1];
+  assert.equal(mi.fillCost, 0);
+  // 初级加速饲料 (200 晶币) takes an hour: 50 minutes were left, so it is grown.
   const fed = (await call("ZooExtension.97_12", { id, itemId: 5 })).at(-1)![1];
   assert.equal(fed.mature, 1);
   assert.equal(owner.score, 4800);

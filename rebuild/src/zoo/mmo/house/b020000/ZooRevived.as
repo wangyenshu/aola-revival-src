@@ -32,12 +32,13 @@ package mmo.house.b020000
     * the planes 动物保卫战 and 动物捕捉 (the 生态园 games, as the era
     * ZooEntrancePanel opens them, coming back to the 生态园), the signs to
     * the 生态园 and back to 我的家园, the 手册, the zoo's sign with its name
-    * and level, the 饲料机 (a free 喂食 for every animal), and the animals
+    * and level, the 饲料机 (the era's: animals eat from it and go hungry when it is empty),
+    * and the animals
     * themselves, which walk the lawn, fly over it or swim in the tank. The
     * zoo's 2012 panels are rebuilt on their art (zoo/revival/*, src/zoopanels):
     * an animal clicked shows the era PetOperatationPanel's (its 道具 the 饲料 of
     * ZooAnimalPanel), the 动物仓库 the era ZooStorePanel's strip, the sign the
-    * era 动物园信息. The
+    * era 动物园信息, the 饲料机 the era FeedingMachinePanel. The
     * later 养动物得晶豆 is of 2013's summer and hidden. Server: ZooExtension
     * (server zoo.ts); the zoo's rules are RECONSTRUCTED.
     */
@@ -95,10 +96,10 @@ package mmo.house.b020000
          var bean:DisplayObject = overlap.getChildByName("btnGetBean");
          if (bean != null) bean.visible = false;
          // The 饲料机's three frames are its fill (full, some, empty: the later FodderMachineHelper
-         // stops on one); left playing it ran through them and seemed to flash. Its feed is free here: full.
-         var feeder:MovieClip = overlap.getChildByName("feedMachine") as MovieClip;
+         // stops on one); left playing it ran through them and seemed to flash. Set by 97_1's fodder.
+         feeder = overlap.getChildByName("feedMachine") as MovieClip;
          if (feeder != null) feeder.gotoAndStop(1);
-         clickable(feeder, "饲料机：给动物喂食", feedAll);
+         clickable(feeder, "饲料机", openFeeder);
          clickable(overlap.getChildByName("btnEco"), "生态园", function():void { SceneManager.getInstance().loadScene("ecologicalpark", "fromzoo"); });
          clickable(overlap.getChildByName("btnHome"), mine ? "我的家园" : owner + "的家园", function():void { if (loader != null) loader.loadSubHouse(GARDEN_ID, "fromZoo"); });
          // The fish tank's places (waterPoolMC.fishContainer.pointionMC_0..8).
@@ -135,6 +136,7 @@ package mmo.house.b020000
          sc.removeEventListener("97_4", onAnimals);
          sc.removeEventListener("97_7", onHarvested);
          ZooAnimalPanel.closeIfOpen();
+         feeder = null;
          for each (var cls:String in ["ZooStorePanel", "AnimalPanel"])
          {
             var C:Object = defined(cls);
@@ -182,6 +184,7 @@ package mmo.house.b020000
       {
          var p:Object = e.params;
          if (p.un != owner) return;
+         showFill(p);
          var sign:DisplayObjectContainer = background.getChildByName("btnZooInfo") as DisplayObjectContainer;
          var who:String = owner;
          try { if (loader.houseInfo.desc) who = loader.houseInfo.desc; } catch (err:Error) {}
@@ -255,7 +258,7 @@ package mmo.house.b020000
                {
                   // 道具: the zoo's 饲料 (the era's own list, zoo/zoores_2, is lost).
                   if (what == "items") ZooAnimalPanel.show(a, mine, onChanged);
-                  else if (what == "feed") fed(reply);
+                  else if (what == "play") played(reply);
                   else if (reply != null) onChanged(reply);
                });
             });
@@ -317,6 +320,7 @@ package mmo.house.b020000
       private static const STORE:String = "zoo/revival/zoostore";
       private static const INFO:String = "zoo/revival/zooinfo";
       private static const ANIMAL:String = "zoo/revival/zooanimal";
+      private static const FEEDER:String = "zoo/revival/zoofeeder";
 
       private static function defined(cls:String):Object
       {
@@ -337,18 +341,19 @@ package mmo.house.b020000
          else ResScheduler.getResource(url, go, "", function(e:* = null):void { RLog.log("zoo: " + url + " not loaded"); });
       }
 
-      /** 玩耍: the 饲料机's free feed for this one. */
-      private function fed(p:Object):void
+      /** 玩耍 (97_13). */
+      private function played(p:Object):void
       {
          var r:int = int(p.res);
          if (r == 1)
          {
             var a:ZooAnimal = animals[int(p.id)];
-            if (a != null) a.update({id: p.id, raceId: a.race, mature: int(p.left) <= 0 ? 1 : 0, left: int(p.left), rate: int(p.rate)});
-            RNotice.show(LayerManager.getBaseTop(), "它吃得很开心，长得更快了！");
+            if (a != null) a.update(p);
+            RNotice.show(LayerManager.getBaseTop(), "它玩得很开心，长得更快了！");
          }
-         else if (r == -3) RNotice.show(LayerManager.getBaseTop(), "它刚吃过了，过一会儿再来陪它玩吧。");
-         else RNotice.show(LayerManager.getBaseTop(), "现在不能喂它了。");
+         else if (r == -3) RNotice.show(LayerManager.getBaseTop(), "它刚玩过了，过一会儿再来陪它玩吧。");
+         else if (r == -5) RNotice.show(LayerManager.getBaseTop(), "它饿了，没力气玩，快给饲料机添加饲料吧！");
+         else RNotice.show(LayerManager.getBaseTop(), "现在不能和它玩了。");
       }
 
       private function onChanged(p:Object):void
@@ -371,36 +376,36 @@ package mmo.house.b020000
          RNotice.show(LayerManager.getBaseTop(), msg + "\n动物园经验 +" + int(p.gain), 5);
       }
 
-      /** The 饲料机: the free 喂食 for every animal still growing. */
-      private function feedAll():void
+      private var feeder:MovieClip;
+
+      /** The 饲料机 (the rebuilt 2012 panel: its fill from 97_1). */
+      private function openFeeder():void
       {
-         if (!mine)
+         ZooData.send("97_1", {un: owner});
+         SocketClient.instance.addEventListener("97_1", function got(e:SocketClientEvent):void
          {
-            RNotice.show(LayerManager.getBaseTop(), "这是别人的动物园哦。");
-            return;
-         }
-         var n:int = 0;
-         for each (var a:ZooAnimal in animals)
-         {
-            if (a.mature) continue;
-            ZooData.send("97_12", {id: a.id, itemId: 0});
-            n++;
-         }
-         SocketClient.instance.addEventListener("97_12", fedOne);
-         fedCount = 0;
-         fedAsked = n;
-         RNotice.show(LayerManager.getBaseTop(), n ? "饲料机给 " + n + " 只动物喂了食。" : "没有要喂的动物。");
-         if (n == 0) SocketClient.instance.removeEventListener("97_12", fedOne);
+            if (e.params.un != owner) return;
+            SocketClient.instance.removeEventListener("97_1", got);
+            var info:Object = e.params;
+            var growing:int = 0;
+            for each (var a:ZooAnimal in animals) if (!a.mature) growing++;
+            revived(FEEDER, "FeederPanel", function(C:Object):void
+            {
+               C.show(owner, mine, info, growing, function():void
+               {
+                  ZooData.send("97_1", {un: owner});
+                  ZooData.send("97_4", {un: owner});
+               });
+            });
+         });
       }
 
-      private var fedCount:int;
-      private var fedAsked:int;
-
-      private function fedOne(e:SocketClientEvent):void
+      /** The machine's picture: full, some, empty. */
+      private function showFill(p:Object):void
       {
-         var a:ZooAnimal = animals[int(e.params.id)];
-         if (a != null && e.params.hasOwnProperty("raceId")) a.update(e.params);
-         if (++fedCount >= fedAsked) SocketClient.instance.removeEventListener("97_12", fedOne);
+         if (feeder == null || !p.hasOwnProperty("fodder")) return;
+         var f:Number = int(p.fodder) / Math.max(1, int(p.fodderMax));
+         feeder.gotoAndStop(Math.min(feeder.totalFrames, f <= 0 ? 3 : (f < 0.5 ? 2 : 1)));
       }
    }
 }

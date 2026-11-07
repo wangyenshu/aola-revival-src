@@ -28,11 +28,17 @@ package mmo.sceneinit
     * The 沙盒's rooms play the music their mod gives (docs/MODDING.md): a music
     * file of the game as above, or the mod's own Sound, looped on a channel
     * of its own, stopped by a battle, another room or the sound switch.
+    *
+    * The 工具箱's 音乐 (playChosen) plays a piece of its choosing, looped, in place of the
+    * scene's: kept through a battle and a mini game without music of its own, given up for
+    * the next scene or a mini game with its own music (or restoreScene).
     */
    public class SceneMusic
    {
       private var sceneName:String;
       private var fighting:Boolean;
+      /** The 工具箱's choice (music/x.mp3), or null. */
+      private var chosen:String;
       public static const FIGHT_MUSIC:String = "music/fightBgMusic1.mp3";
 
       private static var _instance:SceneMusic;
@@ -57,8 +63,29 @@ package mmo.sceneinit
          CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_END, onFightEnd);
       }
 
+      /** The 工具箱's 音乐: this piece, looped, until the next scene. */
+      public function playChosen(file:String):void
+      {
+         chosen = file;
+         stopOwn();
+         if (fighting || SoundManager.instance.isClose) return;
+         RLog.log("music: " + file + " (工具箱)");
+         SoundManager.instance.playBackgroundMusic(file, 1, true);
+      }
+
+      /** Back to the scene's music. */
+      public function restoreScene():void
+      {
+         chosen = null;
+         if (fighting) return;
+         SoundManager.instance.stopBackgroundMusic();
+         var info:Object = SceneManager.getInstance().loadedSceneInfo;
+         if (info != null) playSceneMusic(String(info.sceneName));
+      }
+
       public function playSceneMusic(name:String):void
       {
+         chosen = null;
          sceneName = name;
          var mine:Sound = name == "sandboxroom" ? modSound() : null;
          if (mine != null)
@@ -83,6 +110,7 @@ package mmo.sceneinit
       {
          var files:String = musicOf(name);
          if (files == null || files.length == 0) return;
+         chosen = null;
          stopOwn();
          sceneName = name;
          if (playingOneOf(files)) return;
@@ -159,13 +187,14 @@ package mmo.sceneinit
 
       private function onSoundComplete(e:Event):void
       {
-         if (fighting || own != null) return;
+         if (fighting || own != null || chosen != null) return;
          if (sceneName != null && !SoundManager.instance.isClose) playRandom(musicOf(sceneName) || "");
       }
 
       private function onSwitchOn(e:SoundManagerEvent):void
       {
          if (fighting) fightMusic();
+         else if (chosen != null) playChosen(chosen);
          else if (sceneName != null) playSceneMusic(sceneName);
       }
 
@@ -188,6 +217,11 @@ package mmo.sceneinit
       {
          fighting = false;
          SoundManager.instance.stopBackgroundMusic();
+         if (chosen != null)
+         {
+            playChosen(chosen);
+            return;
+         }
          var info:Object = SceneManager.getInstance().loadedSceneInfo;
          if (info != null) playSceneMusic(String(info.sceneName));
       }

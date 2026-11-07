@@ -76,7 +76,7 @@ package mmo.house.b020000
             shownGrown = mature;
             ZooData.picture(race, mature, swim ? 40 : (mature ? 70 : 58), pic);
          }
-         badge.text = mature ? "可以收获啦" : "";
+         badge.text = mature ? "可以收获啦" : (int(data.hungry) == 1 ? "饿了" : "");
          badge.x = -badge.width / 2;
          badge.y = (swim ? -52 : -86) - (where == "天空" ? 50 : 0);
          try { TipsManager.getInstance().addTips(this, tipText()); } catch (e:Error) {}

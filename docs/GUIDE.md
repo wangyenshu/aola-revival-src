@@ -106,6 +106,7 @@ the screen.
 | 领取亚比 | Enter the 亚比's 图鉴 number (编号, 1 to 1651) and a level from 1 to 100, then click 领取. The name appears next to the number. The 亚比 goes into the bag, or into the 亚比仓库 when the bag already holds six. It knows every skill its line learns up to that level. |
 | 传送 | Type a place's Chinese name (for example 艺术馆) or its room id and click 传送, or click 选地图 to pick from the places of the world map. 选地图 → 其他场景 lists every other room of the game, including the rooms of the story quests that were no longer on the map in 2013. |
 | 存档 | 导出存档 and 导入存档, see [Saves](#saves). |
+| 音乐 | Play any piece of the game's music up to the end of 2014 (100 pieces) in place of the room's: enter its number (编号) or file name and click 播放, or click 选音乐 to pick it from the list (numbered by the order the pieces came, named after a place that plays them). It plays until you go to another room, or into a mini game that has its own music; 场景音乐 gives the room's back at once. |
 
 ### 亚比 after January 2013 (1427–1651)
 

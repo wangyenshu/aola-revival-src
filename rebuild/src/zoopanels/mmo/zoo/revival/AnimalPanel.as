@@ -16,8 +16,7 @@ package mmo.zoo.revival
    /**
     * REBUILT panel of one animal of the zoo: the era PetOperatationPanel (zoo/petbreedingservice)
     * on its art: its name and stars, 成长时间 (what is left), 收获经验, 变异亚比, and the buttons
-    * 收获 (grown: 97_7), 道具 (the 饲料: the zoo's rebuilt list), 玩耍 (the 饲料机's free feed,
-    * 97_12) and 放生 (97_6). The later 珍藏品 half of the art (treasures to steal) is put away.
+    * 收获 (grown: 97_7), 道具 (the 饲料: the zoo's rebuilt list), 玩耍 (97_13) and 放生 (97_6). The later 珍藏品 half of the art (treasures to steal) is put away.
     */
    public class AnimalPanel extends MovieClip
    {
@@ -119,7 +118,7 @@ package mmo.zoo.revival
          var act:Function = onAction;
          if (i == 1) ZooKit.ask("97_7", {id: id}, function(p:Object):void { act("harvest", p); });
          else if (i == 2) act("items", null);
-         else if (i == 3) ZooKit.ask("97_12", {id: id, itemId: 0}, function(p:Object):void { act("feed", p); });
+         else if (i == 3) ZooKit.ask("97_13", {name: "", animalId: id}, function(p:Object):void { act("play", p); });
          else if (i == 4)
          {
             var d:ModalDialog = NewDialog.getCofirmDialog("放生以后它就回到大自然了，你确定吗？", null, null, NewDialog.getSucceedIcon());

@@ -9,7 +9,7 @@ package mmo.house.b020000
 
    /**
     * One animal of the zoo: how long it still grows, what it may turn into,
-    * and, in one's own zoo, 喂食 (the 饲料机's free feed), the 饲料 sold for
+    * and, in one's own zoo, the 饲料 sold for
     * 晶币 (ZooItemData; used at once), 收获 when grown, 放生. Opened by the 道具 of
     * the rebuilt 2012 animal panel (the era's own 饲料 list, zoo/zoores_2, is lost);
     * drawn in the look of the rebuilt panels.
@@ -107,8 +107,6 @@ package mmo.house.b020000
          }
          else
          {
-            put(RUI.button("喂食", function():void { ZooData.send("97_12", {id: a.id, itemId: 0}); }, 116, 30, 0x9BE07A, 0x3E9E2A, "zooFeed"), 0);
-            row = 1;
             var col:int = 0;
             for each (var f:Array in ZooData.FODDER)
             {
@@ -126,7 +124,7 @@ package mmo.house.b020000
          free.x = W - 76 - 18 - buttons.x;
          free.y = H - 42 - buttons.y;
          buttons.addChild(free);
-         if (!said.text) said.text = a.mature ? "收获后，动物园会得到经验。" : "喂食可以让它早1小时长大（每半小时可以喂一次）。饲料按钮上是晶币价格。";
+         if (!said.text) said.text = a.mature ? "收获后，动物园会得到经验。" : "饲料按钮上是晶币价格。";
       }
 
       private function fodder(item:int):Function
