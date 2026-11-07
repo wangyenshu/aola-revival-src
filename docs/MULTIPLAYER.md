@@ -213,8 +213,11 @@ invite.
   there his 小屋 and his 动物园, as at home. A visitor sees what the owner has
   (the furniture, the trees, the zoo's animals) but changes nothing, except
   **摘果子**: one fruit of each fruiting a visitor, the last always left to the
-  owner (only while in that 家园). The 小屋's **最近访问** (足迹) lists the last 20 visitors, with
-  去他家; the footprints count every visit.
+  owner (only while in that 家园). The 小屋's and the 家园's **最近访问** (足迹) list the last 20
+  visitors, with 去他家; the footprints count every visit. The 家园's **留言板**: a visitor leaves a
+  message on one of six 便签 (20 a day), the owner reads them all, takes them off and writes his
+  寄语; anyone may 举报 a message. The 家园's strip shows the owner's 徽章分数, 人气 (visits) and
+  friends, and a card for the player and each of his friends: a click goes to that 家园.
 - **组队** (the bar's 组队, or 邀请组队 on a 信息卡): up to 3. The leader
   invites (an invitation holds 5 minutes; nobody joins uninvited). As in
   the 2013 game, a member walks after the leader on his own (a click does not
@@ -258,7 +261,8 @@ mods), 战队 and 兵团, trading.
 - `social.ts`: 好友 (kept by player id, so a new name keeps its friends) and
   组队 (in memory), under the extensions the 2013 client numbers
   (`BuddyManagerExtension`, `TeamExtension`, `revival_*` commands).
-- `house.ts`: the homes' rooms (`<owner>_<house>_Home`) and the 足迹.
+- `house.ts`: the homes' rooms (`<owner>_<house>_Home`) and the 足迹; `garden.ts`: the 家园's
+  strip and the 留言板 (kept apart from the owner's record, `board/<owner id>`).
 - The players' records are kept live (`LiveRecordStore`): two players
   changing one record at once (a visitor picking fruit while the owner
   fights) both count.

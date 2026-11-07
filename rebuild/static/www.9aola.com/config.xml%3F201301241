@@ -728,6 +728,12 @@
       <r nm="youanmingzhou5" rm="youanmingzhou5" swf="scene/youanmingzhou5" desc="命运之殿" cansearch="true" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
       <r nm="skycity1" rm="skycity1" swf="scene/skycity1" desc="冒险基地" cansearch="true" mu="music/twoyearscherry.mp3" ms="bailingstar"/>
       <r nm="skycity4" rm="skycity4" swf="scene/skycity4" desc="海底世界" cansearch="true" mu="music/skycity4.mp3" ms="bailingstar"/>
+      <!-- aola-revival: the 念之塔 of 风暴星系 (黑暗念之塔; rooms of the live config.xml, their scenes the 2011–12 files of game/): its four seals and its 念之大厅, entered from 幽冥大殿 (thinktower/enterpanel) -->
+      <r nm="thinktowerofwater" rm="thinktowerofwater" swf="scene/thinktowerofwater" desc="水之封印" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="thinktoweroffire" rm="thinktoweroffire" swf="scene/thinktoweroffire" desc="火之封印" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="thinktowerofice" rm="thinktowerofice" swf="scene/thinktowerofice" desc="冰之封印" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="thinktowerofthunder" rm="thinktowerofthunder" swf="scene/thinktowerofthunder" desc="雷之封印" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
+      <r nm="thinktowerofthink" rm="thinktowerofthink" swf="scene/thinktowerofthink" desc="念之大厅" mu="music/youanmingzhou.mp3" ms="youanmingzhou"/>
       <!-- aola-revival: the 沙盒's room (docs/SANDBOX.md), a scene of the revival's own; its pictures come from the 关卡 pack. -->
       <r nm="sandboxroom" rm="sandboxroom" swf="scene/sandboxroom" desc="沙盒" ms=""/>
     </roomMap>

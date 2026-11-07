@@ -20,7 +20,7 @@ were reconstructed; [IMPLEMENTATION.md](IMPLEMENTATION.md) explains how.
 | Places | 57 places of the November 2012 world map; the 334 rooms of the 2013 `config.xml` (副本 rooms included) and 30 rooms of the 2011–12 story quests |
 | NPCs | 460 NPCs placed in 203 rooms; every NPC the 2012 world map names for its place |
 | Quests | the newbie quest and 182 quests (story arcs of 2010–2013, side quests, guide quests) |
-| Bosses | 40 entries of 守护者 and event bosses, 11 NPC challenges, the 道馆 masters, 黑星堡垒, 时空隧道, the 四大副本 bosses |
+| Bosses | 42 entries of 守护者 and event bosses, 11 NPC challenges, the 道馆 masters, 黑星堡垒, 时空隧道, the 四大副本 bosses |
 | 四大副本 | 幻影冰宫, 倒立金字塔, 蚁族王朝, 恐龙博物馆, three modes each |
 | Mini games | 85 of the 87 game rooms of the 2013 config |
 | 亚比 | 1,604 species in the 图鉴 (1–1651); battles, catching, skills, evolution, eggs, following, riding |
@@ -657,16 +657,20 @@ estimates.
 | 影刃 | 地府 `hell` | 10195 影刃 Lv80，20195 影刃 Lv100 |
 | 鬼王 | 地府 `hell` | 11190 鬼王 Lv100 |
 | 蓝羽灵者 | 迷境花园 `whitenight1` | 31394 蓝羽灵者 Lv60，21394 蓝羽灵者 Lv80，11394 蓝羽灵者 Lv100 |
+| 多古拉伯爵 | 奥拉之树 `aolatree` | 11267 多古拉伯爵 Lv80，21267 多古拉伯爵 Lv100 |
+| 猎空 | 挑战平台 `spacetimechallenge3` | 31697 猎空 Lv60，21697 猎空 Lv80，11697 猎空 Lv100 |
 
 The event bosses of 2011–12 (主题公园's eight, 年兽, 时间之神, 影刃 and 鬼王,
-友人契约书) stand where their events placed them. 蓝羽灵者 of 迷境花园 is the
-newest, of 11 January 2013.
+友人契约书, 多古拉伯爵 the 万圣节守护者 of October 2012 at 奥拉之树) stand where their
+events placed them. 蓝羽灵者 of 迷境花园 is of 11 January 2013. 猎空 came later
+(August 2013, 银河冠军擂台, whose 2013 room is lost): it stands in 挑战平台.
 
 ### Other boss fights
 
 | Where | Bosses |
 | --- | --- |
 | 道馆 踢馆 | 幻雷, 幻炎, 幻流 and 幻冥 at Lv100, each with its skill stone after a win |
+| 念之塔 (黑暗念之塔, 幽冥大殿) | 水之封印, 火之封印, 冰之封印 and 雷之封印 with their puzzles, monsters and guardians (a chest each, once a day); with the four keys, 念之大厅: 念 Lv80, then 邪念 Lv90, and 小念's egg |
 | 雷霆之塔 (惊雷道馆) | ten floors of electric 亚比 against the clock, 雷纳瑞 on the fourth, 幻雷 at the top |
 | 黑星堡垒 | 震天石魔, 扭扭暗黑王, SR战士, 强袭SR, 电击八爪鱼, 黑暗守卫 on three floors (Lv50, 65, 80) |
 | 时空隧道 | 100 floors of up to four 亚比 each, a BOSS厅 every tenth floor |
@@ -841,7 +845,8 @@ run pays 晶豆, as its end panel says.
 
 ### 亚比
 
-- Battles against wild 亚比 in 123 rooms, task 亚比, bosses and NPCs: skills,
+- Battles against wild 亚比 in 124 rooms (幽冥大殿's 金银球, 小金小银 and, now and
+  then, 金银童子 among them), task 亚比, bosses and NPCs: skills,
   attributes, statuses, items, switching, escaping, the boss films.
   A turn has 30 seconds (counted at the top of the battle screen); when they
   run out the screen uses the first skill with uses left, or waits if none
@@ -907,8 +912,14 @@ run pays 晶豆, as its end panel says.
   visitors, the 盆栽道具 from 极速雨露 to 铲子, a 守护亚比 against pickers, 收为家具
   for a grown tree with no fruit to come; an empty pot opens the 种植手册), the 亚比孵化器, the 经验分配器 (hands the HELLO's
   experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
-  January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示; its
-  bar's 地图, 背包, 好友, 周刊, 勋章, 图鉴 and 放映厅 (奥拉星's films).
+  January 2012 tutorial), 我的荣誉 (the owner's 徽章: the 280 honours of the era,
+  those the record can count got from what it holds), the 亚比仓库, the 留言板
+  (友谊留言板: messages left by visitors, the owner's 寄语), 健身房 (亚比训练),
+  最近访问 (足迹), and the 亚比 its owner 展示; its bar's 地图, 背包, 好友, 周刊,
+  勋章, 图鉴 and 放映厅 (奥拉星's films); the strip under the garden: the owner's
+  徽章分数, 人气 and friends, the cards of the player and the player's friends by
+  徽章分数 (a card goes to that one's 家园), 刷新, the 商城, the sound switch and the
+  clock.
 - The 小屋 (空间舱 and the other house types): furniture from the catalog,
   decorating, storage; the trees made furniture (收为家具) put down there.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn
@@ -917,8 +928,8 @@ run pays 晶豆, as its end panel says.
   动物园信息, and the 饲料机 with the era's rules (it holds 800 points of 饲料, each
   growing animal eats 6 an hour, an empty machine leaves them hungry and not
   growing; filled with gathered things such as 炎冰 or for 晶币).
-- On a shared server: friends' homes (家园, 小屋, 动物园), 摘果子 there, and the
-  小屋's 足迹 (docs/MULTIPLAYER.md).
+- On a shared server: friends' homes (家园, 小屋, 动物园), 摘果子 there, the
+  足迹, and messages on each other's 留言板 (docs/MULTIPLAYER.md).
 
 ### Interface and world
 

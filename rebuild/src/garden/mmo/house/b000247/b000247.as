@@ -37,6 +37,7 @@ package mmo.house.b000247
    import mmo.revival.RExpPanel;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
+   import mmo.revival.RTraining;
    import mmo.revival.RUI;
 
    /**
@@ -55,10 +56,13 @@ package mmo.house.b000247
     * Working: 我的家 (the main house), 亚比仓库 (pet/petwarehouse), the 植树盆
     * (the trees of PlantData, drawn from their June 2012 pictures plant/y<id>;
     * its panel the rebuilt yz/treemanager; the 种植手册 sells them; PlantExtension), 亚比孵化器 (pet/pethatchegg),
-    * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
-    * 进入动物园 (the rebuilt zoo, furniture/b020000), 离开花园, 地图, 背包,
-    * 好友 and 图鉴 (what the control bar's open), 放映厅 (奥拉星's films, the theatre's
-    * list), 周刊. The others say they are not rebuilt yet.
+    * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 (the owner's 徽章: honour/honourservice and
+    * honour/honour_res), the bar's 勋章 (HonourWall), the tube 进入动物园 (the rebuilt zoo,
+    * furniture/b020000), 留言板 (house/messageboard), 离开花园, 地图, 背包, 好友 and 图鉴 (what
+    * the control bar's open), 放映厅 (奥拉星's films, the theatre's list), 健身房 (亚比训练),
+    * 最近访问 (足迹), 周刊, and the bar under the garden (GardenBar: the figures, the friends'
+    * cards, 刷新, the cart, the sound switch, the clock). 邮箱, 相册 and 游戏 (what they opened in
+    * 2012 is lost) say they are not rebuilt yet.
     */
    public class b000247 extends HouseBase
    {
@@ -71,6 +75,9 @@ package mmo.house.b000247
       private var tree:Object;
       private var hud:Sprite;
       private var control:IControlService;
+      /** The bar under the garden (its figures, the friends' cards …) and the picture it copies. */
+      private var strip:GardenBar;
+      private var picture:MovieClip;
 
       public function b000247()
       {
@@ -117,6 +124,8 @@ package mmo.house.b000247
             mc.mouseEnabled = mc.mouseChildren = false;
             into.addChild(mc);
             hideSampleFriend(mc);
+            picture = mc;
+            if (strip != null) strip.setPicture(mc);
          };
          if (ApplicationDomain.currentDomain.hasDefinition(cls)) put();
          else ResScheduler.getResource("house/houseteachmovie/houseteachgarden", put, cls, function(e:* = null):void { RLog.log("garden: no picture"); });
@@ -148,6 +157,8 @@ package mmo.house.b000247
          catch (e:Error) {}
          nameplates();
          taskIconOverPicture(true);
+         strip = new GardenBar(hud, owner, visit, bar);
+         if (picture != null) strip.setPicture(picture);
          var fg:Sprite = Sprite(getChildByName("foreground"));
          // Things of the garden: walk there, then act.
          spot(fg, 735, 95, 155, 140, 800, 266, isMine() ? "我的家" : owner() + "的小屋", function():void { if (loader != null) loader.loadSubHouse(-1, "default"); });
@@ -157,9 +168,9 @@ package mmo.house.b000247
          // The era 亚比孵化器 panel (pet/pethatchegg; the server's PetEggExtension, eggs.ts).
          spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", function():void { if (isMine()) openHatcher(); else notYet(); });
          spot(fg, 248, 198, 76, 94, 285, 300, "经验分配器", function():void { if (isMine()) RExpPanel.show(); else notYet(); });
-         spot(fg, 128, 66, 116, 104, 200, 270, "我的荣誉", function():void { if (isMine()) HonourWall.show(); else notYet(); });
+         spot(fg, 128, 66, 116, 104, 200, 270, "我的荣誉", honour);
          spot(fg, 330, 20, 110, 172, 390, 270, "进入动物园", function():void { if (loader != null) loader.loadSubHouse(ZOO_ID, "fromGarden"); });
-         spot(fg, 782, 288, 100, 84, 700, 335, "留言板", notYet);
+         spot(fg, 782, 288, 100, 84, 700, 335, "留言板", messageBoard);
          // The garden's bar (the control bar is put away here, as in 2012).
          button(28, 386, 70, 54, "地图", function():void
          {
@@ -181,8 +192,8 @@ package mmo.house.b000247
          button(770, 8, 52, 50, "图鉴", function():void { bar("petdic"); });
          button(826, 8, 52, 50, "游戏", notYet);
          button(904, 164, 50, 50, "放映厅", function():void { bar("theatre"); });
-         button(904, 216, 50, 50, "健身房", notYet);
-         button(904, 268, 50, 50, "最近访问", notYet);
+         button(904, 216, 50, 50, "健身房", gym);
+         button(904, 268, 50, 50, "最近访问", visitors);
          SocketClient.instance.addEventListener("revival_garden", onGarden);
          SocketClient.instance.addEventListener("revival_show", onShown);
          SocketClient.instance.addEventListener("onAmountUpdated", onAmount);
@@ -198,6 +209,8 @@ package mmo.house.b000247
          pot.removeEventListener(MouseEvent.ROLL_OVER, onPotOver);
          treePanel("hide");
          taskIconOverPicture(false);
+         if (strip != null) strip.dispose();
+         strip = null;
          var hatcher:Sprite = hatcherOnScreen();
          if (hatcher != null) hatcher.visible = false;
          if (control != null) control.show();
@@ -407,6 +420,53 @@ package mmo.house.b000247
             if (getQualifiedClassName(c) == "mmo.pet.pethatchegg::PetHatchEggPanel") return c as Sprite;
          }
          return null;
+      }
+
+      /**
+       * 我的荣誉: the 徽章 of the garden's owner (honour/honourservice's showPanel, the April
+       * 2013 honour/honour_res; the 2012 tutorial: "记载了你在奥拉星上获得过的所有的荣誉事迹").
+       */
+      private function honour():void
+      {
+         var who:String = owner();
+         ServiceContainer.instance.tryGetService("HonourService", function(svc:IService, o:Object):void
+         {
+            try { Object(svc).showPanel(who); } catch (e:Error) { RLog.error("garden honour", e); }
+         });
+      }
+
+      /** 留言板: the owner's 友谊留言板 (house/messageboard): one leaves a message, the owner reads them. */
+      private function messageBoard():void
+      {
+         var who:String = owner();
+         ServiceContainer.instance.tryGetService("MessageBoardService", function(svc:IService, o:Object):void
+         {
+            try { Object(svc).showMessageBoard(who); } catch (e:Error) { RLog.error("garden message board", e); }
+         });
+      }
+
+      /**
+       * 健身房: the owner's 亚比 work out (the era 亚比训练: those in training, else the lessons;
+       * the later garden's own training button opened the 亚比 training too, in one's own garden only).
+       */
+      private function gym():void
+      {
+         if (isMine()) RTraining.open();
+         else RNotice.show(LayerManager.getBaseTop(), "这是" + owner() + "的健身房，只有主人可以使用哦。");
+      }
+
+      /** 最近访问: who came into this home lately (the home menu's 足迹, mmo.housemenu.VisitorPanel). */
+      private function visitors():void
+      {
+         var who:String = owner();
+         var cls:String = "mmo.housemenu.VisitorPanel";
+         var go:Function = function(d:* = null):void
+         {
+            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
+            try { Object(ApplicationDomain.currentDomain.getDefinition(cls)).show(who); } catch (e:Error) { RLog.error("garden visitors", e); }
+         };
+         if (ApplicationDomain.currentDomain.hasDefinition(cls)) go();
+         else ResScheduler.getResource("house/housemenu", go, "", function(e:* = null):void { RLog.log("garden: house/housemenu not loaded"); });
       }
 
       private static function notYet():void

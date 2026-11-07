@@ -93,6 +93,8 @@ export EXTRA_SWC="$OUT/swc/play.swc"
 
 # Player card with the wardrobe: rebuilt usercard/usercardservice.
 build usercard mmo/usercard/DocUserCard.as usercard.swf "usercard/usercardservice.swf%3F130117"
+# A player's avatar in a holder (UserAvatarService): rebuilt useravatar/useravatarservice.
+build useravatar mmo/useravatar/DocUserAvatar.as useravatar.swf "useravatar/useravatarservice.swf%3F1210"
 
 # 亚比仓库: rebuilt pet/petwarehouse (the 2012 and 2013 modules are lost: its 2012 look is the
 # January 2012 tutorial house/houseteachmovie/houseteachpetstore's picture, taken at run time).
@@ -297,6 +299,17 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art house/housestorage.swf)" \
   --bind 31=mmo.housestorage.TableButton --bind 22=mmo.housestorage.TableButton --bind 15=mmo.housestorage.TableButton \
   --note "REBUILT house/housestorage: rebuilt code (aola-revival) on the art of the later housestorage.swf" \
   --out "$W/house/housestorage.swf%3F121206"
+# The 家园's 友谊留言板 (MessageBoardService): the later house/messageboard's code, decompiled and
+# compiled against the 2013 interfaces, on its art (the 2013 module is lost).
+build messageboard mmo/messageboard/DocMessageBoard.as messageboard-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art house/messageboard.swf)" --code "$OUT/messageboard-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.messageboard.DocMessageBoard --bind 67=mmo.messageboard.panel.MessageBoardPanel \
+  --bind 214=mmo.messageboard.panel.LeaveWordPanel --bind 240=mmo.messageboard.panel.QuickTalkPanel \
+  --bind 282=mmo.messageboard.panel.Scratchpad1 --bind 278=mmo.messageboard.panel.Scratchpad2 --bind 274=mmo.messageboard.panel.Scratchpad3 \
+  --bind 264=mmo.messageboard.panel.Scratchpad4 --bind 260=mmo.messageboard.panel.Scratchpad5 --bind 255=mmo.messageboard.panel.Scratchpad6 \
+  --bind 51=messageboard_fla.bianjizhuanbtai_92 --bind 73=messageboard_fla.sjswwas_69 --bind 54=messageboard_fla.skdjsss_91 \
+  --note "LATER house/messageboard: its code compiled against the 2013 interfaces (aola-revival), on its art" \
+  --out "$W/house/messageboard.swf%3F1210"
 # The 家园 (house 247, where 回家 leads first; its 我的家 is the 小屋): rebuilt
 # furniture/b000247 (the January 2013 one is lost; the captured file is a later
 # rework). Its picture is the January 2012 tutorial house/houseteachmovie/
@@ -402,6 +415,20 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/yabistudycopy.swf)" --code
   --bind 0=mmo.scene.yabi.DocYabistudyRevived --bind 187=mmo.scene.yabi.YabistudyRevived \
   --note "REBUILT scene/yabistudy (aola-revival) on scene/yabistudycopy (April 2014)" \
   --out "$W/scene/yabistudy.swf%3F130124"
+# 念之塔 (黑暗念之塔, 风暴星系): the later thinktower/thinktowerservice's code compiled against the
+# 2013 interfaces on its art, and 幽冥大殿 (scene/youanmingzhou2, its later code on its art) whose
+# tower opens the seals' panel (thinktower/enterpanel) as in 2011–12.
+build thinktower mmo/thinktower/DocClass.as thinktower-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art thinktower/thinktowerservice.swf)" --code "$OUT/thinktower-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.thinktower.DocClass --bind 8=mmo.thinktower.btnExitHall \
+  --note "LATER thinktower/thinktowerservice: its code compiled against the 2013 interfaces (aola-revival), on its art" \
+  --out "$W/thinktower/thinktowerservice.swf%3F1210"
+build scenes/youanmingzhou2 mmo/scene/youanmingzhou/DocYouanmingzhou2Revived.as youanmingzhou2-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art scene/youanmingzhou2.swf)" --code "$OUT/youanmingzhou2-code.swf" \
+  --bind 0=mmo.scene.youanmingzhou.DocYouanmingzhou2Revived --bind 108=mmo.scene.youanmingzhou.Youanmingzhou2Revived \
+  --note "REBUILT scene/youanmingzhou2 (aola-revival): the later code on its art, its tower to the 念之塔's seals" \
+  --out "$W/scene/youanmingzhou2.swf%3F1210"
+
 # 奥拉之树 (its January 2013 scene lost, the live one a 2025 redrawing): rebuilt on the
 # stylized tree of 2014–24, the copy in scene/aolatreefb (2021).
 build scenes/aolatree mmo/scene/starland/DocAolatreeRevived.as aolatree-code.swf ""

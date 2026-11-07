@@ -25,6 +25,9 @@ import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
 import { installMods, stashModPets, type ModRec } from "./mods.ts";
 import { World, type XtContext } from "./server.ts";
+import { installHonour } from "./honour.ts";
+import { installGarden, type Board } from "./garden.ts";
+import { installThinkTower, type TowerRec } from "./thinktower.ts";
 import { isGiftBag, openGiftBag, openHeldGiftBags } from "./giftbags.ts";
 
 export interface UserRecord {
@@ -70,6 +73,12 @@ export interface UserRecord {
   vip?: boolean;
   /** 亚比 of the 仓库 the HELLO trains (亚比训练, 2-14 / 2-15 / 2-16): lesson and start (ms). */
   training?: { pi: number; c: number; since: number }[];
+  /** Wins against each 守护者, by its name (我的荣誉's 胜利数量, honour.ts). */
+  bossWins?: Record<string, number>;
+  /** 念之塔 (thinktower.ts): seals opened, 念 beaten, the chests' days. */
+  tower?: TowerRec;
+  /** Messages left today on others' 留言板 (garden.ts). */
+  boardDay?: { day: string; n: number };
   /** Friends and asks to be friends (social.ts), by player id. */
   friends?: number[];
   friendAsks?: number[];
@@ -877,6 +886,31 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       get: (id) => emu.store.get<Visits>(`visits/${id}`),
       set: (id, v) => emu.store.set(`visits/${id}`, v),
       nameOf: (id) => emu.store.get<string>(`uid/${id}`),
+    },
+    now: () => emu.clock.now().getTime(),
+  });
+
+  // 我的荣誉 (the 徽章 of honour/honour_res): honour.ts.
+  installHonour(world, { find: (name) => userRecord(emu, name) });
+
+  // 念之塔 (黑暗念之塔): thinktower.ts.
+  installThinkTower(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    today,
+    givePet: (o, race, level) => givePetTo(o as UserRecord, race, level),
+  });
+
+  // The 家园's bar and its 友谊留言板: garden.ts.
+  installGarden(world, {
+    me,
+    find: (name) => userRecord(emu, name),
+    save: (o) => save(o as UserRecord),
+    nameOf: (id) => emu.store.get<string>(`uid/${id}`),
+    visits: async (id) => (await emu.store.get<Visits>(`visits/${id}`))?.count ?? 0,
+    board: {
+      get: (id) => emu.store.get<Board>(`board/${id}`),
+      set: (id, b) => emu.store.set(`board/${id}`, b),
     },
     now: () => emu.clock.now().getTime(),
   });

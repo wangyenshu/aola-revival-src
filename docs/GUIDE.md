@@ -80,7 +80,7 @@ either:
 | 好友, 组队, 战队 | 好友 and 组队 in 联机模式 (docs/MULTIPLAYER.md); 战队 is not available. |
 | 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, and 放回仓库 (the box button): the 亚比 chosen goes into the 亚比仓库. The last 亚比 of the bag stays. |
 | 物品 | Everything collected: 道具, 亚比蛋, 种植, 射击卡. |
-| 回家 | Your 家园 (garden); 我的家 there leads into the 小屋. In the 家园: the 亚比仓库 and the 经验分配器 (below). |
+| 回家 | Your 家园 (garden); 我的家 there leads into the 小屋. In the 家园: the 亚比仓库, the 经验分配器 (below), 我的荣誉 (your 徽章), the 留言板, 健身房 (亚比训练) and 最近访问; the strip at the bottom shows your 徽章分数, 人气 and friends, and a card for you and each friend: click one to go to that 家园. |
 | 商城 (cart) | The 收费 catalogs (服装, 道具, 家具, 亚比蛋), bought with 星币. |
 | ♪ | Music on or off. |
 | 任务 (top right) | The task panel. |

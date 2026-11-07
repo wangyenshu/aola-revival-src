@@ -34,6 +34,7 @@ package mmo.usercard
    import mmo.interfaces.material.MaterialServiceEvent;
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.VersManager;
+   import mmo.revival.RAvatar;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
    import mmo.revival.SavePanels;
@@ -309,7 +310,7 @@ package mmo.usercard
             var mine:IAlbumAvatarProxy = avatar;
             var dress:Function = function(info:AvatarInfo):void
             {
-               drawable(info, function(shown:AvatarInfo):void { if (avatar == mine && shown != null) avatar.setAvatarInfo(shown); });
+               RAvatar.drawable(info, function(shown:AvatarInfo):void { if (avatar == mine && shown != null) avatar.setAvatarInfo(shown); });
             };
             if (own) dress(clothes.getMyAvatarInfo());
             else clothes.getOthersAvatarInfo(userName, dress);
@@ -318,97 +319,6 @@ package mmo.usercard
          {
             RLog.error("usercard avatar", e);
          }
-      }
-
-      /** skinview file name -> whether the site has it (asked once a session). */
-      private static var views:Object = {};
-
-      /**
-       * The clothes of info whose big picture (skinview/<file>) the site has.
-       * The album avatar loads each piece's skinview file; for a piece whose
-       * file is missing its own error handler fails (it reads the failed
-       * request as a ResLoader), and the pieces asked for after it, even on
-       * the next card, were never drawn: the card stood blank once clothes
-       * without a skinview file had been worn. Most clothes have one (later
-       * copies, game/); the others are left off the card.
-       */
-      private static function drawable(info:AvatarInfo, done:Function):void
-      {
-         if (info == null)
-         {
-            done(null);
-            return;
-         }
-         var list:Array = info.getClothes();
-         var files:Array = [];
-         for each (var u:* in list)
-         {
-            var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
-            if (c != null && c.fileName && !views.hasOwnProperty(c.fileName) && files.indexOf(c.fileName) < 0) files.push(c.fileName);
-         }
-         var missed:Array = [];
-         var finish:Function = function():void
-         {
-            var shown:AvatarInfo = info.clone();
-            shown.setClothes(list.filter(function(u:*, i:int, a:Array):Boolean
-            {
-               var c:Clothes = u is UserClothes ? UserClothes(u).material as Clothes : null;
-               return c == null || !c.fileName || (views[c.fileName] !== false && missed.indexOf(c.fileName) < 0);
-            }));
-            done(shown);
-         };
-         // Counted before any is asked: an answer that comes at once does not finish early.
-         var waiting:int = files.length;
-         if (waiting == 0)
-         {
-            finish();
-            return;
-         }
-         var answer:Function = function(file:String):Function
-         {
-            return function(ok:Boolean):void
-            {
-               if (!ok) missed.push(file);
-               if (--waiting == 0) finish();
-            };
-         };
-         for each (var f:String in files) ask(f, answer(f));
-      }
-
-      /**
-       * Whether skinview/<file> is a SWF the site has: views[file] true or false, kept for the
-       * session only when sure (the file came, or the site answered that it has none). A page
-       * the host sends instead of a missing file is no SWF. Gives up after 8 s.
-       */
-      private static function ask(file:String, then:Function):void
-      {
-         var ld:URLLoader = new URLLoader();
-         ld.dataFormat = URLLoaderDataFormat.BINARY;
-         var status:int = 0;
-         var over:Boolean = false;
-         var timer:Timer = new Timer(8000, 1);
-         var end:Function = function(ok:Boolean, sure:Boolean):void
-         {
-            if (over) return;
-            over = true;
-            timer.stop();
-            try { ld.close(); } catch (e0:Error) {}
-            if (sure) views[file] = ok;
-            then(ok);
-         };
-         ld.addEventListener(HTTPStatusEvent.HTTP_STATUS, function(e:HTTPStatusEvent):void { status = e.status; });
-         ld.addEventListener(Event.COMPLETE, function(e:Event):void
-         {
-            var b:ByteArray = ld.data as ByteArray;
-            var swf:Boolean = b != null && b.length > 8 && (b[0] == 0x46 || b[0] == 0x43 || b[0] == 0x5A) && b[1] == 0x57 && b[2] == 0x53;
-            end(swf, true);
-         });
-         ld.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event):void { end(false, status == 404 || status == 410); });
-         ld.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(e:Event):void { end(false, false); });
-         timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void { end(false, false); });
-         timer.start();
-         try { ld.load(VersManager.getVerURLRequest("skinview/" + file)); }
-         catch (err:Error) { end(false, false); }
       }
 
       private function refreshGrid():void

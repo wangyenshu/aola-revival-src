@@ -1845,6 +1845,10 @@ export const GUARDIANS: [string, string][] = [
   ["11259", "100"], ["10884", "100"], ["10639", "100"], ["10493", "100"], ["10112,20112", "80,100"], ["10195,20195", "80,100"],
   ["10633", "100"], ["10665", "100"], ["10796,20796", "80,100"], ["10771,20771", "80,100"], ["11190", "100"], ["10819,20819", "80,100"],
   ["10995", "100"],
+  // 多古拉伯爵 (the 万圣节守护者 of October 2012, at 奥拉之树): two forms, levels RECONSTRUCTED.
+  ["11267,21267", "80,100"],
+  // 猎空 (银河冠军擂台, August 2013, asked for by players): the later BossTimeHelper's forms and levels.
+  ["31697,21697,11697", "60,80,100"],
   // 蓝羽灵者 (迷境花园, January 2013): three forms fought from its panel (RECONSTRUCTED levels).
   ["31394,21394,11394", "60,80,100"],
 ];
@@ -2068,6 +2072,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
   // scene/temple12 fights by fightWithTaskPet(305): with no wild level it was a Lv5): fought as the
   // others, not caught.
   const TASK_PET_RACES = new Set([230, 305]);
+  // Task 亚比 with a level of their own: 念 (40461) and 邪念 (20605) of 念之大厅 (thinktowerofthink); a
+  // player's letter in 奥拉周刊 54 fought 念 "80级时都那么难打", then 邪念 (RECONSTRUCTED: 邪念 at 90).
+  const TASK_PET_LEVELS: Record<number, number> = { 40461: 80, 20605: 90 };
   world.xt("PetExtension.54_2", async (ctx) => {
     const asked = Number(ctx.params.level);
     const id = Number(ctx.params.raceId);
@@ -2076,7 +2083,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     if (id >= 10000 || TASK_PET_RACES.has(id)) {
       const o = await deps.load(ctx);
       const top = Math.max(5, ...(o.pets ?? []).map((p) => p.level));
-      const level = asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1);
+      const level = TASK_PET_LEVELS[id] ?? (asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1));
       return void (await begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id));
     }
     // A wild 亚比 of this room: at the room's levels (the client's level is not taken), and
@@ -2490,9 +2497,13 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const species = BOSS_SPECIES[asked] ?? (speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000);
     const egg = BOSS_EGGS[asked] ?? (asked === 14523 || asked === 11514 || !lastGuardianForm(asked, index) ? 0 : eggOfLine(t, species));
     const mark = BOSS_MARKS[asked];
+    const bossName = nameOf(t, species);
     const onWin: Battle["onWin"] = (o) => {
       const out: Msg[] = [];
       const items = ((o as { items?: Record<string, Record<string, number>> }).items ??= {});
+      // Counted for 我的荣誉's 胜利数量 (honour.ts: 挑战…胜利 1, 10, 100 times).
+      const wins = ((o as { bossWins?: Record<string, number> }).bossWins ??= {});
+      wins[bossName] = (wins[bossName] ?? 0) + 1;
       // A 战术卡, now and then (petcards.ts).
       const card = cardDrop(deps.rng ?? Math.random);
       if (card) {

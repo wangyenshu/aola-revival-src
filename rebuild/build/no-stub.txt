@@ -5,6 +5,7 @@ catalog/bconfigreaderservice
 catalog/bookclubservice
 catalog/catalogservice
 usercard/usercardservice
+useravatar/useravatarservice
 pet/petdataservice
 pet/petdictionarydata
 pet/petpackage
@@ -14,6 +15,9 @@ house/houseloader
 house/houseservice
 house/furnituredecorator
 yz/plantdecorator
+house/messageboard
+honour/honourservice
+thinktower/thinktowerservice
 house/housemenu
 house/housestorage
 baseservice/scenetalk

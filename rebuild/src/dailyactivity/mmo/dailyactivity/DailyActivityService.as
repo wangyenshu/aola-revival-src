@@ -118,6 +118,15 @@ package mmo.dailyactivity
          // talks are lost): in the park, dressed as its 亚比 (RECONSTRUCTED).
          ["themepark", "翡冷翠", 10995, "Boss10995", 160, 420, "ask", null, 0, null, "one", "10995:100"],
          ["dreamhouse", "年兽", 10493, "Boss10493", 480, 320, "film", "BossMovie10493", 242, "dreamhouseTeamboss", "std", "10493:100"],
+         // 多古拉伯爵, the 万圣节守护者 of 2012: its card of the 守护者 calendar (dailyactivitybossres/boss1266,
+         // 24 October 2012) names 挑战地点 奥拉之树, 10月26日—11月1日. Its picture in the scene is lost: it
+         // stands dressed as its 亚比; forms and levels RECONSTRUCTED (its boss rows 11267 and 21267).
+         ["aolatree", "多古拉伯爵", 11267, "Boss11267", 700, 350, "ask", null, 0, null, "one", "11267:80,21267:100"],
+         // 猎空, the 守护者 of 银河冠军擂台 from August 2013 (later than this world: asked for by its
+         // players). The later BossTimeHelper fights its three forms 31697, 21697, 11697 at 60, 80, 100
+         // in spacetimechallenge, whose 2013 scene is lost (the 战斗星域 stand-in, BattleZoneHub): it
+         // stands in 挑战平台 instead, as its picture dailyactivity/dailyboss31697 (the tornado).
+         ["spacetimechallenge3", "猎空", 31697, "Boss31697", 0, 0, "ask", null, 0, null, "one", "31697:60,21697:80,11697:100"],
          // 时间之神, the 时间守护者 of the 泡泡节 (缤纷泡泡街, from 27 May 2011): the clock of the
          // street's fountain is turned to call it (its film, the same clock, plays over the street's);
          // then it stands by the clock (spot RECONSTRUCTED).
@@ -132,12 +141,13 @@ package mmo.dailyactivity
 
       /**
        * Pictures drawn in scene coordinates moved aside where bosses of different
-       * events now stand together: 极速威锋 stood where 赤魔导士 stands in 主题公园.
+       * events now stand together: 极速威锋 stood where 赤魔导士 stands in 主题公园; 猎空's
+       * (drawn for spacetimechallenge) off 挑战平台's middle.
        */
-      private static const SHIFTED:Object = {"10633": [-330, 30]};
+      private static const SHIFTED:Object = {"10633": [-330, 30], "31697": [110, -30]};
 
       /** Bosses whose picture dailyactivity/dailyboss<file> is lost (they stand dressed as their 亚比): not asked for. */
-      private static const NO_PICTURE:Object = {"10884": true, "11190": true, "10995": true};
+      private static const NO_PICTURE:Object = {"10884": true, "11190": true, "10995": true, "11267": true};
 
       private var shown:Array = [];
       /** The boss last clicked: the talks' 挑战 fight it. */

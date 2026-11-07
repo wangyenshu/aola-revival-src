@@ -383,8 +383,10 @@ as its large picture, and sprites without a back view are mirrored. Boss
 films (`bossfightmovie/boss<id>`) play when the battle opens and at the HP
 thresholds the later client used.
 
-Wild 亚比 (`pet/wildpetservice`) walk in 123 rooms; the list per room comes
-from the November 2012 world map and the later location table. The
+Wild 亚比 (`pet/wildpetservice`) walk in 124 rooms; the list per room comes
+from the November 2012 world map and the later location table, and for the
+story rooms of 风暴星系 from `tools/data/wildpets-extra.json` (its sources per
+亚比). The
 following 亚比 wears its walking figure (`PetClothesMap` → `skin/a0<id>`)
 or, without one, its large picture. Riding (`pet/petride`) draws the ride's
 two layers under and over the raised rider.
@@ -395,7 +397,14 @@ two layers under and over the raised rider.
 their own pictures (`dailyactivity/dailyboss<id>`), wakes them, plays their
 films and talks (from the later conversation tables) and starts their
 fights (`IPetFight.fightWithBoss`, `54_16`). The table of bosses, scenes and
-forms is at the top of `DailyActivityService.as`.
+forms is at the top of `DailyActivityService.as`; the server's is `GUARDIANS`
+in `battle.ts`, and the wins count for 我的荣誉's 胜利数量 (`bossWins`).
+
+The 念之塔 (黑暗念之塔) is the seals' scenes of 2011–12 (`scene/thinktowerof*`)
+with `thinktower/thinktowerservice` (the later module's code compiled
+against the 2013 interfaces, on its art) and its panel
+`thinktower/enterpanel`; 幽冥大殿 (`scene/youanmingzhou2`, its later code on its
+art) opens the panel. The server is `thinktower.ts` (`MentalHallExtension`).
 
 ### 四大副本
 
@@ -424,7 +433,14 @@ priced in real money in 2012 are paid in 星币, which only the 工具箱 gives.
 
 The 家园 (`furniture/b000247`) is rebuilt from the January 2012 tutorial
 picture of the garden, which shows the whole screen: the scene takes that
-picture at run time without the tutorial's labels. The 小屋 is built by the
+picture at run time without the tutorial's labels. Its bar (`GardenBar`)
+draws over the picture's strip, its friends' cards on copies of the
+picture's one sample card; the server is `garden.ts` (`revival_gardenbar`,
+and the 友谊留言板 of `house/messageboard`, the later module's code on its
+art). 我的荣誉 is the era `honour/honourservice` with the April 2013
+`honour/honour_res` and the 280 `honouricon` pictures; the server is
+`honour.ts`. A player's avatar in a picture (the garden's cards, the zoo's
+动物园信息) is the rebuilt `useravatar/useravatarservice` (`mmo.revival.RAvatar`). The 小屋 is built by the
 rebuilt `house/houseloader` from the player's house record. The 动物园
 (`furniture/b020000`) stands on the art of a later copy with code for the
 2013 engine.

@@ -2246,5 +2246,28 @@
 "common": 1,
 "rate": 0
 }
+],
+"youanmingzhou2": [
+{
+"raceId": 578,
+"min": 16,
+"max": 19,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 579,
+"min": 24,
+"max": 28,
+"common": 1,
+"rate": 0
+},
+{
+"raceId": 580,
+"min": 40,
+"max": 44,
+"common": 0,
+"rate": 10
+}
 ]
 }

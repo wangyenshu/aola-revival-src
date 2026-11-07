@@ -493,6 +493,49 @@
      ]
     }
    ]
+  },
+  "youanmingzhou2": {
+   "pets": [
+    {
+     "raceId": 578,
+     "name": "金银球",
+     "min": 16,
+     "max": 19,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era weekly 54 (weekly/weekly54/aolaweekly54_18, a reader's letter): \"带它来到了念所在的地方——幽暗冥州。当我正让瑞比打金银球升级之时\"",
+      "player report (2026): 金银童子 in 幽冥大殿; PetDictionaryData of January 2013 already calls the line 绝版"
+     ]
+    },
+    {
+     "raceId": 579,
+     "name": "小金小银",
+     "min": 24,
+     "max": 28,
+     "common": 1,
+     "rate": 0,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "era weekly 54 (weekly/weekly54/aolaweekly54_18, a reader's letter): \"带它来到了念所在的地方——幽暗冥州。当我正让瑞比打金银球升级之时\"",
+      "player report (2026): 金银童子 in 幽冥大殿; PetDictionaryData of January 2013 already calls the line 绝版"
+     ]
+    },
+    {
+     "raceId": 580,
+     "name": "金银童子",
+     "min": 40,
+     "max": 44,
+     "common": 0,
+     "rate": 10,
+     "levels": "RECONSTRUCTED",
+     "source": [
+      "player report (2026): 金银童子 in 幽冥大殿; PetDictionaryData of January 2013 already calls the line 绝版",
+      "its line evolves at 20 and 40 (pmdata)"
+     ]
+    }
+   ]
   }
  }
 }

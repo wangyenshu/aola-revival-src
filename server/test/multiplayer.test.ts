@@ -16,7 +16,7 @@ import { Down, EXT_NAMES, Reader, Up, clientPayload, encodeClientFrame, nextPack
 const EXT_NUMBER = (name: string) => Number(Object.entries(EXT_NAMES).find(([, n]) => n === name)![0]);
 import { SFS2013_FRAMING } from "../src/game/sfs2013/server.ts";
 
-const EXT = { UserExtension: 1, TeamExtension: 2, BuddyManagerExtension: 3, PocketMonsterExtension: 13, PetExtension: 15, HouseExtension: 26, SundriesExtension: 34, FBExtension: 35, TeamTowerExtension: EXT_NUMBER("TeamTowerExtension") } as const;
+const EXT = { UserExtension: 1, TeamExtension: 2, BuddyManagerExtension: 3, PocketMonsterExtension: 13, PetExtension: 15, HouseExtension: 26, SundriesExtension: 34, FBExtension: 35, TeamTowerExtension: EXT_NUMBER("TeamTowerExtension"), AchievementExtension: EXT_NUMBER("AchievementExtension"), MentalHallExtension: EXT_NUMBER("MentalHallExtension") } as const;
 const TABLES = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../rebuild/static/www.9aola.com");
 /** The game's tables (pets, skills) for the battles. */
 const tables = async (p: string) => {
@@ -221,6 +221,82 @@ test("a friend's home: 家园, 小屋 and 动物园, one 足迹 a visit", async 
   const again = a.xts().find((o) => o._cmd === "62_3")!;
   assert.equal(again.count, 2);
   assert.equal((again.visitors as unknown[]).length, 1);
+});
+
+test("the 家园's 留言板 and bar between two players; 我的荣誉", async () => {
+  const { a, b } = await twoPlayers();
+  // B writes on A's board; A reads it, sets his 寄语, takes it off.
+  b.xt("HouseExtension", "62_14", { un: "奥拉A", content: "你好呀！", type: 3 });
+  const left = (await b.wait("62_14"))!;
+  assert.equal(left.suc, true);
+  a.xt("HouseExtension", "62_12", { un: "奥拉A" });
+  const first = (await a.wait("62_12"))!;
+  assert.equal(first.recordCount, 1);
+  const msg = (first.msg as Record<string, unknown>[])[0];
+  assert.equal(msg.content, "你好呀！");
+  assert.equal(msg.dd, "奥拉B");
+  assert.equal(msg.type, 3);
+  a.xt("HouseExtension", "62_11", { msg: "欢迎来我家玩" });
+  assert.equal((await a.wait("62_11"))?.suc, true);
+  b.xt("HouseExtension", "62_12", { un: "奥拉A" });
+  assert.equal((await b.wait("62_12"))?.main, "欢迎来我家玩");
+  // A 举报 once (not one's own), and B cannot take A's messages off.
+  a.xt("HouseExtension", "62_16", { un: "奥拉A", id: left.id });
+  assert.equal((await a.wait("62_16"))?.suc, true);
+  a.xt("HouseExtension", "62_16", { un: "奥拉A", id: left.id });
+  assert.equal((await a.wait("62_16"))?.suc, false);
+  b.xt("HouseExtension", "62_15", { id: left.id });
+  assert.equal((await b.wait("62_15"))?.suc, false);
+  a.xt("HouseExtension", "62_15", { id: left.id });
+  assert.equal((await a.wait("62_15"))?.suc, true);
+  a.xt("HouseExtension", "62_13", { un: "奥拉A", page: 1 });
+  assert.deepEqual((await a.wait("62_13"))?.msg, []);
+  // Friends: the bar lists both, by 徽章分数; A's figures.
+  a.xt("BuddyManagerExtension", "revival_friend_add", { name: "奥拉B" });
+  const ask = (await b.wait("revival_friend_ask"))!;
+  b.xt("BuddyManagerExtension", "revival_friend_answer", { id: ask.id, ok: true });
+  await b.wait("revival_friend_answer");
+  b.xt("SundriesExtension", "revival_gardenbar", { un: "奥拉A" });
+  const bar = (await b.wait("revival_gardenbar"))!;
+  assert.equal(bar.un, "奥拉A");
+  assert.equal(bar.friends, 1);
+  assert.deepEqual((bar.list as Record<string, unknown>[]).map((x) => x.un).sort(), ["奥拉A", "奥拉B"]);
+  // 我的荣誉: A's honours seen by B (the panel's first page).
+  b.xt("AchievementExtension", "76_7", { un: "奥拉A", idlist: "0,1,2,145" });
+  const h = (await b.wait("76_7"))!;
+  assert.equal(h.nn, "奥拉A");
+  assert.match(String(h.page), /^0=0,1=(-1|\d+),2=\d+,145=(-1|0)$/);
+  assert.equal(String(h.honor).split(",").length, 4);
+});
+
+test("念之塔: the seals opened, a chest a day, 小念 once 念 is beaten", async () => {
+  const { a } = await twoPlayers(true);
+  a.xt("MentalHallExtension", "98_2");
+  assert.equal((await a.wait("98_2"))?.result, "0,0,0,0");
+  for (const type of [17, 18, 19, 20]) {
+    a.xt("MentalHallExtension", "98_1", { type });
+    assert.equal((await a.wait("98_1"))?.result, 1);
+  }
+  a.xt("MentalHallExtension", "98_2");
+  assert.equal((await a.wait("98_2"))?.result, "1,1,1,1");
+  a.xt("MentalHallExtension", "98_3", { type: 17 });
+  const chest = (await a.wait("98_3"))!.bn as Record<string, unknown>[];
+  assert.deepEqual(chest.map((b) => b.type), [100, 101]);
+  a.xt("MentalHallExtension", "98_3", { type: 17 });
+  assert.deepEqual((await a.wait("98_3"))?.bn, [], "once a day");
+  // 小念: not before 念 is beaten, then once.
+  a.xt("SundriesExtension", "70_45", { race: 602 });
+  assert.equal((await a.wait("70_45"))?.suc, false);
+  a.xt("MentalHallExtension", "98_1", { type: 21 });
+  await a.wait("98_1");
+  a.xt("SundriesExtension", "70_46", { race: 602 });
+  assert.equal((await a.wait("70_46"))?.has, false);
+  a.xt("SundriesExtension", "70_45", { race: 602 });
+  assert.equal((await a.wait("70_45"))?.suc, true);
+  a.xt("SundriesExtension", "70_46", { race: 602 });
+  assert.equal((await a.wait("70_46"))?.has, true);
+  a.xt("SundriesExtension", "70_45", { race: 602 });
+  assert.equal((await a.wait("70_45"))?.suc, false);
 });
 
 test("the live records: one object a key, written through, the least used let go", async () => {
