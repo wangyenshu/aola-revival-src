@@ -168,6 +168,12 @@ package mmo.control
          return null;
       }
 
+      /** A button of the bar pressed from elsewhere (the 家园's own bar: 好友, 图鉴), the bar put away or not. */
+      public function press(name:String):void
+      {
+         onButton(name);
+      }
+
       private function onButton(name:String):void
       {
          switch (name)

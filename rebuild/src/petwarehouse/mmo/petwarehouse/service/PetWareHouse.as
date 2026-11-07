@@ -51,7 +51,7 @@ package mmo.petwarehouse.service
     * the two sides of its name pick the one before and after; the pen by them (the later
     * 背包's "点击修改亚比昵称") gives it a 昵称; the HELLO with its book shows the tutorial's page.
     *
-    * Commands (pets.ts): viewPMInLocation 1213 {pmType 系, page, loc 1/2/3, order, asc, size}
+    * Commands (pets.ts): viewPMInLocation 1213 {pmType 系, page (from 1), loc 1 仓库 / 4 精英 / 3 放生, order, asc, size}
     * -> 2213, sendPmToFromStorage 1224 {id, loc 0} -> 2224 (a 亚比 of the 放生仓库 comes back so),
     * setExcellentPM 1225 {id, e} -> 2225, viewSinglePM 1211 -> 2211, and the revival's
     * revival_release (into the 放生仓库), revival_nick, revival_show.
@@ -261,7 +261,7 @@ package mmo.petwarehouse.service
          root.addChild(petPic);
          // The left side: tabs, 系, sorting, pages, help, 开始训练.
          hit(129, 185, 30, 96, "tabStore", function():void { setLoc(1); }, "亚比仓库");
-         hit(129, 283, 30, 96, "tabElite", function():void { setLoc(2); }, "精英仓库");
+         hit(129, 283, 30, 96, "tabElite", function():void { setLoc(4); }, "精英仓库");
          hit(129, 381, 30, 96, "tabReleased", function():void { setLoc(3); }, "放生仓库");
          for (var f:int = 0; f < FILTER.length; f++)
             hit(174 + (f % 8) * 35, 200 + int(f / 8) * 33, 28, 28, "filter" + FILTER[f], setType(FILTER[f]), f == 0 ? "全部" : ATTR_NAMES[FILTER[f]] + "系");
@@ -402,7 +402,7 @@ package mmo.petwarehouse.service
 
       private function ask():void
       {
-         SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1213", {pmType: type, page: page, loc: loc, order: order, asc: asc, size: PER_PAGE});
+         SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1213", {pmType: type, page: page + 1, loc: loc, order: order, asc: asc, size: PER_PAGE});
       }
 
       private function setLoc(n:int):void
@@ -449,8 +449,8 @@ package mmo.petwarehouse.service
          if (int(o.loc) != loc) return;
          list = ((o.pmList as Array) || []).map(function(raw:Object, i:int, a:Array):Object { return raw.pmSView || {}; });
          skills = ((o.pmList as Array) || []).map(function(raw:Object, i:int, a:Array):Array { return (raw.skills as Array) || []; });
-         page = int(o.page);
-         pages = Math.max(1, int(o.pages));
+         page = Math.max(0, int(o.page) - 1);
+         pages = Math.max(1, int(o.totalPage));
          total = int(o.total);
          if (sel >= list.length) sel = Math.max(0, list.length - 1);
          for (var i:int = 0; i < slots.length; i++)
@@ -600,7 +600,7 @@ package mmo.petwarehouse.service
          if (p == null)
          {
             if (tab == "skill") pageView.bitmapData = pageBlank;
-            var empty:TextField = text(loc == 2 ? "精英仓库里还没有亚比。\n在亚比仓库里把亚比设为精英吧！" : loc == 3 ? "放生仓库里没有亚比。" : "亚比仓库里没有亚比。\n背包里的亚比可以放回仓库。", 13, 0xFFFFFF, PAGE.x + 10, 340, PAGE.width - 20, true);
+            var empty:TextField = text(loc == 4 ? "精英仓库里还没有亚比。\n在亚比仓库里把亚比设为精英吧！" : loc == 3 ? "放生仓库里没有亚比。" : "亚比仓库里没有亚比。\n背包里的亚比可以放回仓库。", 13, 0xFFFFFF, PAGE.x + 10, 340, PAGE.width - 20, true);
             empty.filters = [new GlowFilter(0x123A80, 1, 3, 3, 6)];
             return;
          }

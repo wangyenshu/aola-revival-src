@@ -373,8 +373,13 @@ export function installPets(world: World, deps: PetDeps): void {
 
   // 亚比仓库 (pet/petwarehouse; the 2013 module is lost, the commands are the era PetClient's; the
   // 2012 panel's tabs, 系 filter and sorting are its January 2012 tutorial's, houseteachpetstore):
-  //   1213 viewPMInLocation {pmType, page, loc, order, asc, size?} -> 2213 {loc, page, pages, total, pmList}
-  //        loc 0 the bag, 1 the 仓库, 2 the 精英仓库 (its 精英), 3 the 放生仓库 (let go, not gone yet)
+  //   1213 viewPMInLocation {pmType, page, loc, order, asc, size?}
+  //        -> 2213 {pmType, loc, page, totalPage, pages, total, pmList}
+  //        pages count from 1 (the era panels that pick a 亚比 of the 仓库, pet/pettraining,
+  //        pet/petmix and pet/petrefactor, ask for page 1 with loc 2 and read pmType, page,
+  //        totalPage and pmList back, nine to a page)
+  //        loc 0 the bag, 1 and 2 the 仓库, 3 the 放生仓库 (let go, not gone yet), 4 the 精英仓库
+  //        (its 精英; the revival's number)
   //        pmType 0 every 亚比, n those of 属性 n; order 1 by when it was got, 2 by level; asc
   //        size: to a page (the revival's; STORAGE_PAGE without); each item's pmSView has el
   //        (精英 1), sh (展示 1) and, in the 放生仓库, rl (days it is kept still)
@@ -383,11 +388,11 @@ export function installPets(world: World, deps: PetDeps): void {
   //        result 1 done, -1 no such 亚比, -2 the bag is full, -3 the last 亚比 of the bag stays
   //   1225 setExcellentPM {id, e} -> 2225 {result, id, e}   精英 or not (result 1, -1 no such 亚比)
   // The 2013 rules are lost: RECONSTRUCTED (the bag holds 6 as everywhere in the client).
-  const STORAGE_PAGE = 12;
+  const STORAGE_PAGE = 9;
   const now = () => (deps.now ? deps.now() : Date.now());
   const attrOf = (t: PetTables, p: PetRecord) => speciesOf(t, p.race)?.t[0] ?? t.species[String(p.race)]?.a ?? 0;
   const located = (o: PetOwner, loc: number): PetRecord[] =>
-    loc === 1 ? (o.storage ??= []) : loc === 2 ? (o.storage ?? []).filter((p) => p.elite) : loc === 3 ? (o.released ?? []) : list(o);
+    loc === 1 || loc === 2 ? (o.storage ??= []) : loc === 4 ? (o.storage ?? []).filter((p) => p.elite) : loc === 3 ? (o.released ?? []) : list(o);
   world.xt(`${EXT}.1213`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
     if (dropOldReleased(o, now())) await deps.save(o);
@@ -401,14 +406,14 @@ export function installPets(world: World, deps: PetDeps): void {
     if (order === 2) all.sort((a, b) => a.level - b.level || a.id - b.id);
     if ((order === 1 || order === 2) && !asc) all.reverse();
     const pages = Math.max(1, Math.ceil(all.length / size));
-    const page = Math.max(0, Math.min(pages - 1, Number(ctx.params.page) | 0));
-    const shown = loc === 0 ? all : all.slice(page * size, (page + 1) * size);
+    const page = Math.max(1, Math.min(pages, Number(ctx.params.page) | 0));
+    const shown = loc === 0 ? all : all.slice((page - 1) * size, page * size);
     const left = (p: PetRecord) => Math.max(0, Math.ceil((RELEASE_KEEP_MS - (now() - (p.relAt ?? 0))) / (24 * 3600 * 1000)));
     const pmList = shown.map((p) => {
       const b = briefOf(p, o, t);
       return { ...b, pmSView: { ...b.pmSView, el: p.elite ? 1 : 0, sh: o.showPet === p.id ? 1 : 0, ...(loc === 3 ? { rl: left(p) } : {}) } };
     });
-    ctx.reply({ loc, page, pages, total: all.length, pmList }, "2213");
+    ctx.reply({ pmType: type, loc, page, totalPage: pages, pages, total: all.length, pmList }, "2213");
   });
   world.xt(`${EXT}.1224`, async (ctx) => {
     const o = await deps.load(ctx);
@@ -504,12 +509,15 @@ export function installPets(world: World, deps: PetDeps): void {
   });
 
   // viewSinglePM {id} -> {pm: PetDetailedInfo}   (a 亚比 of the 放生仓库 too, for its page there)
+  // The 2010 panels of the 亚比特训 (pet/pettraining, pet/petbetraining) read their own names
+  // of the same things: id, name, level, next (experience still to go), character, getDate.
   world.xt(`${EXT}.1211`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
     const p = [...list(o), ...(o.storage ?? []), ...(o.released ?? [])].find((x) => x.id === Number(ctx.params.id));
     if (!p) return ctx.reply({ msg: "没有这只亚比" }, "2211");
     const d = detailOf(p, o, t);
-    ctx.reply({ pm: { ...d, pmPView: { ...d.pmPView, el: p.elite ? 1 : 0, sh: o.showPet === p.id ? 1 : 0 } } }, "2211");
+    const era = { id: p.id, name: p.nick || d.pmPView.nm, level: p.level, next: d.pmPView.nx, character: p.character, getDate: p.got };
+    ctx.reply({ pm: { ...d, pmPView: { ...d.pmPView, el: p.elite ? 1 : 0, sh: o.showPet === p.id ? 1 : 0, ...era } } }, "2211");
   });
 
   // addPM {raceId, level, type}: the revival's first-亚比 choice gives the starter this way (and

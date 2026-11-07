@@ -99,8 +99,12 @@ test("亚比仓库: 系, order and pages of nine; 精英 and the 精英仓库; �
     ((await call("PocketMonsterExtension.1213", { size: 9, ...q }))[0][1].pmList as { pmSView: { i: number } }[]).map((x) => x.pmSView.i);
   const first = (await call("PocketMonsterExtension.1213", { loc: 1, size: 9 }))[0][1];
   assert.equal(first.total, 12);
-  assert.equal(first.pages, 2);
-  assert.deepEqual(await ids({ loc: 1, page: 1 }), [26, 27, 28]);
+  assert.equal(first.totalPage, 2);
+  assert.equal(first.page, 1, "pages count from 1");
+  assert.deepEqual(await ids({ loc: 1, page: 2 }), [26, 27, 28]);
+  // The era panels that pick a 亚比 of the 仓库 (亚比特训, 融合, 重组): loc 2, nine to a page.
+  const era = (await call("PocketMonsterExtension.1213", { pmType: 0, page: 1, loc: 2, order: 1, asc: false }))[0][1];
+  assert.deepEqual([era.pmType, era.page, era.totalPage, (era.pmList as unknown[]).length], [0, 1, 2, 9]);
   // 木 (11): 兔小子; 冰 (14): 小冰犬.
   assert.deepEqual(await ids({ loc: 1, pmType: 11 }), [11, 13]);
   assert.equal((await ids({ loc: 1, pmType: 14 })).length, 9);
@@ -110,11 +114,11 @@ test("亚比仓库: 系, order and pages of nine; 精英 and the 精英仓库; �
   assert.deepEqual((await ids({ loc: 1, order: 1, asc: false })).slice(0, 2), [28, 27]);
   // 精英.
   assert.deepEqual((await call("PocketMonsterExtension.1225", { id: 12, e: true }))[0], ["2225", { result: 1, id: 12, e: true }]);
-  assert.deepEqual(await ids({ loc: 2 }), [12]);
+  assert.deepEqual(await ids({ loc: 4 }), [12]);
   const listed = (await call("PocketMonsterExtension.1213", { loc: 1, pmType: 14, size: 9 }))[0][1].pmList as { pmSView: { i: number; el: number } }[];
   assert.equal(listed.find((x) => x.pmSView.i === 12)!.pmSView.el, 1);
   await call("PocketMonsterExtension.1225", { id: 12, e: false });
-  assert.deepEqual(await ids({ loc: 2 }), []);
+  assert.deepEqual(await ids({ loc: 4 }), []);
   assert.equal((await call("PocketMonsterExtension.1225", { id: 99, e: true }))[0][1].result, -1);
   // 昵称: up to six; empty gives the name back.
   assert.deepEqual((await call("PocketMonsterExtension.revival_nick", { id: 11, nick: "小 兔" }))[0], ["revival_nick", { result: 1, id: 11, nick: "小兔" }]);

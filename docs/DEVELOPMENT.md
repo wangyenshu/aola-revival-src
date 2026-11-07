@@ -143,6 +143,7 @@ output).
    `play.swf`), transplants code into original art where a module keeps its
    art (`tools/swf_transplant.py`), applies the bytecode renames
    (`tools/abc_rename.py`) and the picture fixes (`tools/peticon_fill.py`),
+   fixes era files that cannot work as they are (`tools/patch_scripts.py`)
    and cleans the start screen (`tools/clean_start.py`). Each output goes to
    `build/rebuilt/www.9aola.com/<path>%3F<version>`.
 4. Runs `stubs.sh`: compiles the stand-ins of `rebuild/gen/stubs` (in
@@ -352,6 +353,7 @@ their docstrings give the exact commands.
 | `abc_rename.py` | rename a string in a SWF's bytecode |
 | `peticon_fill.py` | add missing small pictures to `peticon` files |
 | `clean_start.py` | remove the January 2013 campaign from the start screen |
+| `patch_scripts.py` | small fixes to era files: a line of a class (FFDec), a named child in a symbol |
 
 ### Mods
 

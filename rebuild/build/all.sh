@@ -29,6 +29,10 @@ build login mmo/user/login/Main.as login.swf "user/login.swf%3F1301301"
 mkdir -p "$W/user"
 python3 "$TOOLS/clean_start.py" --ffdec "${FFDEC:?ffdec.jar}" --res "$(art user/yunyingres.swf)" --start "$(art user/yunyingstart.swf)" \
   --out-res "$W/user/yunyingres.swf%3F130124" --out-start "$W/user/yunyingstart.swf%3F121203"
+# Era files fixed where they cannot work as they are (tools/patch_scripts.py): a panel that
+# removes itself from FloatPanelManager went round without end (library/common), and the
+# 2010 亚比特训's cards had nowhere for the 亚比's icon (pet/pettraining).
+python3 "$TOOLS/patch_scripts.py" --ffdec "${FFDEC:?ffdec.jar}" --game "$GAME" --out-root "$DEST"
 # play.swf carries the rebuilt scene engine (mmo.play.*, sources in src/control):
 # it is in the main domain before any module loads. Everything else links
 # against it as an external library.

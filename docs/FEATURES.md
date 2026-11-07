@@ -855,7 +855,8 @@ run pays 晶豆, as its end panel says.
 - The 亚比仓库 (from the 家园 and the HELLO's 远程亚比仓库) in its 2012 look (the
   January 2012 tutorial's picture of it): 亚比仓库 / 精英仓库 / 放生仓库, the 系
   icons, 按时间顺序 / 按等级顺序, pages of nine, and for the 亚比 chosen 技能 /
-  能力 / 信息, 展示 (shown in the 家园), 训练 (the HELLO's 亚比训练), 设为精英 /
+  能力 / 信息, 展示 (shown in the 家园 at once), 训练 (the 亚比特训: a 亚比 of the
+  仓库 and one of four lessons; the HELLO's 亚比训练), 设为精英 /
   取消精英, 放入背包, 放生 (kept seven days in the 放生仓库, RECONSTRUCTED), and its
   昵称 (the pen by its name). The bag's box button puts a 亚比 back (放回仓库).
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
@@ -903,7 +904,8 @@ run pays 晶豆, as its end panel says.
 - The 家园 (garden of 2012): the 植树盆 with the eight trees of 2012 (plant,
   water, feed, pick), the 亚比孵化器, the 经验分配器 (hands the HELLO's
   experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
-  January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示.
+  January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示; its
+  bar's 地图, 背包, 好友, 周刊, 勋章 and 图鉴.
 - The 小屋 (空间舱 and the other house types): furniture from the catalog,
   decorating, storage.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn

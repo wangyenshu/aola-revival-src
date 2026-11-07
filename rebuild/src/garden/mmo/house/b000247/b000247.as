@@ -57,7 +57,7 @@ package mmo.house.b000247
     * pictures plant/y<id>; PlantExtension), 亚比孵化器 (pet/pethatchegg),
     * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 and the bar's 勋章 (HonourWall), the tube
     * 进入动物园 (the rebuilt zoo, furniture/b020000), 离开花园, 地图, 背包,
-    * 好友, 周刊. The others say they are not rebuilt yet.
+    * 好友 and 图鉴 (what the control bar's open), 周刊. The others say they are not rebuilt yet.
     */
    public class b000247 extends HouseBase
    {
@@ -166,7 +166,7 @@ package mmo.house.b000247
                function(p:Object):void { if (p is IShowPanel) IShowPanel(p).showPanel(); });
          });
          button(106, 392, 46, 48, "背包", function():void { panel("NewPetPackage"); });
-         button(158, 392, 54, 48, "好友", function():void { panel("BuddyListService"); });
+         button(158, 392, 54, 48, "好友", function():void { bar("friend"); });
          button(12, 8, 52, 50, "周刊", function():void
          {
             ServiceContainer.instance.tryGetService("WeeklyService", function(svc:IService, o:Object):void
@@ -177,18 +177,20 @@ package mmo.house.b000247
          button(72, 8, 52, 50, "邮箱", notYet);
          button(132, 8, 52, 50, "勋章", function():void { if (isMine()) HonourWall.show(); else notYet(); });
          button(190, 8, 52, 50, "相册", notYet);
-         button(770, 8, 52, 50, "图鉴", notYet);
+         button(770, 8, 52, 50, "图鉴", function():void { bar("petdic"); });
          button(826, 8, 52, 50, "游戏", notYet);
          button(904, 164, 50, 50, "放映厅", notYet);
          button(904, 216, 50, 50, "健身房", notYet);
          button(904, 268, 50, 50, "最近访问", notYet);
          SocketClient.instance.addEventListener("revival_garden", onGarden);
+         SocketClient.instance.addEventListener("revival_show", onShown);
          SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
       }
 
       override protected function onLeaveRoom():void
       {
          SocketClient.instance.removeEventListener("revival_garden", onGarden);
+         SocketClient.instance.removeEventListener("revival_show", onShown);
          PlantPanel.closeIfOpen();
          taskIconOverPicture(false);
          var hatcher:Sprite = hatcherOnScreen();
@@ -329,6 +331,13 @@ package mmo.house.b000247
          hud.addChild(b);
       }
 
+      /** What the control bar's button of that name opens (the bar is put away here): 好友, 图鉴. */
+      private function bar(name:String):void
+      {
+         if (control == null) control = ServiceContainer.getService(IControlService) as IControlService;
+         try { Object(control).press(name); } catch (e:Error) { RLog.error("garden " + name, e); }
+      }
+
       private static function panel(service:String):void
       {
          ServiceContainer.instance.tryGetService(service, function(svc:IService, o:Object):void
@@ -339,13 +348,12 @@ package mmo.house.b000247
 
       /**
        * The era 亚比孵化器 panel (pet/pethatchegg) cannot close itself here:
-       * its drag strip lies over the close button, and closing disposes it
-       * through FloatPanelManager's PanelProxy, which disposes the panel,
-       * which asks FloatPanelManager to remove it, which disposes the proxy
-       * again, without end (the player stopped: the stack overflows). So the
-       * panel is never taken off the screen: a clear hotspot over its close
-       * button hides it, and 亚比孵化器 shows the same panel again and asks
-       * for the eggs anew (PetEggClient 1-2, which it listens for).
+       * its drag strip lies over the close button (and its closing went round
+       * without end through FloatPanelManager's PanelProxy before
+       * tools/patch_scripts.py mended library/common). So the panel is never
+       * taken off the screen: a clear hotspot over its close button hides it,
+       * and 亚比孵化器 shows the same panel again and asks for the eggs anew
+       * (PetEggClient 1-2, which it listens for).
        */
       private static function openHatcher():void
       {
@@ -419,6 +427,13 @@ package mmo.house.b000247
       }
 
       private var shownPet:Sprite;
+
+      /** 展示 or 取消展示 in the 亚比仓库 opened here: the lawn shows it at once. */
+      private function onShown(e:SocketClientEvent):void
+      {
+         if (int(e.params.result) != 1 || !isMine()) return;
+         SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
+      }
 
       /**
        * The 亚比 the owner 展示 (the 亚比仓库's button; the 2012 tutorial: "可以将可爱的亚比

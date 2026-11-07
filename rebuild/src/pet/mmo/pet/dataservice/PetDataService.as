@@ -62,6 +62,11 @@ package mmo.pet.dataservice
          relay(sc, PetEggClient.cmdMix, PetDataServiceEvent.ONCMDMIX);
          relay(sc, PetEggClient.cmdCloneEgg, PetDataServiceEvent.ONCLONEEGG);
          relay(sc, PetEggClient.cmdReEgg, PetDataServiceEvent.ONREEGG);
+         // The 仓库's replies, for the era panels that pick a 亚比 of it (亚比特训 and the like).
+         relay(sc, String(PetClient.RSPN_VIEW_PM_IN_LOCATION), PetDataServiceEvent.RSPN_VIEW_PM_IN_LOCATION);
+         relay(sc, String(PetClient.RSPN_SEND_PM_FROM_STORAGE), PetDataServiceEvent.RSPN_SEND_PM_FROM_STORAGE);
+         relay(sc, String(PetClient.RSPN_SEND_PM_TO_STORAGE), PetDataServiceEvent.RSPN_SEND_PM_TO_STORAGE);
+         relay(sc, String(PetClient.RSPN_SET_PM_AS_ELITE_PM), PetDataServiceEvent.RSPN_SET_PM_AS_ELITE_PM);
          CommonEventDispatcher.instance.addEventListener(PetFollowEvent.SET_FOLLOW, onSetFollow);
          CommonEventDispatcher.instance.addEventListener(PetFollowEvent.SET_UNFOLLOW, onUnFollow);
          // The following 亚比 at login: user variable "p" = "raceId,viewId,petId,…" ("0#0#0": none).

@@ -6,8 +6,6 @@ package mmo.scene.starland
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.geom.Point;
-   import flash.text.TextField;
-   import flash.text.TextFormat;
    import mmo.common.utils.tips.TipsManager;
    import mmo.play.scene.SceneBase;
 
@@ -24,8 +22,8 @@ package mmo.scene.starland
     * The ways out are those of 2013, on the copy's three hotspots, as the
     * later scene's arrival points still place them: the road on the left to
     * 奥拉广场 ("fromstarland"), the rainbow stairs to 主题公园
-    * ("fromthemepark"), the road on the right to 十字大道 ("fromcrossroad").
-    * The signs of the roads are drawn again (the copy's arrows are blank).
+    * ("fromthemepark"), the road on the right to 十字大道 ("fromcrossroad"),
+    * named by their tips (the copy's arrows are blank).
     * The 2012 map's 奥拉星历史漫画 is the copy's threeHerosBtn (the comic of
     * the three heroes, taskres/threeHeros of March 2012; ScenePatches shows
     * it), its 星愿气球 balloons drawn anew. 萨鲁奇, the task NPCs and the
@@ -46,13 +44,6 @@ package mmo.scene.starland
          ["et3", "十字大道", "crossroad", "fromaolatree", "ru"]
       ];
 
-      /** [text, x, y, points left]. */
-      private static const SIGNS:Array = [
-         ["奥拉\n广场", 112, 168, true],
-         ["主题\n公园", 150, 400, true],
-         ["十字\n大道", 806, 168, false]
-      ];
-
       public function AolatreeRevived()
       {
          super(480, 470);
@@ -70,7 +61,6 @@ package mmo.scene.starland
             addEntrances(et, w[2], w[3], null, w[4]);
             if (et is InteractiveObject) TipsManager.getInstance().addTips(InteractiveObject(et), w[1]);
          }
-         for each (var s:Array in SIGNS) (background || this).addChild(sign(s[0], s[1], s[2], s[3]));
          var comic:InteractiveObject = find(this, "threeHerosBtn") as InteractiveObject;
          if (comic != null) TipsManager.getInstance().addTips(comic, "奥拉星历史漫画");
          var wish:Sprite = balloons();
@@ -120,24 +110,11 @@ package mmo.scene.starland
             g.endFill();
             star(g, (t[0] as Number) + 2, (t[1] as Number) + 2, 5, 0xFFFFFF);
          }
-         // the post and its little board
+         // the post
          g.lineStyle(2, 0x2E86C8);
          g.beginFill(0x8ED0FA);
          g.drawRect(-3, -30, 6, 34);
          g.endFill();
-         g.beginFill(0xFFFFFF);
-         g.drawRoundRect(-30, -8, 60, 20, 8, 8);
-         g.endFill();
-         var t2:TextField = new TextField();
-         t2.defaultTextFormat = new TextFormat("SimHei", 12, 0xD9408C, true, null, null, null, null, "center");
-         t2.selectable = false;
-         t2.mouseEnabled = false;
-         t2.width = 60;
-         t2.height = 18;
-         t2.x = -30;
-         t2.y = -7;
-         t2.text = "星愿气球";
-         b.addChild(t2);
          b.x = 668;
          b.y = 268;
          return b;
@@ -154,54 +131,6 @@ package mmo.scene.starland
             else g.lineTo(cx + rr * Math.cos(a), cy + rr * Math.sin(a));
          }
          g.endFill();
-      }
-
-      /** A road sign as those of the 2014 scene: a white board pointing the way, blue lettering. */
-      private static function sign(text:String, x:Number, y:Number, left:Boolean):Sprite
-      {
-         var w:int = 58, h:int = 44, tip:int = 12;
-         var s:Sprite = new Sprite();
-         s.mouseEnabled = false;
-         s.mouseChildren = false;
-         s.graphics.lineStyle(3, 0x36B4E6);
-         s.graphics.beginFill(0xFFFFFF);
-         if (left)
-         {
-            s.graphics.moveTo(0, h / 2);
-            s.graphics.lineTo(tip, 0);
-            s.graphics.lineTo(w, 0);
-            s.graphics.lineTo(w, h);
-            s.graphics.lineTo(tip, h);
-         }
-         else
-         {
-            s.graphics.moveTo(0, 0);
-            s.graphics.lineTo(w - tip, 0);
-            s.graphics.lineTo(w, h / 2);
-            s.graphics.lineTo(w - tip, h);
-            s.graphics.lineTo(0, h);
-         }
-         s.graphics.lineTo(left ? 0 : 0, left ? h / 2 : 0);
-         s.graphics.endFill();
-         // the post
-         s.graphics.lineStyle(0, 0, 0);
-         s.graphics.beginFill(0x36B4E6);
-         s.graphics.drawRect(w / 2 - 3 + (left ? tip / 2 : -tip / 2), h, 6, 14);
-         s.graphics.endFill();
-         var t:TextField = new TextField();
-         t.defaultTextFormat = new TextFormat("SimHei", 13, 0x1B6DB3, true, null, null, null, null, "center", null, null, null, -1);
-         t.selectable = false;
-         t.mouseEnabled = false;
-         t.width = w - tip;
-         t.height = h;
-         t.x = left ? tip : 0;
-         t.y = 4;
-         t.text = text;
-         s.addChild(t);
-         s.x = x;
-         s.y = y;
-         s.name = "sign_" + text.replace("\n", "");
-         return s;
       }
 
       private static function find(d:DisplayObject, name:String):DisplayObject

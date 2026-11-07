@@ -234,6 +234,7 @@ Each rule carries a RECONSTRUCTED comment with its source in the code.
 | --- | --- | --- |
 | Start page and entry | `start.swf`, `loader.swf?201301241`, `versiondata.swf?201301241` | originals (Wayback captures) |
 | Start screen | `user/yunyingres`, `user/yunyingstart` | originals, the January 2013 campaign removed (`tools/clean_start.py`) |
+| Libraries | `library/common?130124` | original, with `PanelProxy.dispose` letting go of its panel before disposing it (a panel that removed itself went round without end; `tools/patch_scripts.py`) |
 | Login | `user/login` | REBUILT: the revival's 进入奥拉星 and 选择奥拉 screens (the 2013 account form is lost), then connects, logs in to the zone, fills `UserInfo`, hands over to `play` as the original did |
 | Game | `play.swf?130110` | REBUILT: creates the `ServiceContainer`, loads the `<play>` modules of `config.xml` in the original order, starts every service, enters the first scene |
 
