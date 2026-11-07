@@ -15,7 +15,7 @@ import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installPetCards } from "./petcards.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord, type Visits } from "./house.ts";
 import { installShoot, type CardRow } from "./shoot.ts";
-import { installPlants, plantTree, type PlantRec } from "./plants.ts";
+import { PLANTS, installPlants, plantTree, potTrees, type PlantRec } from "./plants.ts";
 import { installEggs, type HatchRec } from "./eggs.ts";
 import { installZoo, type ZooRec } from "./zoo.ts";
 import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.ts";
@@ -661,13 +661,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //   {score, xingbi, jingdou, exp}  adds that much (晶币 at most 9,999,999; exp to the
   //                                  first 亚比 of the bag, with its levels and evolutions)
   //   {raceId, level}                a new 亚比 (to the bag, or the 亚比仓库 when the bag is full)
+  //   {tree: "grown"}                the 植树盆's tree at its top level, its fruit all borne (收为家具 may follow)
   //   -> revival_toolbox {score, xingbi, jingdou, msg}, onScoreUpdated, and the 亚比 replies
   const toolbox = opts.toolbox ?? true;
   world.xt("SundriesExtension.revival_toolbox", async (ctx) => {
     const rec = await me(ctx);
     const p = ctx.params;
     // Closed (a shared server): the totals only (the game asks them at the start), no gifts.
-    const gifts = ["score", "xingbi", "jingdou", "exp", "raceId", "vip"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
+    const gifts = ["score", "xingbi", "jingdou", "exp", "raceId", "vip", "tree"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
     if (!toolbox && gifts) {
       return ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, vip: !!rec.vip, msg: "这个服务器关闭了工具箱。" }, "revival_toolbox");
     }
@@ -702,6 +703,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
         for (const [cmd, body] of r.msgs) ctx.reply(body, cmd);
         if (r.evolvedTo && rec.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
         said.push(`${nameOf(t, pet.race)} 经验 +${add(p.exp)}（Lv${pet.level}）`);
+      }
+    }
+    if (p.tree === "grown") {
+      const tree = potTrees(rec)[0];
+      if (!tree) said.push("植树盆里还没有种树");
+      else {
+        Object.assign(tree, { level: PLANTS[tree.plantId].levels.length - 1, remainFruit: 0, remainProductTime: 0, fruitLeft: 0 });
+        said.push(`${PLANTS[tree.plantId].name}长大了`);
       }
     }
     const race = Number(p.raceId) | 0;

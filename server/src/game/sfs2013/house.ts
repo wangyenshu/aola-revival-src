@@ -7,7 +7,8 @@
 //   62_3 {userName}           -> {userName, count, visitors: [{un, t}], now}  recent visitors (足迹), latest first
 //   63_1 {un, hid}            -> {infos: [{fid, key, x, y, ag, ex}]}
 //   63_2 {hid, changes}       -> {result}  changes [{fid, key, x, y, a, exd, op}], op 1 add, 2 move, 3 remove
-//   63_3 {hid, nid}           -> {result, nid}                another house type, the furniture back in storage
+//   63_3 {hid, nid}           -> {result, nid}                another house type, the furniture (and the trees
+//                                                             made furniture) back in storage
 //
 // The 2013 server is lost; the result codes are those the client checks
 // (1 ok, -1 error, -2 empty, -3 repeated key, -4 not enough of that item).
@@ -17,6 +18,7 @@
 // (one each, the latest). Kept apart from the owner's record ("visits/<owner id>"), by ids,
 // as friends are (names may change). What the era counted and showed is RECONSTRUCTED.
 
+import { plantsBackToStorage, type PlantOwner } from "./plants.ts";
 import type { World, XtContext } from "./server.ts";
 
 export interface Placement {
@@ -173,6 +175,8 @@ export function installHouse(world: World, deps: HouseDeps): void {
     const nid = Number(ctx.params.nid ?? ctx.params.hid);
     if (!(o.items!["1"] ?? {})[String(nid)]) return ctx.reply({ result: -2, nid }, cmd);
     delete h.placed[String(h.hid)];
+    // The trees made furniture (plants.ts) that stood in it go back into the storage too.
+    plantsBackToStorage(o as PlantOwner, h.hid);
     h.hid = nid;
     await deps.save(o);
     ctx.reply({ result: 1, nid }, cmd);

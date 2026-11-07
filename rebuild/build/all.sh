@@ -272,12 +272,14 @@ build weekly mmo/weekly/DocClass.as weekly.swf "baseservice/weekly.swf%3F130117"
 unset GEN
 
 # The home (小屋): rebuilt house/housecommon (HouseBase of every home SWF),
-# houseloader, houseservice and furnituredecorator; the menu and the storage
+# houseloader, houseservice, furnituredecorator and yz/plantdecorator; the menu and the storage
 # are rebuilt code on the art of the later house/housemenu and housestorage.
 build housecommon mmo/housecommon/DocClass.as housecommon.swf "house/housecommon.swf%3F121206"
 build house mmo/houseloader/DocClass.as houseloader.swf "house/houseloader.swf%3F1210"
 build house mmo/houseservice/DocClass.as houseservice.swf "house/houseservice.swf%3F1210"
 build house mmo/housedecorator/DocClass.as furnituredecorator.swf "house/furnituredecorator.swf%3F1210"
+# The trees made furniture (收为家具) in the 小屋: rebuilt yz/plantdecorator, their pictures the June 2012 plant/y<id>.
+build house mmo/plantdecorator/DocClass.as plantdecorator.swf "yz/plantdecorator.swf%3F1210"
 build house mmo/housemenu/DocClass.as housemenu-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art house/housemenu.swf)" \
   --code "$OUT/housemenu-code.swf" --drop-art-abc \
@@ -302,6 +304,22 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art house/housestorage.swf)" \
 java -jar "$FFDEC" -swf2swc "$OUT/swc/housecommon.swc" "$OUT/housecommon.swf" > /dev/null
 export EXTRA_SWC="$OUT/swc/play.swc $OUT/swc/housecommon.swc"
 build garden mmo/house/b000247/b000247_Doc.as garden.swf "furniture/b000247.swf%3F130117"
+# The zoo's 2012 panels (the era code is a later one the 2013 files cannot run): rebuilt code
+# on their art, each a module of its own: the 动物仓库 (zoo/zoores_1), 动物园信息 (zoo/zoores)
+# and an animal's panel (zoo/petbreedingservice).
+build zoopanels mmo/zoo/revival/DocZooStore.as zoostore-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/zoores_1.swf)" --code "$OUT/zoostore-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.zoo.revival.DocZooStore --bind 179=mmo.zoo.revival.ZooStorePanel --bind 43=mmo.zoo.revival.BabyCard \
+  --bind 137=mmo.zoo.revival.MatureCard --bind 128=mmo.zoo.revival.ItemCard --bind 121=mmo.zoo.revival.SellPanel --bind 89=mmo.zoo.revival.EmptyTip \
+  --note "REBUILT zoo 动物仓库 (aola-revival) on the art of zoo/zoores_1" --out "$W/zoo/revival/zoostore.swf%3F1210"
+build zoopanels mmo/zoo/revival/DocZooInfo.as zooinfo-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/zoores.swf)" --code "$OUT/zooinfo-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.zoo.revival.DocZooInfo --bind 115=mmo.zoo.revival.InfoPanel \
+  --note "REBUILT zoo 动物园信息 (aola-revival) on the art of zoo/zoores" --out "$W/zoo/revival/zooinfo.swf%3F1210"
+build zoopanels mmo/zoo/revival/DocZooAnimal.as zooanimal-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art zoo/petbreedingservice.swf)" --code "$OUT/zooanimal-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.zoo.revival.DocZooAnimal --bind 898=mmo.zoo.revival.AnimalPanel \
+  --note "REBUILT zoo animal panel (aola-revival) on the art of zoo/petbreedingservice" --out "$W/zoo/revival/zooanimal.swf%3F1210"
 # The 动物园 (house 20000, through the garden's tube): rebuilt furniture/b020000
 # (the January 2013 one is lost) on the art of the later copy (January 2021).
 build zoo mmo/house/b020000/DocZooRevived.as zoo-code.swf ""

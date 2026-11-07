@@ -277,7 +277,8 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 | `spacetime` | 时空隧道 (later code) |
 | `catalog`, `bconfig`, `buyback`, `rmbmall` | the catalog books, the buy flow, the 兜兜回收器, the 商城 |
 | `catalogpages` | the 收费亚比蛋商品册's first page (catalog/egg1), on its 2016 art |
-| `house`, `housecommon`, `garden`, `zoo` | the 小屋, the 家园, the 动物园 |
+| `house`, `housecommon`, `garden`, `zoo` | the 小屋 (with yz/plantdecorator: the trees made furniture), the 家园, the 动物园 |
+| `zoopanels` | the 动物园's 2012 panels on their art (their later code cannot run on the 2013 files): the 动物仓库 (zoo/zoores_1), 动物园信息 (zoo/zoores), an animal's panel (zoo/petbreedingservice), each a module `zoo/revival/*` |
 | `treemanager`, `treepanelres`, `plantitemview` | the 植树盆's 2012 tree panel and films (yz/treemanager, on the art of its later copy), its 盆栽道具 and 守护亚比 panels (yz/panel_res, April 2012 art), the 盆栽道具's pictures (plantitem/view1 … view7, the era files lost: drawn from the 种植手册 and the tree manager's art) |
 | `gamemanager`, `parkour`, `catchanimalpanel` | mini games; 酷跑星世界; 动物捕捉's panel (its later art, the lost 动物乐园购买册 drawn) |
 | `shoot`, `shooteffect` | 射击 (later code on the 2013 interfaces) |

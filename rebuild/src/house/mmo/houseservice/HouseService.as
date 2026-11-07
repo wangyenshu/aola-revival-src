@@ -25,6 +25,7 @@ package mmo.houseservice
    import mmo.interfaces.InitServiceEvent;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.control.IControlService;
+   import flash.utils.getQualifiedClassName;
    import mmo.revival.RLog;
 
    /**
@@ -36,9 +37,9 @@ package mmo.houseservice
     * (places it), the menu's 我的家具 / 保存装扮, items dragged in from the
     * storage, and save.
     *
-    * Only the furniture decorator is rebuilt; the robot, pet display, plant
+    * The furniture and plant decorators are rebuilt; the robot, pet display
     * and breeding decorators are stand-ins that never answer: only the
-    * furniture's answer is waited for (and for at most a moment).
+    * rebuilt ones' answers are waited for (and for at most a moment).
     */
    public class HouseService extends EventDispatcher implements IHouseService
    {
@@ -229,10 +230,10 @@ package mmo.houseservice
        */
       private function waitForAll(type:String, start:Function, done:Function):void
       {
-         // Only the decorators that answer are waited for: the furniture's (rebuilt). The others
-         // (stand-ins) are started too but never answer, and waiting PATIENCE_MS for them held
-         // 回家 and the way to the 动物园 up twice, the room left on screen meanwhile.
-         var waiting:Array = _decorators.filter(function(d:*, i:int, a:Array):Boolean { return d is IFurnitureDecorator; });
+         // Only the decorators that answer are waited for: the furniture's and the plants' (rebuilt).
+         // The others (stand-ins) are started too but never answer, and waiting PATIENCE_MS for them
+         // held 回家 and the way to the 动物园 up twice, the room left on screen meanwhile.
+         var waiting:Array = _decorators.filter(function(d:*, i:int, a:Array):Boolean { return answers(d); });
          var finished:Boolean = false;
          var timer:uint;
          var check:Function = function():void
@@ -278,6 +279,12 @@ package mmo.houseservice
             }
          }
          check();
+      }
+
+      /** A rebuilt decorator (it answers each step): the furniture's, yz/plantdecorator's. */
+      private static function answers(d:*):Boolean
+      {
+         return d is IFurnitureDecorator || getQualifiedClassName(d) == "mmo.plantdecorator::PlantDecorator";
       }
 
       private function setPanelsEnabled(v:Boolean):void

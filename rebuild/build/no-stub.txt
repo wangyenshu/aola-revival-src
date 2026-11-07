@@ -13,6 +13,7 @@ house/housecommon
 house/houseloader
 house/houseservice
 house/furnituredecorator
+yz/plantdecorator
 house/housemenu
 house/housestorage
 baseservice/scenetalk

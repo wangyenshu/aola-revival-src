@@ -121,7 +121,7 @@ test("the 动物园 grows the animals put in it, feeds them, and 收获 gives th
   const got = (await call("ZooExtension.97_7", { id })).at(-1)![1];
   assert.deepEqual([got.res, got.petRace, got.exp], [1, 0, 4]);
   assert.equal(owner.items!["12"]["20001"], 1);
-  assert.equal((await call("ZooExtension.97_10")).at(-1)![1].matrues[0].raceId, 1);
+  assert.deepEqual((await call("ZooExtension.97_10")).at(-1)![1].matrues[0], { raceId: 1, type: 2, num: 1, price: 500 });
   // A certain 变异 with the 一星变异饲料: the 亚比 1009 goes to the 仓库.
   const second = (await call("ZooExtension.97_5", { raceId: 1 })).at(-1)![1].animal.id;
   assert.equal((await call("ZooExtension.97_12", { id: second, itemId: 2 })).at(-1)![1].rate, 100);
@@ -134,8 +134,9 @@ test("the 动物园 grows the animals put in it, feeds them, and 收获 gives th
   assert.deepEqual([sold.res, sold.got], [1, 500]);
   const info = (await call("ZooExtension.97_1", {})).at(-1)![1];
   assert.deepEqual([info.lv, info.exp, info.n], [zooLevel(8).lv, 8, 0]);
-  // A 饲料 the bag holds (from a 礼包) is used before one is bought.
+  // A 饲料 the bag holds (from a 礼包) is used before one is bought; the 动物仓库's 道具 list it.
   (owner.items!["13"] ??= {})["5"] = 1;
+  assert.deepEqual((await call("ZooExtension.97_11")).at(-1)![1].items, [{ id: 5, num: 1 }]);
   const third = (await call("ZooExtension.97_5", { raceId: 2 })).at(-1)![1].animal.id;
   const score = owner.score;
   const used = await call("ZooExtension.97_12", { id: third, itemId: 5 });

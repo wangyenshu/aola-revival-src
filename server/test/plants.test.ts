@@ -183,3 +183,35 @@ test("守护亚比: one of the owner's 亚比, shown in the tree", async () => {
   assert.equal(r.userPlant.petId, 7);
   assert.equal((await call("PlantExtension.80_12", { userPlantId: tree.id, petId: 0 })).at(-1)![1].result.userPlant.petId, 0);
 });
+
+test("收为家具: a grown tree with no fruit to come goes to the 小屋's storage and can stand in a room", async () => {
+  const { owner, call } = setup();
+  await call("SundriesExtension.revival_garden", { op: "buy", plantId: 5 });
+  const tree = owner.plants![0];
+  // Still growing: refused.
+  assert.deepEqual((await call("PlantExtension.80_14", { pi: tree.id })).at(-1)![1], { res: false });
+  Object.assign(tree, { level: PLANTS[5].levels.length - 1, remainFruit: 0, remainProductTime: 0, fruitLeft: 0 });
+  const made = (await call("PlantExtension.80_14", { pi: tree.id })).at(-1)![1];
+  assert.equal(made.res, true);
+  assert.equal(made.userPlant.isFurniture, true);
+  assert.equal(made.userPlant.houseId, 0);
+  // The pot is free (a new tree may be planted), and a furniture tree is cared for no more.
+  assert.equal((await call("SundriesExtension.revival_garden", { op: "info" })).at(-1)![1].plant, null);
+  assert.equal((await call("PlantExtension.80_3", { owner: owner.name, userPlantId: tree.id })).at(-1)![1].result.result, -19);
+  assert.equal((await call("SundriesExtension.revival_garden", { op: "buy", plantId: 1 })).at(-1)![1].result, 0);
+  // Put down in the 空间舱 (house 1): someone visiting it sees it there, not in the garden.
+  assert.deepEqual((await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 400, y: 300, houseId: 1 }] })).at(-1)![1], { result: true });
+  const room = (await call("PlantExtension.80_9", { owner: owner.name, houseId: 1 })).at(-1)![1].userPlants;
+  assert.deepEqual(room.map((p: any) => [p.id, p.positionX, p.positionY, p.isFurniture]), [[tree.id, 400, 300, true]]);
+  assert.deepEqual((await call("PlantExtension.80_9", { owner: owner.name, houseId: 247 })).at(-1)![1].userPlants.map((p: any) => p.plantId), [1]);
+  // Not into another room than the one saved, nor off the room.
+  assert.deepEqual((await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 400, y: 300, houseId: 2 }] })).at(-1)![1], { result: false });
+  assert.deepEqual((await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 2000, y: 300, houseId: 1 }] })).at(-1)![1], { result: false });
+  // Another house type: back in the storage.
+  assert.deepEqual((await call("PlantExtension.80_11", { houseId: 1, newHouseId: 2 })).at(-1)![1], { result: true, nid: 2 });
+  assert.deepEqual(tree.furniture, { houseId: 0, x: 0, y: 0 });
+  // Taken up again.
+  await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 400, y: 300, houseId: 1 }] });
+  await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 0, y: 0, houseId: 0 }] });
+  assert.deepEqual(tree.furniture, { houseId: 0, x: 0, y: 0 });
+});

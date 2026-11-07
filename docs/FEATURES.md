@@ -868,7 +868,8 @@ run pays 晶豆, as its end panel says.
   奇迹谷底, 生命之树, 水下广场, 烈焰洞穴) in 24 or 72 hours.
 - 天赋启迪 (the 天赋改造机 in 亚比研究中心): raising a 亚比's 天赋 with 启迪能量
   or 星币.
-- The 亚比图鉴 (the 图鉴 button under 任务): the later game's panel (2017) on
+- The 亚比图鉴 (the 图鉴 button under 任务, its 2012 icon: the garden's, from the
+  January 2012 tutorial picture): the later game's panel (2017) on
   the 2013 files, with the 亚比 up to 1651 (those after January 2013 from the
   later game's files, for the 工具箱). A 亚比 is 发现 once fought and 收集 once
   owned ("亚比图鉴有了新的记录" over the player after the fight); 最新发现 shows
@@ -903,15 +904,17 @@ run pays 晶豆, as its end panel says.
 
 - The 家园 (garden of 2012): the 植树盆 with the eight trees of 2012 and its
   2012 tree panel (雨露 and 养料 for 50 晶币, 采摘, 植物心声 with the last
-  visitors, the 盆栽道具 from 极速雨露 to 铲子, a 守护亚比 against pickers; an
-  empty pot opens the 种植手册), the 亚比孵化器, the 经验分配器 (hands the HELLO's
+  visitors, the 盆栽道具 from 极速雨露 to 铲子, a 守护亚比 against pickers, 收为家具
+  for a grown tree with no fruit to come; an empty pot opens the 种植手册), the 亚比孵化器, the 经验分配器 (hands the HELLO's
   experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
   January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示; its
   bar's 地图, 背包, 好友, 周刊, 勋章, 图鉴 and 放映厅 (奥拉星's films).
 - The 小屋 (空间舱 and the other house types): furniture from the catalog,
-  decorating, storage.
+  decorating, storage; the trees made furniture (收为家具) put down there.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn
-  into 亚比; the 饲料机, the 手册, selling grown animals.
+  into 亚比; the 饲料机, the 手册, selling grown animals; its 2012 panels on
+  their art: the 动物仓库 strip (幼仔, 成熟动物, 道具), an animal's panel (收获,
+  道具, 玩耍, 放生) and 动物园信息.
 - On a shared server: friends' homes (家园, 小屋, 动物园), 摘果子 there, and the
   小屋's 足迹 (docs/MULTIPLAYER.md).
 
@@ -945,7 +948,6 @@ run pays 晶豆, as its end panel says.
   这个功能还在修复中).
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
   亚比骑乘训练, 上古神殿's panels, 模拟空间.
-- The 植树盆's 收为家具 (a grown tree put into the 空间舱 as furniture).
 - Quests that call services that are still stand-ins may stop partway.
 - Several rooms are later redrawings, because the January 2013 files are
   lost: 奥拉广场 (on the July 2012 art), 主题公园 (on the June 2012 art),

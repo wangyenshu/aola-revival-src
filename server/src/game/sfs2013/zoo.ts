@@ -22,7 +22,8 @@
 //   97_1  getZooInfo {un}                 -> {un, lv, exp, next, cap, n}
 //   97_4  getAnimalInfos {un}             -> {un, animals: [{id, raceId, mature, left (s), rate}]}
 //   97_9  getAllBabyAnimals {}            -> {babys: [{raceId, type: 1, num}]}   (AnimalData, as zoores_1 reads it)
-//   97_10 getAllMatureAnimals {}          -> {matrues: [{raceId, type: 2, num}]}
+//   97_10 getAllMatureAnimals {}          -> {matrues: [{raceId, type: 2, num, price}]}   (price: what 97_21 pays)
+//   97_11 getZooItems {}                  -> {items: [{id, num}]}   the 饲料 in the bag (the 动物仓库's 道具)
 //   97_5  putAnimal2Zoo {raceId}          -> {res (1, -1 none, -2 full), animal}
 //   97_7  harvestAnimal {id}              -> {res (1, -1 none, -2 not grown), id, raceId, petRace, petName, exp, lv}
 //   97_12 addFodder {un, id, itemId}      -> {res (1, -1 none, -2 晶币, -3 used, -4 grown), id, itemId, left, rate}
@@ -382,8 +383,17 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const o = await deps.me(ctx);
     const matrues = Object.entries(owned(o))
       .filter(([id, n]) => Number(id) > MATURE_BASE && n > 0)
-      .map(([id, n]) => ({ raceId: Number(id) - MATURE_BASE, type: 2, num: n }));
+      .map(([id, n]) => ({ raceId: Number(id) - MATURE_BASE, type: 2, num: n, price: ANIMAL.get(Number(id) - MATURE_BASE)?.[7] ?? 0 }));
     ctx.reply({ matrues }, "97_10");
+  });
+
+  // The 动物仓库's 道具: the zoo's 饲料 one has (material type 13).
+  world.xt(`${ZOO_EXT}.97_11`, async (ctx) => {
+    const o = await deps.me(ctx);
+    const items = Object.entries((o.items ?? {})[FODDER_TYPE] ?? {})
+      .filter(([, n]) => n > 0)
+      .map(([id, n]) => ({ id: Number(id), num: n }));
+    ctx.reply({ items }, "97_11");
   });
 
   world.xt(`${ZOO_EXT}.97_5`, async (ctx) => {

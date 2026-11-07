@@ -6,12 +6,19 @@
 // game.ts) is planted in the same 植树盆.
 //
 //   80_1 {}                         -> {userPlants: [plant]}            my trees
-//   80_9 {owner, houseId}           -> {owner, houseId, userPlants}     someone's trees
+//   80_9 {owner, houseId}           -> {owner, houseId, userPlants}     someone's trees: in the
+//                                      garden (247) its 植树盆's, in a room those standing there
 //   80_2 {owner, userPlantId}       -> {result: {result, userPlant}}
 //   80_3 {owner, userPlantId}       -> {result: {result, userPlant, surprise}}   雨露 (health)
 //   80_4 {owner, userPlantId}       -> the same for 养料 (nutrition)
 //   80_5 {owner, userPlantId}       -> {result: {result, extData, userPlant}}    采摘 (pick the fruit)
 //   80_12 {userPlantId, petId}      -> {result: {result, userPlant}}   守护亚比 (0: none), the owner's
+//   80_14 {pi}                      -> {res}   收为家具: a grown tree with no fruit to come leaves the
+//                                      植树盆 for the 小屋's storage (isFurniture, houseId 0)
+//   80_10 {houseId, changes}        -> {result}   trees made furniture put down or taken up in a room
+//                                      (yz/plantdecorator): changes [{id, x, y, houseId}], houseId 0
+//                                      back in storage
+//   80_11 {houseId, newHouseId}     -> {result, nid}   another house type: its trees back in storage
 //   81_1 {itemId, userPlantId, quantity, owner} (PlantItemExtension) -> {result: {result, userPlant}}
 //                                      a 盆栽道具 used (PlantItemData 1–7; 7 铲子 digs the tree up)
 //   81_2 {}                         -> {items: [{id, qt, uq}]}           the 盆栽道具 one has
@@ -106,6 +113,8 @@ export interface PlantRec {
   petId?: number;
   /** 植物心声: who cared for it lately, "name|name", the latest first. */
   visitors?: string[];
+  /** 收为家具: a tree of the 小屋 now, where it stands (houseId 0: in the storage). */
+  furniture?: { houseId: number; x: number; y: number };
 }
 
 export interface PlantOwner {
@@ -149,16 +158,27 @@ export function ripen(p: PlantRec, now: number): void {
   p.remainProductTime -= 1;
 }
 
+/** The trees in the 植树盆 (not those made furniture). */
+export function potTrees(o: PlantOwner | undefined): PlantRec[] {
+  return (o?.plants ?? []).filter((p) => !p.furniture);
+}
+
+/** Another house type: the trees standing in the old one go back into the storage (house.ts 63_3). */
+export function plantsBackToStorage(o: PlantOwner, houseId: number): void {
+  for (const p of o.plants ?? []) if (p.furniture && p.furniture.houseId === houseId) p.furniture = { houseId: 0, x: 0, y: 0 };
+}
+
 /** The fields of UserPlant.parse / parseData, and the care left today for the rebuilt panel. */
 export function plantView(p: PlantRec, now: number): Record<string, unknown> {
   ripen(p, now);
   const today = p.care.day === dayOf(now) ? p.care : { rain: 0, fat: 0 };
+  const f = p.furniture;
   return {
     id: p.id,
     plantId: p.plantId,
-    houseId: GARDEN_HOUSE,
-    positionX: POT.x,
-    positionY: POT.y,
+    houseId: f ? f.houseId : GARDEN_HOUSE,
+    positionX: f ? f.x : POT.x,
+    positionY: f ? f.y : POT.y,
     level: p.level,
     health: p.health,
     nutrition: p.nutrition,
@@ -169,7 +189,7 @@ export function plantView(p: PlantRec, now: number): Record<string, unknown> {
     nutritionCeil: dayCeil(p, "nutrition"),
     petId: p.petId ?? 0,
     visitors: (p.visitors ?? []).join("#"),
-    isFurniture: false,
+    isFurniture: !!f,
     rainLeft: CARE_PER_DAY - today.rain,
     fatLeft: CARE_PER_DAY - today.fat,
   };
@@ -275,7 +295,7 @@ export function useTool(p: PlantRec, item: number, now: number, mine: boolean): 
 export function plantTree(o: PlantOwner, plantId: number): PlantRec | number {
   const kind = PLANTS[plantId];
   if (!kind) return -19;
-  if ((o.plants ?? []).length > 0) return -21;
+  if (potTrees(o).length > 0) return -21;
   if ((o.score ?? 0) < kind.price) return -2;
   o.score = (o.score ?? 0) - kind.price;
   o.nextPlantId = (o.nextPlantId ?? 0) + 1;
@@ -298,7 +318,8 @@ export function installPlants(world: World, deps: PlantDeps): void {
     if (!m || m[1] !== owner) return undefined;
     return deps.find(owner);
   };
-  const byId = (o: PlantOwner | undefined, id: unknown) => o?.plants?.find((p) => p.id === (Number(id) | 0));
+  /** A tree of the 植树盆 (one made furniture is cared for no more). */
+  const byId = (o: PlantOwner | undefined, id: unknown) => potTrees(o).find((p) => p.id === (Number(id) | 0));
 
   world.xt(`${PLANT_EXT}.80_1`, async (ctx) => {
     const o = await deps.me(ctx);
@@ -311,7 +332,51 @@ export function installPlants(world: World, deps: PlantDeps): void {
   world.xt(`${PLANT_EXT}.80_9`, async (ctx) => {
     const o = await target(ctx);
     const now = deps.now();
-    ctx.reply({ owner: ctx.params.owner ?? "", houseId: ctx.params.houseId ?? GARDEN_HOUSE, userPlants: (o?.plants ?? []).map((p) => plantView(p, now)) });
+    const house = Number(ctx.params.houseId ?? GARDEN_HOUSE) | 0;
+    const trees = house === GARDEN_HOUSE ? potTrees(o) : (o?.plants ?? []).filter((p) => p.furniture && p.furniture.houseId !== 0 && p.furniture.houseId === house);
+    ctx.reply({ owner: ctx.params.owner ?? "", houseId: house, userPlants: trees.map((p) => plantView(p, now)) });
+  });
+
+  // 收为家具: the owner's tree at its top level with no fruit on it or to come.
+  world.xt(`${PLANT_EXT}.80_14`, async (ctx) => {
+    const o = await deps.me(ctx);
+    const p = byId(o, ctx.params.pi);
+    const now = deps.now();
+    if (!p) return ctx.reply({ res: false });
+    ripen(p, now);
+    const top = PLANTS[p.plantId].levels.length - 1;
+    if (p.level < top || p.remainFruit > 0 || p.remainProductTime > 0) return ctx.reply({ res: false });
+    p.furniture = { houseId: 0, x: 0, y: 0 };
+    p.petId = 0;
+    await deps.save(o);
+    ctx.reply({ res: true, userPlant: plantView(p, now) });
+  });
+
+  // The trees made furniture put down in (or taken up from) a room of the 小屋.
+  world.xt(`${PLANT_EXT}.80_10`, async (ctx) => {
+    const o = await deps.me(ctx);
+    const house = Number(ctx.params.houseId) | 0;
+    const changes = Array.isArray(ctx.params.changes) ? (ctx.params.changes as Record<string, unknown>[]) : [];
+    for (const c of changes) {
+      const p = (o.plants ?? []).find((x) => x.furniture && x.id === (Number(c.id) | 0));
+      const to = Number(c.houseId) | 0;
+      const x = Number(c.x) | 0, y = Number(c.y) | 0;
+      if (!p || (to !== 0 && to !== house) || (to !== 0 && (x < 0 || x > 960 || y < 0 || y > 560))) return ctx.reply({ result: false });
+    }
+    for (const c of changes) {
+      const p = (o.plants ?? []).find((x) => x.furniture && x.id === (Number(c.id) | 0))!;
+      const to = Number(c.houseId) | 0;
+      p.furniture = to === 0 ? { houseId: 0, x: 0, y: 0 } : { houseId: to, x: Number(c.x) | 0, y: Number(c.y) | 0 };
+    }
+    await deps.save(o);
+    ctx.reply({ result: true });
+  });
+
+  world.xt(`${PLANT_EXT}.80_11`, async (ctx) => {
+    const o = await deps.me(ctx);
+    plantsBackToStorage(o, Number(ctx.params.houseId) | 0);
+    await deps.save(o);
+    ctx.reply({ result: true, nid: Number(ctx.params.newHouseId) | 0 });
   });
 
   world.xt(`${PLANT_EXT}.80_2`, async (ctx) => {
@@ -420,7 +485,7 @@ export function installPlants(world: World, deps: PlantDeps): void {
     const op = String(ctx.params.op ?? "info");
     const now = deps.now();
     const answer = async (o: PlantOwner | undefined, result: number) => {
-      const list = (o?.plants ?? []).map((p) => plantView(p, now));
+      const list = potTrees(o).map((p) => plantView(p, now));
       const show = o && deps.shown ? await deps.shown(o) : null;
       ctx.reply({ op, result, plant: list[0] ?? null, plants: list, score: o?.score ?? 0, show }, "revival_garden");
     };

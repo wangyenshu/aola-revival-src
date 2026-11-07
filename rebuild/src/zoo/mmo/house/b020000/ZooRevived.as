@@ -19,6 +19,8 @@ package mmo.house.b020000
    import mmo.loader.layer.LayerManager;
    import mmo.play.scene.SceneManager;
    import mmo.revival.RCatchAnimal;
+   import flash.system.ApplicationDomain;
+   import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
    import mmo.revival.RUI;
@@ -31,8 +33,11 @@ package mmo.house.b020000
     * ZooEntrancePanel opens them, coming back to the 生态园), the signs to
     * the 生态园 and back to 我的家园, the 手册, the zoo's sign with its name
     * and level, the 饲料机 (a free 喂食 for every animal), and the animals
-    * themselves, which walk the lawn, fly over it or swim in the tank; a
-    * click on one shows it (ZooAnimalPanel). 动物仓库 puts the 幼仔 in. The
+    * themselves, which walk the lawn, fly over it or swim in the tank. The
+    * zoo's 2012 panels are rebuilt on their art (zoo/revival/*, src/zoopanels):
+    * an animal clicked shows the era PetOperatationPanel's (its 道具 the 饲料 of
+    * ZooAnimalPanel), the 动物仓库 the era ZooStorePanel's strip, the sign the
+    * era 动物园信息. The
     * later 养动物得晶豆 is of 2013's summer and hidden. Server: ZooExtension
     * (server zoo.ts); the zoo's rules are RECONSTRUCTED.
     */
@@ -110,7 +115,7 @@ package mmo.house.b020000
          if (area != null) area.visible = false;
          if (mine)
          {
-            var store:Sprite = RUI.button("动物仓库", function():void { ZooStore.show(onPut); }, 96, 32, 0xFFC45A, 0xF07812, "zooStoreBtn");
+            var store:Sprite = RUI.button("动物仓库", function():void { revived(STORE, "ZooStorePanel", function(C:Object):void { C.show(onPut); }); }, 96, 32, 0xFFC45A, 0xF07812, "zooStoreBtn");
             store.x = 16;
             store.y = 14;
             hud.addChild(store);
@@ -130,7 +135,11 @@ package mmo.house.b020000
          sc.removeEventListener("97_4", onAnimals);
          sc.removeEventListener("97_7", onHarvested);
          ZooAnimalPanel.closeIfOpen();
-         ZooStore.closeIfOpen();
+         for each (var cls:String in ["ZooStorePanel", "AnimalPanel"])
+         {
+            var C:Object = defined(cls);
+            if (C != null) C.hide();
+         }
          for each (var a:ZooAnimal in animals) a.dispose();
          animals = {};
          super.onLeaveRoom();
@@ -186,7 +195,7 @@ package mmo.house.b020000
          if (wantInfo)
          {
             wantInfo = false;
-            RNotice.show(LayerManager.getBaseTop(), who + "的动物园  等级 " + int(p.lv) + "\n经验 " + int(p.exp) + " / " + int(p.next) + "    动物 " + int(p.n) + " / " + int(p.cap), 5);
+            revived(INFO, "InfoPanel", function(C:Object):void { C.show(p, who); });
          }
       }
 
@@ -238,7 +247,18 @@ package mmo.house.b020000
          a.addEventListener(MouseEvent.CLICK, function(ev:MouseEvent):void
          {
             ev.stopImmediatePropagation();
-            ZooAnimalPanel.show(a, mine, onChanged);
+            var head:Point = a.localToGlobal(new Point(0, -60));
+            var d:Object = {id: a.id, raceId: a.race, mature: a.mature ? 1 : 0, left: a.secondsLeft, rate: a.rate};
+            revived(ANIMAL, "AnimalPanel", function(C:Object):void
+            {
+               C.show(d, mine, head, function(what:String, reply:Object):void
+               {
+                  // 道具: the zoo's 饲料 (the era's own list, zoo/zoores_2, is lost).
+                  if (what == "items") ZooAnimalPanel.show(a, mine, onChanged);
+                  else if (what == "feed") fed(reply);
+                  else if (reply != null) onChanged(reply);
+               });
+            });
          });
          animals[a.id] = a;
       }
@@ -290,6 +310,45 @@ package mmo.house.b020000
       {
          if (p.animal != null && animals[p.animal.id] == null) addAnimal(p.animal);
          ZooData.send("97_1", {un: owner});
+      }
+
+      // ───── the 2012 panels (rebuilt on the art of zoo/zoores_1, zoo/zoores, zoo/petbreedingservice) ─────
+
+      private static const STORE:String = "zoo/revival/zoostore";
+      private static const INFO:String = "zoo/revival/zooinfo";
+      private static const ANIMAL:String = "zoo/revival/zooanimal";
+
+      private static function defined(cls:String):Object
+      {
+         var full:String = "mmo.zoo.revival." + cls;
+         return ApplicationDomain.currentDomain.hasDefinition(full) ? ApplicationDomain.currentDomain.getDefinition(full) : null;
+      }
+
+      /** then(the panel's class) once its module is loaded. */
+      private static function revived(url:String, cls:String, then:Function):void
+      {
+         var go:Function = function(d:* = null):void
+         {
+            var C:Object = defined(cls);
+            if (C == null) return;
+            try { then(C); } catch (err:Error) { RLog.error("zoo " + cls, err); }
+         };
+         if (defined(cls) != null) go();
+         else ResScheduler.getResource(url, go, "", function(e:* = null):void { RLog.log("zoo: " + url + " not loaded"); });
+      }
+
+      /** 玩耍: the 饲料机's free feed for this one. */
+      private function fed(p:Object):void
+      {
+         var r:int = int(p.res);
+         if (r == 1)
+         {
+            var a:ZooAnimal = animals[int(p.id)];
+            if (a != null) a.update({id: p.id, raceId: a.race, mature: int(p.left) <= 0 ? 1 : 0, left: int(p.left), rate: int(p.rate)});
+            RNotice.show(LayerManager.getBaseTop(), "它吃得很开心，长得更快了！");
+         }
+         else if (r == -3) RNotice.show(LayerManager.getBaseTop(), "它刚吃过了，过一会儿再来陪它玩吧。");
+         else RNotice.show(LayerManager.getBaseTop(), "现在不能喂它了。");
       }
 
       private function onChanged(p:Object):void

@@ -10,8 +10,9 @@ package mmo.house.b020000
    /**
     * One animal of the zoo: how long it still grows, what it may turn into,
     * and, in one's own zoo, 喂食 (the 饲料机's free feed), the 饲料 sold for
-    * 晶币 (ZooItemData; used at once), 收获 when grown, 放生. The 2013 panels
-    * of the zoo are lost; drawn in the look of the rebuilt panels.
+    * 晶币 (ZooItemData; used at once), 收获 when grown, 放生. Opened by the 道具 of
+    * the rebuilt 2012 animal panel (the era's own 饲料 list, zoo/zoores_2, is lost);
+    * drawn in the look of the rebuilt panels.
     */
    public class ZooAnimalPanel extends Sprite
    {

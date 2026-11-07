@@ -43,15 +43,14 @@ package mmo.treemanager.treepanel
     * art, symbol 290; the panels it opens are yz/panel_res's of April 2012). Over the tree it
     * shows its level, 健康值 and 营养值 and the buttons: 雨露 and 养料 (50 晶币 each for the
     * owner, free for a visitor), 采摘, 道具 (the 盆栽道具, SelectPlantToolPanel), 种植手册, 守护亚比
-    * (蓝宝石: GuardYabiPanel) and 收为家具; for the owner, 植物心声 (who cared for it). The
-    * commands are the 2013 TreeClient's (PlantExtension 80_3, 80_4, 80_5, 80_12; 81_1 for the
-    * 道具), the server's plants.ts. The garden's tree is not one of the house's plant views:
+    * (蓝宝石: GuardYabiPanel) and 收为家具 (into the 小屋's storage: yz/plantdecorator); for the
+    * owner, 植物心声 (who cared for it). The commands are the 2013 TreeClient's (PlantExtension
+    * 80_3, 80_4, 80_5, 80_12, 80_14; 81_1 for the 道具), the server's plants.ts. The garden's tree is not one of the house's plant views:
     * the garden passes its tree, its picture and what to do when it changes.
     */
    public class TreePanel extends Sprite
    {
       private static const RES:String = "yz/panel_res";
-      private static const NOT_YET:String = "这个功能还在修复中哦！";
       private static var current:TreePanel;
 
       public var btnPlantCatlog:SimpleButton;
@@ -336,10 +335,39 @@ package mmo.treemanager.treepanel
          }
       }
 
+      /**
+       * 收为家具: the grown tree out of the 植树盆 and into the 我的家具 storage of the 小屋
+       * (the rebuilt yz/plantdecorator puts it down there); the pot is free again.
+       */
       private function onFurniture(e:MouseEvent):void
       {
          e.stopImmediatePropagation();
-         NewDialog.showMessage(NOT_YET);
+         if (busy) return;
+         busy = true;
+         var d:ModalDialog = NewDialog.getCofirmDialog("你确定将这颗树收为家具吗？", null, null, NewDialog.getSucceedIcon());
+         d.addEventListener(ModalDialogEvent.OK, function(ev:ModalDialogEvent):void
+         {
+            SocketClient.instance.addEventListener(TreeClient.cmdSetFurniture, onSetFurniture);
+            TreeClient.instance.sendSetFurniture(int(tree.id));
+         });
+         d.addEventListener(ModalDialogEvent.CANCEL, function(ev:ModalDialogEvent):void { busy = false; });
+         d.addEventListener(ModalDialogEvent.CLOSE, function(ev:ModalDialogEvent):void { busy = false; });
+         d.show();
+      }
+
+      private function onSetFurniture(e:SocketClientEvent):void
+      {
+         SocketClient.instance.removeEventListener(TreeClient.cmdSetFurniture, onSetFurniture);
+         busy = false;
+         if (!e.params.res)
+         {
+            NewDialog.showFailMessage("这棵树还不能收为家具哦！");
+            return;
+         }
+         NewDialog.showSucceedMessage("恭喜你，一个" + plant.name + "家具已经放入你的空间舱装扮！");
+         var f:Function = onChange;
+         hide();
+         if (f != null) f(null);
       }
 
       // ---------------------------------------------------------------- 雨露, 养料
