@@ -30,7 +30,7 @@
 // and 友情的试炼 (54_22 type 89) a friend's 亚比: neither is played here (refused with a message).
 
 import type { World, XtContext } from "./server.ts";
-import { normalisePet, statsOf, type PetOwner, type PetTables } from "./pets.ts";
+import { normalisePet, statsOf, type PetOwner, type PetRecord, type PetTables } from "./pets.ts";
 
 export const GYM_THUNDER = 84;
 export const GYM_TOWER = 85;
@@ -102,6 +102,64 @@ export interface GymFightRec {
   tower?: { start: number; floor: number; p4: boolean } | null;
   towerBest?: number;
   towerRuns?: number;
+  /** 玩偶迷阵: the run now (start, dolls beaten, damage done, ended), the best 战斗力评价, the last run's. */
+  maze?: { start: number; num: number; hurt: number; over: boolean } | null;
+  mazeBest?: number;
+  mazeLast?: { record: number; claimed: boolean };
+  /** 最强防御PK战: the best rounds ever, today's best and the rewards taken today, the 防御祝福 kept. */
+  waterMax?: number;
+  waterDay?: { day: string; best: number; taken: number[] };
+  waterBless?: number;
+}
+
+/**
+ * 玩偶迷阵 (命运道馆; activity121122/dollmaze, the copy of 2015): 命运玩偶 one after another until the
+ * player's 亚比 all fall, each with 幻冥's random 战斗祝福 on both sides ("幻冥会给你和对手随机战斗祝福");
+ * a 战斗力评价 for the run ("挑战后按每场表现给出战斗力评价") and the rewards of its marks (2000, 5000,
+ * 10000, 20000分). The 2012 server is lost: the dolls' levels (Lv30, five more for each), the 评价 (the
+ * damage done and MAZE_PER_DOLL for each doll beaten) are RECONSTRUCTED.
+ */
+export const MAZE_DOLLS = [175, 697];
+export const MAZE_PER_DOLL = 200;
+export const MAZE_TIERS = [2000, 5000, 10000, 20000];
+export function mazeDoll(num: number): { race: number; level: number } {
+  return { race: MAZE_DOLLS[num % MAZE_DOLLS.length], level: Math.min(100, 30 + 5 * num) };
+}
+export function mazeRecord(run: { num: number; hurt: number }): number {
+  return run.hurt + MAZE_PER_DOLL * run.num;
+}
+
+/**
+ * 最强防御PK战 (御水道馆; activity121115/water/waterdefence, the copy of 2014): "考验首宠的防御最高极限",
+ * 30 局 one after another, each won by standing WATER_ROUNDS[局] rounds (the panel's
+ * WaterDefenceConfig.petsConfig) with the first 亚比 (no switching); a 防御祝福 (双防 +100, 体力 +200;
+ * 3 星币 each) may be used for the run. The day's rewards (每天的进度奖励会清空) at 5, 10, 15, 20 局:
+ * 2 摇摇果实, 幻流进化石 ("成功防御10局可获得幻流进化石"), 5 of a later item (RECONSTRUCTED: 防御强化药剂
+ * 384), 8888 经验. The attackers (灵炎 then 幻炎, stronger 局 by 局) are RECONSTRUCTED.
+ */
+export const WATER_ROUNDS = [2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 2, 3, 3, 3, 3, 4, 4, 5, 5, 6, 3, 3, 4, 5, 5, 5, 5, 6, 6, 6];
+export const WATER_BLESS_PRICE = 3;
+export const WATER_BLESS = { def: 100, hp: 200 };
+export const WATER_TIERS: { at: number; bn: { type: number; id: number; num: number } }[] = [
+  { at: 5, bn: { type: 2, id: 419, num: 2 } },
+  { at: 10, bn: { type: 2, id: 615, num: 1 } },
+  { at: 15, bn: { type: 2, id: 384, num: 5 } },
+  { at: 20, bn: { type: 101, id: -1, num: 8888 } },
+];
+export function waterAttacker(stage: number): { race: number; level: number } {
+  return { race: stage <= 15 ? 1295 : 1296, level: Math.min(100, 38 + 2 * stage) };
+}
+export function waterDay(g: GymFightRec, today: string): { day: string; best: number; taken: number[] } {
+  if (g.waterDay?.day !== today) g.waterDay = { day: today, best: 0, taken: [] };
+  return g.waterDay;
+}
+/** A run's end: the records, and the push the panel shows (20121116water_finBattle {r, isnew, max, min, rank}). */
+export function waterRunEnd(g: GymFightRec, passed: number, today: string): [string, Record<string, unknown>] {
+  const d = waterDay(g, today);
+  d.best = Math.max(d.best, passed);
+  const isnew = passed > (g.waterMax ?? 0);
+  g.waterMax = Math.max(g.waterMax ?? 0, passed);
+  return ["20121116water_finBattle", { r: passed, isnew, max: g.waterMax, min: 0, rank: 0 }];
 }
 
 export const gymOf = (o: object): GymFightRec => ((o as { gymFights?: GymFightRec }).gymFights ??= {});
@@ -113,6 +171,8 @@ export interface GymDeps {
   today: () => string;
   now: () => number;
   rng: () => number;
+  /** Experience for a 亚比, with its levels and evolutions (battle.ts gainExp): the replies. */
+  gainExp: (t: PetTables, pet: PetRecord, n: number) => [string, Record<string, unknown>][];
 }
 
 /** A won 踢馆 (the battle's onWin): remembered for its panel's bonus command. */
@@ -147,6 +207,99 @@ export const towerRank = (g: GymFightRec) => (g.towerBest ? 1 : 0);
 
 export function installGyms(world: World, deps: GymDeps): void {
   const PA = "PeriodicActiveExtension";
+  // 玩偶迷阵: Dark_0 {} -> {max}; Dark_1 {hurt} after each fight -> {hurt, time, num, record, max, rank}
+  // once the run has ended (the doll's fight lost; the panel then shows the run), else {res: 1};
+  // Dark_2 {} -> {bn} the rewards of the marks the last run reached, once: 1000 经验, 5 摇摇果实 (419),
+  // 10000 经验 (for the first 亚比 of the bag); the 20000分 one, the 2015 panel's "70级超暗精灵", is a
+  // later 亚比 and is not given. (The hurt the client sends is not taken: the battle's own.)
+  // 最强防御PK战: 20121116water_r1 {} -> {max, status}; _r2 {} -> {times, status} today's best and the
+  // rewards (one character each: 0 to take, 1 taken, 2 not reached); _r3 {index} -> {res, bn}; _r4 {num}
+  // -> {res} 防御祝福 for 星币 (1, 101 too few); _r5 {} -> {num} 防御祝福 kept. The fights: 54_22 {type: 85,
+  // lv, buff} (the panel's IPetFight.insistFight; battle.ts), and the end of a run pushed with its last fight.
+  const waterStatus = (g: GymFightRec) => {
+    const d = waterDay(g, deps.today());
+    return WATER_TIERS.map((w, i) => (d.taken.includes(i) ? 1 : d.best >= w.at ? 0 : 2)).join("");
+  };
+  world.xt(`${PA}.20121116water_r1`, async (ctx) => {
+    const g = gymOf(await deps.load(ctx));
+    ctx.reply({ max: g.waterMax ?? 0, status: waterStatus(g) }, "20121116water_r1");
+  });
+  world.xt(`${PA}.20121116water_r2`, async (ctx) => {
+    const g = gymOf(await deps.load(ctx));
+    ctx.reply({ times: waterDay(g, deps.today()).best, status: waterStatus(g) }, "20121116water_r2");
+  });
+  world.xt(`${PA}.20121116water_r3`, async (ctx) => {
+    const o = (await deps.load(ctx)) as PetOwner & { items?: Record<string, Record<string, number>> };
+    const g = gymOf(o);
+    const i = Number(ctx.params.index) | 0;
+    const tier = WATER_TIERS[i];
+    const d = waterDay(g, deps.today());
+    if (!tier || d.taken.includes(i) || d.best < tier.at) return ctx.reply({ res: 0 }, "20121116water_r3");
+    d.taken.push(i);
+    const { type, id, num } = tier.bn;
+    if (type === 101) {
+      const pet = o.pets?.[0];
+      if (pet) for (const [c, b] of deps.gainExp(await deps.tables(), pet, num)) ctx.reply(b, c);
+    } else {
+      const bag = ((o.items ??= {})[String(type)] ??= {});
+      bag[String(id)] = (bag[String(id)] ?? 0) + num;
+      ctx.reply({ amount: `${type}_${id}_0_${num}` }, "onAmountUpdated");
+    }
+    await deps.save(o);
+    ctx.reply({ res: 1, bn: [tier.bn] }, "20121116water_r3");
+  });
+  world.xt(`${PA}.20121116water_r4`, async (ctx) => {
+    const o = (await deps.load(ctx)) as PetOwner & { xingbi?: number };
+    const g = gymOf(o);
+    const num = Math.max(1, Math.min(999, Number(ctx.params.num) | 0));
+    const cost = num * WATER_BLESS_PRICE;
+    if ((o.xingbi ?? 0) < cost) return ctx.reply({ res: 101 }, "20121116water_r4");
+    o.xingbi = (o.xingbi ?? 0) - cost;
+    g.waterBless = (g.waterBless ?? 0) + num;
+    await deps.save(o);
+    ctx.reply({ xingbi: o.xingbi }, "onXingBiUpdate");
+    ctx.reply({ res: 1 }, "20121116water_r4");
+  });
+  world.xt(`${PA}.20121116water_r5`, async (ctx) => ctx.reply({ num: gymOf(await deps.load(ctx)).waterBless ?? 0 }, "20121116water_r5"));
+  world.xt(`${PA}.Dark_0`, async (ctx) => ctx.reply({ max: gymOf(await deps.load(ctx)).mazeBest ?? 0 }, "Dark_0"));
+  world.xt(`${PA}.Dark_1`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const g = gymOf(o);
+    const run = g.maze;
+    if (!run || !run.over) return ctx.reply({ res: 1 }, "Dark_1");
+    const record = mazeRecord(run);
+    const old = g.mazeBest ?? 0;
+    g.mazeBest = Math.max(old, record);
+    g.mazeLast = { record, claimed: false };
+    g.maze = null;
+    await deps.save(o);
+    const time = Math.max(0, Math.round((deps.now() - run.start) / 1000));
+    ctx.reply({ hurt: run.hurt, time, num: run.num, record, max: g.mazeBest, rank: 0 }, "Dark_1");
+  });
+  world.xt(`${PA}.Dark_2`, async (ctx) => {
+    const o = await deps.load(ctx) as PetOwner & { items?: Record<string, Record<string, number>> };
+    const g = gymOf(o);
+    const last = g.mazeLast;
+    if (!last || last.claimed || last.record < MAZE_TIERS[0]) return ctx.reply({ bn: [] }, "Dark_2");
+    last.claimed = true;
+    const bn: { type: number; id: number; num: number }[] = [];
+    let exp = 0;
+    if (last.record >= MAZE_TIERS[0]) exp += 1000;
+    if (last.record >= MAZE_TIERS[1]) {
+      const bag = ((o.items ??= {})["2"] ??= {});
+      bag["419"] = (bag["419"] ?? 0) + 5;
+      ctx.reply({ amount: "2_419_0_5" }, "onAmountUpdated");
+      bn.push({ type: 2, id: 419, num: 5 });
+    }
+    if (last.record >= MAZE_TIERS[2]) exp += 10000;
+    const pet = o.pets?.[0];
+    if (exp && pet) {
+      for (const [c, b] of deps.gainExp(await deps.tables(), pet, exp)) ctx.reply(b, c);
+      bn.unshift({ type: 101, id: -1, num: exp });
+    }
+    await deps.save(o);
+    ctx.reply({ bn }, "Dark_2");
+  });
   const amount = (ctx: XtContext, item: number) => ctx.reply({ amount: `2_${item}_0_1` }, "onAmountUpdated");
   // The stones of the 踢馆.
   world.xt(`${PA}.20121113_hlf`, async (ctx) => {
@@ -206,7 +359,8 @@ export function installGyms(world: World, deps: GymDeps): void {
   world.xt("PetExtension.54_4", async (ctx) => {
     const o = await deps.load(ctx);
     const t = await deps.tables();
-    const cost = o.vip ? 0 : 50;
+    // nd: PetClient2.pmRevealAllHpFree, the free 恢复 of an activity's run (最强防御PK战 before each 局).
+    const cost = o.vip || ctx.params.nd ? 0 : 50;
     if ((o.score ?? 0) < cost) return ctx.reply({ res: false }, "54_4");
     o.score = (o.score ?? 0) - cost;
     for (const p of o.pets ?? []) {

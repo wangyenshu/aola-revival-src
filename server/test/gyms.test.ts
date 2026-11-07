@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { installBattles, type Msg } from "../src/game/sfs2013/battle.ts";
-import { applyFate, gymStone, gymWon, rollFate, GYM_MASTERS, TOWER_FLOORS } from "../src/game/sfs2013/gyms.ts";
+import { applyFate, gymStone, gymWon, mazeDoll, rollFate, waterAttacker, GYM_MASTERS, MAZE_PER_DOLL, MAZE_TIERS, TOWER_FLOORS, WATER_ROUNDS } from "../src/game/sfs2013/gyms.ts";
 import { makePet, type PetOwner, type PetTables } from "../src/game/sfs2013/pets.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
 
@@ -182,4 +182,67 @@ test("NPC challenges: 机械师马赫 fights the 火宝宝 line, 上古使者 gi
   await h.call("PetExtension.54_22", { type: 14, npc: 11, npcId: 312, lv: 1, name: "上古使者" });
   await h.win();
   assert.equal(h.owner.items["2"]["379"], 1);
+});
+
+test("玩偶迷阵: dolls one after another, a 战斗力评价 when the run ends, its rewards once", async () => {
+  const h = harness();
+  assert.deepEqual(get(await h.call("PeriodicActiveExtension.Dark_0"), "Dark_0"), { max: 0 });
+  for (let i = 0; i < 2; i++) {
+    const out = await h.call("PetExtension.54_22", { type: 88, id: 2 });
+    assert.equal(get(out, "54_22")!.res, true);
+    const doll = mazeDoll(i);
+    assert.deepEqual([opp(out).r, opp(out).lv], [doll.race, doll.level]);
+    assert.equal(get(await h.win(), "2403")!.isWin, true);
+    assert.deepEqual(get(await h.call("PeriodicActiveExtension.Dark_1", { hurt: 999999 }), "Dark_1"), { res: 1 }, "the run goes on");
+  }
+  // The third doll: the player runs (as a loss, the run ends).
+  await h.call("PetExtension.54_22", { type: 88, id: 2 });
+  await h.call("PocketMonsterExtension.1404");
+  const end = get(await h.call("PeriodicActiveExtension.Dark_1", { hurt: 999999 }), "Dark_1") as Record<string, number>;
+  assert.equal(end.num, 2);
+  assert.ok(end.hurt > 0 && end.hurt < 999999, "the battles' own damage, not the client's");
+  assert.equal(end.record, end.hurt + MAZE_PER_DOLL * 2);
+  assert.equal(get(await h.call("PeriodicActiveExtension.Dark_0"), "Dark_0")!.max, end.record);
+  // Rewards of the marks reached, once.
+  (h.owner as { gymFights?: { mazeLast?: { record: number; claimed: boolean } } }).gymFights!.mazeLast = { record: MAZE_TIERS[2], claimed: false };
+  const bn = get(await h.call("PeriodicActiveExtension.Dark_2"), "Dark_2")!.bn as { type: number; id: number; num: number }[];
+  assert.deepEqual(bn, [{ type: 101, id: -1, num: 11000 }, { type: 2, id: 419, num: 5 }]);
+  assert.equal(h.owner.items["2"]["419"], 5);
+  assert.deepEqual(get(await h.call("PeriodicActiveExtension.Dark_2"), "Dark_2")!.bn, []);
+  // The next challenge starts a new run with the first doll.
+  assert.equal(opp(await h.call("PetExtension.54_22", { type: 88, id: 2 })).lv, mazeDoll(0).level);
+});
+
+test("最强防御PK战: a 局 is won by standing its rounds; the run's end is pushed; the day's rewards", async () => {
+  const h = harness();
+  const out = await h.call("PetExtension.54_22", { type: 85, sw: false, lv: 1, buff: false });
+  assert.equal(get(out, "54_22")!.res, true);
+  assert.deepEqual([opp(out).r, opp(out).lv], [waterAttacker(1).race, waterAttacker(1).level]);
+  // The weakest skill only, so the attacker stands too: after WATER_ROUNDS[0] rounds the 局 is won.
+  const weak = [...h.owner.pets![0].skills].sort((a, b) => (tables.pm.skills[String(a.id)]?.p ?? 0) - (tables.pm.skills[String(b.id)]?.p ?? 0))[0];
+  const all: Msg[] = [];
+  for (let i = 0; i < 10 && !all.some(([c]) => c === "2403"); i++) {
+    all.push(...(await h.call("PocketMonsterExtension.1401", { skillId: weak.id })));
+    h.owner.pets![0].hp = 9999;
+    for (const k of h.owner.pets![0].skills) k.pp = k.max;
+  }
+  const end = get(all, "2403")!;
+  assert.equal(end.isWin, true);
+  assert.match(String(end.desc), new RegExp(`坚持了${WATER_ROUNDS[0]}回合`));
+  assert.ok(!all.some(([c]) => c === "20121116water_finBattle"), "the run goes on");
+  // The 7th 局 lost (run away): the run ends with 6 passed.
+  await h.call("PetExtension.54_22", { type: 85, lv: 7 });
+  const lost = await h.call("PocketMonsterExtension.1404");
+  assert.deepEqual(get(lost, "20121116water_finBattle"), { r: 6, isnew: true, max: 6, min: 0, rank: 0 });
+  assert.deepEqual(get(await h.call("PeriodicActiveExtension.20121116water_r2"), "20121116water_r2"), { times: 6, status: "0222" });
+  const r3 = get(await h.call("PeriodicActiveExtension.20121116water_r3", { index: 0 }), "20121116water_r3")!;
+  assert.equal(r3.res, 1);
+  assert.equal(h.owner.items["2"]["419"], 2);
+  assert.equal(get(await h.call("PeriodicActiveExtension.20121116water_r3", { index: 0 }), "20121116water_r3")!.res, 0, "taken");
+  assert.equal(get(await h.call("PeriodicActiveExtension.20121116water_r3", { index: 1 }), "20121116water_r3")!.res, 0, "10 局 not reached");
+  // 防御祝福 for 星币.
+  (h.owner as { xingbi?: number }).xingbi = 10;
+  assert.equal(get(await h.call("PeriodicActiveExtension.20121116water_r4", { num: 3 }), "20121116water_r4")!.res, 1);
+  assert.equal(get(await h.call("PeriodicActiveExtension.20121116water_r5"), "20121116water_r5")!.num, 3);
+  assert.equal(get(await h.call("PeriodicActiveExtension.20121116water_r4", { num: 1 }), "20121116water_r4")!.res, 101);
 });

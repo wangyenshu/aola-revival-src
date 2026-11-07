@@ -171,6 +171,7 @@ package mmo.tasknpc
             if (row[4] != 0 && !isResident(row[0], info.sceneName) && taskTalksOf(row[0], info.sceneName).length == 0) continue;
             addNpcToScene(row[0], row[1], -1, row[2], row[3]);
          }
+         for each (var host:Array in (HOSTS[info.sceneName] as Array) || []) addNpcToScene(host[0], host[1], -1, host[2], host[3]);
          oneOfEach(info.sceneName);
          TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_INITED_NPC, {sceneName: info.sceneName}));
       }
@@ -221,6 +222,18 @@ package mmo.tasknpc
        * lost; he stands there and offers them (control ScenePatches MENUS; RECONSTRUCTED).
        */
       private static const RESIDENTS:Object = {"yabistudy": [11], "yabistudycopy": [11], "hexagrampalace3": [517]};
+
+      /**
+       * NPCs the later scene table does not place, standing where a room's lost button was and
+       * offering its panel (control ScenePatches MENUS; RECONSTRUCTED). The rooms' surviving files
+       * have the panels' openers but no button for them any more; baseservice/scenearrow's arrows
+       * (mysticearth4_at_20121101_schwarzenegger, mysticocean5_at_20121204_PoseidonChallenge,
+       * msevenstar5_sb_20121220_abyssevil) show where they were: 施瓦辛格 (817) in 零时迷城, 波塞冬
+       * (853) in 海洋神域, 赤翼魔龙王 (862) in 深渊魔域; 拉诺斯 (795) in 天神圣殿, whose 2012 room has
+       * no opener for the 天空之神's challenge. [id, view, x, y]
+       */
+      private static const HOSTS:Object = {"cloudstar6": [[795, 1, 650, 330]], "mysticearth4": [[817, 1, 705, 300]],
+         "mysticocean5": [[853, 1, 410, 230]], "msevenstar5": [[862, 1, 300, 240]]};
 
       private static function isResident(npcId:int, scene:String):Boolean
       {

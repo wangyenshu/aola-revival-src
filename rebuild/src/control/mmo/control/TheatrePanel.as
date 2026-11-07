@@ -21,6 +21,11 @@ package mmo.control
    import mmo.common.utils.panel.PanelEffect;
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import mmo.play.player.PlayerManager;
+   import mmo.play.scene.SceneManager;
+   import mmo.loader.layer.LayerManager;
+   import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
+   import flash.utils.getQualifiedClassName;
    import mmo.revival.RLog;
    import mmo.revival.RUI;
 
@@ -86,8 +91,10 @@ package mmo.control
          try { PlayerManager.getInstance().myPlayer.stop(); } catch (e:Error) {}
          if (current == null || current.parent == null)
          {
+            // The theatre scene's own screen (TheatreUI: a frame and a close button, under 百田's video
+            // site in 2013) is put away: the panel is the theatre now, and its close leaves the room.
+            putAwayTheatreUI();
             current = new TheatrePanel();
-            // Over the theatre scene's own screen (TheatreUI, which takes the layers over) and fights.
             ModalDialogManager.getInstance().addModalDialog(current, AlignType.NONE, PanelEffect.NONE, false);
          }
          current.start(id || "");
@@ -458,6 +465,34 @@ package mmo.control
          shutDown();
          if (parent == null) return;
          if (!ModalDialogManager.getInstance().removeModalDialog(this, PanelEffect.NONE) && parent) parent.removeChild(this);
+         // In the theatre: out of it, as the scene's own close did (TheatreUI: loadDefaultScene).
+         try
+         {
+            var sm:SceneManager = SceneManager.getInstance();
+            if (sm.loadedSceneInfo != null && String(sm.loadedSceneInfo.sceneName) == "theatre") sm.loadDefaultScene();
+         }
+         catch (e:Error) { RLog.error("theatre: leave", e); }
+      }
+
+      /** The theatre scene's TheatreUI, wherever the dialog manager put it. */
+      private static function putAwayTheatreUI():void
+      {
+         var found:DisplayObject = null;
+         var look:Function = function(d:DisplayObjectContainer, depth:int):void
+         {
+            for (var i:int = 0; d != null && found == null && i < d.numChildren; i++)
+            {
+               var c:DisplayObject = d.getChildAt(i);
+               if (getQualifiedClassName(c) == "mmo.scene.theatre::TheatreUI") found = c;
+               else if (depth > 0 && c is DisplayObjectContainer) look(DisplayObjectContainer(c), depth - 1);
+            }
+         };
+         try
+         {
+            look(LayerManager.stage, 5);
+            if (found != null) ModalDialogManager.getInstance().removeModalDialog(found, PanelEffect.NONE);
+         }
+         catch (e:Error) { RLog.error("theatre: its screen", e); }
       }
 
       private function shutDown():void

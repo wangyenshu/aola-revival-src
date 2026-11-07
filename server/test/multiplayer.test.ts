@@ -16,7 +16,7 @@ import { Down, EXT_NAMES, Reader, Up, clientPayload, encodeClientFrame, nextPack
 const EXT_NUMBER = (name: string) => Number(Object.entries(EXT_NAMES).find(([, n]) => n === name)![0]);
 import { SFS2013_FRAMING } from "../src/game/sfs2013/server.ts";
 
-const EXT = { UserExtension: 1, TeamExtension: 2, BuddyManagerExtension: 3, PocketMonsterExtension: 13, PetExtension: 15, HouseExtension: 26, SundriesExtension: 34, FBExtension: 35, TeamTowerExtension: EXT_NUMBER("TeamTowerExtension"), AchievementExtension: EXT_NUMBER("AchievementExtension"), MentalHallExtension: EXT_NUMBER("MentalHallExtension") } as const;
+const EXT = { UserExtension: 1, TeamExtension: 2, BuddyManagerExtension: 3, PocketMonsterExtension: 13, PetExtension: 15, HouseExtension: 26, SundriesExtension: 34, FBExtension: 35, TeamTowerExtension: EXT_NUMBER("TeamTowerExtension"), AchievementExtension: EXT_NUMBER("AchievementExtension"), MentalHallExtension: EXT_NUMBER("MentalHallExtension"), PetEggExtension: EXT_NUMBER("PetEggExtension") } as const;
 const TABLES = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../rebuild/static/www.9aola.com");
 /** The game's tables (pets, skills) for the battles. */
 const tables = async (p: string) => {
@@ -274,7 +274,7 @@ test("the 家园's 留言板 and bar between two players; 我的荣誉", async (
   for (const x of got) assert.ok([2, 3, 4, 5, 7].includes(x.bi));
 });
 
-test("念之塔: the seals opened, a chest a day, 小念 once 念 is beaten", async () => {
+test("念之塔: the seals opened, a chest a day, 小念's egg once 念 is beaten", async () => {
   const { a } = await twoPlayers(true);
   a.xt("MentalHallExtension", "98_2");
   assert.equal((await a.wait("98_2"))?.result, "0,0,0,0");
@@ -298,6 +298,9 @@ test("念之塔: the seals opened, a chest a day, 小念 once 念 is beaten", as
   assert.equal((await a.wait("70_46"))?.has, false);
   a.xt("SundriesExtension", "70_45", { race: 602 });
   assert.equal((await a.wait("70_45"))?.suc, true);
+  // An egg (the scene: "亚比蛋" 602), into the 亚比孵化器.
+  a.xt("PetEggExtension", "1=1");
+  assert.ok(((await a.wait("1=1"))!.es as { ri: number }[]).some((e) => e.ri === 602));
   a.xt("SundriesExtension", "70_46", { race: 602 });
   assert.equal((await a.wait("70_46"))?.has, true);
   a.xt("SundriesExtension", "70_45", { race: 602 });

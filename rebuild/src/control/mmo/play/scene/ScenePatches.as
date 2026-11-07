@@ -111,6 +111,17 @@ package mmo.play.scene
          "hexagrampalace3": [[517, "挑战修罗", P130117 + "boss/xiuluo|mmo.activity130117.boss.xiuluo.XiuLuoPanel"],
             [517, "挑战凯撒", P130117 + "boss/kaisa|mmo.activity130117.boss.KaiSaPanel"],
             [517, "召唤奇灵王", "revival_panel:activityres/activity130131/qiling/qilingdlg|mmo.activity130131.qiling.QilingDlg"]],
+         // 天神圣殿: 拉诺斯 (795, placed by the rebuilt TaskNpcService) offers the 天空之神's challenge of
+         // September 2012 (activity120927/skychallenge, its copy of 2014; the room's 2012 file has no
+         // button for it; RECONSTRUCTED).
+         "cloudstar6": [[795, "挑战天空之神", "revival_panel:activityres/activity120927/skychallenge|mmo.activity120927.skychallenge.MainPanel"]],
+         // 施瓦辛格, 波塞冬 and 赤翼魔龙王 (placed by the rebuilt TaskNpcService where scenearrow's arrows
+         // show their rooms' lost buttons) open their challenges of November and December 2012
+         // (activity121101/schwarzenegger/challengepanel and activity121206/poseidon_challenge, their
+         // copies of 2014; activity121220/abyssevilmainpanel, 2015), as the rooms' openers did.
+         "mysticearth4": [[817, "挑战地之神兽", "revival_panel:activityres/activity121101/schwarzenegger/challengepanel|mmo.activity121101.schwarzenegger.MainPanel"]],
+         "mysticocean5": [[853, "挑战海洋之神", "revival_panel:activityres/activity121206/poseidon_challenge|mmo.activity121206.poseidonchallenge.PoseidonChallenge"]],
+         "msevenstar5": [[862, "魔龙之战", "revival_panel:activityres/activity121220/abyssevilmainpanel|mmo.activity121220.abyssevil.MainPanel"]],
          // 恶人山顶 (武神大陆): 关羽 (599) offers his challenge, as the later NpcMenu has it; the scene
          // answers the choice (599_showchallengepanel: fightkingwar/guangyu).
          "fightkingwar3": [[599, "挑战关羽", "599_showchallengepanel"]],

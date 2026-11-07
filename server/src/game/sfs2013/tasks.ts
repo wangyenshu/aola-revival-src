@@ -425,6 +425,15 @@ export function installTasks(world: World, deps: TaskDeps): void {
     world.xt("TaskExtension.revival_task", async (ctx) => {
       const rec = await load(ctx);
       const r = skipTo(rec, Number(ctx.params.ti), deps.now());
+      // done: the task itself finished too, with its steps (a side quest nothing follows).
+      const ti = Number(ctx.params.ti);
+      if (ctx.params.done && TASK_DEFS[ti]) {
+        const b = book(rec);
+        for (const s of [...TASK_DEFS[ti].steps, ti]) {
+          b[s] = { st: 1, ex: 0, ad: deps.now(), fd: deps.now() };
+          r.changes.push({ t: view(s, b[s]), ty: TaskUpdate.ADD_FINISH });
+        }
+      }
       await deps.save(rec);
       push(ctx, r);
     });

@@ -89,10 +89,11 @@ package mmo.control
          totals.x = 30;
          totals.y = 62;
          box.addChild(totals);
-         row("晶币", "score", "10000", 92);
-         row("星币", "xingbi", "1000", 130);
-         row("晶豆", "jingdou", "1000", 168);
-         row("亚比经验", "exp", "10000", 206, "给第一只亚比");
+         row("晶币", "score", "10000", 88);
+         row("星币", "xingbi", "1000", 120);
+         row("晶豆", "jingdou", "1000", 152);
+         row("奥币", "aobi", "100", 184);
+         row("亚比经验", "exp", "10000", 216, "给第一只亚比");
 
          vipButton = RUI.button("成为蓝宝石", function():void { send({vip: !vip}); }, 104, 24, 0x6CC0F5, 0x2E86D6, "toolboxVip");
          vipButton.x = W - 128;
@@ -339,7 +340,7 @@ package mmo.control
       {
          var p:Object = e.params;
          UserInfo.xingbi = int(p.xingbi);
-         totals.text = "晶币 " + int(p.score) + "   星币 " + int(p.xingbi) + "   晶豆 " + int(p.jingdou) + (p.vip == true ? "   蓝宝石" : "");
+         totals.text = "晶币 " + int(p.score) + "   星币 " + int(p.xingbi) + "   晶豆 " + int(p.jingdou) + "   奥币 " + int(p.aobi) + (p.vip == true ? "   蓝宝石" : "");
          if (vip != (p.vip == true))
          {
             vip = p.vip == true;

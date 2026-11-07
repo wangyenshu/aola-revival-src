@@ -324,7 +324,7 @@ The 功能 the 2012 world map lists for each place:
 | 生态园 | 捕捉小动物 (动物捕捉: its panel with 购买道具 and the map of 大地乐园, 天空乐园, 海洋乐园, 狗狗之家; the 捕鱼 spot its 海洋乐园) | 可用 |
 | 生态园 | 动物协会 | 不可用 |
 | 生态园 | 狗狗之家 | 未验证 |
-| 奥拉广场 | 财富小管家 | 可用 |
+| 奥拉广场 | 财富小管家 | 可用 (the later machine's panel: 晶豆储蓄, 奥币铸造星币, 碎片铸造星币) |
 | 奥拉广场 | 设置密码保护、最强训练师召集令 | 未验证 |
 | HELLO学院 | HELLO技能学习 | 可用 |
 | 十字大道 | 爱心捐赠、爱心领取 | 可用 |
@@ -341,7 +341,8 @@ The 功能 the 2012 world map lists for each place:
 | 流星购物街 | 购买服装、家具、道具和树苗 | 可用 |
 | 亚比研究中心 | 亚比融合 (贝鲁特; the 元生体 hatch in their places' 孵化器)、神奇摇摇树 | 可用 |
 | 亚比研究中心 | 亚比天赋改造 | 部分 (the 天赋改造机 opens the 天赋启迪 of January 2013; the 天赋改造 panel itself is lost) |
-| 亚比研究中心 | 亚比训练、亚比超进化 | 不可用 |
+| 亚比研究中心 | 亚比训练 | 可用 (the pad of the two 亚比, as the HELLO's 亚比训练) |
+| 亚比研究中心 | 亚比超进化 | 不可用 |
 | 星光游乐场 | 欢乐券兑换 | 可用 |
 | 欢乐岛 | 亚比成长计划、百田卡通大剧院 | 可用 |
 | 欢乐岛 | 魔法秋游 | 未验证 |
@@ -359,9 +360,9 @@ The 功能 the 2012 world map lists for each place:
 | 炼火道馆 | 最强力量PK战、爆发力大冲击 | 未验证 |
 | 御水道馆 | 踢馆！挑战幻流！ | 可用 |
 | 御水道馆 | 幻流特训营 | 未验证 |
-| 御水道馆 | 最强防御pk战 | 不可用 |
+| 御水道馆 | 最强防御pk战 | 可用 (30 局 standing a number of rounds with the first 亚比; the day's rewards at 5, 10, 15, 20 局) |
 | 命运道馆 | 踢馆！挑战幻冥！、命运玩偶 | 可用 |
-| 命运道馆 | 玩偶迷阵 | 不可用 |
+| 命运道馆 | 玩偶迷阵 | 可用 (命运玩偶 one after another, 幻冥's 战斗祝福 on both sides; the run's 战斗力评价 and its rewards) |
 | 光明道馆 | 踢馆！挑战幻光、友情的试炼 | 不可用 (need a team of two and a friend's 亚比) |
 | 光明道馆 | 我的伙伴我做主 | 未验证 |
 
@@ -382,6 +383,10 @@ The 功能 the 2012 world map lists for each place:
 | 魔将挑战 (魔洛 Lv100, five tries a day; or 160 星币) | 深渊之门 | 格洛's egg |
 | 修罗, 凯撒 (Lv100, then Lv120; the day's 15-minute 光之 / 暗之祝福; or 200 星币) | 奇灵神树 (修罗 offers them) | 伊修's, 阿凯's egg |
 | 召唤奇灵王 (三色奇灵玉 from three trials or 星币, then the 终极挑战) | 奇灵神树 (修罗 offers it) | 小奇灵's egg |
+| 天空之神 (two stages, then 拉诺斯, five tries a day; or 星币) | 天神圣殿 (拉诺斯 offers it) | 诺斯's egg |
+| 地之神兽 施瓦辛格 (with one or two of 雏菊仙子, 莫莫亚特, 友人契约书, 多古拉伯爵; five tries a day; or 200 星币) | 零时迷城 (施瓦辛格 offers it) | 辛格's egg |
+| 海洋之神 波塞冬 (five tries a day; or 200 星币) | 海洋神域 (波塞冬 offers it) | 波塞's egg |
+| 魔龙之战 (赤翼魔龙王's three 分身 in turn, five tries a day; or the three 魂石 for 星币) | 深渊魔域 (赤翼魔龙王 offers it) | 小魔龙's egg |
 | 武神战争: 黄巾军旗 (黄巾战魂 from 恶人山道's 黄巾小兵; 注入 to make a 黄巾小兵 张角 or 张梁), 关羽, 赵云, 张飞, 诸葛亮, 吕布, 刘备, 将军令 (five a day), 将军榜 | 武神大陆 | the generals' eggs |
 
 The wild 亚比 of these planets drop the items the activities need (弹珠,
@@ -910,7 +915,7 @@ run pays 晶豆, as its end panel says.
   on the art of its 2016 copy.
 - The 兜兜回收器 (buy-back) in 道具店, 服装店, 家具店 and 种植园.
 - The shops' lift (点我前往其他楼层) between 种植园, 家具店 and 服装店.
-- The 财富小管家 (晶币 savings with interest) in 奥拉广场.
+- The 财富小管家 in 奥拉广场: 晶豆 savings with interest, 奥币 and 流星碎片 made into 星币.
 
 ### Home
 
@@ -969,9 +974,12 @@ run pays 晶豆, as its end panel says.
   them is lost), 战队, 兵团 and trading do not.
 - Daily tasks, the NPC guide.
 - Most time-limited activities of 2012–13 (their panels show
-  这个功能还在修复中). Not recovered, their files lost: 狼王 and 夜王's challenges, and
-  星际寻宝, the 四灵兽挑战 and the 终极道馆 (only later re-runs of 2013–15 survive); the
-  titles some activities gave (修罗终结者, 奇灵王者, 镇蜀大将军) are not kept.
+  这个功能还在修复中). Not recovered, their files lost: 星际寻宝, the 四灵兽挑战 and the
+  终极道馆 (only later re-runs of 2013–15 survive); 黑炎龙 (January 2013: only a 2015 panel
+  much changed survives, and 夜影之渊's button for it is lost); 永夜三巨头 (红魔, 绿焰, 紫渊:
+  a team of two or more, its team panel lost). 狼王 and 夜王 (activity130221/wolfandnightking,
+  February 2013) survive and are not yet recovered. The titles some activities gave (修罗终结者,
+  奇灵王者, 镇蜀大将军) are not kept.
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
   亚比骑乘训练, 上古神殿's panels, 模拟空间.
 - Quests that call services that are still stand-ins may stop partway.

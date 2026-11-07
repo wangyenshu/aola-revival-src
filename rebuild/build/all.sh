@@ -491,8 +491,24 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art game/parkour/parkour.swf)" --cod
   --note "LATER game/parkour (2015) on the 2013 libraries (aola-revival): the later helpers it uses RECONSTRUCTED in its own code" \
   --out "$W/game/parkour/parkour.swf%3F1210"
 
-# 财富小管家 (fortunemanager/fortunemanager, lost): the 晶币 bank of 奥拉广场, rebuilt.
-build fortunemanager mmo/fortunemanager/DocFortuneManager.as fortunemanager.swf "fortunemanager/fortunemanager.swf%3F130117"
+# 财富小管家 and the 星币 machine (fortunemanager/starcoin, the later copy): its exchange panel
+# (奥币铸造星币, 碎片铸造星币, the 财富小管家's 晶豆储蓄) compiled from its decompiled code against the
+# 2013 libraries, on its own art; the real-money 购买星币 panel and the 二级密码 check are left out,
+# and the 晶豆 come with the server's replies (the 2013 UserInfo has none). fortunemanager/
+# fortunemanager (later) is served as it is: its FortuneManagerService opens this module's
+# StarCoinPanelService. The server side: ScoreManager's accounts and MaterialExtension 14_19–14_21 (game.ts).
+build starcoin mmo/revival/starcoin/DocStarCoin.as starcoin-code.swf ""
+mkdir -p "$W/fortunemanager"
+python3 "$TOOLS/swf_transplant.py" --art "$(art fortunemanager/starcoin.swf)" --code "$OUT/starcoin-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.starcoin.DocStarCoin --bind 492=mmo.starcoinexchange.panel.ExchangePanel --bind 361=mmo.starcoinexchange.panel.AoExchangePanel \
+  --bind 333=mmo.starcoinexchange.panel.PieceExchangePanel --bind 1109=mmo.starcoinexchange.panel.PieceToCoinConfirmPanel \
+  --bind 491=mmo.starcoinexchange.fortunemanager.FortunemanagerPanel --bind 429=mmo.starcoinexchange.fortunemanager.StoreMessagePanel \
+  --bind 454=mmo.starcoinexchange.fortunemanager.StoreCoinPanel --bind 468=mmo.starcoinexchange.fortunemanager.SurePanel \
+  --bind 476=mmo.starcoinexchange.fortunemanager.ReturnCoinPanel --bind 488=mmo.starcoinexchange.fortunemanager.AdvanceGetBackPanel \
+  --bind 490=mmo.starcoinexchange.fortunemanager.OneDayGetBackPanel \
+  --bind 17=starcoin_fla.Pic480 --bind 423=starcoin_fla.Szkljdksw71 --bind 1276=starcoin_fla.BubbleMovie \
+  --note "LATER fortunemanager/starcoin on the 2013 libraries (aola-revival): the exchange panel only; no real-money panel, no 二级密码" \
+  --out "$W/fortunemanager/starcoin.swf%3F130117"
 
 # The scene arrows (baseservice/scenearrow, lost): the stand-in with the later
 # interface's removeArrowsByGroup, which 星光游乐场's game buttons call first.
@@ -559,6 +575,17 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art activityres/activity130131/qilin
   --bind 141=mmo.activity130131.qiling.BeckonMovie \
   --note "LATER activityres/activity130131/qiling/qilingdlg (February 2013) on the 2013 libraries (aola-revival): LocalStore.allowStore taken out" \
   --out "$W/activityres/activity130131/qiling/qilingdlg.swf%3F1210"
+
+# 魔龙之战 (深渊魔域; activityres/activity121220/abyssevilmainpanel, the copy of 2015): its decompiled
+# code compiled against the 2013 libraries, on its own art; the later buff bar it put on the panel
+# (IBuffCache, not in the 2013 interfaces) is left out. The server side: server/src/game/sfs2013/godbosses.ts.
+build abyssevil mmo/revival/abyssevil/DocAbyssEvil.as abyssevil-code.swf ""
+mkdir -p "$W/activityres/activity121220"
+python3 "$TOOLS/swf_transplant.py" --art "$(art activityres/activity121220/abyssevilmainpanel.swf)" --code "$OUT/abyssevil-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.abyssevil.DocAbyssEvil --bind 216=mmo.activity121220.abyssevil.MainPanel --bind 69=mmo.activity121220.abyssevil.MoneyPanel \
+  --bind 231=mmo.activity121220.abyssevil.BuyPanel --bind 234=mmo.activity121220.abyssevil.BuyLimitPanel --bind 25=mmo.activity121220.abyssevil.Need100LevelPanel \
+  --note "LATER activityres/activity121220/abyssevilmainpanel (2015) on the 2013 libraries (aola-revival): the buff bar (IBuffCache) taken out" \
+  --out "$W/activityres/activity121220/abyssevilmainpanel.swf%3F121227"
 
 # 魔将挑战 (深渊之门 msevenstar4; the era activityres/activity121213/evilgeneralmainpanel): its win and
 # 星币 films are lost, and the panel waits for their last frame to show 魔洛's 亚比蛋. Stand-ins of

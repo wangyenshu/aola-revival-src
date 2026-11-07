@@ -174,6 +174,7 @@ extension name and command (`PetExtension.54_16`).
 | `gyms.ts` | the 道馆 |
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |
 | `sevenstar.ts`, `kingbosses.ts`, `fightking.ts` | 黑暗三连星 and 魔将挑战; 修罗, 凯撒 and 召唤奇灵王; 武神大陆 (their fights through `54_22` and `addActFight`) |
+| `godbosses.ts` | 天空之神 (拉诺斯), 施瓦辛格, 波塞冬 and 魔龙之战 (赤翼魔龙王), with the helpers that come out after the boss (`ActFight.team`) |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
 | `petcards.ts`, `petitems.ts`, `giftbags.ts` | 战术卡, 亚比道具, what each 礼包 holds |
@@ -220,7 +221,7 @@ The 2013 server's rules are lost. The main reconstructions:
   estimates otherwise; only beating the last form gives the egg.
 - **Rewards and limits**: mini games pay 1 晶币 per 10 points (200 a game,
   1,000 a day); 副本 levels, chests, pay and rating; the 道馆 skill stones;
-  the 财富小管家's interest (from 百田's guide); prices in 星币 for
+  the 财富小管家's interest (its later panel's words); prices in 星币 for
   real-money goods (half for 蓝宝石).
 - **礼包**: opened when bought (the 2013 client has no command to open
   one); what each holds comes from its 2013 description or catalog page.
@@ -283,7 +284,9 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 | `treemanager`, `treepanelres`, `plantitemview` | the 植树盆's 2012 tree panel and films (yz/treemanager, on the art of its later copy), its 盆栽道具 and 守护亚比 panels (yz/panel_res, April 2012 art), the 盆栽道具's pictures (plantitem/view1 … view7, the era files lost: drawn from the 种植手册 and the tree manager's art) |
 | `gamemanager`, `parkour`, `catchanimalpanel` | mini games; 酷跑星世界; 动物捕捉's panel (its later art, the lost 动物乐园购买册 drawn) |
 | `shoot`, `shooteffect` | 射击 (later code on the 2013 interfaces) |
-| `usercard`, `face`, `scenetalk`, `helloicon`, `robotmanager`, `map`, `weekly`, `notifyview`, `scenearrow`, `sceneinit`, `fortunemanager`, `antiaddiction`, `yakestarpanel` | the player card, faces, chat, the HELLO, the world map, the 奥拉周刊, notices, scene arrows, scene music, the 财富小管家, the play-time limit (never reached), 巨锁石灵's panel |
+| `usercard`, `face`, `scenetalk`, `helloicon`, `robotmanager`, `map`, `weekly`, `notifyview`, `scenearrow`, `sceneinit`, `antiaddiction`, `yakestarpanel` | the player card, faces, chat, the HELLO, the world map, the 奥拉周刊, notices, scene arrows, scene music, the play-time limit (never reached), 巨锁石灵's panel |
+| `starcoin` | fortunemanager/starcoin (the later copy): the 星币 machine's exchange panel (奥币铸造星币, 碎片铸造星币, the 财富小管家's 晶豆储蓄), its code on the 2013 libraries without the real-money 购买星币 panel; fortunemanager/fortunemanager (later) is served as it is |
+| `abyssevil` | 魔龙之战's panel (activity121220/abyssevilmainpanel, 2015) on the 2013 libraries, without the later buff bar |
 
 ### Stand-ins
 
@@ -415,7 +418,15 @@ win gives, and for some a change to the player's 亚比 before the battle (修�
 `tools/blank_sprites.py`), 修罗 and 凯撒 of January 2013 and 召唤奇灵王 (its February
 2013 copy compiled against the 2013 libraries) at 奇灵神树, whose 修罗 offers them
 (`kingbosses.ts`), and 武神大陆's (`fightking.ts`; 吕布's and 刘备's from their 2014
-copies). The battle screen puts the open panels away when a battle starts
+copies). The gods of the 幻龙星系 (`godbosses.ts`): 天空之神, 施瓦辛格 and 波塞冬 from their
+2014 copies, 魔龙之战 from its 2015 copy; their rooms' surviving files have the panels'
+openers but no button any more, and the bosses stand where `baseservice/scenearrow`'s arrows
+show the buttons were (拉诺斯 in 天神圣殿, whose 2012 room has none) and offer the panels
+(the rebuilt `TaskNpcService` places them, `ScenePatches` gives their choice). An
+activity's boss may bring helpers that come out one after another (`ActFight.team`, sent
+as the opponent's switch, `2413` with `foe`). The 道馆's 最强防御PK战 (局 won by standing
+their rounds, `Battle.insist`, sent by the rebuilt `insistFight`) and 玩偶迷阵 are
+`gyms.ts`'s. The battle screen puts the open panels away when a battle starts
 (`ModalDialogManager.clearAll`, as the era fight did); they show themselves again
 at its end.
 

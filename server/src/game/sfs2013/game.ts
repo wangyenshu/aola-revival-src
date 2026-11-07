@@ -31,6 +31,7 @@ import { installThinkTower, type TowerRec } from "./thinktower.ts";
 import { installSevenStar, type SevenStarRec } from "./sevenstar.ts";
 import { installKingBosses, type KingRec } from "./kingbosses.ts";
 import { installFightKing, type WushenRec } from "./fightking.ts";
+import { installGodBosses, SOUL_STONE_PRICE, ABYSS, type GodRec } from "./godbosses.ts";
 import { isGiftBag, openGiftBag, openHeldGiftBags } from "./giftbags.ts";
 
 export interface UserRecord {
@@ -72,6 +73,8 @@ export interface UserRecord {
   /** 星币 (UserInfo.xingbi) and 晶豆 (a later currency: 极限轰炸 pays it; the toolbox shows it). */
   xingbi?: number;
   jingdou?: number;
+  /** 奥币 (bought with money; the 工具箱 gives them): the 星币 machine makes 星币 of them. */
+  aobi?: number;
   /** 蓝宝石 (member), set with the toolbox. */
   vip?: boolean;
   /** 亚比 of the 仓库 the HELLO trains (亚比训练, 2-14 / 2-15 / 2-16): lesson and start (ms). */
@@ -86,6 +89,8 @@ export interface UserRecord {
   kings?: KingRec;
   /** 武神大陆 (fightking.ts). */
   wushen?: WushenRec;
+  /** 天空之神, 施瓦辛格, 波塞冬, 魔龙之战 (godbosses.ts). */
+  gods?: GodRec;
   /** Messages left today on others' 留言板 (garden.ts). */
   boardDay?: { day: string; n: number };
   /** Friends and asks to be friends (social.ts), by player id. */
@@ -116,8 +121,8 @@ export interface UserRecord {
   vipTower?: { fl: number; ps: boolean };
   /** 欢乐岛 today: seconds used, seconds bought (增加时长 bought n times), 双倍经验. */
   hotSpring?: { day: string; used: number; extra: number; adds: number; double: boolean };
-  /** 财富小管家's boxes: 晶币 put away (sc) on sd (ms) for d days. */
-  fortune?: ({ sc: number; sd: number; d: number } | null)[];
+  /** 财富小管家's boxes: 晶豆 put away (sc) on sd (ms) for d days (jd; boxes without it kept 晶币). */
+  fortune?: ({ sc: number; sd: number; d: number; jd?: boolean } | null)[];
   /** 欢乐弹珠机: the day its top prize was last given (once a day). */
   pinballTop?: string;
   /** 礼包 (giftbags.ts): the ones bought at least once, and 经验 waiting for the HELLO. */
@@ -263,6 +268,17 @@ function normalise(rec: UserRecord): UserRecord {
   openHeldGiftBags(rec);
   return rec;
 }
+
+/** 财富小管家: the interest of a box taken out at now (ms). */
+export function fortuneInterest(a: { sc: number; sd: number; d: number }, now: number): number {
+  const day = 24 * 3600 * 1000;
+  if (now >= a.sd + a.d * day) return Math.floor((a.sc * a.d) / 35);
+  return Math.floor(a.sc * Math.floor((now - a.sd) / day) * 0.001);
+}
+/** The 星币 machine's rates (fortunemanager/starcoin's StarCoinConfig). */
+export const AO_TO_COIN = 10;
+export const PIECES_TO_COIN = 188;
+export const PIECES_TO_COIN_VIP = 94;
 
 /** Mini game rates (RECONSTRUCTED): points per 晶币, 晶币 a game at most, 晶币 a day at most. */
 export const GAME_SCORE_PER_COIN = 10;
@@ -447,17 +463,35 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ userId: rec.id, totalScore: rec.score });
   });
 
-  // 财富小管家 (fortunemanager/fortunemanager, rebuilt; the later client's ScoreManager commands):
-  //   getAccount {} -> {al: [{id, sc, sd, d}], now}; despositAccount {ai, sc, d} -> {b};
-  //   takeAwawyAccount {ai} -> {res: 晶币 back or -1, interest}.
-  // Five boxes, 1 to 7 days. Interest at the end: sc * d * d / 1000 (百田's guide of January 2012:
-  // 500,000 晶币 for 7 days earn 24,500); taken out sooner: sc * whole days * 0.001 (the later panel's
-  // figure), none in the first day. The limits (1000 to 1,000,000 a box) are RECONSTRUCTED.
-  const FORTUNE_DAY = 24 * 3600 * 1000;
+  // 财富小管家's 晶豆储蓄 (fortunemanager/starcoin, the later module's FortunemanagerPanel, rebuilt on
+  // the 2013 libraries): ScoreManager
+  //   getAccount {} -> {al: [{id, sc, sd, d}], now, jingdou}
+  //   despositAccount {ai, sc, d} -> {b, jingdou}      a box (0–4) of 1000 to 5000 晶豆 for 1–7 days
+  //   takeAwawyAccount {ai} -> {res: the interest (-1 none), jingdou}
+  // The panel's words: 存储收入 sc * d / 35 when the days are up ("多存一天就能获得多一份晶豆"),
+  // taken out sooner sc * whole days * 0.001, none in the first day ("不存满一天是不能赚到更多晶豆的");
+  // "要存入1000晶豆以上才行哦", "单笔存款不能超过5000晶豆哦". jingdou, the count, is the revival's
+  // (the 2013 UserInfo has no 晶豆).
+  // The boxes of the earlier rebuilt panel kept 晶币: they go back as they were put in.
+  const oldBoxes = (rec: UserRecord) => {
+    let back = 0;
+    (rec.fortune ?? []).forEach((a, i) => {
+      if (a && !a.jd) {
+        back += a.sc;
+        rec.fortune![i] = null;
+      }
+    });
+    if (back) rec.score = Math.min(9_999_999, (rec.score ?? 0) + back);
+    return back;
+  };
   world.xt("ScoreManager.getAccount", async (ctx) => {
     const rec = await me(ctx);
+    if (oldBoxes(rec)) {
+      await save(rec);
+      ctx.reply({ score: rec.score }, "onScoreUpdated");
+    }
     const al = (rec.fortune ?? []).map((a, id) => (a ? { id, sc: a.sc, sd: a.sd, d: a.d } : null)).filter(Boolean);
-    ctx.reply({ al, now: emu.clock.now().getTime() });
+    ctx.reply({ al, now: emu.clock.now().getTime(), jingdou: rec.jingdou ?? 0 });
   });
   world.xt("ScoreManager.despositAccount", async (ctx) => {
     const rec = await me(ctx);
@@ -465,25 +499,60 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const sc = Number(ctx.params.sc) | 0;
     const d = Number(ctx.params.d) | 0;
     const boxes = (rec.fortune ??= []);
-    if (ai < 0 || ai > 4 || boxes[ai] || d < 1 || d > 7 || sc < 1000 || sc > 1_000_000 || (rec.score ?? 0) < sc) return ctx.reply({ b: false });
-    rec.score = (rec.score ?? 0) - sc;
-    boxes[ai] = { sc, sd: emu.clock.now().getTime(), d };
+    if (ai < 0 || ai > 4 || boxes[ai] || d < 1 || d > 7 || sc < 1000 || sc > 5000 || (rec.jingdou ?? 0) < sc) {
+      return ctx.reply({ b: false, jingdou: rec.jingdou ?? 0 });
+    }
+    rec.jingdou = (rec.jingdou ?? 0) - sc;
+    boxes[ai] = { sc, sd: emu.clock.now().getTime(), d, jd: true };
     await save(rec);
-    ctx.reply({ score: rec.score }, "onScoreUpdated");
-    ctx.reply({ b: true });
+    ctx.reply({ b: true, jingdou: rec.jingdou });
   });
   world.xt("ScoreManager.takeAwawyAccount", async (ctx) => {
     const rec = await me(ctx);
     const ai = Number(ctx.params.ai) | 0;
     const a = rec.fortune?.[ai];
-    if (!a) return ctx.reply({ res: -1, interest: 0 });
+    if (!a || !a.jd) return ctx.reply({ res: -1, jingdou: rec.jingdou ?? 0 });
     const now = emu.clock.now().getTime();
-    const interest = now >= a.sd + a.d * FORTUNE_DAY ? Math.floor((a.sc * a.d * a.d) / 1000) : Math.floor(a.sc * Math.floor((now - a.sd) / FORTUNE_DAY) * 0.001);
+    const interest = fortuneInterest(a, now);
     rec.fortune![ai] = null;
-    rec.score = (rec.score ?? 0) + a.sc + interest;
+    rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + a.sc + interest);
     await save(rec);
-    ctx.reply({ score: rec.score }, "onScoreUpdated");
-    ctx.reply({ res: a.sc + interest, interest });
+    ctx.reply({ res: interest, jingdou: rec.jingdou });
+  });
+
+  // The 星币 machine's other tabs (fortunemanager/starcoin's StarCoinClient), MaterialExtension:
+  //   14_21 {} -> {aobi}             the 奥币 had (奥币 were bought with money; here the 工具箱 gives them)
+  //   14_20 {aobi} -> {res}          奥币铸造星币: 1 奥币 for 10 星币 (StarCoinConfig.AO_TO_COIN_RATE);
+  //                                  res 1, 3 too few 奥币
+  //   14_19 {num} -> {result}        碎片铸造星币: 188 流星碎片 (item 162) a 星币, 94 for 蓝宝石
+  //                                  (PIECE_TO_COIN_RATE, _RAIE_VIP); result 1, 6 too few 流星碎片
+  // The later server's day and month limits (res 4, 5; result 2, 3) are not known: none here.
+  world.xt("MaterialExtension.14_21", async (ctx) => {
+    const rec = await me(ctx);
+    ctx.reply({ aobi: rec.aobi ?? 0 }, "14_21");
+  });
+  world.xt("MaterialExtension.14_20", async (ctx) => {
+    const rec = await me(ctx);
+    const n = Math.max(0, Number(ctx.params.aobi) | 0);
+    if (n <= 0 || (rec.aobi ?? 0) < n) return ctx.reply({ res: 3 }, "14_20");
+    rec.aobi = (rec.aobi ?? 0) - n;
+    rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + n * AO_TO_COIN);
+    await save(rec);
+    ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
+    ctx.reply({ res: 1 }, "14_20");
+  });
+  world.xt("MaterialExtension.14_19", async (ctx) => {
+    const rec = await me(ctx);
+    const n = Math.max(0, Number(ctx.params.num) | 0);
+    const need = n * (rec.vip ? PIECES_TO_COIN_VIP : PIECES_TO_COIN);
+    const bag = ((rec.items ??= {})["2"] ??= {});
+    if (n <= 0 || (bag["162"] ?? 0) < need) return ctx.reply({ result: 6 }, "14_19");
+    bag["162"] -= need;
+    rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + n);
+    await save(rec);
+    ctx.reply({ amount: `2_162_0_-${need}` }, "onAmountUpdated");
+    ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
+    ctx.reply({ result: 1 }, "14_19");
   });
 
   // Mini games: SocketClient.endGame -> ScoreManager.increaseScore {score (encrypted, Encrypt.encryptCode),
@@ -567,7 +636,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       ctx.reply({ score: rec.score }, "onScoreUpdated");
       return ctx.reply({ res: 1, tp: 9, mi: Number(mi), qt: 1, score: rec.score, saplings: n });
     }
-    const [price, buyback, rmb, maxQ, vipOnly] = row;
+    const [price, buyback, rmb0, maxQ, vipOnly] = row;
+    // The 魂石 of 魔龙之战 (godbosses.ts): "星币获取", a price the 2013 table does not have.
+    const rmb = rmb0 || (tp === "2" && ABYSS.stones.includes(Number(mi)) ? SOUL_STONE_PRICE : 0);
     const unit = price > 0 ? price : buyback * 2;
     const tab = await table();
     // The bought thing into the bag (a 礼包: what it holds); the onAmountUpdated parts, what a bag gave.
@@ -676,19 +747,19 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // Not of 2013: the revival's own panel for testing and for players who want it
   // (rebuilt control, ToolboxPanel). SundriesExtension.revival_toolbox (the client
   // reaches the server only through the extensions it numbers)
-  //   {score, xingbi, jingdou, exp}  adds that much (晶币 at most 9,999,999; exp to the
+  //   {score, xingbi, jingdou, aobi, exp}  adds that much (晶币 at most 9,999,999; exp to the
   //                                  first 亚比 of the bag, with its levels and evolutions)
   //   {raceId, level}                a new 亚比 (to the bag, or the 亚比仓库 when the bag is full)
   //   {tree: "grown"}                the 植树盆's tree at its top level, its fruit all borne (收为家具 may follow)
-  //   -> revival_toolbox {score, xingbi, jingdou, msg}, onScoreUpdated, and the 亚比 replies
+  //   -> revival_toolbox {score, xingbi, jingdou, aobi, msg}, onScoreUpdated, and the 亚比 replies
   const toolbox = opts.toolbox ?? true;
   world.xt("SundriesExtension.revival_toolbox", async (ctx) => {
     const rec = await me(ctx);
     const p = ctx.params;
     // Closed (a shared server): the totals only (the game asks them at the start), no gifts.
-    const gifts = ["score", "xingbi", "jingdou", "exp", "raceId", "vip", "tree"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
+    const gifts = ["score", "xingbi", "jingdou", "aobi", "exp", "raceId", "vip", "tree"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
     if (!toolbox && gifts) {
-      return ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, vip: !!rec.vip, msg: "这个服务器关闭了工具箱。" }, "revival_toolbox");
+      return ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, aobi: rec.aobi ?? 0, vip: !!rec.vip, msg: "这个服务器关闭了工具箱。" }, "revival_toolbox");
     }
     const t = await tables();
     const add = (v: unknown) => Math.max(0, Math.min(9_999_999, Number(v) | 0));
@@ -712,6 +783,10 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     if (add(p.jingdou)) {
       rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + add(p.jingdou));
       said.push(`晶豆 +${add(p.jingdou)}`);
+    }
+    if (add(p.aobi)) {
+      rec.aobi = Math.min(9_999_999, (rec.aobi ?? 0) + add(p.aobi));
+      said.push(`奥币 +${add(p.aobi)}`);
     }
     if (add(p.exp)) {
       const pet = rec.pets?.[0];
@@ -747,7 +822,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       }
     }
     await save(rec);
-    ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, vip: !!rec.vip, msg: said.join("\n") }, "revival_toolbox");
+    ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, aobi: rec.aobi ?? 0, vip: !!rec.vip, msg: said.join("\n") }, "revival_toolbox");
   });
 
   // ---------------------------------------------------------------- pets
@@ -907,7 +982,6 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     me,
     save: (o) => save(o as UserRecord),
     today,
-    givePet: (o, race, level) => givePetTo(o as UserRecord, race, level),
   });
 
   // 黑暗三连星 (黑暗星穴) and 魔将挑战 (深渊之门): sevenstar.ts.
@@ -932,6 +1006,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     save: (o) => save(o as UserRecord),
     today,
     now: () => emu.clock.now().getTime(),
+  });
+
+  // 天空之神, 施瓦辛格, 波塞冬 and 魔龙之战: godbosses.ts.
+  installGodBosses(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    today,
   });
 
   // The 家园's bar and its 友谊留言板: garden.ts.

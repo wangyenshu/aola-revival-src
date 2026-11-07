@@ -46,6 +46,7 @@ buyback/stuffbuyback
 baseservice/scenearrow
 bumpbilliards/bumpbilliards
 fortunemanager/fortunemanager
+fortunemanager/starcoin
 pet/peteggservice
 spacetime/spacetimeservice
 fbservice/fbservice

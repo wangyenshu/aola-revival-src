@@ -90,8 +90,10 @@ package mmo.revival.book
          // Clothes carry only a buy-back value; config.xml's buyback percent 0.5 makes the price twice that.
          var unit:int = material.price > 0 ? material.price : material.sale * 2;
          var member:Boolean = isMember();
-         var starCoins:Boolean = unit <= 0 && material.rmb > 0;
-         if (starCoins) unit = member ? Math.ceil(material.rmb / 2) : material.rmb;
+         // The 魂石 of 魔龙之战 (636–638): "星币获取", a price the 2013 table does not have (the server's, RECONSTRUCTED).
+         var rmb:int = material.rmb > 0 ? material.rmb : (info.type == 2 && info.id >= 636 && info.id <= 638 ? 100 : 0);
+         var starCoins:Boolean = unit <= 0 && rmb > 0;
+         if (starCoins) unit = member ? Math.ceil(rmb / 2) : rmb;
          if (material.vip && !member)
          {
             message("只有蓝宝石才能购买" + material.name + "哦！（工具箱里可以成为蓝宝石）");

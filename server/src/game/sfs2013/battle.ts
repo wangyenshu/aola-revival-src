@@ -57,7 +57,7 @@ import {
 } from "./pets.ts";
 import { PET_CARD, PET_CARDS, cardDrop } from "./petcards.ts";
 import { installSandbox } from "./sandbox.ts";
-import { applyFate, dollLevel, gymOf, gymWon, installGyms, towerFloorWon, GYM_DARK, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
+import { applyFate, dollLevel, gymOf, gymWon, installGyms, mazeDoll, rollFate, towerFloorWon, waterAttacker, waterRunEnd, GYM_DARK, WATER_BLESS, WATER_ROUNDS, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
 import { sceneOfRoom, type World, type XtContext } from "./server.ts";
 import { registerFights } from "./fighting.ts";
 import { markDic, MET, NEW_RECORD, OWNED } from "./petdic.ts";
@@ -203,6 +203,10 @@ export interface Battle {
   noAward?: boolean;
   /** Fought by the 自动战斗仪: at its end every 亚比 of the bag has all its 体力 and PP back. */
   auto?: boolean;
+  /** The opponents still to come after the one fighting (an activity's boss with its helpers). */
+  foes?: PetRecord[];
+  /** 最强防御PK战: the rounds to stand (won once they are over, the 亚比 standing); no switching. */
+  insist?: number;
   /** 亚比对战 with another player (duel.ts): the battle of both, its commands are the duel's. */
   duel?: Duel;
   /** 全场 X系威力提升: the 属性 up and down, for some turns. */
@@ -1839,6 +1843,8 @@ export interface ActFight {
   onLose?: (o: PetOwner, t: PetTables) => Msg[];
   /** The battle made, before it is sent (a blessing on the player's 亚比). */
   adjust?: (b: Battle) => void;
+  /** 亚比 that come out one after another when the first falls (an activity boss's helpers). */
+  team?: { race: number; level: number }[];
 }
 export type ActFightSpec = (ctx: XtContext, o: PetOwner, t: PetTables) => Promise<ActFight | string> | ActFight | string;
 const ACT_FIGHTS = new WeakMap<World, Map<number, ActFightSpec>>();
@@ -2136,6 +2142,44 @@ export function installBattles(world: World, deps: BattleDeps): void {
       ctx.reply({ res: false });
       ctx.reply({ msg }, "2303");
     };
+    // 最强防御PK战 (gyms.ts): the panel's insistFight, 54_22 {type: 85, lv, buff}.
+    if (type === GYM_TOWER && ctx.params.layer === undefined && Number(ctx.params.lv) > 0) {
+      const stage = Number(ctx.params.lv) | 0;
+      const rounds = WATER_ROUNDS[stage - 1];
+      if (!rounds) return refuse("这个挑战现在还不能进行哦！");
+      const o = await deps.load(ctx);
+      const first = (o.pets ?? [])[0];
+      if (!first || first.hp <= 0) return refuse("你的首宠没有体力了，先治疗一下吧！");
+      const g = gymOf(o);
+      const bless = !!ctx.params.buff && (g.waterBless ?? 0) > 0;
+      if (bless) g.waterBless = (g.waterBless ?? 0) - 1;
+      await deps.save(o);
+      const foe = waterAttacker(stage);
+      const today = deps.today();
+      ctx.reply({ res: true });
+      return void (await begin(
+        ctx,
+        foe.race,
+        foe.level,
+        false,
+        (owner) => (stage >= WATER_ROUNDS.length ? [waterRunEnd(gymOf(owner), stage, today)] : []),
+        undefined,
+        (owner) => [waterRunEnd(gymOf(owner), stage - 1, today)],
+        undefined,
+        undefined,
+        (b) => {
+          b.insist = rounds;
+          if (bless) {
+            const st = b.mine.stats.slice();
+            st[2] += WATER_BLESS.def;
+            st[4] += WATER_BLESS.def;
+            st[0] += WATER_BLESS.hp;
+            b.mine.stats = st;
+            b.mine.pet.hp += WATER_BLESS.hp;
+          }
+        },
+      ));
+    }
     if (type === GYM_TOWER) {
       const layer = Number(ctx.params.layer) | 0;
       const run = gymOf(await deps.load(ctx)).tower;
@@ -2148,6 +2192,53 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const raceId = Number(ctx.params.raceId) | 0;
       ctx.reply({ res: true });
       return void (await begin(ctx, raceId % 10000, dollLevel(raceId), false, undefined, raceId));
+    }
+    // 玩偶迷阵 (gyms.ts): 54_22 {type: 88, id: 2}, the run's next 命运玩偶, 幻冥's 战斗祝福 on both.
+    if (type === GYM_DARK && (Number(ctx.params.id) | 0) === 2) {
+      const o = await deps.load(ctx);
+      const g = gymOf(o);
+      if (!g.maze || g.maze.over) g.maze = { start: deps.now?.() ?? Date.now(), num: 0, hurt: 0, over: false };
+      const doll = mazeDoll(g.maze.num);
+      const rng = deps.rng ?? Math.random;
+      const fates = [rollFate(rng), rollFate(rng)];
+      await deps.save(o);
+      // The damage done to the doll, from the battle itself.
+      const hurt = (owner: PetOwner) => {
+        const b = battles.get(owner.id);
+        return b ? Math.max(0, b.wild.stats[0] - Math.max(0, b.wild.pet.hp)) : 0;
+      };
+      ctx.reply({ res: true });
+      return void (await begin(
+        ctx,
+        doll.race,
+        doll.level,
+        false,
+        (owner) => {
+          const run = gymOf(owner).maze;
+          if (run) {
+            run.num += 1;
+            run.hurt += hurt(owner);
+          }
+          return [];
+        },
+        undefined,
+        (owner) => {
+          const run = gymOf(owner).maze;
+          if (run) {
+            run.hurt += hurt(owner);
+            run.over = true;
+          }
+          return [];
+        },
+        undefined,
+        undefined,
+        (b) => {
+          b.mine.stats = applyFate(b.mine.stats, fates[0]);
+          b.wild.stats = applyFate(b.wild.stats, fates[1]);
+          b.wild.pet.hp = b.wild.stats[0];
+          b.mine.pet.hp = Math.min(b.mine.pet.hp, b.mine.stats[0]);
+        },
+      ));
     }
     const master = GYM_MASTERS[type];
     if (!master) return refuse(type === GYM_LIGHT ? "友情的试炼需要好友的亚比一起参加哦！" : "这个挑战现在还不能进行哦！");
@@ -2202,7 +2293,12 @@ export function installBattles(world: World, deps: BattleDeps): void {
         return ctx.reply({ msg: f }, "2303");
       }
       ctx.reply({ res: true });
-      return void (await begin(ctx, f.race, f.level, false, f.onWin ? (owner) => f.onWin!(owner, t) : undefined, f.asked, f.onLose ? (owner) => f.onLose!(owner, t) : undefined, undefined, undefined, f.adjust));
+      const team = (f.team ?? []).filter((m) => speciesOf(t, m.race)).map((m) => makePet(t, m.race, Math.max(1, Math.min(100, m.level)), deps.today()));
+      const adjust = (b: Battle) => {
+        if (team.length) b.foes = team;
+        f.adjust?.(b);
+      };
+      return void (await begin(ctx, f.race, f.level, false, f.onWin ? (owner) => f.onWin!(owner, t) : undefined, f.asked, f.onLose ? (owner) => f.onLose!(owner, t) : undefined, undefined, undefined, adjust));
     }
     if (type !== FIGHT_IN_NPCCHALLENGE) {
       // A kind of fight not played here: the panel is told (2303 with msg: PetFightEvent.ENTER_FIGHT_FAIL),
@@ -2630,7 +2726,21 @@ export function installBattles(world: World, deps: BattleDeps): void {
       } else out.push(["2421", { slotId: 0, hpInc: 0, desc: "没有可以替换的亚比。", pmmList: e.views(b) }]);
     }
     b.forceOut = undefined;
+    // An activity boss's helper comes out when the one before it falls (Battle.foes).
+    if (b.wild.pet.hp <= 0 && b.foes?.length) {
+      const gone = b.wild.pet;
+      const next = b.foes.shift()!;
+      b.wild = fighter(1, next, 0, t);
+      const desc = `${nameOf(t, gone.race)}倒下了！\n${nameOf(t, next.race)}出战了！`;
+      out.push(["2413", { playerInfo: e.view(b, 1), extInfo: { desc, res: 1, forced: true, foe: true } }]);
+    }
     if (b.wild.pet.hp > 0 && b.mine.pet.hp > 0) out.push(...e.endOfTurn(b));
+    // 最强防御PK战: the rounds stood, the 局 is won.
+    let stood = false;
+    if (b.insist && b.mine.pet.hp > 0 && b.wild.pet.hp > 0 && b.turn + 1 >= b.insist) {
+      b.wild.pet.hp = 0;
+      stood = true;
+    }
     if (b.wild.pet.hp <= 0) {
       b.over = true;
       let radarCoins = 0;
@@ -2666,14 +2776,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // once the battle is closed ("1 个 …亚比蛋 已经放入你的亚比孵化器").
       const bn = won.filter(([c, m]) => c === NOTE && m.bn).map(([, m]) => m.bn);
       out.push(...won.filter(([c]) => c !== NOTE));
-      const desc = (b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。${radarCoins ? `寻宝雷达找到了${radarCoins}晶币！` : ""}`) + autoRestore(b, o, t);
+      const desc = (stood ? `坚持了${b.insist}回合，防御成功！` : "") + (b.noAward ? "战斗胜利！" : `战斗胜利！${nameOf(t, before)}获得了经验。${radarCoins ? `寻宝雷达找到了${radarCoins}晶币！` : ""}`) + autoRestore(b, o, t);
       // myFinalRaceId: the 亚比 that ended it (PetFightEvent.myFinalRaceId; the 道馆 panels give their stone for their own).
       out.push(["2403", { isWin: true, raceId: b.asked ?? b.wild.pet.race, id: b.copyId ?? 0, evolveFrom: r.evolvedTo ? before : 0, myFinalRaceId: before, desc, ...(notes.length ? { note: notes.join("\n") } : {}), ...(bn.length ? { bn } : {}), pmmList: e.views(b) }]);
       battles.delete(o.id);
       return out;
     }
     if (b.mine.pet.hp <= 0) {
-      if ((o.pets ?? []).some((p) => p.hp > 0)) {
+      if (!b.insist && (o.pets ?? []).some((p) => p.hp > 0)) {
         b.mustSwitch = true;
         out.push(["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]);
         return out;
@@ -2844,7 +2954,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
   });
 
   // The 沙盒's fights (sandbox.ts): its opponents, not to be caught, no award.
-  installGyms(world, { load: deps.load, save: deps.save, tables: deps.tables, today: deps.today, now: () => deps.now?.() ?? Date.now(), rng: deps.rng ?? Math.random });
+  installGyms(world, { load: deps.load, save: deps.save, tables: deps.tables, today: deps.today, now: () => deps.now?.() ?? Date.now(), rng: deps.rng ?? Math.random, gainExp: (t, pet, n) => gainExp(t, pet, n).msgs });
   installSandbox(world, { load: deps.load, save: deps.save, tables: deps.tables, begin: (ctx, race, level, sandbox) => begin(ctx, race, level, false, undefined, undefined, undefined, undefined, sandbox) });
 
   // Leaving the room ends a battle left open (the client was closed mid-fight).

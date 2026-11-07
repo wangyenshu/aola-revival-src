@@ -24,6 +24,7 @@ package mmo.pm.service
       private var _customData:PMCustomData = null;
       /** The PMDataMap's own object: rows added later are found by getPM. */
       private var pmRows:Object = {};
+      private static const BOSS_FORMS:Array = [41257, 41248, 41259, 41267];
 
       public function PMService()
       {
@@ -43,6 +44,13 @@ package mmo.pm.service
             for (var a:String in PMTables.attDef) att[a] = PMTables.newAttDef(PMTables.attDef[a] as Array);
          }
          catch (e:Error) { RLog.error("PMService tables", e); }
+         // Boss forms panels name by variant * 10000 + species (施瓦辛格's helpers 41257, 41248, 41259,
+         // 41267: activity121101/schwarzenegger): the rows of their species.
+         for each (var v:int in BOSS_FORMS)
+         {
+            var base:Object = pmRows[String(v % 10000)];
+            if (base != null && pmRows[String(v)] == null) pmRows[String(v)] = base;
+         }
          _customData = new PMCustomData();
          _customData.initData(pmRows, exp, att, skills);
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));

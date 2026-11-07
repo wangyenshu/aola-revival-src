@@ -89,7 +89,8 @@ either:
 
 Money: 晶币 are earned in the game (battles, mini games, quests). 星币 stand
 in for the real-money currency of 2012; the revival has no payment, so 星币
-come only from the 工具箱. 蓝宝石 (the membership) halves 星币 prices and
+come only from the 工具箱 (directly, or as 奥币 made into 星币 at the 财富小管家),
+or from 流星碎片 at the 财富小管家's 碎片铸造星币. 蓝宝石 (the membership) halves 星币 prices and
 opens members-only goods; it is switched on in the 工具箱.
 
 ## 工具箱
@@ -100,7 +101,7 @@ the screen.
 
 | Section | Use |
 | --- | --- |
-| 晶币, 星币, 晶豆 | Enter an amount and click 增加. Each total is capped at 9,999,999. 晶豆 is a later currency; the server keeps it but no 2013 shop uses it. |
+| 晶币, 星币, 晶豆, 奥币 | Enter an amount and click 增加. Each total is capped at 9,999,999. 晶豆 (a later currency) can be put in the 财富小管家's 晶豆储蓄 in 奥拉广场; 奥币 (the real-money coins of 2012) become 星币 at the same machine's 奥币铸造星币, 1 奥币 for 10 星币. |
 | 亚比经验 | Enter an amount and click 增加. The experience goes to the first 亚比 of the bag, which levels up, learns skills and evolves as after a battle. |
 | 成为蓝宝石 / 取消蓝宝石 | Switch the 蓝宝石 membership on or off. |
 | 领取亚比 | Enter the 亚比's 图鉴 number (编号, 1 to 1651) and a level from 1 to 100, then click 领取. The name appears next to the number. The 亚比 goes into the bag, or into the 亚比仓库 when the bag already holds six. It knows every skill its line learns up to that level. |

@@ -9,12 +9,14 @@
 //                                             18 火, 19 冰, 20 雷; 21 念 (邪念) beaten in 念之大厅
 //   98_3 {type}      -> {bn: [{type, id, num}]}   the seal's chest (type 17–20): 100 晶币, 101
 //                                             经验 (the HELLO's, as quests give it), else a material
-//   70_46 {race}     -> {has}                 念之大厅: has the player a 亚比 of 念's line (小念 602)
-//   70_45 {race}     -> {suc}                 念之大厅: 小念's egg once 邪念 is beaten
+//   70_46 {race}     -> {has}                 念之大厅: has the player 小念's egg, or a 亚比 of 念's line
+//                                             (小念 602): the scene then leaves out the egg
+//   70_45 {race}     -> {suc}                 念之大厅: 小念's egg once 邪念 is beaten, into the 亚比孵化器
+//                                             (the scene shows "亚比蛋" 602, MaterialGetPanel type 102)
 //
-// The 2011–12 server is lost: RECONSTRUCTED are the chests (CHEST: once a day each), 小念's
-// level, and that 小念 is given only once 念 has been beaten (98_1 type 21) and only to one who
-// has none of its line.
+// The 2011–12 server is lost: RECONSTRUCTED are the chests (CHEST: once a day each), and that the
+// egg is given only once 念 has been beaten (98_1 type 21) and only to one who has neither it
+// nor a 亚比 of its line.
 
 import type { World, XtContext } from "./server.ts";
 
@@ -24,7 +26,6 @@ export const NIAN_TYPE = 21;
 export const NIAN_LINE = [602, 603, 604];
 /** A seal's chest: 晶币 and the HELLO's 经验 (RECONSTRUCTED). */
 export const CHEST = { coins: 1000, exp: 2000 };
-export const XIAONIAN_LEVEL = 5;
 
 export interface TowerRec {
   /** Seals opened: their types. */
@@ -42,17 +43,22 @@ export interface TowerOwner {
   robot?: { exp: number };
   helloExp?: number;
   tower?: TowerRec;
+  items?: Record<string, Record<string, number>>;
+  /** The 亚比孵化器 (eggs.ts): the eggs hatching. */
+  hatch?: { eggs?: { mi: number }[] };
 }
 
 export interface TowerDeps {
   me(ctx: XtContext): Promise<TowerOwner>;
   save(o: TowerOwner): Promise<void>;
   today(): string;
-  /** A new 亚比 (the bag or the 仓库): the messages for the client. */
-  givePet(o: TowerOwner, race: number, level: number): Promise<[string, Record<string, unknown>][]>;
 }
 
-const hasLine = (o: TowerOwner) => [...(o.pets ?? []), ...(o.storage ?? [])].some((p) => NIAN_LINE.includes(p.race));
+/** 小念's egg (in the bag of eggs or hatching) or a 亚比 of 念's line. */
+const hasLine = (o: TowerOwner) =>
+  (o.items?.["5"]?.[String(NIAN_LINE[0])] ?? 0) > 0 ||
+  (o.hatch?.eggs ?? []).some((e) => e.mi === NIAN_LINE[0]) ||
+  [...(o.pets ?? []), ...(o.storage ?? [])].some((p) => NIAN_LINE.includes(p.race));
 
 export function installThinkTower(world: World, deps: TowerDeps): void {
   world.xt("MentalHallExtension.98_2", async (ctx) => {
@@ -93,9 +99,10 @@ export function installThinkTower(world: World, deps: TowerDeps): void {
   world.xt("SundriesExtension.70_45", async (ctx) => {
     const o = await deps.me(ctx);
     if (Number(ctx.params.race) !== NIAN_LINE[0] || !o.tower?.nian || hasLine(o)) return ctx.reply({ suc: false }, "70_45");
-    const msgs = await deps.givePet(o, NIAN_LINE[0], XIAONIAN_LEVEL);
+    const eggs = ((o.items ??= {})["5"] ??= {});
+    eggs[String(NIAN_LINE[0])] = (eggs[String(NIAN_LINE[0])] ?? 0) + 1;
     await deps.save(o);
-    for (const [cmd, body] of msgs) ctx.reply(body, cmd);
+    ctx.reply({ amount: `5_${NIAN_LINE[0]}_0_1` }, "onAmountUpdated");
     ctx.reply({ suc: true }, "70_45");
   });
 }

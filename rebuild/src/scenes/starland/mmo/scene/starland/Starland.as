@@ -99,7 +99,7 @@ package mmo.scene.starland
             });
          }
          // 财富小管家 (百田's guide of January 2012: the machine of 奥拉广场 that keeps
-         // 晶币 with interest): the red machine with the star of the 2012 art
+         // savings with interest; the later module keeps 晶豆): the red machine with the star of the 2012 art
          // (overlap.asdasd), which nothing else claims.
          // The machine itself takes no clicks: a hotspot over it.
          var machine:DisplayObject = findNamed(this, "asdasd");
@@ -117,7 +117,8 @@ package mmo.scene.starland
                e.stopImmediatePropagation();
                ServiceContainer.instance.tryGetService("FortuneManagerService", function(svc:*, o:Object = null):void
                {
-                  if (svc != null) svc.showPanel();
+                  // The machine's 晶豆储蓄 tab (fortunemanager/starcoin's ExchangePanel, tab 2).
+                  if (svc != null) svc.showPanelByData({zhuZaoTabIndex: 2});
                }, this);
             });
          }

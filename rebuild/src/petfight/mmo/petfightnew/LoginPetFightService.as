@@ -179,9 +179,14 @@ package mmo.petfightnew
          RLog.stub("LoginPetFightService.fightInMagicCubic");
       }
 
+      /**
+       * 最强防御PK战's 局 (activityres/activity121115/water/waterdefence: insistFight(局, rounds,
+       * 防御祝福)): the later client's PetFightService sent startFight(85, {sw: false, lv, buff}); the
+       * server knows the rounds of each 局 (gyms.ts).
+       */
       public function insistFight(a:int, b:int, c:Boolean = false):void
       {
-         RLog.stub("LoginPetFightService.insistFight");
+         PetClient2.instance.startFight(85, {sw: false, lv: a, buff: c});
       }
 
       public function handleNextFight():void

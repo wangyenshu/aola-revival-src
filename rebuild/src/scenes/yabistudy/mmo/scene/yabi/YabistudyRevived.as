@@ -15,6 +15,7 @@ package mmo.scene.yabi
    import mmo.play.activity.helper.Panel_Helper;
    import mmo.play.scene.SceneBase;
    import mmo.revival.RLog;
+   import mmo.revival.RTraining;
 
    /**
     * REBUILT 亚比研究中心 (room "yabistudy") on the oldest surviving art of it,
@@ -26,8 +27,7 @@ package mmo.scene.yabi
     * is lost, and the machine opens the 天赋启迪 of 17 January 2013
     * (activityres/activity130117/geniusedification), the era's other panel that
     * raises a 亚比's 天赋, whose own hint sends players to this machine. The pad
-    * of the two 亚比 (btndetect) is the 亚比训练 (PetTraining, not rebuilt: it
-    * says so). 亚比融合 (PetMixService) is 贝鲁特's (engine ScenePatches.MENUS),
+    * of the two 亚比 (btndetect) is the 亚比训练 (the era pet/pettraining, as the HELLO's). 亚比融合 (PetMixService) is 贝鲁特's (engine ScenePatches.MENUS),
     * the art having no machine of its own for it. The 亚比蛋 shop (btnbuyegg:
     * the 收费亚比蛋商品册). The ways out are
     * RECONSTRUCTED on the copy's signs: 升级基地 to the 亚比训练室, 进阶研究室 to
@@ -77,7 +77,9 @@ package mmo.scene.yabi
             TipsManager.getInstance().addTips(s, w[0]);
          }
          button("btnPetMix", "天赋改造机", showGenius);
-         button("btndetect", "亚比训练", function():void { RLog.stub("PetTraining.showPanel"); });
+         // 亚比训练: the era's (the 亚比 in training first, pet/petbetraining, else the lessons,
+         // pet/pettraining), as the HELLO's 亚比训练 opens it ("接受训练的亚比会被送到科学院亚比研究中心的二楼").
+         button("btndetect", "亚比训练", function():void { RTraining.open(); });
          var egg:InteractiveObject = find(this, "btnbuyegg") as InteractiveObject;
          if (egg != null)
          {
