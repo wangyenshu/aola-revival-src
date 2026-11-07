@@ -11,9 +11,9 @@ import { SFS2013_FRAMING, sfs2013Codec, type XtContext, type XtHandler } from ".
 
 const site = new URL("../../../../rebuild/static/www.9aola.com/", import.meta.url);
 const MODES: Record<string, any> = {
-  easy: { team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2 },
-  normal: { team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2 },
-  hard: { team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1 },
+  easy: { team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2 },
+  normal: { team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2 },
+  hard: { team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1 },
 };
 const G = [
   ["tom", 81, 48], ["kevin", 183, 50], ["nike", 36, 55], ["allen", 153, 56], ["sam", 78, 58], ["guard1", 18, 60],
@@ -140,6 +140,11 @@ async function campaign(seed: number) {
     await mod({ op: "item", id: 61, n: m.winCandy + (boss ? m.bossCandy : 0) });
     await mod({ op: "item", id: 104, n: m.winBean });
     if (captive) await call("SundriesExtension.revival_mod", { mod: "antwar", op: "give", race: captive, level: 100 });
+    // 下水道深处's chest, once its guards are gone.
+    if (id === "lucas") {
+      await mod({ op: "item", id: 61, n: m.chestCandy });
+      await mod({ op: "item", id: 104, n: m.chestBean });
+    }
     const r = await rec();
     log.push(`${id} (${race}) won; candy ${it["61"] ?? 0} bean ${it["104"] ?? 0}; hp ${r.pets.map((p: any) => p.race + ":" + p.hp).join(" ")}`);
   }

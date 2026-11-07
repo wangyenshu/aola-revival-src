@@ -4,6 +4,7 @@ package
    import flash.display.DisplayObjectContainer;
    import flash.display.Shape;
    import flash.display.Graphics;
+   import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.MouseEvent;
@@ -52,9 +53,9 @@ package
        * seldom, so that 普通 and 困难 ask for the allies' skills.
        */
       private static const MODES:Object = {
-         easy: {name: "简单", team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2},
-         normal: {name: "普通", team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2},
-         hard: {name: "困难", team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1}
+         easy: {name: "简单", team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2},
+         normal: {name: "普通", team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2},
+         hard: {name: "困难", team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1}
       };
 
       /**
@@ -70,7 +71,8 @@ package
          // The way up at the top right (et2, at the bottom, is not the way on).
          {id: "ant3", scene: "fbsiwude3", name: "蚁穴下水道", next: "ant4", door: "et1", arrow: [800, 100, 0, true],
             hide: ["npc_1"]},
-         {id: "ant4", scene: "fbsiwude4", name: "下水道深处", next: "ant5", door: "et1", arrow: [820, 220, 0, true]},
+         // The 蚁将军's treasure (the 副本's chest: 高级体力糖 and 高级活力豆), opened once its guards are gone.
+         {id: "ant4", scene: "fbsiwude4", name: "下水道深处", next: "ant5", door: "et1", arrow: [820, 220, 0, true], chest: "treasure"},
          {id: "ant5", scene: "fbsiwude5", name: "工蚁聚集地", next: "ant6", door: "et1", arrow: [288, 93, 0, true]},
          // In by the path on the right (et1), on through the great door between the statues.
          {id: "ant6", scene: "fbsiwude6", name: "蚁神守护大厅", next: "ant9", door: "fbsiwude6_door", arrow: [320, 150, 0, true], spawn: [840, 320]},
@@ -140,29 +142,29 @@ package
          {id: "mutant", room: "ant11", race: 227, level: 100, boss: true, look: 227, art: ["btn_general"], name: "变异蚁将军",
             gift: GENERAL, say: "吼——！！奥拉人……命令……守住……蚁后……", lost: "我……我是……蚁族的……将军……"},
          {id: "kid", room: "core", look: KULAN, name: "小奥拉", race: [502, 501, 500], level: 100, x: 470, y: 400, boss: true,
-            say: "兵蚁？你们怎么进了传送核心！我不会让你们去奥拉星的！", lost: "好强……我去告诉兰丁队长！"},
+            say: "传送门那头怎么出来的是蚂蚁？……你们是从蚁族王朝一路打过来的？不行，我不能让你们过去！", lost: "好、好厉害……我得赶紧去通知兰丁队长！"},
          {id: "landing", room: "hq", npc: 94, name: "兰丁", race: 1648, level: 100, x: 330, y: 430, boss: true,
-            say: "我是兰丁。指挥中心不是你们该来的地方。想谈条件，先赢过我的菲尔！", lost: "……这样的对手，值得尊敬。"},
+            say: "我是兰丁。能一路打到指挥中心，你们确实有本事。想谈条件，先过我和菲尔这一关。", lost: "……我输了。看来你们不是来捣乱的，是来讨个公道的。"},
          {id: "flora", room: "hq", npc: 194, name: "弗洛拉", race: 1649, level: 100, x: 610, y: 430, boss: true,
-            say: "我是弗洛拉。你们一路打到了这里？那就让我看看你们的实力。", lost: "可兰……我们输了。"},
+            say: "我是弗洛拉。前线的消息我都听说了……来吧，让我看看你们为了家园能拼到什么地步。", lost: "可兰，辛苦你了……是我们输了。"},
          {id: "rabel", room: "hq", npc: 86, name: "拉贝尔", race: 323, level: 100, x: 470, y: 330, boss: true, need: ["landing", "flora"],
-            say: "我是拉贝尔。你们打败了兰丁和弗洛拉，就让我和梅卡来做最后的了断吧！", lost: "……我们输了。奥拉人会撤出蚁族王朝。"}
+            say: "我是拉贝尔，指挥中心由我负责。兰丁和弗洛拉都输了，那就由我和梅卡来做最后的了断。", lost: "……够了，是我们输了。"}
       ];
 
       /** What each creature says when it is free: what it can do. */
       private static const THANKS:Object = {
-         "244": "咕噜！谢谢你们把我们放出来，牛角滴滴也要为蚁族王朝出力！",
-         "242": "呱！终于出来了。金刚蛤蟆跟你们一起去打奥拉人！",
-         "241": "谢谢你们！奥拉人把我关了好久，这下要让他们尝尝我的毒箭。",
-         "243": "我才不要去奥拉星当坐骑！下水猛鳄跟你们走。",
-         "218": "守护力士重获自由！蚁神守护大厅，还是由我们来守护。",
-         "219": "谢谢你们。奥拉人对王朝做的事，我都记着呢——走吧！",
-         "220": "兵蚁，干得好！蚁族圣斗士加入战斗！",
-         "221": "终于自由了。魔斗士的力量，借给你们！",
-         "225": "守护骑士保斯，向你们致谢。让我们一起夺回蚁神殿！",
-         "223": "火焰骑士兰斯罗特，重回战场！",
-         "224": "哥拉海德在此。前面就是蚁神殿正殿了，将军就在那里！",
-         "222": "谢谢你们。将军被奥拉人变成了怪物……我们得去救他。"
+         "244": "咕噜！谢谢你们！牛角滴滴虽然小，也想为王朝出一份力！",
+         "242": "呱……总算出来了。奥拉人的账，金刚蛤蟆跟你们一起算！",
+         "241": "被关了这么久，毒箭都快生锈了。走，带上我！",
+         "243": "想把我带回奥拉星当坐骑？做梦！下水猛鳄跟你们走。",
+         "218": "守护大厅失守，是我们守护者的耻辱。这一次，换我来守护你们。",
+         "219": "谢谢你们。奥拉人在王朝做的每一件事，我都记得清清楚楚——走吧。",
+         "220": "兵蚁，干得漂亮。这份情圣斗士记下了，这一战算我一个！",
+         "221": "终于自由了。魔斗士的力量，就借给你们吧。",
+         "225": "守护骑士保斯，向你们致谢。蚁神殿就在前面，我们一起把它夺回来！",
+         "223": "火焰骑士兰斯罗特，重回战场！奥拉人欠我们的，今天一并讨回。",
+         "224": "哥拉海德在此。正殿就在前面，将军和蚁后都在那里！",
+         "222": "谢谢你们……将军被奥拉人变成了怪物，我们得赶快去救他。"
       };
 
       /** 工蚁's advice before the hardest fights, by guard. */
@@ -224,6 +226,8 @@ package
       private var safe:Point;
       /** How near a guard lets the player come (across; on the floor seen at an angle, less up and down). */
       private static const REACH:Number = 125;
+      /** Where the 奥拉 army's portal stands in 蚁神殿正殿 (its foot). */
+      private static const PORTAL:Array = [820, 360];
       /** The 蚁族王朝 副本's arrows (fbteam/fbsiwude_res's ShowArrowhead). */
       private static const ARROW_FILE:String = "fbteam/fbsiwude_res";
       private static const ARROW_R:String = "mmo.scene.fbsiwude.ShowArrowhead_R";
@@ -336,13 +340,15 @@ package
             if (b.right > DOOR_RIGHT) b.x -= b.right - DOOR_RIGHT;
             room.door(b.x, b.y, Math.max(40, b.width), Math.max(40, b.height), "", function():void
             {
-               if (!roomCleared(r.id)) worker("先打败这里的奥拉守卫！");
+               if (!roomCleared(r.id)) worker("这里的守卫还没解决，先别急着走。");
                else game.enter(r.next);
             }, false);
             wayOn(room, b, r.arrow as Array);
          }
          // The ways the 副本's code opened (its roadblocks): open from the start, the door is what waits.
          for each (var on:String in r.open || []) { var op:DisplayObject = room.part(on); if (op && op.parent) op.parent.removeChild(op); }
+         if (r.id == "ant11" && beaten("mutant")) portal(room);
+         if (r.chest) chest(room, r.chest);
          for each (var hn:String in r.hide || []) { var hp:DisplayObject = room.part(hn); if (hp) hp.visible = false; }
          // Pieces of the scene gone once a guard falls (the 蚁后's cage).
          for (var fn:String in r.freed || {}) { var fp:DisplayObject = room.part(fn); if (fp && beaten(r.freed[fn])) fp.visible = false; }
@@ -460,6 +466,79 @@ package
          };
          arrow.addEventListener(Event.ENTER_FRAME, bob);
          room.onLeave(function():void { arrow.removeEventListener(Event.ENTER_FRAME, bob); });
+      }
+
+      /** The room's chest (its piece of the scene: frame 1 shut, 2 shining, 3 open), opened once. */
+      private function chest(room:IModRoom, part:String):void
+      {
+         var box:MovieClip = room.part(part) as MovieClip;
+         if (box == null) return;
+         var key:String = "chest_" + room.id;
+         var show:Function = function():void
+         {
+            try { box.gotoAndStop(game.getData(key) ? 3 : roomCleared(room.id) ? 2 : 1); } catch (e:Error) {}
+         };
+         show();
+         var shine:Function = function(e:Event):void { if (!game.getData(key) && roomCleared(room.id) && box.currentFrame == 1) show(); };
+         box.addEventListener(Event.ENTER_FRAME, shine);
+         room.onLeave(function():void { box.removeEventListener(Event.ENTER_FRAME, shine); });
+         var b:Rectangle = box.getBounds(DisplayObject(room));
+         room.door(b.x, b.y, b.width, b.height, "", function():void
+         {
+            if (game.getData(key)) { worker("宝箱已经空了。"); return; }
+            if (!roomCleared(room.id)) { worker("那是蚁将军的宝箱！可守卫还盯着呢，先把他们打倒。"); return; }
+            game.setData(key, true);
+            show();
+            var m:Object = mode;
+            game.giveItem(CANDY, m.chestCandy);
+            game.giveItem(BEAN, m.chestBean);
+            worker("是蚁将军藏下的物资！奥拉人还没来得及搬走。");
+         }, false);
+      }
+
+      /**
+       * The 奥拉 army's portal in 蚁神殿正殿, open once the 变异蚁将军 has fallen: a ring of light on
+       * the floor's edge, walked into to reach 奥拉星's 传送核心.
+       */
+      private function portal(room:IModRoom):void
+      {
+         var at:Point = new Point(PORTAL[0], PORTAL[1]);
+         for (var r:int = 0; r <= 120 && room.blocked(at.x, at.y); r += 6) at = new Point(PORTAL[0] - r, PORTAL[1] + r * 0.4);
+         var p:Sprite = new Sprite();
+         p.mouseEnabled = p.mouseChildren = false;
+         var glow:Shape = new Shape();
+         glow.graphics.beginFill(0x000000, 0.3);
+         glow.graphics.drawEllipse(-52, -10, 104, 22);
+         glow.graphics.endFill();
+         p.addChild(glow);
+         var ring:Shape = new Shape();
+         var g:Graphics = ring.graphics;
+         for each (var layer:Array in [[14, 0x1E5FB3, 0.35], [8, 0x47B8FF, 0.8], [3, 0xE6FBFF, 1]])
+         {
+            g.lineStyle(layer[0], layer[1], layer[2]);
+            g.drawEllipse(-40, -128, 80, 124);
+         }
+         g.lineStyle();
+         g.beginFill(0x7FD8FF, 0.28);
+         g.drawEllipse(-36, -124, 72, 116);
+         g.endFill();
+         p.addChild(ring);
+         var swirl:Shape = new Shape();
+         swirl.y = -66;
+         for (var i:int = 0; i < 3; i++)
+         {
+            swirl.graphics.lineStyle(2, 0xFFFFFF, 0.55 - i * 0.15);
+            var a0:Number = i * Math.PI * 2 / 3;
+            swirl.graphics.moveTo(Math.cos(a0) * 6, Math.sin(a0) * 9);
+            for (var t:Number = 0; t <= 1.6; t += 0.1)
+               swirl.graphics.lineTo(Math.cos(a0 + t * 3) * (6 + t * 18), Math.sin(a0 + t * 3) * (9 + t * 30));
+         }
+         p.addChild(swirl);
+         room.add(p, at.x, at.y, "players");
+         var spin:Function = function(e:Event):void { swirl.rotation += 4; ring.alpha = 0.85 + Math.sin(swirl.rotation / 20) * 0.15; };
+         p.addEventListener(Event.ENTER_FRAME, spin);
+         room.onLeave(function():void { p.removeEventListener(Event.ENTER_FRAME, spin); });
+         room.door(at.x - 45, at.y - 130, 90, 140, "", function():void { game.enter("core"); }, false);
       }
 
       /** The pieces of c that hold words (a speech bubble of the scene), hidden. */
@@ -737,7 +816,7 @@ package
             }
             var stand:Point = floorFor(room, cx, cy, CAGE_R);
             var held:IModNpc = room.npc({look: g.captive, x: stand.x, y: stand.y,
-               onClick: function():void { worker("先打败看守它的" + g.name + "！"); }});
+               onClick: function():void { worker("笼子锁着，钥匙在" + g.name + "身上。先打败他！"); }});
             var at:DisplayObject = DisplayObject(held);
             cageAt(room, g.id, at, new Point(at.x, at.y), CAGE_R, 118, "被俘的" + nameOf(g.captive));
             captiveNpcs[g.id] = held;
@@ -904,7 +983,7 @@ package
          {
             if (!beaten(need))
             {
-               npc.talk(["想挑战我？先打败兰丁和弗洛拉吧。"], away);
+               npc.talk(["先赢了兰丁和弗洛拉，再来找我。"], away);
                return;
             }
          }
@@ -998,7 +1077,7 @@ package
          {
             guardSays(function():void
             {
-               game.talk({name: nameOf(g.captive), picture: "pet:" + g.captive}, ["咕噜！谢谢你们！我这就回去找同伴，大家都在等着呢。"], function():void { afterWin(g); });
+               game.talk({name: nameOf(g.captive), picture: "pet:" + g.captive}, ["咕噜！谢谢你们！我这就回去告诉同伴们，王朝有救了！"], function():void { afterWin(g); });
             });
             return;
          }
@@ -1016,18 +1095,20 @@ package
          {
             game.givePet(g.gift, 100);
             game.talk({name: nameOf(g.gift), picture: "npc:160"}, [g.lost,
-               "我……终于清醒了。奥拉人用实验控制了我，让我看守被他们关起来的蚁后……",
-               "蚁后！快把蚁后放出来！"], function():void
+               "……我这是怎么了？奥拉人在我身上做了实验，后面的事，我什么都记不清了……只记得他们命令我守着蚁后。",
+               "蚁后！蚁后还被关着！"], function():void
             {
                // The 蚁后's cage opens: her words, as she stood in it, and she is gone from it.
                var here0:IModRoom = game.currentRoom;
                var queen:DisplayObject = here0 ? here0.part("mc_antQueen") : null;
                // No more 救命: her speech bubble goes.
                hideWords(queen as DisplayObjectContainer);
-               game.talk({name: "蚁后", picture: queen}, ["谢谢你们，兵蚁、工蚁，还有将军。奥拉人的指挥中心还在奥拉星……去让他们答应停战吧！"], function():void
+               game.talk({name: "蚁后", picture: queen}, ["兵蚁，工蚁，还有我的将军……谢谢你们。",
+                  "奥拉人在正殿里架了一座传送门，他们的补给和援兵都是从那里来的。门的另一头，就是奥拉星的传送核心。",
+                  "只要他们的指挥中心还在下命令，奥拉人迟早会再打回来。去那里，让他们亲口答应撤军吧。"], function():void
                {
                   if (queen) queen.visible = false;
-                  game.talk({name: nameOf(g.gift), picture: "npc:160"}, ["我跟你们一起去奥拉星，让奥拉人永远离开蚁族王朝！",
+                  game.talk({name: nameOf(g.gift), picture: "npc:160"}, ["这一次，换我和你们并肩作战。",
                      "<font color='#FF6600'>蚁将军（Lv100）加入了队伍！</font>"], function():void { afterWin(g); });
                });
             });
@@ -1049,17 +1130,16 @@ package
          {
             var queen1:DisplayObject = here ? here.part("mc_antQueen") : null;
             if (queen1) queen1.visible = false;
-            game.talk({name: "工蚁", picture: WORKER}, ["蚁族王朝夺回来了，蚁后也救出来了！可是奥拉人还会回来的……",
-               "兵蚁大哥，我们从传送核心直接去奥拉星的指挥中心，让他们答应停战！"], function():void { game.enter("core"); });
+            game.talk({name: "工蚁", picture: WORKER}, ["蚁后说的传送门……在那儿！兵蚁大哥，我们走！"], function():void { if (here) portal(here); });
          }
          else if (g.id == "kid")
          {
-            game.talk({name: "工蚁", picture: WORKER}, ["前面就是指挥中心了！兰丁、弗洛拉和拉贝尔都在那里。"], function():void { game.enter("hq"); });
+            game.talk({name: "工蚁", picture: WORKER}, ["那孩子跑去报信了。指挥中心就在前面——这回，该和他们的头儿当面谈谈了。"], function():void { game.enter("hq"); });
          }
          else if (g.id == "rabel") ending();
          else if (game.currentRoom != null && roomCleared(game.currentRoom.id) && g.room != "hq")
          {
-            worker("这里的奥拉守卫都被打败了，前进吧！");
+            worker("这里清干净了，继续前进！");
          }
       }
 
@@ -1086,9 +1166,10 @@ package
             };
          };
          game.talk({name: "工蚁", picture: WORKER}, [
-            "兵蚁大哥，你还记得吗？奥拉人闯进了蚁族王朝，俘虏了蚁将军，用奇怪的实验把他变成了听命于他们的<font color='#FF6600'>变异蚁将军</font>，让他看守关在蚁神殿正殿里的<font color='#FF6600'>蚁后</font>，还把蚁族的勇士们一个个关了起来。",
-            "现在，奥拉人正在和达斯特人打仗，大部分兵力都调走了，驻守蚁族王朝的守军十分空虚——这是我们反击的好机会！",
-            {text: "选择难度：", choices: [
+            "兵蚁大哥，你总算醒了。三个月前，奥拉人的军队攻进了蚁族王朝。蚁将军带着我们拼死抵抗，最后还是被俘虏了。",
+            "奥拉人在将军身上做了实验，把他变成了只听命令的<font color='#FF6600'>变异蚁将军</font>，让他守在蚁神殿正殿，看着被关起来的<font color='#FF6600'>蚁后</font>。王朝的勇士们，也一个个被关进了笼子。",
+            "现在奥拉人和达斯特人开战，主力都调去了前线，留在王朝的守军不多——这是我们唯一的机会。",
+            {text: "这一仗，你打算怎么打？", choices: [
                ["简单：守卫各带2只亚比，体力糖充足", pick("easy")],
                ["普通：守卫各带4只亚比，要用好每一位伙伴的技能", pick("normal")],
                ["困难：守卫各带6只亚比，体力糖很少", pick("hard")]
@@ -1100,11 +1181,11 @@ package
       {
          game.setData("intro", true);
          game.talk({name: "工蚁", picture: WORKER}, [
-            "兵蚁大哥，我是工蚁，从今天起和你一起战斗！",
-            "我在战场上缴获了一台奥拉人的HELLO，可它的治疗模块被锁住了，只能用<font color='#FF6600'>高级体力糖</font>给亚比恢复体力，用<font color='#FF6600'>高级活力豆</font>恢复技能次数。每打赢一场，都能缴获一些。",
-            "奥拉守卫关押着蚁族王朝的伙伴们。打败守卫，伙伴就会加入我们！",
-            "最重要的是：<font color='#FF0000'>你是蚁族的希望，千万不能倒下！你一倒下，反击就失败了。</font>（兵蚁要一直留在亚比背包里。）",
-            "前哨有三个奥拉卫兵把守，走近他们就会被拦下。打败他们，我们才能前进！"
+            "我跟你一起去。从今天起，我就是你的搭档。",
+            "路上我缴获了一台奥拉人的HELLO，可它的治疗模块被锁住了。受了伤只能吃<font color='#FF6600'>高级体力糖</font>，技能用光了就用<font color='#FF6600'>高级活力豆</font>——奥拉人的营地里存着不少，打赢了就能缴获。",
+            "我们一路打过去：打败守卫，救出被关的同伴，一直打到蚁神殿正殿，把将军和蚁后救出来。",
+            "还有，<font color='#FF0000'>你是这场反击的主心骨。你要是倒下，一切就结束了。</font>（兵蚁要一直留在亚比背包里。）",
+            "前哨有三个奥拉卫兵把守，走近就会被拦下。先拿下前哨！"
          ]);
       }
 
@@ -1125,12 +1206,14 @@ package
          game.setData("done", true);
          var m:Object = mode;
          game.talk({name: "拉贝尔", picture: "npc:86"}, [
-            "兵蚁，你和你的伙伴们赢了。我以指挥中心的名义答应你：奥拉军撤出蚁族王朝，被俘的蚁族全部放回。",
-            "也许……我们本该从一开始就做朋友，而不是敌人。"
+            "占领蚁族王朝，是我们为了对付达斯特人做的决定。我们只想着守住那条补给线，却忘了那里本来是你们的家。",
+            "我以指挥中心的名义答应你们：奥拉军立刻撤出蚁族王朝，关闭传送门，被关押的蚁族全部放回。",
+            "至于你们的将军……对不起。我会让研究员想办法，彻底消除实验留下的影响。"
          ], function():void
          {
             game.talk({name: "工蚁", picture: WORKER}, [
-               "兵蚁大哥，我们终于夺回了自己的家园！听说大家要把我们的名字，刻在蚁神巨像的脚下呢……",
+               "兵蚁大哥……我们真的做到了。",
+               "回家吧。蚁后和大家，都在等我们。",
                {text: "<font color='#FF6600'>通关！（难度：" + m.name + "）</font>", choices: [
                   ["再玩一次", function():void { restart(); }],
                   ["离开", function():void { game.endParty(); game.leave(); }]
