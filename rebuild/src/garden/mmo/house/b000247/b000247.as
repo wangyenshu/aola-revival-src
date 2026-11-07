@@ -55,9 +55,11 @@ package mmo.house.b000247
     *
     * Working: 我的家 (the main house), 亚比仓库 (pet/petwarehouse), the 植树盆
     * (the trees of PlantData, drawn from their June 2012 pictures plant/y<id>;
-    * its panel the rebuilt yz/treemanager; the 种植手册 sells them; PlantExtension), 亚比孵化器 (pet/pethatchegg),
+    * its panel the rebuilt yz/treemanager; the 种植手册 sells their 树苗, and the empty pot
+    * offers the owner's to choose one, SaplingPicker; PlantExtension), 亚比孵化器 (pet/pethatchegg),
     * 经验分配器 (mmo.revival.RExpPanel), 我的荣誉 (the owner's 徽章: honour/honourservice and
-    * honour/honour_res), the bar's 勋章 (HonourWall), the tube 进入动物园 (the rebuilt zoo,
+    * honour/honour_res), the bar's 勋章 (the player card's 勋章 page, usercard/usercard_badge:
+    * BadgeBook), the tube 进入动物园 (the rebuilt zoo,
     * furniture/b020000), 留言板 (house/messageboard), 离开花园, 地图, 背包, 好友 and 图鉴 (what
     * the control bar's open), 放映厅 (奥拉星's films, the theatre's list), 健身房 (亚比训练),
     * 最近访问 (足迹), 周刊, and the bar under the garden (GardenBar: the figures, the friends'
@@ -96,13 +98,13 @@ package mmo.house.b000247
          Sprite(getChildByName("topground")).addChild(hud);
          // A second visit finds the picture loaded and puts it at once: everything it needs is made above.
          loadPicture(Sprite(getChildByName("background")));
-         // The 植树盆 and its tree (its foot in the pot; the whole of it takes the click).
+         // The 植树盆 and its tree (its foot in the pot; the whole of it, and the pot, take the click).
          pot = new Sprite();
          pot.name = "gardenPot";
          pot.x = 550;
          pot.y = 222;
          pot.graphics.beginFill(0xFFFFFF, 0);
-         pot.graphics.drawRect(-58, -150, 116, 162);
+         pot.graphics.drawRect(-58, -150, 116, 176);
          pot.graphics.endFill();
          treeHolder = new Sprite();
          treeHolder.mouseEnabled = treeHolder.mouseChildren = false;
@@ -163,7 +165,8 @@ package mmo.house.b000247
          // Things of the garden: walk there, then act.
          spot(fg, 735, 95, 155, 140, 800, 266, isMine() ? "我的家" : owner() + "的小屋", function():void { if (loader != null) loader.loadSubHouse(-1, "default"); });
          spot(fg, 62, 168, 80, 70, 160, 286, "亚比仓库", function():void { panel("PetWareHouse"); });
-         spot(fg, 0, 0, 0, 0, 548, 262, "植树盆", openPot, pot);
+         // One stands beside the pot: standing before it, the player's own figure took the next click.
+         spot(fg, 0, 0, 0, 0, 640, 254, "植树盆", openPot, pot);
          spot(fg, 600, 336, 140, 92, 680, 400, "离开花园", leaveHome);
          // The era 亚比孵化器 panel (pet/pethatchegg; the server's PetEggExtension, eggs.ts).
          spot(fg, 72, 248, 80, 72, 165, 320, "亚比孵化器", function():void { if (isMine()) openHatcher(); else notYet(); });
@@ -187,7 +190,7 @@ package mmo.house.b000247
             });
          });
          button(72, 8, 52, 50, "邮箱", notYet);
-         button(132, 8, 52, 50, "勋章", function():void { if (isMine()) HonourWall.show(); else notYet(); });
+         button(132, 8, 52, 50, "勋章", function():void { BadgeBook.show(owner()); });
          button(190, 8, 52, 50, "相册", notYet);
          button(770, 8, 52, 50, "图鉴", function():void { bar("petdic"); });
          button(826, 8, 52, 50, "游戏", notYet);
@@ -197,6 +200,7 @@ package mmo.house.b000247
          SocketClient.instance.addEventListener("revival_garden", onGarden);
          SocketClient.instance.addEventListener("revival_show", onShown);
          SocketClient.instance.addEventListener("onAmountUpdated", onAmount);
+         SocketClient.instance.addEventListener("buyMaterial", onBought);
          pot.addEventListener(MouseEvent.ROLL_OVER, onPotOver);
          SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
       }
@@ -206,8 +210,11 @@ package mmo.house.b000247
          SocketClient.instance.removeEventListener("revival_garden", onGarden);
          SocketClient.instance.removeEventListener("revival_show", onShown);
          SocketClient.instance.removeEventListener("onAmountUpdated", onAmount);
+         SocketClient.instance.removeEventListener("buyMaterial", onBought);
          pot.removeEventListener(MouseEvent.ROLL_OVER, onPotOver);
          treePanel("hide");
+         SaplingPicker.hide();
+         BadgeBook.hide();
          taskIconOverPicture(false);
          if (strip != null) strip.dispose();
          strip = null;
@@ -480,19 +487,32 @@ package mmo.house.b000247
          return true;
       }
 
+      /** The owner's 树苗 ([{id, n}], the server's revival_garden). */
+      private var saplings:Array = [];
+
       /**
        * The 植树盆: with a tree, its panel (the rebuilt yz/treemanager, over the tree as the
-       * pointer comes onto it, or a click); empty, the owner's 种植手册, whose trees grow here.
+       * pointer comes onto it, or a click); empty, the owner chooses one of his 树苗 to plant
+       * (SaplingPicker; 买树苗 opens the 种植手册, the 种植园's 树苗售卖).
        */
       private function openPot():void
       {
          if (tree != null) treePanel("show");
-         else if (isMine())
-            ServiceContainer.instance.tryGetService("SellBookService", function(svc:IService, o:Object):void
-            {
-               try { Object(svc).showPage("catalog201102"); } catch (e:Error) { RLog.error("garden plant book", e); }
-            });
+         else if (isMine()) SaplingPicker.show(saplings, plantSapling, plantBook);
          else RNotice.show(LayerManager.getBaseTop(), "植树盆里还没有种树。");
+      }
+
+      private static function plantBook():void
+      {
+         ServiceContainer.instance.tryGetService("SellBookService", function(svc:IService, o:Object):void
+         {
+            try { Object(svc).showPage("catalog201102"); } catch (e:Error) { RLog.error("garden plant book", e); }
+         });
+      }
+
+      private function plantSapling(id:int):void
+      {
+         SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "plant", plantId: id});
       }
 
       private function onPotOver(e:MouseEvent):void
@@ -532,8 +552,18 @@ package mmo.house.b000247
          SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
       }
 
+      /** A 树苗 bought in the 种植手册 opened here: the 植树盆 offers it at once. */
+      private function onBought(e:SocketClientEvent):void
+      {
+         if (!isMine() || int(e.params.tp) != 9 || int(e.params.res) != 1) return;
+         SocketClient.instance.sendXtMessage("SundriesExtension", "revival_garden", {op: "info", un: owner()});
+      }
+
       private function onGarden(e:SocketClientEvent):void
       {
+         if (e.params.saplings is Array) saplings = e.params.saplings as Array;
+         if (String(e.params.op) == "plant" && int(e.params.result) != 0)
+            RNotice.show(LayerManager.getBaseTop(), int(e.params.result) == -21 ? "植树盆里已经有树了。" : "没有这种树苗了。");
          showTree(e.params.plant);
          showPet(e.params.show);
       }

@@ -2,8 +2,8 @@
 // of the 2013 TreeClient and PlantClient (library/socketclient, material/
 // materialservice), with the reply fields their UserPlant.parseData reads, and
 // SundriesExtension.revival_garden for planting and digging up in the rebuilt
-// garden. A tree bought from the 种植手册 (MaterialExtension.buyMaterial, type 9,
-// game.ts) is planted in the same 植树盆.
+// garden. A tree bought from the 种植手册 (the 种植园's 树苗售卖; MaterialExtension.buyMaterial,
+// type 9, game.ts) is a 树苗 kept until the owner chooses it at the 植树盆 (op "plant").
 //
 //   80_1 {}                         -> {userPlants: [plant]}            my trees
 //   80_9 {owner, houseId}           -> {owner, houseId, userPlants}     someone's trees: in the
@@ -22,9 +22,12 @@
 //   81_1 {itemId, userPlantId, quantity, owner} (PlantItemExtension) -> {result: {result, userPlant}}
 //                                      a 盆栽道具 used (PlantItemData 1–7; 7 铲子 digs the tree up)
 //   81_2 {}                         -> {items: [{id, qt, uq}]}           the 盆栽道具 one has
-//   revival_garden {op: "buy", plantId} | {op: "dig", userPlantId} | {op: "info", un}
-//                                   -> {op, result, plant, plants, score, show}
-//                                      show: the 亚比 the owner 展示 {i, r, lv, nm} or null
+//   revival_garden {op: "plant", plantId} | {op: "buy", plantId} | {op: "dig", userPlantId} | {op: "info", un}
+//                                   -> {op, result, plant, plants, score, show, saplings}
+//                                      plant: a 树苗 of one's own into the empty 植树盆 (-3: none);
+//                                      buy: bought and planted at once; show: the 亚比 the owner
+//                                      展示 {i, r, lv, nm} or null; saplings: one's own 树苗
+//                                      [{id, n}] (the owner's garden only)
 //
 // The plants, their levels and fruit are the January 2013 materialdata
 // PlantData and ItemData. The 2013 server is lost: how much a 雨露 or 养料
@@ -63,6 +66,8 @@ export const PLANT_ITEMS: Record<number, [number, number, number, number]> = {
   1: [0, 20, 1, 5], 2: [1, 20, 1, 5], 3: [2, 5, 2, 5], 4: [3, 5, 2, 5], 5: [4, 1, 0, 0], 6: [5, 2, 0, 0], 7: [6, 0, 0, 0],
 };
 export const PLANT_ITEM_TYPE = "10";
+/** How many 树苗 of one kind may be kept (RECONSTRUCTED). */
+export const SAPLING_MAX = 10;
 
 /** materialdata PlantData: [maxHealth, maxNutrition, productTime, productFruit] per level. */
 export interface PlantKind {
@@ -124,6 +129,8 @@ export interface PlantOwner {
   items?: Record<string, Record<string, number>>;
   plants?: PlantRec[];
   nextPlantId?: number;
+  /** 树苗 bought and not yet planted: plant id -> how many. */
+  saplings?: Record<string, number>;
   /** The 亚比 of the bag and the 仓库 (守护亚比 is one of them). */
   pets?: { id: number }[];
   storage?: { id: number }[];
@@ -287,10 +294,19 @@ export function useTool(p: PlantRec, item: number, now: number, mine: boolean): 
   return result;
 }
 
+/** A tree into the empty 植树盆: the tree, or -21 when one grows there already, -19 for no such tree. */
+function newTree(o: PlantOwner, plantId: number): PlantRec | number {
+  if (!PLANTS[plantId]) return -19;
+  if (potTrees(o).length > 0) return -21;
+  o.nextPlantId = (o.nextPlantId ?? 0) + 1;
+  const p: PlantRec = { id: o.nextPlantId, plantId, level: 0, health: 0, nutrition: 0, remainFruit: 0, remainProductTime: 0, fruitLeft: 0, nextFruitTime: 0, care: { day: "", rain: 0, fat: 0 } };
+  (o.plants ??= []).push(p);
+  return p;
+}
+
 /**
- * A new tree in the 植树盆 (the 种植手册's trees, bought with 晶币, or the
- * rebuilt garden's own list): the tree, or -21 when one grows there already,
- * -2 for too little 晶币, -19 for no such tree.
+ * A tree bought and planted at once (revival_garden "buy"): the tree, or -21 when one grows
+ * there already, -2 for too little 晶币, -19 for no such tree.
  */
 export function plantTree(o: PlantOwner, plantId: number): PlantRec | number {
   const kind = PLANTS[plantId];
@@ -298,10 +314,37 @@ export function plantTree(o: PlantOwner, plantId: number): PlantRec | number {
   if (potTrees(o).length > 0) return -21;
   if ((o.score ?? 0) < kind.price) return -2;
   o.score = (o.score ?? 0) - kind.price;
-  o.nextPlantId = (o.nextPlantId ?? 0) + 1;
-  const p: PlantRec = { id: o.nextPlantId, plantId, level: 0, health: 0, nutrition: 0, remainFruit: 0, remainProductTime: 0, fruitLeft: 0, nextFruitTime: 0, care: { day: "", rain: 0, fat: 0 } };
-  (o.plants ??= []).push(p);
+  return newTree(o, plantId);
+}
+
+/** A 树苗 bought (the 种植手册): how many of it one has now, or -19 no such tree, -2 too little 晶币, -4 full. */
+export function buySapling(o: PlantOwner, plantId: number): number {
+  const kind = PLANTS[plantId];
+  if (!kind) return -19;
+  const have = o.saplings?.[String(plantId)] ?? 0;
+  if (have >= SAPLING_MAX) return -4;
+  if ((o.score ?? 0) < kind.price) return -2;
+  o.score = (o.score ?? 0) - kind.price;
+  (o.saplings ??= {})[String(plantId)] = have + 1;
+  return have + 1;
+}
+
+/** One's own 树苗 planted in the 植树盆: the tree, or -3 no such 树苗, -21 the pot taken. */
+export function plantSapling(o: PlantOwner, plantId: number): PlantRec | number {
+  const key = String(plantId);
+  if (!PLANTS[plantId] || !(o.saplings?.[key] ?? 0)) return -3;
+  const p = newTree(o, plantId);
+  if (typeof p === "number") return p;
+  if (--o.saplings![key] <= 0) delete o.saplings![key];
   return p;
+}
+
+/** One's 树苗, for the 植树盆's choice. */
+export function saplingList(o: PlantOwner): { id: number; n: number }[] {
+  return Object.entries(o.saplings ?? {})
+    .map(([id, n]) => ({ id: Number(id), n }))
+    .filter((x) => x.n > 0 && PLANTS[x.id])
+    .sort((a, b) => a.id - b.id);
 }
 
 export function installPlants(world: World, deps: PlantDeps): void {
@@ -484,16 +527,26 @@ export function installPlants(world: World, deps: PlantDeps): void {
   world.xt("SundriesExtension.revival_garden", async (ctx) => {
     const op = String(ctx.params.op ?? "info");
     const now = deps.now();
-    const answer = async (o: PlantOwner | undefined, result: number) => {
+    const answer = async (o: PlantOwner | undefined, result: number, own = true) => {
       const list = potTrees(o).map((p) => plantView(p, now));
       const show = o && deps.shown ? await deps.shown(o) : null;
-      ctx.reply({ op, result, plant: list[0] ?? null, plants: list, score: o?.score ?? 0, show }, "revival_garden");
+      const saplings = o && own ? saplingList(o) : [];
+      ctx.reply({ op, result, plant: list[0] ?? null, plants: list, score: o?.score ?? 0, show, saplings }, "revival_garden");
     };
     if (op === "info") {
       const un = String(ctx.params.un ?? "");
-      return answer(!un || un === ctx.player.name ? await deps.me(ctx) : await deps.find(un), 0);
+      const own = !un || un === ctx.player.name;
+      return answer(own ? await deps.me(ctx) : await deps.find(un), 0, own);
     }
     const o = await deps.me(ctx);
+    if (op === "plant") {
+      const id = Number(ctx.params.plantId) | 0;
+      const p = plantSapling(o, id);
+      if (typeof p === "number") return answer(o, p);
+      await deps.save(o);
+      ctx.reply({ amount: `9_${id}_0_1_${p.id}` }, "onAmountUpdated");
+      return answer(o, 0);
+    }
     if (op === "buy") {
       const id = Number(ctx.params.plantId) | 0;
       const p = plantTree(o, id);

@@ -61,6 +61,7 @@ package mmo.play.scene
 
       private static const P121115:String = "revival_panel:activityres/activity121115/";
       private static const P121122:String = "revival_panel:activityres/activity121122/";
+      private static const P130117:String = "revival_panel:activityres/activity130117/";
 
       /** room -> [npcId, choice text, action] (texts and actions of the later NpcMenu unless marked). */
       private static const MENUS:Object = {
@@ -103,6 +104,16 @@ package mmo.play.scene
          // 上古使者 (312) of the 灵兽宫: the scene answers knowinfo (his conversation) and secret
          // (the 玄武 water panel, activityres/watercleanpanel of January 2012).
          "temple6": [[312, "我要如何获得灵兽的力量？", "knowinfo"], [312, "上古力量的秘密", "secret"]],
+         // 奇灵神树 (a copy of 2020): the challenges of 修罗 and 凯撒 (January 2013) and 召唤奇灵王 that
+         // followed; the January scene's buttons for them are lost (the later boss list sends one to
+         // this room for both), and 修罗, who stands here, offers them (RECONSTRUCTED; the server's
+         // kingbosses.ts).
+         "hexagrampalace3": [[517, "挑战修罗", P130117 + "boss/xiuluo|mmo.activity130117.boss.xiuluo.XiuLuoPanel"],
+            [517, "挑战凯撒", P130117 + "boss/kaisa|mmo.activity130117.boss.KaiSaPanel"],
+            [517, "召唤奇灵王", "revival_panel:activityres/activity130131/qiling/qilingdlg|mmo.activity130131.qiling.QilingDlg"]],
+         // 恶人山顶 (武神大陆): 关羽 (599) offers his challenge, as the later NpcMenu has it; the scene
+         // answers the choice (599_showchallengepanel: fightkingwar/guangyu).
+         "fightkingwar3": [[599, "挑战关羽", "599_showchallengepanel"]],
          "teambattlefort": [[340, "我要创建战队", "createSquad"], [340, "我要加入战队", "joinSquad"],
             [340, "我要招收队员", "inviteSquad"], [340, "战队最新公告", "noticeSquad"]]
       };

@@ -547,6 +547,31 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art otherpanel/yakestarrarepetpanel.
 # the game (whose start page has 开始, 规则 and 关闭), and its notice for a player in a team.
 build jumpfireringstartpanel mmo/game/jumpfirering/start/DocStartPanel.as jumpfireringstartpanel.swf "game/jumpfireringstartpanel.swf%3F1210"
 
+# 召唤奇灵王 (奇灵神树; activityres/activity130131/qiling/qilingdlg, the copy of February 2013): its
+# decompiled code compiled against the 2013 libraries, on its own art; the later
+# LocalStore.allowStore it asks is not in the 2013 library (storing is allowed). The server side:
+# server/src/game/sfs2013/kingbosses.ts.
+build qiling mmo/revival/qiling/DocQiling.as qiling-code.swf ""
+mkdir -p "$W/activityres/activity130131/qiling"
+python3 "$TOOLS/swf_transplant.py" --art "$(art activityres/activity130131/qiling/qilingdlg.swf)" --code "$OUT/qiling-code.swf" --drop-art-abc \
+  --bind 0=mmo.revival.qiling.DocQiling --bind 252=mmo.activity130131.qiling.QilingDlg --bind 314=mmo.activity130131.qiling.PowerPanel \
+  --bind 298=mmo.activity130131.qiling.StartPanel --bind 285=mmo.activity130131.qiling.RecipeDlg1 --bind 276=mmo.activity130131.qiling.RecipeDlg2 \
+  --bind 141=mmo.activity130131.qiling.BeckonMovie \
+  --note "LATER activityres/activity130131/qiling/qilingdlg (February 2013) on the 2013 libraries (aola-revival): LocalStore.allowStore taken out" \
+  --out "$W/activityres/activity130131/qiling/qilingdlg.swf%3F1210"
+
+# 魔将挑战 (深渊之门 msevenstar4; the era activityres/activity121213/evilgeneralmainpanel): its win and
+# 星币 films are lost, and the panel waits for their last frame to show 魔洛's 亚比蛋. Stand-ins of
+# two empty frames (tools/blank_sprites.py), at both films' names.
+build actfilms mmo/revival/actfilms/DocEvilGeneralFilms.as evilgeneralfilms-code.swf ""
+python3 "$TOOLS/blank_sprites.py" --count 2 --frames 2 --out "$OUT/blank2.swf"
+mkdir -p "$W/activityres/activity121213"
+python3 "$TOOLS/swf_transplant.py" --art "$OUT/blank2.swf" --code "$OUT/evilgeneralfilms-code.swf" \
+  --bind 0=mmo.revival.actfilms.DocEvilGeneralFilms --bind 1=mmo.activity121213.evilgeneral.WinMovie --bind 2=mmo.activity121213.evilgeneral.BuyMovie \
+  --note "REBUILT activityres/activity121213/evilgeneralwinmovie and evilgeneralbuymovie (aola-revival): stand-ins for the lost films" \
+  --out "$W/activityres/activity121213/evilgeneralwinmovie.swf%3F1210"
+cat "$W/activityres/activity121213/evilgeneralwinmovie.swf%3F1210" > "$W/activityres/activity121213/evilgeneralbuymovie.swf%3F1210"
+
 # 私聊 (talk/talk, the January 2013 module lost; the later copy needs later libraries):
 # rebuilt TalkService and its window, at both names the client may ask for.
 build talk mmo/talk/DocTalk.as talk.swf "talk/talk.swf%3F1301251"

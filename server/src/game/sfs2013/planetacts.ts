@@ -173,6 +173,8 @@ export const WILD_DROPS: Record<string, Record<number, [number, number]>> = {
   candystar1: { 844: [513, 1] },
   candystar3: { 844: [513, 1] },
   knightstar1: { 932: [531, 1] },
+  // 武神大陆's 黄巾战魂 (fightking.ts): "在恶人山道击败黄巾小兵就有几率获得黄巾战魂" (one a win: RECONSTRUCTED).
+  fightkingwar2: { 853: [509, 1] },
 };
 
 const actsOf = (o: ActsOwner): ActsRec => (o.planetActs ??= {});

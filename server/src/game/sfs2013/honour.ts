@@ -14,6 +14,14 @@
 // The 2013 server is lost and so is what it counted: which honours can be got here, and from
 // what, is RECONSTRUCTED from what the record holds (HONOURS). The others (already 绝版 in 2013,
 // or counting what is not kept: 擂台, 对战, 时空隧道, 小游戏, 职业) stay at 0.
+//
+// 勋章 (the era BadgeService's, materialdata BadgeData; the 家园 bar's 勋章 shows them in
+// usercard/usercard_badge's BadgePanel):
+//
+//   70-1 {un}  -> {b: [{bi, gd}]}   the player's 勋章: id and when got (ms)
+//
+// Got from the 星辉任务 that give the 徽章 of the same name (STAR_TASKS: 勇气, 大地, 生命, 海洋,
+// 烈焰), when that task was done; the others' tasks are not found (BADGE_TASKS, RECONSTRUCTED).
 
 import { PLANTS, type PlantRec } from "./plants.ts";
 import type { World } from "./server.ts";
@@ -50,6 +58,9 @@ const STAR_TASKS: [number, number][] = [
 ];
 for (const [id, task] of STAR_TASKS) HONOURS.push([id, 2, 1, `task:${task}`]);
 
+/** BadgeData's 勋章 -> the task of the 星辉 徽章 of its name (honours 145, 147–150). */
+export const BADGE_TASKS: [number, number][] = [[3, 150], [2, 80], [4, 200], [5, 259], [7, 352]];
+
 // 守护者: three honours each (挑战…胜利 1, 10, 100 times; levels 1–3), the first id and the name.
 const BOSSES: [number, string][] = [
   [77, "冰拳艾司"], [80, "沙麒麟"], [83, "木面侠"], [86, "金刚库巴"], [89, "火花龙"], [92, "合金猛将"], [95, "神武月"],
@@ -78,7 +89,7 @@ export interface HonourOwner {
   friends?: number[];
   plants?: PlantRec[];
   zoo?: { exp: number };
-  tasks?: Record<string, { st: number }>;
+  tasks?: Record<string, { st: number; fd?: number }>;
   area?: { donate?: { total?: number } };
   /** Wins against each 守护者, by its name (battle.ts, fightWithBoss). */
   bossWins?: Record<string, number>;
@@ -130,6 +141,13 @@ export function honourScore(o: HonourOwner): { score: number; got: number[] } {
   return { score, got };
 }
 
+/** The 勋章 got: [{bi, gd}] in BadgeData order. */
+export function badges(o: HonourOwner): { bi: number; gd: number }[] {
+  return BADGE_TASKS.filter(([, task]) => o.tasks?.[String(task)]?.st === 1)
+    .map(([bi, task]) => ({ bi, gd: o.tasks![String(task)].fd ?? 0 }))
+    .sort((a, b) => a.bi - b.bi);
+}
+
 export interface HonourDeps {
   find(name: string): Promise<HonourOwner | undefined>;
 }
@@ -149,6 +167,10 @@ export function installHonour(world: World, deps: HonourDeps): void {
     const { o, page: p } = await page(un, ctx.params.idlist);
     const { score, got } = o ? honourScore(o) : { score: 0, got: [0, 0, 0, 0] };
     ctx.reply({ page: p, score, honor: got.join(","), rank: 0, nn: o?.name ?? un }, "76_7");
+  });
+  world.xt("SundriesExtension.70-1", async (ctx) => {
+    const o = await deps.find(String(ctx.params.un ?? ctx.player.name));
+    ctx.reply({ b: o ? badges(o) : [] }, "70-1");
   });
   world.xt("AchievementExtension.76_8", async (ctx) => {
     const un = String(ctx.params.un ?? ctx.player.name);

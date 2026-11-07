@@ -32,6 +32,7 @@ package mmo.petfightnew
    import mmo.interfaces.material.item.Item;
    import mmo.interfaces.material.item.UserItem;
    import mmo.loader.layer.HangUpLevel;
+   import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.play.scene.SceneInfo;
@@ -163,6 +164,10 @@ package mmo.petfightnew
          if (join.chp != null && Number(join.chp) > 0) catchHp = Number(join.chp);
          takeViews(join.pmmList as Array);
          build();
+         // The panels open when the battle starts are put away, as the era fight's enterFight did
+         // (ModalDialogManager.clearAll): an activity's panel that asked for the fight stood over the
+         // battle screen (黑暗三连星), and shows itself again when the battle ends (FIGHT_END).
+         try { ModalDialogManager.getInstance().clearAll(); } catch (e:Error) { RLog.error("fight: panels", e); }
          LayerManager.switchLayer(LayerManager.FIGHTING_LAYER, HangUpLevel.HIDE);
          LayerManager.getFightingScene().addChild(this);
          loadBackground();
@@ -984,6 +989,7 @@ package mmo.petfightnew
          for (var i:int = 0; i < 4; i++)
          {
             var row:SkillRow = new SkillRow(skills[i]);
+            row.name = "fightSkill" + i;
             row.x = PANEL_X + 5;
             row.y = PANEL_Y + 20 + i * 50;
             if (skills[i])
@@ -1714,6 +1720,7 @@ package mmo.petfightnew
       private function okButton(box:Sprite, w:int, h:int, onOk:Function):void
       {
          var ok:FightButton = new FightButton("知道了", 96, 32, 15, null, -1, true);
+         ok.name = "fightOk";
          ok.x = (w - 96) / 2;
          ok.y = h - 46;
          ok.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { onOk(); });

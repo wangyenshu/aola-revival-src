@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CARE_PER_DAY, GROWTH_PER_CARE, PLANTS, installPlants, nextFruitAt, type PlantOwner } from "../src/game/sfs2013/plants.ts";
+import { CARE_PER_DAY, GROWTH_PER_CARE, PLANTS, SAPLING_MAX, buySapling, installPlants, nextFruitAt, type PlantOwner } from "../src/game/sfs2013/plants.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
 
 function setup(start = Date.UTC(2013, 0, 20, 2, 0, 0)) {
@@ -30,6 +30,34 @@ test("planting a tree in the 植树盆 costs its PlantData price and tells the P
   const mine = await call("PlantExtension.80_1");
   assert.equal(mine[0][1].userPlants.length, 1);
   assert.equal(mine[0][1].userPlants[0].houseId, 247);
+});
+
+test("树苗 bought are kept, and the owner chooses which to plant in the 植树盆", async () => {
+  const { owner, call } = setup();
+  owner.score = 100000;
+  assert.equal(buySapling(owner, 3), 1);
+  assert.equal(buySapling(owner, 3), 2);
+  assert.equal(buySapling(owner, 5), 1);
+  assert.equal(buySapling(owner, 999), -19);
+  assert.equal(owner.score, 100000 - 2 * PLANTS[3].price - PLANTS[5].price);
+  assert.equal(owner.plants, undefined); // nothing planted yet
+  const info = await call("SundriesExtension.revival_garden", { op: "info", un: owner.name });
+  assert.deepEqual(info.at(-1)![1].saplings, [{ id: 3, n: 2 }, { id: 5, n: 1 }]);
+  // Someone else's garden does not show one's 树苗.
+  assert.equal((await call("SundriesExtension.revival_garden", { op: "info", un: "别人" })).at(-1)![1].saplings.length, 0);
+  assert.equal((await call("SundriesExtension.revival_garden", { op: "plant", plantId: 4 })).at(-1)![1].result, -3);
+  const r = await call("SundriesExtension.revival_garden", { op: "plant", plantId: 5 });
+  assert.equal(r.at(-1)![1].result, 0);
+  assert.equal(r.at(-1)![1].plant.plantId, 5);
+  assert.deepEqual(r.find(([c]) => c === "onAmountUpdated")![1], { amount: "9_5_0_1_1" });
+  assert.deepEqual(r.at(-1)![1].saplings, [{ id: 3, n: 2 }]);
+  // The pot is taken: the 树苗 stays.
+  assert.equal((await call("SundriesExtension.revival_garden", { op: "plant", plantId: 3 })).at(-1)![1].result, -21);
+  assert.equal(owner.saplings!["3"], 2);
+  for (let i = 2; i < SAPLING_MAX; i++) buySapling(owner, 3);
+  assert.equal(buySapling(owner, 3), -4);
+  owner.score = 0;
+  assert.equal(buySapling(owner, 1), -2);
 });
 
 test("雨露 and 养料 grow the tree; twice a day each; it bears fruit from its mature level", async () => {
@@ -214,4 +242,13 @@ test("收为家具: a grown tree with no fruit to come goes to the 小屋's stor
   await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 400, y: 300, houseId: 1 }] });
   await call("PlantExtension.80_10", { houseId: 1, changes: [{ id: tree.id, x: 0, y: 0, houseId: 0 }] });
   assert.deepEqual(tree.furniture, { houseId: 0, x: 0, y: 0 });
+});
+
+test("勋章 come from the 星辉任务 of the 徽章 of the same name, dated when the task was done", async () => {
+  const { badges } = await import("../src/game/sfs2013/honour.ts");
+  assert.deepEqual(badges({ name: "x", tasks: { "150": { st: 1, fd: 1234 }, "80": { st: 0, fd: 0 }, "352": { st: 1, fd: 99 } } }), [
+    { bi: 3, gd: 1234 },
+    { bi: 7, gd: 99 },
+  ]);
+  assert.deepEqual(badges({ name: "x" }), []);
 });

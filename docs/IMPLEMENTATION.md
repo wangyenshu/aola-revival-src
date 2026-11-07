@@ -173,6 +173,7 @@ extension name and command (`PetExtension.54_16`).
 | `fb.ts` | the 四大副本 |
 | `gyms.ts` | the 道馆 |
 | `planetacts.ts`, `areafuncs.ts` | the planets' activities, the functions of the places |
+| `sevenstar.ts`, `kingbosses.ts`, `fightking.ts` | 黑暗三连星 and 魔将挑战; 修罗, 凯撒 and 召唤奇灵王; 武神大陆 (their fights through `54_22` and `addActFight`) |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比 and gifts |
 | `petcards.ts`, `petitems.ts`, `giftbags.ts` | 战术卡, 亚比道具, what each 礼包 holds |
@@ -406,6 +407,18 @@ against the 2013 interfaces, on its art) and its panel
 `thinktower/enterpanel`; 幽冥大殿 (`scene/youanmingzhou2`, its later code on its
 art) opens the panel. The server is `thinktower.ts` (`MentalHallExtension`).
 
+The activities' fights (`PetClient2.startFight`, `54_22 {type, …}`) are added by
+their modules with `addActFight` (`battle.ts`): the opponent, its level, what a
+win gives, and for some a change to the player's 亚比 before the battle (修罗's and
+凯撒's 祝福, 武神大陆's 将军令). The panels stay the era ones: 黑暗三连星 and 魔将挑战
+(`sevenstar.ts`; 魔将挑战's two lost films are stand-ins of two empty frames,
+`tools/blank_sprites.py`), 修罗 and 凯撒 of January 2013 and 召唤奇灵王 (its February
+2013 copy compiled against the 2013 libraries) at 奇灵神树, whose 修罗 offers them
+(`kingbosses.ts`), and 武神大陆's (`fightking.ts`; 吕布's and 刘备's from their 2014
+copies). The battle screen puts the open panels away when a battle starts
+(`ModalDialogManager.clearAll`, as the era fight did); they show themselves again
+at its end.
+
 ### 四大副本
 
 The 2013 `fbservice` and `fbteam` modules are lost; their 2025 copies are
@@ -439,7 +452,9 @@ picture's one sample card; the server is `garden.ts` (`revival_gardenbar`,
 and the 友谊留言板 of `house/messageboard`, the later module's code on its
 art). 我的荣誉 is the era `honour/honourservice` with the April 2013
 `honour/honour_res` and the 280 `honouricon` pictures; the server is
-`honour.ts`. A player's avatar in a picture (the garden's cards, the zoo's
+`honour.ts`. The bar's 勋章 is the player card's 勋章 page (`usercard/usercard_badge`,
+its later copy), its 勋章 from the server's `70-1` (`honour.ts`). The 植树盆 offers
+the owner's 树苗 (`SaplingPicker`; bought in the 种植手册, kept by `plants.ts`). A player's avatar in a picture (the garden's cards, the zoo's
 动物园信息) is the rebuilt `useravatar/useravatarservice` (`mmo.revival.RAvatar`). The 小屋 is built by the
 rebuilt `house/houseloader` from the player's house record. The 动物园
 (`furniture/b020000`) stands on the art of a later copy with code for the

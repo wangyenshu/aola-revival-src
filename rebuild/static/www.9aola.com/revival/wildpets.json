@@ -694,6 +694,15 @@
 "rate": 0
 }
 ],
+"fightkingwar2": [
+{
+"raceId": 853,
+"min": 10,
+"max": 20,
+"common": 1,
+"rate": 0
+}
+],
 "fightspace1": [
 {
 "raceId": 515,

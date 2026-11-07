@@ -15,7 +15,7 @@ import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installPetCards } from "./petcards.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord, type Visits } from "./house.ts";
 import { installShoot, type CardRow } from "./shoot.ts";
-import { PLANTS, installPlants, plantTree, potTrees, type PlantRec } from "./plants.ts";
+import { PLANTS, buySapling, installPlants, potTrees, type PlantRec } from "./plants.ts";
 import { installEggs, type HatchRec } from "./eggs.ts";
 import { installZoo, type ZooRec } from "./zoo.ts";
 import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.ts";
@@ -28,6 +28,9 @@ import { World, type XtContext } from "./server.ts";
 import { installHonour } from "./honour.ts";
 import { installGarden, type Board } from "./garden.ts";
 import { installThinkTower, type TowerRec } from "./thinktower.ts";
+import { installSevenStar, type SevenStarRec } from "./sevenstar.ts";
+import { installKingBosses, type KingRec } from "./kingbosses.ts";
+import { installFightKing, type WushenRec } from "./fightking.ts";
 import { isGiftBag, openGiftBag, openHeldGiftBags } from "./giftbags.ts";
 
 export interface UserRecord {
@@ -77,6 +80,12 @@ export interface UserRecord {
   bossWins?: Record<string, number>;
   /** 念之塔 (thinktower.ts): seals opened, 念 beaten, the chests' days. */
   tower?: TowerRec;
+  /** 黑暗三连星 and 魔将挑战 (sevenstar.ts). */
+  sevenstar?: SevenStarRec;
+  /** 修罗, 凯撒 and 召唤奇灵王 of 奇灵神树 (kingbosses.ts). */
+  kings?: KingRec;
+  /** 武神大陆 (fightking.ts). */
+  wushen?: WushenRec;
   /** Messages left today on others' 留言板 (garden.ts). */
   boardDay?: { day: string; n: number };
   /** Friends and asks to be friends (social.ts), by player id. */
@@ -91,6 +100,8 @@ export interface UserRecord {
   /** The trees of the 家园 (plants.ts). */
   plants?: PlantRec[];
   nextPlantId?: number;
+  /** 树苗 bought and not yet planted (plants.ts). */
+  saplings?: Record<string, number>;
   /** The eggs in the 亚比孵化器 of the 家园 (eggs.ts). */
   hatch?: HatchRec;
   /** 保卫战 progress per place (zoo.ts). */
@@ -171,7 +182,6 @@ export interface Sfs2013Options {
 const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
   "MaterialExtension.61_5": { pd: [] }, // PetClothesService
   "MaterialExtension.61-8": { cards: [] }, // PetCard2Service
-  "SundriesExtension.70-1": { b: [] }, // BadgeService
 };
 
 /** 欢乐岛: seconds of 冲浪 a day (HotSpringConfig.DefaultLeftTime) and experience every 3 seconds (RECONSTRUCTED). */
@@ -545,18 +555,17 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const qt = Math.max(1, Number(ctx.params.qt ?? 1) | 0);
     const row = (await table())[tp]?.[mi];
     const rec = await me(ctx);
-    // The 2015 欢乐弹珠机's buy panel reads result where the 2013 panels read res.
+    // The 2015 欢乐弹珠机's buy panel (and 召唤奇灵王's of February 2013) reads result where the 2013 panels read res.
     const fail = (res: number) => ctx.reply({ res, result: res, tp: Number(tp), mi: Number(mi), qt });
     if (!row) return fail(-1);
     const owned = (rec.items![tp] ??= {});
     if (tp === "9") {
-      // A tree of the 种植手册: it goes into the 植树盆 of the 家园 (plants.ts).
-      const tree = plantTree(rec, Number(mi));
-      if (typeof tree === "number") return fail(tree === -2 ? -2 : -4);
+      // A 树苗 of the 种植手册: kept until it is chosen at the 植树盆 of the 家园 (plants.ts).
+      const n = buySapling(rec, Number(mi));
+      if (n < 0) return fail(n === -19 ? -1 : n);
       await save(rec);
       ctx.reply({ score: rec.score }, "onScoreUpdated");
-      ctx.reply({ amount: `9_${mi}_0_1_${tree.id}` }, "onAmountUpdated");
-      return ctx.reply({ res: 1, tp: 9, mi: Number(mi), qt: 1, score: rec.score });
+      return ctx.reply({ res: 1, tp: 9, mi: Number(mi), qt: 1, score: rec.score, saplings: n });
     }
     const [price, buyback, rmb, maxQ, vipOnly] = row;
     const unit = price > 0 ? price : buyback * 2;
@@ -581,7 +590,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
       if (d.score) ctx.reply({ score: rec.score }, "onScoreUpdated");
       if (d.amount) ctx.reply({ amount: d.amount }, "onAmountUpdated");
-      return ctx.reply({ res: 1, tp: Number(tp), mi: Number(mi), qt, xingbi: rec.xingbi, ...(d.got !== undefined ? { got: d.got } : {}) });
+      return ctx.reply({ res: 1, result: 1, tp: Number(tp), mi: Number(mi), qt, xingbi: rec.xingbi, ...(d.got !== undefined ? { got: d.got } : {}) });
     }
     const cost = unit * qt;
     if (rec.score! < cost) return fail(-2);
@@ -899,6 +908,30 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     save: (o) => save(o as UserRecord),
     today,
     givePet: (o, race, level) => givePetTo(o as UserRecord, race, level),
+  });
+
+  // 黑暗三连星 (黑暗星穴) and 魔将挑战 (深渊之门): sevenstar.ts.
+  installSevenStar(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    today,
+    now: () => emu.clock.now().getTime(),
+  });
+
+  // 修罗, 凯撒 and 召唤奇灵王 (奇灵神树): kingbosses.ts.
+  installKingBosses(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    today,
+    now: () => emu.clock.now().getTime(),
+  });
+
+  // 武神大陆: fightking.ts.
+  installFightKing(world, {
+    me,
+    save: (o) => save(o as UserRecord),
+    today,
+    now: () => emu.clock.now().getTime(),
   });
 
   // The 家园's bar and its 友谊留言板: garden.ts.

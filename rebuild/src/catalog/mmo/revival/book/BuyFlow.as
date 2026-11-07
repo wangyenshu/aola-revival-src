@@ -64,7 +64,8 @@ package mmo.revival.book
             if (done != null) done(false);
             return;
          }
-         if (material.maxQuantity <= 1 && service.hasMaterial(info.id))
+         // A tree is bought as a 树苗, kept until it is planted (several may be had).
+         if (material.maxQuantity <= 1 && info.type != 9 && service.hasMaterial(info.id))
          {
             message("你已经有" + material.name + "了！");
             if (done != null) done(false);
@@ -122,10 +123,12 @@ package mmo.revival.book
                if (e.params.xingbi != undefined) UserInfo.xingbi = int(e.params.xingbi);
                // A 礼包 is opened at once: got says what it held (server giftbags.ts).
                if (res == 1 && e.params.got != undefined) message("购买成功！打开了" + material.name + "，得到：" + String(e.params.got) + "。" + (String(e.params.got).indexOf("经验") >= 0 ? "经验放进了家园的经验分配器。" : ""));
+               else if (res == 1 && info.type == 9) message("购买成功！到家园点一下植树盆，就可以种下" + material.name + "。");
                else if (res == 1) message("购买成功！" + material.name + "已经放进你的" + (info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包") + "。");
                else if (res == -2) message("你的晶币不够哦！");
                else if (res == -5) message("你的星币不够哦！（工具箱里可以增加星币）");
                else if (res == -6) message("只有蓝宝石才能购买哦！");
+               else if (res == -4 && info.type == 9) message("你的" + material.name + "树苗已经满了，不能再买了哦！");
                else if (res == -4) message("你已经有" + material.name + "了！");
                else message("没有买成，请再试一次。");
                if (done != null) done(res == 1);

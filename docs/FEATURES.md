@@ -378,9 +378,16 @@ The 功能 the 2012 world map lists for each place:
 | 粗心的卡索 | 索尔石城 (云端王国) | 卡索 |
 | 阿莫扭蛋机 | 大地迷城 | 阿莫 |
 | 钓星星的波波嘟 | 海洋幻境 | 波波嘟 |
+| 黑暗三连星 (鲁曼, 纳兹, 塞娅; 星魂法阵 for 星币) | 黑暗星穴 | 30 星魂 for the boss's egg (鲁迪, 纳德, 塞西) |
+| 魔将挑战 (魔洛 Lv100, five tries a day; or 160 星币) | 深渊之门 | 格洛's egg |
+| 修罗, 凯撒 (Lv100, then Lv120; the day's 15-minute 光之 / 暗之祝福; or 200 星币) | 奇灵神树 (修罗 offers them) | 伊修's, 阿凯's egg |
+| 召唤奇灵王 (三色奇灵玉 from three trials or 星币, then the 终极挑战) | 奇灵神树 (修罗 offers it) | 小奇灵's egg |
+| 武神战争: 黄巾军旗 (黄巾战魂 from 恶人山道's 黄巾小兵; 注入 to make a 黄巾小兵 张角 or 张梁), 关羽, 赵云, 张飞, 诸葛亮, 吕布, 刘备, 将军令 (five a day), 将军榜 | 武神大陆 | the generals' eggs |
 
 The wild 亚比 of these planets drop the items the activities need (弹珠,
-大力锤, 扭蛋币, 铠甲碎片, 糖果, 骑士卡).
+大力锤, 扭蛋币, 铠甲碎片, 糖果, 骑士卡, 黄巾战魂). The eggs of the activities go into the
+亚比孵化器. The 四大灵兽's guide (挑战攻略 in 寒冰王座's way, 赤羽神功's room) shows each beast and
+where it is challenged.
 
 ## Quests
 
@@ -910,13 +917,15 @@ run pays 晶豆, as its end panel says.
 - The 家园 (garden of 2012): the 植树盆 with the eight trees of 2012 and its
   2012 tree panel (雨露 and 养料 for 50 晶币, 采摘, 植物心声 with the last
   visitors, the 盆栽道具 from 极速雨露 to 铲子, a 守护亚比 against pickers, 收为家具
-  for a grown tree with no fruit to come; an empty pot opens the 种植手册), the 亚比孵化器, the 经验分配器 (hands the HELLO's
+  for a grown tree with no fruit to come; the 树苗 bought in the 种植园's 树苗售卖 (the
+  种植手册) are kept, and the empty pot lets the owner choose which to plant), the 亚比孵化器, the 经验分配器 (hands the HELLO's
   experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
   January 2012 tutorial), 我的荣誉 (the owner's 徽章: the 280 honours of the era,
   those the record can count got from what it holds), the 亚比仓库, the 留言板
   (友谊留言板: messages left by visitors, the owner's 寄语), 健身房 (亚比训练),
   最近访问 (足迹), and the 亚比 its owner 展示; its bar's 地图, 背包, 好友, 周刊,
-  勋章, 图鉴 and 放映厅 (奥拉星's films); the strip under the garden: the owner's
+  勋章 (the player card's 勋章 page: 勇气, 大地, 生命, 海洋 and 烈焰勋章 come with their
+  星辉任务), 图鉴 and 放映厅 (奥拉星's films); the strip under the garden: the owner's
   徽章分数, 人气 and friends, the cards of the player and the player's friends by
   徽章分数 (a card goes to that one's 家园), 刷新, the 商城, the sound switch and the
   clock.
@@ -960,7 +969,9 @@ run pays 晶豆, as its end panel says.
   them is lost), 战队, 兵团 and trading do not.
 - Daily tasks, the NPC guide.
 - Most time-limited activities of 2012–13 (their panels show
-  这个功能还在修复中).
+  这个功能还在修复中). Not recovered, their files lost: 狼王 and 夜王's challenges, and
+  星际寻宝, the 四灵兽挑战 and the 终极道馆 (only later re-runs of 2013–15 survive); the
+  titles some activities gave (修罗终结者, 奇灵王者, 镇蜀大将军) are not kept.
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
   亚比骑乘训练, 上古神殿's panels, 模拟空间.
 - Quests that call services that are still stand-ins may stop partway.

@@ -267,6 +267,11 @@ test("the 家园's 留言板 and bar between two players; 我的荣誉", async (
   assert.equal(h.nn, "奥拉A");
   assert.match(String(h.page), /^0=0,1=(-1|\d+),2=\d+,145=(-1|0)$/);
   assert.equal(String(h.honor).split(",").length, 4);
+  // 勋章: A's, as B's badge panel asks for them.
+  b.xt("SundriesExtension", "70-1", { un: "奥拉A" });
+  const got = (await b.wait("70-1"))!.b as { bi: number; gd: number }[];
+  assert.ok(Array.isArray(got));
+  for (const x of got) assert.ok([2, 3, 4, 5, 7].includes(x.bi));
 });
 
 test("念之塔: the seals opened, a chest a day, 小念 once 念 is beaten", async () => {

@@ -216,9 +216,11 @@ package mmo.tasknpc
       /**
        * NPCs the later scene table marks as task NPCs that were the hosts of
        * their rooms in 2012 and stood there whatever the tasks: 贝鲁特博士 (11)
-       * in the 亚比研究中心 (his era default talk is in ERA_TALK / NpcDefaultTalk).
+       * in the 亚比研究中心 (his era default talk is in ERA_TALK / NpcDefaultTalk). 修罗 (517) in
+       * 奇灵神树: the room's January 2013 scene, with the buttons of 修罗's and 凯撒's challenges, is
+       * lost; he stands there and offers them (control ScenePatches MENUS; RECONSTRUCTED).
        */
-      private static const RESIDENTS:Object = {"yabistudy": [11], "yabistudycopy": [11]};
+      private static const RESIDENTS:Object = {"yabistudy": [11], "yabistudycopy": [11], "hexagrampalace3": [517]};
 
       private static function isResident(npcId:int, scene:String):Boolean
       {

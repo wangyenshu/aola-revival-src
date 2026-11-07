@@ -1824,6 +1824,31 @@ const PM = "PocketMonsterExtension";
 
 /** PetFightTypes.FIGHT_IN_NPCCHALLENGE. */
 const FIGHT_IN_NPCCHALLENGE = 14;
+
+/**
+ * An activity's fight of PetClient2.startFight (54_22 {type, …}), added by the activity's own module
+ * (sevenstar.ts …): the opponent (species and level; asked, the boss's id the panel knows it by, for
+ * its films), what a win or a loss brings (t: the tables, for 亚比 given at once). A string refuses
+ * the fight with that message.
+ */
+export interface ActFight {
+  race: number;
+  level: number;
+  asked?: number;
+  onWin?: (o: PetOwner, t: PetTables) => Msg[];
+  onLose?: (o: PetOwner, t: PetTables) => Msg[];
+  /** The battle made, before it is sent (a blessing on the player's 亚比). */
+  adjust?: (b: Battle) => void;
+}
+export type ActFightSpec = (ctx: XtContext, o: PetOwner, t: PetTables) => Promise<ActFight | string> | ActFight | string;
+const ACT_FIGHTS = new WeakMap<World, Map<number, ActFightSpec>>();
+
+/** An activity's fight type for 54_22 (the activity modules install theirs). */
+export function addActFight(world: World, type: number, spec: ActFightSpec): void {
+  let m = ACT_FIGHTS.get(world);
+  if (!m) ACT_FIGHTS.set(world, (m = new Map()));
+  m.set(type, spec);
+}
 /**
  * The 守护者 of BossTimeHelper.bossTimeConfig (2013 interfaces): each scene's boss forms as
  * "race,race" (one after another; "#" a pair) with their levels; a form's index counts across
@@ -2167,6 +2192,18 @@ export function installBattles(world: World, deps: BattleDeps): void {
     }
     const type = Number(ctx.params.type);
     if (type >= GYM_THUNDER && type <= GYM_LIGHT) return gymFight(ctx, type);
+    const act = ACT_FIGHTS.get(world)?.get(type);
+    if (act) {
+      const o = await deps.load(ctx);
+      const t = await deps.tables();
+      const f = await act(ctx, o, t);
+      if (typeof f === "string") {
+        ctx.reply({ res: false });
+        return ctx.reply({ msg: f }, "2303");
+      }
+      ctx.reply({ res: true });
+      return void (await begin(ctx, f.race, f.level, false, f.onWin ? (owner) => f.onWin!(owner, t) : undefined, f.asked, f.onLose ? (owner) => f.onLose!(owner, t) : undefined, undefined, undefined, f.adjust));
+    }
     if (type !== FIGHT_IN_NPCCHALLENGE) {
       // A kind of fight not played here: the panel is told (2303 with msg: PetFightEvent.ENTER_FIGHT_FAIL),
       // else its FIGHT_END listener stayed and answered the next battle as its own.

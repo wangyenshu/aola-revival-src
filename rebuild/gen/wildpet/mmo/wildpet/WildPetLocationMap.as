@@ -52,6 +52,7 @@ package mmo.wildpet
          m["feier2"] = [new Point(240,430), new Point(350,410), new Point(500,430), new Point(600,330), new Point(700,380)];
          m["feier3"] = [new Point(200,430), new Point(350,340), new Point(500,380), new Point(650,280), new Point(530,320)];
          m["feier4"] = [new Point(144,337), new Point(234,499), new Point(528,456), new Point(678,417), new Point(875,446)];
+         m["fightkingwar2"] = [new Point(327,207), new Point(255,375), new Point(513,434), new Point(375,255), new Point(414,366)];
          m["fightspace1"] = [new Point(617,352), new Point(759,239), new Point(397,491), new Point(753,307), new Point(709,172)];
          m["fightspace2"] = [new Point(790,190), new Point(790,420), new Point(375,360), new Point(190,240), new Point(90,410)];
          m["giantcordillera1"] = [new Point(751,316), new Point(394,402), new Point(494,523), new Point(722,247), new Point(892,348)];
