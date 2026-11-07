@@ -1,0 +1,7 @@
+# Netlify / Cloudflare Pages headers for the built site (copied into dist/ by npm run build).
+# Every file is checked again on use (the host answers "not modified" when it is the same): the
+# rebuilt modules, the tables and files/index.json change under the same names with each build,
+# so none may be kept unchecked. No indexing.
+/*
+  Cache-Control: no-cache
+  X-Robots-Tag: noindex, nofollow, noai, noimageai
