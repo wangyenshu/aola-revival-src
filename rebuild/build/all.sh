@@ -89,7 +89,8 @@ export EXTRA_SWC="$OUT/swc/play.swc"
 # Player card with the wardrobe: rebuilt usercard/usercardservice.
 build usercard mmo/usercard/DocUserCard.as usercard.swf "usercard/usercardservice.swf%3F130117"
 
-# 亚比仓库: rebuilt pet/petwarehouse (drawn panel; the 2013 module is lost).
+# 亚比仓库: rebuilt pet/petwarehouse (the 2012 and 2013 modules are lost: its 2012 look is the
+# January 2012 tutorial house/houseteachmovie/houseteachpetstore's picture, taken at run time).
 build petwarehouse mmo/petwarehouse/DocPetWareHouse.as petwarehouse.swf "pet/petwarehouse.swf%3F121227"
 
 # 亚比: rebuilt pet/petdataservice and pet/petdictionarydata (species table in

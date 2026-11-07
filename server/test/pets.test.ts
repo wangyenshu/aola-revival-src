@@ -16,20 +16,20 @@ const tables: PetTables = {
   },
 };
 
-function harness() {
+function harness(clock = { now: Date.parse("2013-01-25T10:00:00Z") }) {
   const handlers = new Map<string, XtHandler>();
   const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {} } as unknown as World;
   const owner: PetOwner = { id: 10001, name: "小奥拉", nextPetId: 0 };
   owner.pets = [1, 2, 3, 4, 5, 6].map((i) => makePet(tables, 1, 5 + i, "d", i));
   owner.nextPetId = 6;
-  installPets(world, { load: async () => owner, save: async () => {}, tables: async () => tables, today: () => "2013-01-25", anyPet: true });
+  installPets(world, { load: async () => owner, save: async () => {}, tables: async () => tables, today: () => "2013-01-25", anyPet: true, now: () => clock.now });
   const call = async (key: string, params: Record<string, unknown> = {}) => {
     const out: [string, Record<string, unknown>][] = [];
     const ctx = { params, player: { name: owner.name }, reply: (o: Record<string, unknown>, cmd = key.split(".")[1]) => out.push([cmd, o]) } as unknown as XtContext;
     await handlers.get(key)!(ctx, key);
     return out;
   };
-  return { owner, call };
+  return { owner, call, clock };
 }
 
 test("亚比仓库: a 亚比 got with a full bag goes to the 仓库; moving between bag and 仓库", async () => {
@@ -53,21 +53,87 @@ test("亚比仓库: a 亚比 got with a full bag goes to the 仓库; moving betw
   assert.equal((await call("PocketMonsterExtension.1224", { id: owner.pets[0].id, loc: 1 }))[0][1].result, -3);
 });
 
-test("放生: a 亚比 of the bag or the 仓库 is gone; the last of the bag stays", async () => {
-  const { owner, call } = harness();
+test("放生: a 亚比 of the bag or the 仓库 goes to the 放生仓库, comes back from it, is gone after seven days", async () => {
+  const { owner, call, clock } = harness();
   await call("PocketMonsterExtension.1201", { raceId: 43, level: 20 });
   const stored = owner.storage![0].id;
   owner.followPet = 2;
+  owner.showPet = stored;
   const r = async (id: number) => (await call("PocketMonsterExtension.revival_release", { id }))[0];
   assert.deepEqual(await r(stored), ["revival_release", { result: 1, id: stored }]);
   assert.equal(owner.storage!.length, 0);
+  assert.equal(owner.showPet, 0);
   assert.equal((await r(2))[1].result, 1);
   assert.deepEqual(owner.pets!.map((p) => p.id), [1, 3, 4, 5, 6]);
   assert.equal(owner.followPet, 0);
   assert.equal((await r(99))[1].result, -1);
+  // The 放生仓库 lists them with the days they are kept still.
+  const gone = (await call("PocketMonsterExtension.1213", { loc: 3, page: 0 }))[0][1];
+  assert.equal(gone.total, 2);
+  const views = (gone.pmList as { pmSView: { i: number; rl: number } }[]).map((x) => x.pmSView);
+  assert.deepEqual(views.map((v) => [v.i, v.rl]), [[stored, 7], [2, 7]]);
+  // One comes back to the bag, another to the 仓库.
+  assert.equal((await call("PocketMonsterExtension.1224", { id: 2, loc: 0 }))[0][1].result, 1);
+  assert.deepEqual(owner.pets!.map((p) => p.id), [1, 3, 4, 5, 6, 2]);
+  assert.equal(owner.pets!.at(-1)!.relAt, undefined);
+  await r(2);
+  clock.now += 6 * 24 * 3600 * 1000;
+  assert.equal((await call("PocketMonsterExtension.1213", { loc: 3 }))[0][1].total, 2);
+  clock.now += 1 * 24 * 3600 * 1000 + 1;
+  assert.equal((await call("PocketMonsterExtension.1213", { loc: 3 }))[0][1].total, 0, "gone for good after seven days");
+  assert.equal((await call("PocketMonsterExtension.1224", { id: stored, loc: 1 }))[0][1].result, -1);
   owner.pets = owner.pets!.slice(0, 1);
   assert.equal((await r(owner.pets[0].id))[1].result, -3);
   assert.equal(owner.pets.length, 1);
+});
+
+test("亚比仓库: 系, order and pages of nine; 精英 and the 精英仓库; 昵称; 展示", async () => {
+  const { owner, call } = harness();
+  owner.storage = [
+    makePet(tables, 1, 30, "d", 11),
+    makePet(tables, 43, 12, "d", 12),
+    makePet(tables, 1, 8, "d", 13),
+    ...Array.from({ length: 9 }, (_, i) => makePet(tables, 43, 40 + i, "d", 20 + i)),
+  ];
+  const ids = async (q: Record<string, unknown>) =>
+    ((await call("PocketMonsterExtension.1213", { size: 9, ...q }))[0][1].pmList as { pmSView: { i: number } }[]).map((x) => x.pmSView.i);
+  const first = (await call("PocketMonsterExtension.1213", { loc: 1, size: 9 }))[0][1];
+  assert.equal(first.total, 12);
+  assert.equal(first.pages, 2);
+  assert.deepEqual(await ids({ loc: 1, page: 1 }), [26, 27, 28]);
+  // 木 (11): 兔小子; 冰 (14): 小冰犬.
+  assert.deepEqual(await ids({ loc: 1, pmType: 11 }), [11, 13]);
+  assert.equal((await ids({ loc: 1, pmType: 14 })).length, 9);
+  // By level, highest first; by when got, newest first.
+  assert.deepEqual((await ids({ loc: 1, order: 2, asc: false })).slice(0, 2), [28, 27]);
+  assert.deepEqual(await ids({ loc: 1, pmType: 11, order: 2, asc: true }), [13, 11]);
+  assert.deepEqual((await ids({ loc: 1, order: 1, asc: false })).slice(0, 2), [28, 27]);
+  // 精英.
+  assert.deepEqual((await call("PocketMonsterExtension.1225", { id: 12, e: true }))[0], ["2225", { result: 1, id: 12, e: true }]);
+  assert.deepEqual(await ids({ loc: 2 }), [12]);
+  const listed = (await call("PocketMonsterExtension.1213", { loc: 1, pmType: 14, size: 9 }))[0][1].pmList as { pmSView: { i: number; el: number } }[];
+  assert.equal(listed.find((x) => x.pmSView.i === 12)!.pmSView.el, 1);
+  await call("PocketMonsterExtension.1225", { id: 12, e: false });
+  assert.deepEqual(await ids({ loc: 2 }), []);
+  assert.equal((await call("PocketMonsterExtension.1225", { id: 99, e: true }))[0][1].result, -1);
+  // 昵称: up to six; empty gives the name back.
+  assert.deepEqual((await call("PocketMonsterExtension.revival_nick", { id: 11, nick: "小 兔" }))[0], ["revival_nick", { result: 1, id: 11, nick: "小兔" }]);
+  assert.equal(owner.storage.find((p) => p.id === 11)!.nick, "小兔");
+  assert.equal((await call("PocketMonsterExtension.revival_nick", { id: 11, nick: "一二三四五六七" }))[0][1].result, -2);
+  assert.equal((await call("PocketMonsterExtension.revival_nick", { id: 11, nick: "<b>" }))[0][1].result, -2);
+  await call("PocketMonsterExtension.revival_nick", { id: 11, nick: "" });
+  assert.equal(owner.storage.find((p) => p.id === 11)!.nick, undefined);
+  // 展示: one at a time; the same again takes it back.
+  assert.deepEqual((await call("PocketMonsterExtension.revival_show", { id: 12 }))[0], ["revival_show", { result: 1, id: 12 }]);
+  assert.equal(owner.showPet, 12);
+  assert.equal((await call("PocketMonsterExtension.revival_show", { id: 13 }))[0][1].id, 13);
+  assert.equal((await call("PocketMonsterExtension.revival_show", { id: 13 }))[0][1].id, 0);
+  assert.equal((await call("PocketMonsterExtension.revival_show", { id: 99 }))[0][1].result, -1);
+  // Its page says 精英 and 展示 too.
+  await call("PocketMonsterExtension.1225", { id: 13, e: true });
+  await call("PocketMonsterExtension.revival_show", { id: 13 });
+  const d = (await call("PocketMonsterExtension.1211", { id: 13 }))[0][1].pm as { pmPView: { el: number; sh: number } };
+  assert.deepEqual([d.pmPView.el, d.pmPView.sh], [1, 1]);
 });
 
 test("a 亚比 made at a high level knows every skill of its line up to it, and carries the last four", () => {

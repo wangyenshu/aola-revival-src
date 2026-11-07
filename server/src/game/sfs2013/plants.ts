@@ -12,7 +12,8 @@
 //   80_4 {owner, userPlantId}       -> the same for 养料 (nutrition)
 //   80_5 {owner, userPlantId}       -> {result: {result, extData, userPlant}}    采摘 (pick the fruit)
 //   revival_garden {op: "buy", plantId} | {op: "dig", userPlantId} | {op: "info", un}
-//                                   -> {op, result, plant, plants, score}
+//                                   -> {op, result, plant, plants, score, show}
+//                                      show: the 亚比 the owner 展示 {i, r, lv, nm} or null
 //
 // The plants, their levels and fruit are the January 2013 materialdata
 // PlantData and ItemData. The 2013 server is lost: how much a 雨露 or 养料
@@ -89,6 +90,8 @@ export interface PlantDeps {
   me(ctx: XtContext): Promise<PlantOwner>;
   find(name: string): Promise<PlantOwner | undefined>;
   save(o: PlantOwner): Promise<void>;
+  /** The 亚比 the owner shows in the garden (展示 in the 亚比仓库), for revival_garden's info. */
+  shown?(o: PlantOwner): Promise<{ i: number; r: number; lv: number; nm: string } | null>;
   now(): number;
 }
 
@@ -261,9 +264,10 @@ export function installPlants(world: World, deps: PlantDeps): void {
   world.xt("SundriesExtension.revival_garden", async (ctx) => {
     const op = String(ctx.params.op ?? "info");
     const now = deps.now();
-    const answer = (o: PlantOwner | undefined, result: number) => {
+    const answer = async (o: PlantOwner | undefined, result: number) => {
       const list = (o?.plants ?? []).map((p) => plantView(p, now));
-      ctx.reply({ op, result, plant: list[0] ?? null, plants: list, score: o?.score ?? 0 }, "revival_garden");
+      const show = o && deps.shown ? await deps.shown(o) : null;
+      ctx.reply({ op, result, plant: list[0] ?? null, plants: list, score: o?.score ?? 0, show }, "revival_garden");
     };
     if (op === "info") {
       const un = String(ctx.params.un ?? "");

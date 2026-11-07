@@ -222,9 +222,14 @@ package mmo.robot.robotmanager
                g.beginFill(0xFFFFFF);
                g.drawCircle(0, 0, s);
                g.endFill();
+               // One outline, so the middle where the two bars meet is red too (two
+               // rectangles in one fill leave that square open, white).
+               var a:Number = s * 0.25, b:Number = s * 0.7;
                g.beginFill(0xE8302A);
-               g.drawRect(-s * 0.25, -s * 0.7, s * 0.5, s * 1.4);
-               g.drawRect(-s * 0.7, -s * 0.25, s * 1.4, s * 0.5);
+               g.moveTo(-a, -b);
+               g.lineTo(a, -b); g.lineTo(a, -a); g.lineTo(b, -a); g.lineTo(b, a); g.lineTo(a, a);
+               g.lineTo(a, b); g.lineTo(-a, b); g.lineTo(-a, a); g.lineTo(-b, a); g.lineTo(-b, -a); g.lineTo(-a, -a);
+               g.lineTo(-a, -b);
                g.endFill();
                break;
             case "split":

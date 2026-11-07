@@ -852,7 +852,12 @@ run pays 晶豆, as its end panel says.
 - Catching with 亚比球 (the 2013 balls and their rules).
 - Experience, levels, effort points, learning skills, evolution.
 - The 亚比 bag: details, healing, 更换技能 (choose four of the learnt skills).
-- The 亚比仓库 (from the bag and from the 家园), with 放生 (added by the revival).
+- The 亚比仓库 (from the 家园 and the HELLO's 远程亚比仓库) in its 2012 look (the
+  January 2012 tutorial's picture of it): 亚比仓库 / 精英仓库 / 放生仓库, the 系
+  icons, 按时间顺序 / 按等级顺序, pages of nine, and for the 亚比 chosen 技能 /
+  能力 / 信息, 展示 (shown in the 家园), 训练 (the HELLO's 亚比训练), 设为精英 /
+  取消精英, 放入背包, 放生 (kept seven days in the 放生仓库, RECONSTRUCTED), and its
+  昵称 (the pen by its name). The bag's box button puts a 亚比 back (放回仓库).
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
   picture where none exists).
 - Riding (坐骑): one of the 34 亚比 of the 2013 ride list, for 蓝宝骑士.
@@ -877,7 +882,9 @@ run pays 晶豆, as its end panel says.
 ### Shops and money
 
 - The catalog books: 道具商品册, 服装 (星语流行服饰, 时尚精品服饰), 家具商品册,
-  种植手册, 射击卡手册, 收费亚比蛋商品册, and the 收费 books of the 商城.
+  种植手册, 射击卡手册, 收费亚比蛋商品册, and the 收费 books of the 商城, in their
+  own frames (the desk with page numbers and money each 商品册 carries; the 周刊's
+  and handbooks' containers); a close is added only to a book without its own.
 - 晶币 for ordinary goods; 星币 for the real-money goods (half price for
   蓝宝石).
 - 礼包 open when bought: what each held goes into the bag, its 经验 to the
@@ -895,7 +902,8 @@ run pays 晶豆, as its end panel says.
 
 - The 家园 (garden of 2012): the 植树盆 with the eight trees of 2012 (plant,
   water, feed, pick), the 亚比孵化器, the 经验分配器 (hands the HELLO's
-  experience to a 亚比), 我的荣誉, the 亚比仓库.
+  experience to a 亚比; its 2012 panel, 确认 box and LEVEL UP box, from the
+  January 2012 tutorial), 我的荣誉, the 亚比仓库, and the 亚比 its owner 展示.
 - The 小屋 (空间舱 and the other house types): furniture from the catalog,
   decorating, storage.
 - The 动物园: forty animals that grow, can be fed and harvested, and may turn

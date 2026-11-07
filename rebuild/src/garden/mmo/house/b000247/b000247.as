@@ -9,11 +9,14 @@ package mmo.house.b000247
    import flash.display.Shape;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
+   import flash.filters.GlowFilter;
    import flash.geom.Matrix;
    import flash.geom.Point;
    import flash.geom.Rectangle;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
+   import flash.text.TextFormat;
+   import flash.text.TextFormatAlign;
    import flash.utils.getDefinitionByName;
    import flash.utils.getQualifiedClassName;
    import mmo.common.utils.tips.TipsManager;
@@ -30,6 +33,7 @@ package mmo.house.b000247
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.play.scene.SceneManager;
+   import mmo.revival.RArt;
    import mmo.revival.RExpPanel;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
@@ -411,6 +415,55 @@ package mmo.house.b000247
       private function onGarden(e:SocketClientEvent):void
       {
          showTree(e.params.plant);
+         showPet(e.params.show);
+      }
+
+      private var shownPet:Sprite;
+
+      /**
+       * The 亚比 the owner 展示 (the 亚比仓库's button; the 2012 tutorial: "可以将可爱的亚比
+       * 展示出来"): on the lawn, its name and level above it. Its picture is its peticon _L.
+       */
+      private function showPet(p:Object):void
+      {
+         if (shownPet != null && shownPet.parent != null) shownPet.parent.removeChild(shownPet);
+         shownPet = null;
+         if (p == null || int(p.r) <= 0) return;
+         var s:Sprite = new Sprite();
+         s.name = "gardenShowPet";
+         s.x = 470;
+         s.y = 372;
+         s.buttonMode = true;
+         var pic:Sprite = new Sprite();
+         pic.y = -42;
+         s.addChild(pic);
+         RArt.pet(pic, int(p.r), 84, "_L");
+         var shadow:Shape = new Shape();
+         shadow.graphics.beginFill(0x000000, 0.18);
+         shadow.graphics.drawEllipse(-26, -6, 52, 12);
+         shadow.graphics.endFill();
+         s.addChildAt(shadow, 0);
+         var t:TextField = new TextField();
+         t.defaultTextFormat = new TextFormat("SimSun", 12, 0xFFFFFF, true, null, null, null, null, TextFormatAlign.CENTER);
+         t.selectable = false;
+         t.mouseEnabled = false;
+         t.width = 140;
+         t.height = 18;
+         t.x = -70;
+         t.y = -106;
+         t.text = String(p.nm || "") + "  Lv." + int(p.lv);
+         t.filters = [new GlowFilter(0x1B4F8A, 1, 3, 3, 6)];
+         s.addChild(t);
+         var who:String = owner();
+         s.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { e.stopPropagation(); });
+         s.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
+         {
+            e.stopPropagation();
+            RNotice.show(LayerManager.getBaseTop(), isMine() ? "你正在展示" + String(p.nm || "亚比") + "，在亚比仓库里可以取消展示。"
+               : who + "正在展示" + String(p.nm || "亚比") + "（Lv." + int(p.lv) + "）！");
+         });
+         Sprite(getChildByName("foreground")).addChild(s);
+         shownPet = s;
       }
 
       /** The tree in the 植树盆 as it has grown (plant/y<id>, TreeArt). */

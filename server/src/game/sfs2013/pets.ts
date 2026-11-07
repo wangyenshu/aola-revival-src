@@ -60,6 +60,10 @@ export interface PetRecord {
   buff?: { i: number; add: number };
   /** 战术卡 worn (petcards.ts): ids in the places A, B, C (0 none). */
   cards?: number[];
+  /** 设为精英 in the 亚比仓库: it shows in the 精英仓库 as well. */
+  elite?: boolean;
+  /** In the 放生仓库: when it was let go (ms). */
+  relAt?: number;
 }
 
 /** Fields of UserRecord the pet code uses. */
@@ -69,10 +73,28 @@ export interface PetOwner {
   pets?: PetRecord[];
   /** 亚比 that did not fit in the bag (仓库). */
   storage?: PetRecord[];
+  /** 放生仓库: 亚比 let go, kept RELEASE_KEEP_MS before they are gone for good. */
+  released?: PetRecord[];
   nextPetId?: number;
   followPet?: number;
+  /** 展示 in the 亚比仓库: the 亚比 shown in the owner's 家园 (0 none). */
+  showPet?: number;
   /** Experience of the 捕捉等级. */
   catchExp?: number;
+}
+
+/**
+ * How long the 放生仓库 keeps a 亚比 let go. The 2012 tutorial (houseteachpetstore) says only
+ * "放生的亚比一段时间后就无法找回": RECONSTRUCTED as seven days.
+ */
+export const RELEASE_KEEP_MS = 7 * 24 * 3600 * 1000;
+
+/** The 放生仓库 without the 亚比 kept long enough; true when some went. */
+export function dropOldReleased(o: PetOwner, now: number): boolean {
+  const before = o.released?.length ?? 0;
+  if (!before) return false;
+  o.released = o.released!.filter((p) => now - (p.relAt ?? 0) < RELEASE_KEEP_MS);
+  return o.released.length !== before;
 }
 
 export type SpeciesTable = Record<string, { n: string; a: number; e: number; next: number; sk: string[] }>;
@@ -296,6 +318,8 @@ export interface PetDeps {
   today: () => string;
   /** addPM (1201) may give any 亚比 (the 工具箱 open, or the walk-throughs' dev commands); else the starters only. */
   anyPet?: boolean;
+  /** The time (ms; Date.now without): the 放生仓库's days. */
+  now?: () => number;
 }
 
 /** The first 亚比 (task 135's StarterPanel): 兔小子, 吉拉, 滴滴 at Lv5, to a player with none. */
@@ -347,32 +371,66 @@ export function installPets(world: World, deps: PetDeps): void {
     ctx.reply({ pmList: pets.map((p) => briefOf(p, o, t)), pms: pets[0] ? `${pets[0].id}#` : "", cui: 0, prv: [] }, "2212");
   });
 
-  // 亚比仓库 (pet/petwarehouse; the 2013 module is lost, the commands are the era PetClient's):
-  //   1213 viewPMInLocation {pmType, page, loc, order, asc} -> 2213 {loc, page, pages, total, pmList}
-  //        loc 1 the 仓库 (STORAGE_PAGE to a page), loc 0 the bag
-  //   1224 sendPmToFromStorage {id, loc} -> 2224 {result, id, loc}   loc: where it goes (1 仓库, 0 bag)
+  // 亚比仓库 (pet/petwarehouse; the 2013 module is lost, the commands are the era PetClient's; the
+  // 2012 panel's tabs, 系 filter and sorting are its January 2012 tutorial's, houseteachpetstore):
+  //   1213 viewPMInLocation {pmType, page, loc, order, asc, size?} -> 2213 {loc, page, pages, total, pmList}
+  //        loc 0 the bag, 1 the 仓库, 2 the 精英仓库 (its 精英), 3 the 放生仓库 (let go, not gone yet)
+  //        pmType 0 every 亚比, n those of 属性 n; order 1 by when it was got, 2 by level; asc
+  //        size: to a page (the revival's; STORAGE_PAGE without); each item's pmSView has el
+  //        (精英 1), sh (展示 1) and, in the 放生仓库, rl (days it is kept still)
+  //   1224 sendPmToFromStorage {id, loc} -> 2224 {result, id, loc}   loc: where it goes (1 仓库, 0 bag);
+  //        a 亚比 of the 放生仓库 comes back so too
   //        result 1 done, -1 no such 亚比, -2 the bag is full, -3 the last 亚比 of the bag stays
+  //   1225 setExcellentPM {id, e} -> 2225 {result, id, e}   精英 or not (result 1, -1 no such 亚比)
   // The 2013 rules are lost: RECONSTRUCTED (the bag holds 6 as everywhere in the client).
   const STORAGE_PAGE = 12;
+  const now = () => (deps.now ? deps.now() : Date.now());
+  const attrOf = (t: PetTables, p: PetRecord) => speciesOf(t, p.race)?.t[0] ?? t.species[String(p.race)]?.a ?? 0;
+  const located = (o: PetOwner, loc: number): PetRecord[] =>
+    loc === 1 ? (o.storage ??= []) : loc === 2 ? (o.storage ?? []).filter((p) => p.elite) : loc === 3 ? (o.released ?? []) : list(o);
   world.xt(`${EXT}.1213`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
+    if (dropOldReleased(o, now())) await deps.save(o);
     const loc = Number(ctx.params.loc) | 0;
-    const all = loc === 1 ? (o.storage ??= []) : list(o);
-    const pages = Math.max(1, Math.ceil(all.length / STORAGE_PAGE));
+    const type = Number(ctx.params.pmType) | 0;
+    const order = Number(ctx.params.order) | 0;
+    const asc = ctx.params.asc === undefined ? true : ctx.params.asc === true || ctx.params.asc === "true" || Number(ctx.params.asc) === 1;
+    const size = Math.max(1, Math.min(60, Number(ctx.params.size) | 0 || STORAGE_PAGE));
+    let all = located(o, loc).slice();
+    if (type > 0) all = all.filter((p) => attrOf(t, p) === type);
+    if (order === 2) all.sort((a, b) => a.level - b.level || a.id - b.id);
+    if ((order === 1 || order === 2) && !asc) all.reverse();
+    const pages = Math.max(1, Math.ceil(all.length / size));
     const page = Math.max(0, Math.min(pages - 1, Number(ctx.params.page) | 0));
-    const shown = loc === 1 ? all.slice(page * STORAGE_PAGE, (page + 1) * STORAGE_PAGE) : all;
-    ctx.reply({ loc, page, pages, total: all.length, pmList: shown.map((p) => briefOf(p, o, t)) }, "2213");
+    const shown = loc === 0 ? all : all.slice(page * size, (page + 1) * size);
+    const left = (p: PetRecord) => Math.max(0, Math.ceil((RELEASE_KEEP_MS - (now() - (p.relAt ?? 0))) / (24 * 3600 * 1000)));
+    const pmList = shown.map((p) => {
+      const b = briefOf(p, o, t);
+      return { ...b, pmSView: { ...b.pmSView, el: p.elite ? 1 : 0, sh: o.showPet === p.id ? 1 : 0, ...(loc === 3 ? { rl: left(p) } : {}) } };
+    });
+    ctx.reply({ loc, page, pages, total: all.length, pmList }, "2213");
   });
   world.xt(`${EXT}.1224`, async (ctx) => {
     const o = await deps.load(ctx);
+    dropOldReleased(o, now());
     const id = Number(ctx.params.id);
     const loc = Number(ctx.params.loc) | 0;
     const bag = list(o);
     const store = (o.storage ??= []);
+    const gone = (o.released ??= []);
+    const answer = (result: number) => ctx.reply({ result, id, loc }, "2224");
+    const back = gone.findIndex((p) => p.id === id);
+    if (back >= 0) {
+      if (loc === 0 && bag.length >= 6) return answer(-2);
+      const [p] = gone.splice(back, 1);
+      delete p.relAt;
+      (loc === 0 ? bag : store).push(p);
+      await deps.save(o);
+      return answer(1);
+    }
     const from = loc === 1 ? bag : store;
     const to = loc === 1 ? store : bag;
     const i = from.findIndex((p) => p.id === id);
-    const answer = (result: number) => ctx.reply({ result, id, loc }, "2224");
     if (i < 0) return answer(-1);
     if (loc === 0 && bag.length >= 6) return answer(-2);
     if (loc === 1 && bag.length <= 1) return answer(-3);
@@ -382,9 +440,21 @@ export function installPets(world: World, deps: PetDeps): void {
     await deps.save(o);
     answer(1);
   });
+  world.xt(`${EXT}.1225`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const id = Number(ctx.params.id);
+    const e = ctx.params.e === true || ctx.params.e === "true" || Number(ctx.params.e) === 1;
+    const p = [...list(o), ...(o.storage ?? [])].find((x) => x.id === id);
+    if (!p) return ctx.reply({ result: -1, id, e }, "2225");
+    if (e) p.elite = true;
+    else delete p.elite;
+    await deps.save(o);
+    ctx.reply({ result: 1, id, e }, "2225");
+  });
 
-  // 放生 (the revival's, from the 亚比仓库): revival_release {id} -> revival_release {result, id}
-  //   result 1 released (gone for good), -1 no such 亚比, -3 the last 亚比 of the bag stays
+  // 放生 (from the 亚比仓库): revival_release {id} -> revival_release {result, id}
+  //   result 1 let go (into the 放生仓库, gone for good after RELEASE_KEEP_MS), -1 no such 亚比,
+  //   -3 the last 亚比 of the bag stays
   world.xt(`${EXT}.revival_release`, async (ctx) => {
     const o = await deps.load(ctx);
     const id = Number(ctx.params.id);
@@ -395,19 +465,51 @@ export function installPets(world: World, deps: PetDeps): void {
     const inStore = store.findIndex((p) => p.id === id);
     if (inBag < 0 && inStore < 0) return answer(-1);
     if (inBag >= 0 && bag.length <= 1) return answer(-3);
-    if (inBag >= 0) bag.splice(inBag, 1);
-    else store.splice(inStore, 1);
+    const [p] = inBag >= 0 ? bag.splice(inBag, 1) : store.splice(inStore, 1);
+    p.relAt = now();
+    delete p.elite;
+    (o.released ??= []).push(p);
+    dropOldReleased(o, now());
     if (o.followPet === id) o.followPet = 0;
+    if (o.showPet === id) o.showPet = 0;
     await deps.save(o);
     answer(1);
   });
 
-  // viewSinglePM {id} -> {pm: PetDetailedInfo}
+  // 亚比昵称 (the 亚比仓库's pen by the name): revival_nick {id, nick} -> revival_nick {result, id, nick}
+  //   result 1 done ("" gives back the 亚比's own name), -1 no such 亚比, -2 too long or not allowed
+  world.xt(`${EXT}.revival_nick`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const id = Number(ctx.params.id);
+    const nick = String(ctx.params.nick ?? "").replace(/\s+/g, "").slice(0, 32);
+    const p = [...list(o), ...(o.storage ?? [])].find((x) => x.id === id);
+    if (!p) return ctx.reply({ result: -1, id, nick }, "revival_nick");
+    if ([...nick].length > 6 || /[<>&"'\\]/.test(nick)) return ctx.reply({ result: -2, id, nick }, "revival_nick");
+    if (nick) p.nick = nick;
+    else delete p.nick;
+    await deps.save(o);
+    ctx.reply({ result: 1, id, nick }, "revival_nick");
+  });
+
+  // 展示 (the 亚比仓库's): revival_show {id} -> revival_show {result, id}   the 亚比 shown in the
+  // owner's 家园 (furniture/b000247 shows it from revival_garden's info); id 0 or the one shown: none.
+  world.xt(`${EXT}.revival_show`, async (ctx) => {
+    const o = await deps.load(ctx);
+    const id = Number(ctx.params.id) | 0;
+    const has = id > 0 && [...list(o), ...(o.storage ?? [])].some((x) => x.id === id);
+    if (id > 0 && !has) return ctx.reply({ result: -1, id }, "revival_show");
+    o.showPet = id > 0 && o.showPet !== id ? id : 0;
+    await deps.save(o);
+    ctx.reply({ result: 1, id: o.showPet }, "revival_show");
+  });
+
+  // viewSinglePM {id} -> {pm: PetDetailedInfo}   (a 亚比 of the 放生仓库 too, for its page there)
   world.xt(`${EXT}.1211`, async (ctx) => {
     const { o, t } = await loadAll(ctx);
-    const p = [...list(o), ...(o.storage ?? [])].find((x) => x.id === Number(ctx.params.id));
+    const p = [...list(o), ...(o.storage ?? []), ...(o.released ?? [])].find((x) => x.id === Number(ctx.params.id));
     if (!p) return ctx.reply({ msg: "没有这只亚比" }, "2211");
-    ctx.reply({ pm: detailOf(p, o, t) }, "2211");
+    const d = detailOf(p, o, t);
+    ctx.reply({ pm: { ...d, pmPView: { ...d.pmPView, el: p.elite ? 1 : 0, sh: o.showPet === p.id ? 1 : 0 } } }, "2211");
   });
 
   // addPM {raceId, level, type}: the revival's first-亚比 choice gives the starter this way (and

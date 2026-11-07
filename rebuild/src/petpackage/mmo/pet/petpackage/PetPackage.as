@@ -14,7 +14,10 @@ package mmo.pet.petpackage
    import flash.text.TextFormat;
    import flash.utils.getDefinitionByName;
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
+   import mmo.common.utils.tips.TipsManager;
    import mmo.framework.comm.PetClient;
+   import mmo.framework.comm.SocketClient;
+   import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.IService;
    import mmo.interfaces.IShowPanel;
    import mmo.interfaces.ServiceContainer;
@@ -100,14 +103,9 @@ package mmo.pet.petpackage
          button(panel.btnCloth, notReady("亚比装扮"));
          // 战术卡: the revival's page (CardPage) in place of the 信息 page.
          button(panel.btnCard, function():void { showTab("card"); });
-         button(panel.btnBackWare, function():void
-         {
-            // 亚比仓库: the rebuilt pet/petwarehouse (service PetWareHouse).
-            ServiceContainer.instance.tryGetService("PetWareHouse", function(svc:IService, o:Object):void
-            {
-               try { IShowPanel(svc).showPanel(); } catch (e:Error) { RLog.error("petpackage warehouse", e); }
-            });
-         });
+         // 放回仓库 (btnBackWare): the 亚比 chosen into the 亚比仓库, whose 2012 panel shows the 仓库 alone.
+         button(panel.btnBackWare, backToWarehouse);
+         try { TipsManager.getInstance().addTips(panel.btnBackWare, "放回仓库"); } catch (e:Error) {}
          button(panel.mcRide, toggleRide);
          button(panel.mcSetPri, setFirst);
          button(panel.mcFollow, toggleFollow);
@@ -394,6 +392,31 @@ package mmo.pet.petpackage
          if (p == null || selected == 0) return;
          PetClient.instance.setCurPM(p.id);
          selected = 0;
+      }
+
+      /** 放回仓库: PetClient.sendPmToFromStorage (1224 {id, loc 1} -> 2224 {result}); the last 亚比 stays. */
+      private function backToWarehouse():void
+      {
+         var p:PetBriefInfo = pets[selected] as PetBriefInfo;
+         if (p == null) return;
+         if (pets.length <= 1)
+         {
+            RNotice.show(LayerManager.getBaseTop(), "背包里至少要留一只亚比哦！");
+            return;
+         }
+         var who:String = p.nickname || p.name;
+         var done:Function = function(e:SocketClientEvent):void
+         {
+            SocketClient.instance.removeEventListener("2224", done);
+            var r:int = int(e.params.result);
+            if (r == -3) RNotice.show(LayerManager.getBaseTop(), "背包里至少要留一只亚比哦！");
+            if (r != 1) return;
+            RNotice.show(LayerManager.getBaseTop(), who + "放回亚比仓库了。");
+            selected = 0;
+            PetClient.instance.viewAllPM();
+         };
+         SocketClient.instance.addEventListener("2224", done);
+         PetClient.instance.sendPmToFromStorage(p.id, 1);
       }
 
       /** mcFollow: through pet/petfollow (PetClient2 54_8 to follow, 54_9 back into the bag). */

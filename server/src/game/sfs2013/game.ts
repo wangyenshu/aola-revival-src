@@ -43,6 +43,10 @@ export interface UserRecord {
   followPet?: number;
   /** 亚比 that did not fit in the bag. */
   storage?: PetRecord[];
+  /** 放生仓库 (pets.ts): 亚比 let go, kept a while. */
+  released?: PetRecord[];
+  /** 展示 (pets.ts revival_show): the 亚比 shown in the 家园. */
+  showPet?: number;
   /** Experience of the 捕捉等级. */
   catchExp?: number;
   /** The starting balls and sweets were given. */
@@ -723,7 +727,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // ---------------------------------------------------------------- pets
 
   const today = () => emu.clock.now().toISOString().slice(0, 10);
-  installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today, anyPet: toolbox || !!opts.dev });
+  installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today, anyPet: toolbox || !!opts.dev, now: () => emu.clock.now().getTime() });
   installPetDic(world, { load: me, save: (o) => save(o as UserRecord), tables });
   installBattles(world, {
     load: me,
@@ -874,6 +878,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     find: (name) => userRecord(emu, name),
     save: (o) => save(o as UserRecord),
     now: () => emu.clock.now().getTime(),
+    // The 亚比 the owner 展示 (the 亚比仓库's, pets.ts revival_show): the garden shows it.
+    shown: async (o) => {
+      const r = o as UserRecord;
+      const p = r.showPet ? [...(r.pets ?? []), ...(r.storage ?? [])].find((x) => x.id === r.showPet) : undefined;
+      return p ? { i: p.id, r: p.race, lv: p.level, nm: p.nick || nameOf(await tables(), p.race) } : null;
+    },
   });
 
   // The 沙盒's mods: their 亚比, gifts and saved data (mods.ts).
