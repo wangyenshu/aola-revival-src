@@ -79,14 +79,15 @@ package
          // The 蚁将军's treasure (the 副本's chest: 高级体力糖 and 高级活力豆), opened once its guards are gone.
          {id: "ant4", scene: "fbsiwude4", name: "下水道深处", next: "ant5", door: "et1", arrow: [820, 220, 0, true], chest: "treasure"},
          {id: "ant5", scene: "fbsiwude5", name: "工蚁聚集地", next: "ant6", door: "et1", arrow: [288, 93, 0, true]},
-         // In by the path on the right (et1), on through the great door between the statues.
-         {id: "ant6", scene: "fbsiwude6", name: "蚁神守护大厅", next: "ant9", door: "fbsiwude6_door", arrow: [320, 150, 0, true], spawn: [840, 320]},
+         // In where the scene puts the player (as the 副本 did), on through the great door between the statues.
+         {id: "ant6", scene: "fbsiwude6", name: "蚁神守护大厅", next: "ant9", door: "fbsiwude6_door", arrow: [320, 150, 0, true]},
          {id: "ant9", scene: "fbsiwude9", name: "蚁神巨像", next: "ant10", door: "et1", arrow: [379, 98, 0, true], cleared: {play: ["mc_gate"], remove: ["roadblock"]}},
-         {id: "ant10", scene: "fbsiwude10", name: "蚁神殿前殿", next: "ant11", door: "et1", arrow: [150, 100, 35, false], cleared: {remove: ["hurdle"]}},
+         {id: "ant10", scene: "fbsiwude10", name: "蚁神殿前殿", spawn: [915, 515], next: "ant11", door: "et1", arrow: [150, 100, 35, false], cleared: {remove: ["hurdle"]}},
          // hide: the scene's fighters by the 蚁将军 (its 副本's), who would look like his guard here.
          {id: "ant11", scene: "fbsiwude11", name: "蚁神殿正殿", next: "core", hide: ["mc_fight"], freed: {mc_antQueen: "mutant"}},
          {id: "core", scene: "maintown1copy", name: "传送核心", next: "hq", door: "et1", city: true},
-         {id: "hq", scene: "maintown2copy", name: "指挥中心", city: true}
+         // In at the foot of the walkway, the three of the 指挥中心 before him.
+         {id: "hq", scene: "maintown2copy", name: "指挥中心", city: true, spawn: [475, 505]}
       ];
 
       /**
@@ -142,18 +143,19 @@ package
             say: "兰斯罗特由我看守，退下！", lost: "团长，我守不住了……"},
          {id: "magellan", room: "ant10", npc: 9, name: "司令官麦哲伦", race: 236, level: 92, captive: 224, hide: ["btnPet_3"], cage: [608, 380], side: -1,
             say: "大部队虽然调去和达斯特人作战，我麦哲伦还在这里！", lost: "是我大意了……不该把部队全调走。"},
-         {id: "lanbao", room: "ant10", npc: 221, name: "蓝宝卫兵雷恩", race: 33, level: 92, captive: 222, hide: ["btnPet_4"], cage: [804, 433], side: -1,
+         {id: "lanbao", room: "ant10", npc: 221, name: "蓝宝卫兵雷恩", race: 33, level: 92, captive: 222, hide: ["btnPet_4"], cage: [804, 433], side: -1, standAt: [100, -50],
             say: "贝德威尔由蓝宝卫队看押，你们过不去！", lost: "守不住了……蓝宝卫队，撤！"},
          {id: "mutant", room: "ant11", race: 227, level: 100, boss: true, look: 227, art: ["btn_general"], name: "变异蚁将军",
             gift: GENERAL, say: "吼——！！奥拉人……命令……守住……蚁后……", lost: "我……我是……蚁族的……将军……"},
-         {id: "kid", room: "core", look: KULAN, name: "小奥拉", race: [502, 501, 500], level: 100, x: 470, y: 400, boss: true,
-            say: "传送门那头怎么出来的是蚂蚁？……你们是从蚁族王朝一路打过来的？不行，我不能让你们过去！", lost: "好、好厉害……我得赶紧去通知兰丁队长！"},
+         // all: every 亚比 of race in the one battle, in a random order (each at the mode's boss strength).
+         {id: "kid", room: "core", look: KULAN, name: "小奥拉", race: [502, 501, 500], all: true, level: 100, x: 470, y: 400, boss: true,
+            say: "传送门那头怎么出来的是蚂蚁？……你们是从蚁族王朝一路打过来的？不行，我不能让你们过去！", lost: "竟然一路打到了这里……我这就去通知兰丁队长！"},
          {id: "landing", room: "hq", npc: 94, name: "兰丁", race: 1648, level: 100, x: 330, y: 430, boss: true,
-            say: "我是兰丁。能一路打到指挥中心，你们确实有本事。想谈条件，先过我和菲尔这一关。", lost: "……看来你们不是来捣乱的，是来讨个公道的。"},
+            say: "我是兰丁。能一路打到指挥中心，你们确实有本事。想谈条件，先过我和菲尔这一关。", lost: "菲尔都挡不住你们……蚁族王朝的事，看来我们欠你们一个解释。"},
          {id: "flora", room: "hq", npc: 194, name: "弗洛拉", race: 1649, level: 100, x: 610, y: 430, boss: true,
-            say: "我是弗洛拉。前线的消息我都听说了……来吧，让我看看你们为了家园能拼到什么地步。", lost: "可兰，辛苦你了……去请拉贝尔吧。"},
+            say: "我是弗洛拉。前线的消息我都听说了……来吧，让我看看你们为了家园能拼到什么地步。", lost: "可兰也撑不住了……为家园而战的决心，是我们小看了。"},
          {id: "rabel", room: "hq", npc: 86, name: "拉贝尔", race: 323, level: 100, x: 470, y: 330, boss: true, need: ["landing", "flora"],
-            say: "我是拉贝尔，指挥中心由我负责。兰丁和弗洛拉都输了，那就由我和梅卡来做最后的了断。", lost: "……够了，住手吧。"}
+            say: "我是拉贝尔，指挥中心由我负责。兰丁和弗洛拉都输了，那就由我和梅卡来做最后的了断。", lost: "梅卡，退下吧。再打下去，只会让更多人受伤。"}
       ];
 
       /** What each creature says when it is free: what it can do. */
@@ -194,7 +196,7 @@ package
       private static const ADVICE:Object = {
          "mutant": ["变异蚁将军是木属性：兰斯罗特的火、贝德威尔的冰打它都是双倍！",
             "它的将军KICK是普通攻击，蚁族魔斗士的意念之盾能让伤害减半；将军雷霆破和将军震地波是特殊攻击，蚁族圣斗士的闪电护盾能挡住一半。"],
-         "kid": ["小奥拉的初始亚比每次都不一样：古渊露龙是水和飞行属性，电属性打它是<font color='#FF6600'>四倍</font>！魔焰吉拉是火属性，用水属性的伙伴；终结兔是木属性，用火或冰。",
+         "kid": ["小奥拉会带着三只初始亚比，出场顺序每次都不一样：古渊露龙是水和飞行属性，电属性打它是<font color='#FF6600'>四倍</font>！魔焰吉拉是火属性，用水属性的伙伴；终结兔是木属性，用火或冰。",
             "终结兔是木系：寄生种子对它无效，别浪费技能次数。"],
          "landing": ["菲尔是火属性，招式全是普通攻击：先让蚁族魔斗士用意念之盾，伤害减半，换亚比也有效！",
             "保斯（土）和牛角滴滴、金刚蛤蟆（水）挨火属性攻击只受一半伤害，反击却是双倍。千万别让木属性的兵蚁正面挨打！",
@@ -236,6 +238,8 @@ package
       private static const SQUASH:Number = 0.8;
       /** Gone past a guard towards a way on (nearer it than the guard is) within this: stopped too. */
       private static const PASS:Number = 300;
+      /** How far from the nearest way on the player came into the room (-1: not yet seen). */
+      private var cameAt:Number = -1;
       /** Where the 奥拉 army's portal stands in 蚁神殿正殿 (its foot). */
       private static const PORTAL:Array = [820, 360];
       /** The 蚁族王朝 副本's arrows (fbteam/fbsiwude_res's ShowArrowhead). */
@@ -406,6 +410,7 @@ package
          watched = [];
          engaged = false;
          safe = null;
+         cameAt = -1;
          calmUntil = getTimer() + 1500;
          var waiting:Array = [];
          for each (var g:Object in guardsOf(r.id))
@@ -927,6 +932,8 @@ package
             var py:Number = pg.foot ? Point(pg.foot).y : R.bottom;
             // front: before its cage (a little to one side, the creature still seen; frontDx: how far).
             if (g.front) { px = R.x + R.width / 2 + (g.frontDx != null ? Number(g.frontDx) : 34); py += 50; }
+            // standAt: where by its cage it would rather stand ([dx from the cage's middle, dy from its foot]).
+            if (g.standAt) { px = R.x + R.width / 2 + Number(g.standAt[0]); py += Number(g.standAt[1]); }
             var best:Number = Number.MAX_VALUE;
             for (var cx:Number = R.left - 260; cx <= R.right + 260; cx += 8)
             {
@@ -1001,6 +1008,8 @@ package
          if (game.currentRoom != room || !game.getData("intro") || game.getData("over") || game.getData("done")) return;
          var p:Point = room.player;
          if (p == null) return;
+         var here:Number = doorBoxes.length ? toDoor(p) : 0;
+         if (cameAt < 0) cameAt = here;
          var near:Object = null;
          for each (var w:Object in watched)
          {
@@ -1009,11 +1018,14 @@ package
             var dy:Number = (p.y - w.y) / SQUASH;
             var dd:Number = dx * dx + dy * dy;
             // Near it, or slipping past it to the way it keeps.
-            var within:Boolean = dd < REACH * REACH || (dd < PASS * PASS && w.toDoor != null && toDoor(p) < Number(w.toDoor) - 30);
+            var within:Boolean = dd < REACH * REACH;
+            // Slipping past it to the way it keeps: nearer that door than the guard, and gone on
+            // towards it from where the player came in.
+            var passing:Boolean = dd < PASS * PASS && w.toDoor != null && here < Number(w.toDoor) - 30 && here < cameAt - 40;
             // Within its reach on entering the room: it steps in once the player has been out of it.
             if (w.armed == undefined) w.armed = !within;
             if (!within) w.armed = true;
-            else if (w.armed && near == null) near = w;
+            if (near == null && ((within && w.armed) || passing)) near = w;
          }
          if (engaged)
          {
@@ -1120,6 +1132,13 @@ package
             var minions:Array = [];
             for (var k:int = 1; k < n; k++) minions.unshift(one(BINGYI, 97 - k));
             return minions.concat([one(race, level, true)]);
+         }
+         if (g.all)
+         {
+            // Every one of its 亚比, in a random order.
+            var order:Array = (g.race as Array).concat();
+            for (var s:int = order.length - 1; s > 0; s--) { var j:int = int(Math.random() * (s + 1)); var tmp:* = order[s]; order[s] = order[j]; order[j] = tmp; }
+            return order.map(function(r:*, i:int, a:Array):Object { var o:Object = one(int(r), level, true); o.hp = o.at; return o; });
          }
          if (g.boss) return [one(race, level, true)];
          // The guard before it in the list (the first: the one after it): its line too.
@@ -1234,7 +1253,7 @@ package
          }
          else if (g.id == "kid")
          {
-            game.talk({name: "工蚁", picture: WORKER}, ["那孩子跑去报信了。指挥中心就在前面——这回，该和他们的头儿当面谈谈了。"], function():void { game.enter("hq"); });
+            game.talk({name: "工蚁", picture: WORKER}, ["那个奥拉人跑去报信了。指挥中心就在前面——这回，该和他们的头儿当面谈谈了。"], function():void { game.enter("hq"); });
          }
          else if (g.id == "rabel") ending();
          else if (game.currentRoom != null && roomCleared(game.currentRoom.id) && g.room != "hq")

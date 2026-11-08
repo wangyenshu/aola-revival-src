@@ -64,6 +64,8 @@ async function campaign(seed: number) {
       return { race: r2, level: Math.max(m.minLv, Math.min(100, l2)), hp: main && boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q };
     };
     let enemies = [one(race, L, true)];
+    // 小奥拉 (all): its three, in a random order, each at the boss strength.
+    if (Array.isArray(raceDef)) enemies = [...raceDef].sort(() => Math.random() - 0.5).map((r) => ({ ...one(r as number, L), hp: pct, at: pct, de: pct, sa: pct, sd: pct, sp: pct }));
     const gi = G.findIndex((g) => g[0] === id);
     if (id === "mutant") for (let k = 1; k < m.team; k++) enemies.unshift(one(216, 97 - k));
     else if (!boss) {
