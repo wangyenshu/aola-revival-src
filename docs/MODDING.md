@@ -568,7 +568,8 @@ another tab …). Its 奥拉 has no newbie quest and is offered no first 亚比 
 game (the mod's party is his).
 
 Options: `--out <dir>` (default `build/export`), `--seconds <n>` for the
-walk-through (default 900), `--no-record` (by rule only), `--no-zip`.
+walk-through (default 900), `--no-record` (by rule only), `--no-zip`. Every file
+in the .zip is dated 2013-01-25, not the day it was exported.
 
 The export is a static website: any web server serves it (GitHub Pages,
 Netlify, Cloudflare Pages, nginx …), over https or from localhost; browsers do

@@ -72,10 +72,13 @@ async function campaign(seed: number) {
     const gi = G.findIndex((g) => g[0] === id);
     if (id === "mutant") for (let k = 1; k < m.team; k++) enemies.unshift(one(216, 97 - k));
     else if (!boss) {
-      const partner = G[gi > 0 ? gi - 1 : gi + 1];
-      const pr = partner[4] ? race : (partner[1] as number);
+      // Highest forms only: its own, then the guards' beside it (the one before, the one after …).
+      const finals = [race];
+      const add = (o: (typeof G)[number] | undefined) => { if (o && !o[4] && !Array.isArray(o[1]) && !finals.includes(o[1] as number)) finals.push(o[1] as number); };
+      for (let d = 1; finals.length < m.team && d < G.length; d++) { add(G[gi - d]); add(G[gi + d]); }
       const st = m.step;
-      enemies = [one(pr - 2, L - 5 * st), one(race - 2, L - 4 * st), one(pr - 1, L - 3 * st), one(race - 1, L - 2 * st), one(pr, L - st), one(race, L, true)].slice(6 - Math.min(6, m.team));
+      enemies = [];
+      for (let k = Math.min(m.team, finals.length) - 1; k >= 0; k--) enemies.push(one(finals[k], L - k * st, k === 0));
     }
     // One battle against the whole team (AntWarMod.fight: together).
     const lv = JSON.stringify({ format: "aola-revival-level", version: 1, heal: false, together: true, enemies });

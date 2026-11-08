@@ -1110,10 +1110,9 @@ package
 
       /**
        * Whom g brings, weakest first, sent out one after another in one battle (fight: together):
-       * m.team 亚比 (简单 2, 普通 4, 困难 6), none below m.minLv (80, 90, 100). An 奥拉 guard: the
-       * strongest of the three forms of its own 亚比 and of the guard's before it in the list;
-       * the 变异蚁将军: the 蚁将军's 兵蚁 before it. 小奥拉 and the three of the 指挥中心 bring
-       * their one 亚比 in every mode.
+       * m.team 亚比 (简单 2, 普通 4, 困难 6), none below m.minLv (80, 90, 100), every one at its highest
+       * form. An 奥拉 guard: its own 亚比 and those of the guards beside it in the list; the 变异蚁将军:
+       * the 蚁将军's 兵蚁 before it; 小奥拉: his three; the three of the 指挥中心: their one.
        */
       private function teamOf(g:Object, race:int, m:Object):Array
       {
@@ -1143,14 +1142,20 @@ package
             return order.map(function(r:*, i:int, a:Array):Object { var o:Object = one(int(r), level, true); o.hp = o.at; return o; });
          }
          if (g.boss) return [one(race, level, true)];
-         // The guard before it in the list (the first: the one after it): its line too.
+         // Every one at its highest form: its own 亚比 (out last), then those of the guards beside it
+         // in the list, nearest first (the one before, the one after …), each once.
          var i:int = GUARDS.indexOf(g);
-         var partner:Object = GUARDS[i > 0 ? i - 1 : i + 1];
-         var pr:int = partner.boss ? race : int(partner.race);
-         // Each a step of levels below the next (step).
+         var finals:Array = [race];
+         var add:Function = function(o:Object):void
+         {
+            if (o != null && !o.boss && !(o.race is Array) && finals.indexOf(int(o.race)) < 0) finals.push(int(o.race));
+         };
+         for (var d:int = 1; finals.length < n && d < GUARDS.length; d++) { add(i - d >= 0 ? GUARDS[i - d] : null); add(GUARDS[i + d]); }
+         // Weakest first, each a step of levels below the next (step).
          var st:int = int(m.step);
-         var all:Array = [one(pr - 2, level - 5 * st), one(race - 2, level - 4 * st), one(pr - 1, level - 3 * st), one(race - 1, level - 2 * st), one(pr, level - st), one(race, level, true)];
-         return all.slice(all.length - Math.min(n, all.length));
+         var team:Array = [];
+         for (var k:int = Math.min(n, finals.length) - 1; k >= 0; k--) team.push(one(int(finals[k]), level - k * st, k == 0));
+         return team;
       }
 
       private function afterFight(g:Object, npc:IModNpc, win:Boolean, st:Object, away:Function):void

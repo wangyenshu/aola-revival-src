@@ -262,7 +262,20 @@ try {
   if (!a["no-zip"]) {
     const zip = `${out}.zip`;
     rmSync(zip, { force: true });
-    execFileSync("python3", ["-c", "import shutil,sys; shutil.make_archive(sys.argv[1], 'zip', sys.argv[2], sys.argv[3])", out, path.dirname(out), path.basename(out)]);
+    // Every entry dated the game's own day (2013-01-25), not the day it was exported.
+    execFileSync("python3", ["-c", [
+      "import os, sys, zipfile",
+      "out, base, name = sys.argv[1:4]",
+      "with zipfile.ZipFile(out + '.zip', 'w', zipfile.ZIP_DEFLATED) as z:",
+      "    for root, dirs, files in os.walk(os.path.join(base, name)):",
+      "        dirs.sort()",
+      "        for f in sorted(files):",
+      "            full = os.path.join(root, f)",
+      "            info = zipfile.ZipInfo(os.path.relpath(full, base).replace(os.sep, '/'), (2013, 1, 25, 0, 0, 0))",
+      "            info.compress_type = zipfile.ZIP_DEFLATED",
+      "            info.external_attr = 0o644 << 16",
+      "            with open(full, 'rb') as fh: z.writestr(info, fh.read())",
+    ].join("\n"), out, path.dirname(out), path.basename(out)]);
     console.log(`zip: ${path.relative(process.cwd(), zip)} (${(statSync(zip).size / 1e6).toFixed(1)} MB)`);
   }
 } finally {
