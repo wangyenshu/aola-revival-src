@@ -398,7 +398,11 @@ The battle screen (`pet/petfightnew`) and battle entry
 screenshots, on the 2013 PetClient protocol: `54_2` starts a fight, `1401`
 to `1405` are the player's actions, `2401` to `2422` the server's replies.
 Battle sprites are `fightassets/pet<race>`; a 亚比 without a sprite is shown
-as its large picture, and sprites without a back view are mirrored. Boss
+as its large picture, and sprites without a back view are mirrored. Skill
+animations are `fightassets/effect<skill>`, for every skill of the 亚比 data;
+219 of them were uploaded later in 2013 (February to December: 星诺力量, the
+圣灵星诺 line's skills …) and are taken from the archive like the others; 20
+skills have no animation anywhere and are shown without one. Boss
 films (`bossfightmovie/boss<id>`) play when the battle opens and at the HP
 thresholds the later client used. After a 道具, by the player or by the computer's
 亚比 (its 高级活力豆 when out of PP), a short movie plays over the 亚比 that
