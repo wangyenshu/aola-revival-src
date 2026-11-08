@@ -26,8 +26,8 @@
 // conversations, a battle, the bag and its 道具 page, the 物品 panel, the HELLO's menu, the
 // 亚比仓库), and by rule for each 亚比 of "races" its battle sprite, its pictures and the
 // animations of the skills it knows by Lv100, for each NPC of "npcs" its picture, for each 道具
-// of "items" its picture, the "music" and "files" named, the windows of what a mod gives and the
-// battle's backgrounds. The page and the emulator are built as npm run build builds them (made
+// of "items" its picture, the "music" and "files" named; and whole, what the game shows of any
+// 亚比 (every 属性's icon, the game's data, the windows of what is got, the battle's backgrounds). The page and the emulator are built as npm run build builds them (made
 // first when older than their sources: the tour plays the site of dist/).
 import { execFileSync, spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, copyFileSync } from "node:fs";
@@ -76,6 +76,7 @@ const npm = (script) => {
 // The game's rebuilt modules, then the site the export is taken from: made when missing or older
 // than their sources.
 if (!existsSync(rebuilt)) npm("build:swf");
+else if (newest(path.join(root, "rebuild/src")) > newest(rebuilt)) console.warn("warning: rebuild/src is newer than build/rebuilt: the export takes the modules as last built (npm run build:swf makes them anew)");
 const distAt = existsSync(path.join(dist, "index.html")) ? statSync(path.join(dist, "index.html")).mtimeMs : 0;
 if (!distAt || Math.max(newest(path.join(root, "web")), newest(path.join(root, "server/src"))) > distAt) npm("build");
 // The browser the walk-through plays in.
@@ -188,10 +189,12 @@ try {
   // The pictures of the 道具 it gives (the bag's 道具 page, the window of what is got).
   for (const item of both("items").map(Number).filter((n) => n > 0)) want(`${W}item/view${item}.swf`);
   for (const f of [...both("music"), ...both("files")].map(String)) if (!want(f.startsWith(W) ? f : W + f)) console.warn(`warning: ${f} is not a game file`);
-  // The windows of what a mod gives (giveItem, givePet), which the walk-through wins nothing to open.
-  for (const f of ["material/itemgetpanel.swf", "material/petgetpanel.swf"]) want(W + f);
-  // The battle's backgrounds and sounds, and the data the rebuilt modules read.
-  for (const rel of all.keys()) if (/^www\.9aola\.com\/(petfightbackground|revival)\//.test(rel)) keep.add(rel);
+  // What the game shows of any 亚比 or 道具, whole (not only what the walk-through met): every 属性's
+  // icon (petattribute: the bag, the battle's skills and 属性 relation), the windows of what is got
+  // (material), the battle's backgrounds and sounds, and the game's data (revival: 亚比, skills, 属性
+  // table … that the rebuilt modules read).
+  const GENERAL = /^www\.9aola\.com\/(petattribute|material|petfightbackground|revival)\//;
+  for (const rel of all.keys()) if (GENERAL.test(rel)) keep.add(rel);
   for (const rel of [...keep]) if (/^www\.9aola\.com\/revival\/mods\//.test(rel)) keep.delete(rel);
 
   // 3. The site.

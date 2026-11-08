@@ -558,6 +558,12 @@ package mmo.control
                   case "modrooms":
                      // The rooms the mod shown has defined (the export's tour).
                      return ModRun.instance.debugRooms().join(",");
+                  case "sceneentries":
+                     // A mod's room on a scene of the game: that scene's entry points (tests/e2e).
+                     var se:Object = sm.loadedSceneInfo ? sm.loadedSceneInfo.scene : null;
+                     try { return se != null && "sceneEntries" in se ? String(se.sceneEntries()) + " | from " + ModRun.instance.cameFromScene : "none"; }
+                     catch (see:Error) { return "error " + see.message; }
+                     return "";
                   case "member":
                      // 蓝宝石 as the client has it (tests/e2e).
                      return MemberManager.instance.isMember() ? "1" : "0";

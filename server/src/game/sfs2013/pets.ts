@@ -54,6 +54,9 @@ export interface PetRecord {
   mul?: number[];
   /** A mod's 亚比 (mods.ts): the id of the mod that made its species. */
   mod?: string;
+  /** Of a mod's party (mods.ts): the mod's id. One without it, got while a party is out (a quest, an
+   * egg, the 工具箱 …), is the player's own and goes to his own when the party ends. */
+  party?: string;
   /** 形态固化剂 (petitems.ts): levels no longer evolve it. */
   fixed?: boolean;
   /** 强化药剂 (petitems.ts) waiting for its next battle: stat index (hp first) and points. */

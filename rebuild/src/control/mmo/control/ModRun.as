@@ -70,6 +70,8 @@ package mmo.control
       /** Where leaving the mods goes back to. */
       private var back:String;
       private var loadSeq:int;
+      /** The scene of the mod's room the player came from (a room on a scene of the game), or null. */
+      public var cameFromScene:String;
       /** enter waiting for a scene being loaded: {game, room, spawn}, or null. */
       private var pendingEnter:Object;
       private var talkSeq:int;
@@ -345,6 +347,9 @@ package mmo.control
          }
          pendingEnter = null;
          noteBack();
+         // The scene of the room left for this one (SandboxRoom: where a scene puts a player coming from it).
+         var here:Object = sm.loadedSceneInfo;
+         cameFromScene = shown == g && g.roomDef != null && g.roomDef.scene is String && here != null && String(here.sceneName) == ROOM ? String(g.roomDef.scene) : null;
          if (shown != null && shown != g) shown.leftRooms();
          shown = g;
          g.willShow(roomId, def);

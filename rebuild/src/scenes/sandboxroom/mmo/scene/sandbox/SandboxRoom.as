@@ -12,6 +12,7 @@ package mmo.scene.sandbox
    import flash.filters.GlowFilter;
    import flash.geom.Matrix;
    import flash.geom.Point;
+   import flash.geom.Rectangle;
    import flash.text.TextField;
    import flash.system.ApplicationDomain;
    import flash.utils.getDefinitionByName;
@@ -202,6 +203,29 @@ package mmo.scene.sandbox
          bg.addChildAt(full, 0);
       }
 
+      /** The keys of the scene's entry points and where (tests/e2e), or "". */
+      public function sceneEntries():String
+      {
+         if (sceneArt == null) return "";
+         var out:Array = [];
+         try
+         {
+            for each (var k:String in sceneArt.revival::initKeys)
+            {
+               var p:Point = sceneArt.revival::initPoint(k) as Point;
+               out.push(k + ":" + (p ? int(p.x) + "," + int(p.y) : "-"));
+            }
+            for each (var en:Object in sceneArt.revival::entranceList)
+            {
+               var ea:DisplayObject = en.area as DisplayObject;
+               var eb:Rectangle = ea && ea.stage ? ea.getBounds(playerLayer) : null;
+               out.push("door " + (ea ? ea.name : "?") + "->" + (en.action is Function ? "action" : en.scene + "/" + en.key) + (eb ? "@" + int(eb.x) + "," + int(eb.y) + "," + int(eb.width) + "x" + int(eb.height) : ""));
+            }
+         }
+         catch (e:Error) { return "error " + e.message; }
+         return out.join(" ");
+      }
+
       /** A room on a scene of the game; false when the scene is not there (the room is drawn as usual). */
       private function drawScene(name:String, def:Object):Boolean
       {
@@ -272,7 +296,17 @@ package mmo.scene.sandbox
          }
          var own:Point = null;
          try { own = Object(scene).revival::defaultPoint as Point; } catch (e4:Error) {}
-         addInitLocation("start", first || own || new Point(Math.min(480, roomW / 2), 470));
+         // Come from a room on another scene of the game: where this scene puts a player coming
+         // from that scene, as the game's own rooms joined so do (unless spawns names that scene).
+         var from:String = null;
+         try { from = modRun ? modRun.cameFromScene as String : null; } catch (e5:Error) {}
+         var came:Point = null;
+         if (from && from != def.scene && !(spawns[from] is Array))
+         {
+            try { came = Object(scene).revival::initPoint(from) as Point; } catch (e6:Error) {}
+         }
+         if (from && spawns[from] is Array) came = new Point(Number(spawns[from][0]), Number(spawns[from][1]));
+         addInitLocation("start", came || first || own || new Point(Math.min(480, roomW / 2), 470));
          return true;
       }
 

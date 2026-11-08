@@ -271,7 +271,7 @@ The fields of a room's `def`:
 | `width` | the room's width when there is no background (960–2880, default 960; the room is then dark blue) |
 | `walk` | where the player may walk. `function(x, y):Boolean` returning true for a wall; or a picture (BitmapData, DisplayObject or Class) stretched over the room: black is wall, white or transparent is floor. Default: everywhere |
 | `music` | the room's music: the class of an embedded MP3, or a Sound (the mod's own music); or a music file of the game, such as `"music/themeparknew4.mp3"` |
-| `scene` | (API 4) a scene of the game, by its name in `config.xml` (`"fbsiwude1"`, `"maintown2"`): the room is drawn with that scene's art (its background, foreground and topground, the pieces of its overlap among the players) and its obstruction is the room's walls; `background`, `width` and `walk` are then not used. The scene's own code does not run and none of it answers the mouse; its doors' areas are not shown. A player put on its walls is moved to the nearest free spot. Without `spawns`, the player comes in where the scene puts players. `IModRoom.part` finds its pieces by name |
+| `scene` | (API 4) a scene of the game, by its name in `config.xml` (`"fbsiwude1"`, `"maintown2"`): the room is drawn with that scene's art (its background, foreground and topground, the pieces of its overlap among the players) and its obstruction is the room's walls; `background`, `width` and `walk` are then not used. The scene's own code does not run and none of it answers the mouse; its doors' areas are not shown. A player put on its walls is moved to the nearest free spot. Entered from a room on another scene of the game, the player comes in where this scene puts players coming from that scene, as the game's own rooms joined so do (unless `spawns` names that scene); else at `spawns`' `"start"`, else where the scene puts players. `IModRoom.part` finds its pieces by name (the obstruction's too: taking one away opens the way there at once) |
 | `spawns` | entry points: `{name: [x, y], …}`. `"start"` is used when `enter` names none. A name the room does not have, or no spawns, puts the player at 480, 470 |
 | `build` | `function(room:IModRoom):void`, called each time the room is shown, to put its characters, opponents, doors and pictures. A room is built anew every time it is entered: keep what must last with `setData` |
 
@@ -358,7 +358,9 @@ The fields of a party's `def`:
 | `fresh` | a new party, though the mod's from the last time is kept |
 | `vip` | the player is a 蓝宝石 while the party is out (the HELLO's 远程亚比仓库 for the party's 亚比 beyond the bag's six …), and no longer once it ends unless he was one before |
 
-`giveItem` and `givePet` give to the party while it is out. `fight`'s `done(win)` does not say
+`giveItem` and `givePet` give to the party while it is out. A 亚比 the player
+gets otherwise meanwhile (a quest's, an egg's, the 工具箱's) is his own: it goes
+to his own when the party ends. `fight`'s `done(win)` does not say
 why a fight was lost: `partyState` does (the `keep` one's `hp` is 0, or not: the player ran).
 
 ### `IModRoom`
@@ -486,7 +488,7 @@ panels get that one.
 | `hello` | one room drawn in code, a walk function, a character with a question, a door out, saved data (visits) |
 | `story` | two rooms joined by doors (a wide room of 1400), conversations with choices, a film drawn in code (ended with `Event.COMPLETE`), an opponent with a team of the game's 亚比, progress kept with `setData`, a 亚比 given as a reward, music of its own (an embedded MP3) and of the game |
 | `yabi` | a 亚比 of the mod (`species`) standing in the room, fought, and given to the player |
-| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`) who stop the player coming near and challenge them with a team of 2, 4 or 6 亚比 by difficulty in one battle (`fight`'s `together`), most keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, and `giveItem`'s window for the 体力糖), then the 变异蚁将军, 小奥拉 (`"avatar:…"`, a new player's 酷蓝 set) and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; the 副本's chest in 下水道深处 (the scene's own piece and its frames), the 奥拉 army's portal from 蚁神殿正殿 to 传送核心 (a `door` over a drawn ring); a 提示 for each room; three difficulties; the player a 蓝宝石 while it lasts (`party`'s `vip`: the HELLO's 远程亚比仓库); its `uses()` and `about.json` say how to export it |
+| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`) who stop the player coming near and challenge them with a team of 2, 4 or 6 亚比 by difficulty in one battle (`fight`'s `together`), most keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, and `giveItem`'s window for the 体力糖), then the 变异蚁将军, 小奥拉 (`"avatar:…"`, a new player's 酷蓝 set) and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; 蚁穴下水道's two ways on and the vine gates that open as their guards fall (the scene's own pieces: `part`), the 副本's chest in 下水道深处 (the scene's own piece and its frames), the 奥拉 army's portal from 蚁神殿正殿 to 传送核心 (a `door` over a drawn ring); a 提示 for each room; three difficulties; the player a 蓝宝石 while it lasts (`party`'s `vip`: the HELLO's 远程亚比仓库); its `uses()` and `about.json` say how to export it |
 
 ## Exporting a mod
 
@@ -514,9 +516,10 @@ sources: the game's rebuilt modules (`npm run build:swf`), the site
 The game files kept are those the game loads while the mod is walked through
 (`tools/mod-sdk/export-tour.mjs`, in the test browser: every room the mod
 defines, its conversations answered with their first choice, a battle, the
-bag and its 道具 page, the 物品 panel, the HELLO's menu, the 亚比仓库), the
-windows of what a mod gives and the battle's backgrounds, and by rule what the
-mod says it uses and what `about.json` names under `export`.
+bag and its 道具 page, the 物品 panel, the HELLO's menu, the 亚比仓库); whole,
+what the game shows of any 亚比 (every 属性's icon, the game's data of 亚比,
+skills and 属性, the windows of what is got, the battle's backgrounds); and by
+rule what the mod says it uses and what `about.json` names under `export`.
 
 The mod says what it uses with a public `uses()` on its main class (not part
 of `IMod`: a mod without it is exported all the same), worked out from its own

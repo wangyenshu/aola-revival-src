@@ -157,3 +157,22 @@ test("a vip party makes the player a 蓝宝石 while it is out, and not after (u
   await h.mod({ op: "party", def: JSON.stringify({ ...PARTY, vip: true, fresh: true }) });
   assert.equal((await h.mod({ op: "unparty" })).vip, true);
 });
+
+test("a 亚比 got while a party is out (a quest's, an egg's …) is the player's own when it ends", async () => {
+  const h = await setup();
+  const own = (await h.rec()).pets!.length;
+  await h.mod({ op: "party", def: JSON.stringify(PARTY) });
+  // A quest gives one (addPM) while the party is out: it is in the party's bag for now.
+  await h.call("PocketMonsterExtension.1201", { raceId: 4, level: 5 });
+  assert.ok((await h.rec()).pets!.some((p) => p.race === 4));
+  // The mod's own gift is the party's.
+  await h.mod({ op: "give", race: 7, level: 10 });
+  await h.mod({ op: "unparty" });
+  const back = await h.rec();
+  assert.equal(back.pets!.length + (back.storage ?? []).length, own + 1);
+  assert.ok([...back.pets!, ...(back.storage ?? [])].some((p) => p.race === 4));
+  assert.ok(![...back.pets!, ...(back.storage ?? [])].some((p) => p.race === 7 || p.race === 216));
+  // The party kept has its own only, and gets them back the next time.
+  const again = await h.mod({ op: "party", def: JSON.stringify(PARTY) });
+  assert.deepEqual(again.pets.map((p: { race: number }) => p.race).sort((a: number, b: number) => a - b), [7, 216, 217]);
+});

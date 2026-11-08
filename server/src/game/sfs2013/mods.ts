@@ -88,7 +88,7 @@ export interface ModParty {
   noHeal?: string;
   /** The party made the player a 蓝宝石 (def.vip; he was none): no more when it ends. */
   vip?: boolean;
-  aside: { pets: PetRecord[]; storage: PetRecord[]; released: PetRecord[]; items: Record<string, number>; followPet?: number };
+  aside: { pets: PetRecord[]; storage: PetRecord[]; released: PetRecord[]; items: Record<string, number>; followPet?: number; showPet?: number };
 }
 
 export interface ModRec extends PetOwner {
@@ -102,6 +102,8 @@ export interface ModRec extends PetOwner {
   items?: Record<string, Record<string, number>>;
   /** 蓝宝石 (game.ts). */
   vip?: boolean;
+  /** 展示 in the 亚比仓库 (pets.ts). */
+  showPet?: number;
 }
 
 /** A party's 亚比 at most, and 道具 counts. */
@@ -112,10 +114,15 @@ export const ITEM_COUNT_MAX = 999;
 export function endModParty(rec: ModRec): boolean {
   const p = rec.modParty;
   if (!p) return false;
+  // 亚比 got while it was out that are not the party's (a quest's, an egg's, the 工具箱's …): the player's.
+  const ours = (list: PetRecord[] | undefined) => (list ?? []).filter((q) => q.party === p.mod);
+  const theirs = (list: PetRecord[] | undefined) => (list ?? []).filter((q) => q.party !== p.mod);
+  for (const q of [...theirs(rec.pets), ...theirs(rec.storage)]) (p.aside.pets.length < BAG_MAX ? p.aside.pets : p.aside.storage).push(q);
+  p.aside.released.push(...theirs(rec.released));
   (rec.modParties ??= {})[p.mod] = {
-    pets: rec.pets ?? [],
-    storage: rec.storage ?? [],
-    released: rec.released ?? [],
+    pets: ours(rec.pets),
+    storage: ours(rec.storage),
+    released: ours(rec.released),
     items: rec.items?.["2"] ?? {},
     keep: p.keep,
     keepText: p.keepText,
@@ -127,6 +134,7 @@ export function endModParty(rec: ModRec): boolean {
   rec.released = p.aside.released;
   (rec.items ??= {})["2"] = p.aside.items;
   rec.followPet = p.aside.followPet ?? 0;
+  rec.showPet = p.aside.showPet ?? 0;
   if (p.vip) rec.vip = false;
   delete rec.modParty;
   return true;
@@ -357,14 +365,20 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
         made.noHeal = def.noHeal ? String(def.noHeal).slice(0, 100) : undefined;
       }
       if (rec.modParty?.mod === mod) {
-        // fresh: the party out is dropped; the player's own stay aside.
+        // fresh: the party out is dropped; the player's own stay aside (with those he got meanwhile).
+        const aside = rec.modParty.aside;
+        for (const q of [...(rec.pets ?? []), ...(rec.storage ?? [])]) if (q.party !== mod) (aside.pets.length < BAG_MAX ? aside.pets : aside.storage).push(q);
+        for (const q of rec.released ?? []) if (q.party !== mod) aside.released.push(q);
         delete rec.modParty.keep;
       } else {
         rec.modParty = {
           mod,
-          aside: { pets: rec.pets ?? [], storage: rec.storage ?? [], released: rec.released ?? [], items: rec.items?.["2"] ?? {}, followPet: rec.followPet },
+          aside: { pets: rec.pets ?? [], storage: rec.storage ?? [], released: rec.released ?? [], items: rec.items?.["2"] ?? {}, followPet: rec.followPet, showPet: rec.showPet },
         };
+        rec.showPet = 0;
       }
+      // Each of them the party's (those kept from before this mark too).
+      for (const q of [...made.pets, ...made.storage, ...(made.released ?? [])]) q.party = mod;
       rec.modParty.keep = made.keep;
       rec.modParty.keepText = made.keepText;
       rec.modParty.noHeal = made.noHeal;
@@ -395,6 +409,8 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       if (isModRace(race) && ownersOf(t).get(race) !== mod) return reply({ res: 0, msg: "这个亚比不是这个模组的" });
       const pet = newPet(rec, t, race, level, deps.today());
       if (isModRace(race)) pet.mod = mod;
+      // Given while its party is out: the party's.
+      if (rec.modParty?.mod === mod) pet.party = mod;
       if (pet.iv) pet.iv = pet.iv.map((v) => Math.min(MAX_IV, v));
       if ((rec.pets ??= []).length < BAG_MAX) rec.pets.push(pet);
       else (rec.storage ??= []).push(pet);

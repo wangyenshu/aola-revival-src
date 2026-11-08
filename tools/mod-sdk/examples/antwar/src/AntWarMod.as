@@ -53,32 +53,36 @@ package
        * seldom, so that 普通 and 困难 ask for the allies' skills.
        */
       private static const MODES:Object = {
-         easy: {name: "简单", team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2},
-         normal: {name: "普通", team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2},
-         hard: {name: "困难", team: 6, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1}
+         easy: {name: "简单", team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2},
+         normal: {name: "普通", team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2},
+         hard: {name: "困难", team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1}
       };
 
       /**
-       * The rooms in order, joined as in the 蚁族王朝 副本: door, the piece of the scene that
-       * leads on; arrow, where the 副本 pointed the way on ([x, y, rotation, facing right]);
-       * open, pieces of the obstruction its code took away to let the player through; spawn,
-       * where the player comes in; hide, pieces that do not belong in the story.
+       * The rooms, joined as the scenes of the 蚁族王朝 副本 are (their own doors, Fbsiwude3's et1 and
+       * et2 …): door, the piece of the scene that leads on to next; arrow, where the 副本 pointed the
+       * way on ([x, y, rotation, facing right]); ways, a room with more than one way on (each {door,
+       * to, arrow}); cleared, what the 副本's code did once the room's fights were won (play: pieces
+       * played to their last frame, a gate opening; remove: pieces of the obstruction taken away);
+       * spawn, where the player comes in at the start (else where the scene puts him); hide, pieces
+       * that do not belong in the story.
        */
       private static const ROOMS:Array = [
          // In from the path at the upper left.
          {id: "ant1", scene: "fbsiwude1", name: "蚁穴前哨", next: "ant2", door: "et1", arrow: [850, 360, 0, true], spawn: [240, 110]},
          {id: "ant2", scene: "fbsiwude2", name: "蚁兵基地", next: "ant3", door: "pit", arrow: [820, 176, 0, true],
             hide: ["mc_pit", "light_0", "light_0_1", "light_1", "light_1_1", "light_2", "light_2_1", "light_3", "light_3_1"]},
-         // The way up at the top right (et2, at the bottom, is not the way on).
-         {id: "ant3", scene: "fbsiwude3", name: "蚁穴下水道", next: "ant4", door: "et1", arrow: [800, 100, 0, true],
-            hide: ["npc_1"]},
+         // Two ways on, as the scene's own doors lead: et1 at the top right to 工蚁聚集地 (the 副本's
+         // arrow), et2 at the bottom right to 下水道深处 and on from there to 工蚁聚集地. Each behind one of
+         // the vine gates its guards keep (gate).
+         {id: "ant3", scene: "fbsiwude3", name: "蚁穴下水道", ways: [{door: "et1", to: "ant5", arrow: [800, 100, 0, true]}, {door: "et2", to: "ant4", arrow: [850, 445, 0, true]}]},
          // The 蚁将军's treasure (the 副本's chest: 高级体力糖 and 高级活力豆), opened once its guards are gone.
          {id: "ant4", scene: "fbsiwude4", name: "下水道深处", next: "ant5", door: "et1", arrow: [820, 220, 0, true], chest: "treasure"},
          {id: "ant5", scene: "fbsiwude5", name: "工蚁聚集地", next: "ant6", door: "et1", arrow: [288, 93, 0, true]},
          // In by the path on the right (et1), on through the great door between the statues.
          {id: "ant6", scene: "fbsiwude6", name: "蚁神守护大厅", next: "ant9", door: "fbsiwude6_door", arrow: [320, 150, 0, true], spawn: [840, 320]},
-         {id: "ant9", scene: "fbsiwude9", name: "蚁神巨像", next: "ant10", door: "et1", arrow: [379, 98, 0, true], open: ["roadblock"]},
-         {id: "ant10", scene: "fbsiwude10", name: "蚁神殿前殿", next: "ant11", door: "et1", arrow: [150, 100, 35, false], open: ["hurdle"]},
+         {id: "ant9", scene: "fbsiwude9", name: "蚁神巨像", next: "ant10", door: "et1", arrow: [379, 98, 0, true], cleared: {play: ["mc_gate"], remove: ["roadblock"]}},
+         {id: "ant10", scene: "fbsiwude10", name: "蚁神殿前殿", next: "ant11", door: "et1", arrow: [150, 100, 35, false], cleared: {remove: ["hurdle"]}},
          // hide: the scene's fighters by the 蚁将军 (its 副本's), who would look like his guard here.
          {id: "ant11", scene: "fbsiwude11", name: "蚁神殿正殿", next: "core", hide: ["mc_fight"], freed: {mc_antQueen: "mutant"}},
          {id: "core", scene: "maintown1copy", name: "传送核心", next: "hq", door: "et1", city: true},
@@ -105,51 +109,51 @@ package
          {id: "sam", room: "ant2", npc: 28, name: "卫兵萨姆", race: 78, level: 58, at: "ant2",
             say: "蚁兵基地已经是奥拉军的营地了，回去！", lost: "撤退！往下水道撤！"},
          {id: "guard1", room: "ant2", npc: 82, name: "卫兵杰克", race: 18, level: 60, x: 560, y: 420, at: "ant1",
-            say: "基地由我把守。想过去，先赢了我！", lost: "基地……失守了。"},
+            say: "基地由我把守。想过去，先赢了我！", lost: "基地失守了……全员撤进下水道！"},
          // 蚁穴下水道 and 下水道深处: the creatures caught there.
          // Three 牛角滴滴, a guard at each cage; the first one freed joins, the others go home.
-         {id: "roy", room: "ant3", front: true, npc: 82, name: "卫兵罗伊", race: 87, level: 62, captive: 244, art: ["npc_0"],
-            say: "这只牛角滴滴由我看着，不许靠近笼子！", lost: "笼子……守不住了。"},
-         {id: "jason", room: "ant3", front: true, npc: 221, name: "蓝宝卫兵杰森", race: 75, level: 63, captive: 244, art: ["npc_1"],
+         {id: "roy", room: "ant3", front: true, npc: 82, name: "卫兵罗伊", race: 87, level: 62, captive: 244, art: ["npc_0"], gate: {play: ["door_0"], remove: ["ob_0"]},
+            say: "这只牛角滴滴由我看着，不许靠近笼子！", lost: "这里守不住了……撤！"},
+         {id: "jason", room: "ant3", front: true, frontDx: -95, npc: 221, name: "蓝宝卫兵杰森", race: 75, level: 63, captive: 244, art: ["npc_1"], gate: {play: ["door_1"], remove: ["ob_1"]},
             say: "下水道归蓝宝卫队看守，回去！", lost: "我这就去叫治安官……"},
-         {id: "hade", room: "ant3", front: true, npc: 26, name: "治安官哈德", race: 72, level: 65, captive: 244, art: ["npc_2"],
-            say: "这只牛角滴滴是重要的俘虏，由我看管，谁也不许带走。", lost: "我输了。牛角滴滴，你走吧。"},
-         {id: "guard2", room: "ant4", npc: 82, name: "卫兵马克", race: 189, level: 68, captive: 241, art: ["npc_0"],
+         {id: "hade", room: "ant3", front: true, npc: 26, name: "治安官哈德", race: 72, level: 65, captive: 244, art: ["npc_2"], gate: {play: ["door_2"], remove: ["ob_2"]},
+            say: "这只牛角滴滴是重要的俘虏，由我看管，谁也不许带走。", lost: "可恶……撤退，去下水道深处和亨特会合！"},
+         {id: "guard2", room: "ant4", npc: 82, name: "卫兵马克", race: 189, level: 68, captive: 241, art: ["npc_0"], gate: {play: ["door_0"], remove: ["ob_0"]},
             say: "毒菇球是我们抓到的，退后！", lost: "打不过……撤退！"},
-         {id: "hunter", room: "ant4", npc: 142, name: "军需官亨特", race: 21, level: 70, captive: 242, art: ["npc_1"],
-            say: "下水道的物资和俘虏都归我管，金刚蛤蟆也不例外。", lost: "物资和俘虏……只能留下了。"},
-         {id: "lucas", room: "ant4", npc: 148, name: "训练官卢卡斯", race: 299, level: 72, captive: 243, art: ["npc_2"],
-            say: "下水猛鳄要带回奥拉星做坐骑，你们别想阻止！", lost: "是我低估你了……下水猛鳄，你自由了。"},
+         {id: "hunter", room: "ant4", npc: 142, name: "军需官亨特", race: 21, level: 70, captive: 242, art: ["npc_1"], gate: {play: ["door_1"], remove: ["ob_1"]},
+            say: "下水道的物资和俘虏都归我管，金刚蛤蟆也不例外。", lost: "物资来不及搬了……撤！"},
+         {id: "lucas", room: "ant4", npc: 148, name: "训练官卢卡斯", race: 299, level: 72, captive: 243, art: ["npc_2"], gate: {remove: ["ob_2"]},
+            say: "下水猛鳄要带回奥拉星做坐骑，你们别想阻止！", lost: "是我低估你们了……撤退！"},
          // 工蚁聚集地: the way on.
          {id: "mach", room: "ant5", npc: 172, name: "机械师马赫", race: 99, level: 75, x: 400, y: 215,
-            say: "工蚁聚集地由我驻守。我的火花龙最克木属性，你们小心了！", lost: "火花龙也输了……我撤。"},
+            say: "工蚁聚集地由我驻守。我的火花龙最克木属性，你们小心了！", lost: "火花龙都撑不住了……撤！"},
          // 蚁神守护大厅, 蚁神巨像, 蚁神殿前殿: the kingdom's warriors in the 奥拉 army's hands.
          {id: "knight1", room: "ant6", npc: 145, name: "骑士团卫兵罗兰", race: 45, level: 80, captive: 218, near: "btn_guard", side: -1,
-            say: "守护力士由骑士团看押，不许靠近！", lost: "骑士团……输了。"},
+            say: "守护力士由骑士团看押，不许靠近！", lost: "骑士团，后撤！去向团长报告！"},
          {id: "knight3", room: "ant6", npc: 146, name: "骑士团卫兵崔斯坦", race: 204, level: 80, captive: 219, near: "btn_guard", side: 1, stand: -1,
-            say: "守护法师交给骑士团看管，谁也别想带走！", lost: "我输了，守护法师你们带走吧。"},
+            say: "守护法师交给骑士团看管，谁也别想带走！", lost: "大厅守不住了……退到蚁神巨像！"},
          {id: "vick", room: "ant9", npc: 13, name: "异星使者维克", race: 63, level: 85, captive: 220, art: ["ant_0"],
             say: "蚁族圣斗士由我看守。回去吧，你们赢不了的。", lost: "蚁族……比我想象的更顽强。"},
          {id: "bluebrook", room: "ant9", npc: 221, name: "蓝宝卫兵布鲁克", race: 293, level: 85, captive: 221, art: ["ant_1"],
             say: "魔斗士由蓝宝卫队看守，退下！", lost: "蓝宝卫队……撤退！"},
          {id: "arthur", room: "ant10", npc: 147, name: "骑士团长亚瑟", race: 290, level: 90, captive: 225, hide: ["btnPet_1"], cage: [212, 254], side: 1,
-            say: "我是骑士团长亚瑟。守护骑士保斯由我亲自看守。", lost: "你的勇气，我认可了。保斯，你自由了。"},
+            say: "我是骑士团长亚瑟。守护骑士保斯由我亲自看守。", lost: "好一支蚁族的队伍……骑士团，撤退！"},
          {id: "knight2", room: "ant10", npc: 146, name: "骑士团卫兵高文", race: 45, level: 90, captive: 223, hide: ["btnPet_2"], cage: [412, 306], side: -1,
             say: "兰斯罗特由我看守，退下！", lost: "团长，我守不住了……"},
          {id: "magellan", room: "ant10", npc: 9, name: "司令官麦哲伦", race: 236, level: 92, captive: 224, hide: ["btnPet_3"], cage: [608, 380], side: -1,
             say: "大部队虽然调去和达斯特人作战，我麦哲伦还在这里！", lost: "是我大意了……不该把部队全调走。"},
          {id: "lanbao", room: "ant10", npc: 221, name: "蓝宝卫兵雷恩", race: 33, level: 92, captive: 222, hide: ["btnPet_4"], cage: [804, 433], side: -1,
-            say: "贝德威尔由蓝宝卫队看押，你们过不去！", lost: "我输了……贝德威尔，你走吧。"},
+            say: "贝德威尔由蓝宝卫队看押，你们过不去！", lost: "守不住了……蓝宝卫队，撤！"},
          {id: "mutant", room: "ant11", race: 227, level: 100, boss: true, look: 227, art: ["btn_general"], name: "变异蚁将军",
             gift: GENERAL, say: "吼——！！奥拉人……命令……守住……蚁后……", lost: "我……我是……蚁族的……将军……"},
          {id: "kid", room: "core", look: KULAN, name: "小奥拉", race: [502, 501, 500], level: 100, x: 470, y: 400, boss: true,
             say: "传送门那头怎么出来的是蚂蚁？……你们是从蚁族王朝一路打过来的？不行，我不能让你们过去！", lost: "好、好厉害……我得赶紧去通知兰丁队长！"},
          {id: "landing", room: "hq", npc: 94, name: "兰丁", race: 1648, level: 100, x: 330, y: 430, boss: true,
-            say: "我是兰丁。能一路打到指挥中心，你们确实有本事。想谈条件，先过我和菲尔这一关。", lost: "……我输了。看来你们不是来捣乱的，是来讨个公道的。"},
+            say: "我是兰丁。能一路打到指挥中心，你们确实有本事。想谈条件，先过我和菲尔这一关。", lost: "……看来你们不是来捣乱的，是来讨个公道的。"},
          {id: "flora", room: "hq", npc: 194, name: "弗洛拉", race: 1649, level: 100, x: 610, y: 430, boss: true,
-            say: "我是弗洛拉。前线的消息我都听说了……来吧，让我看看你们为了家园能拼到什么地步。", lost: "可兰，辛苦你了……是我们输了。"},
+            say: "我是弗洛拉。前线的消息我都听说了……来吧，让我看看你们为了家园能拼到什么地步。", lost: "可兰，辛苦你了……去请拉贝尔吧。"},
          {id: "rabel", room: "hq", npc: 86, name: "拉贝尔", race: 323, level: 100, x: 470, y: 330, boss: true, need: ["landing", "flora"],
-            say: "我是拉贝尔，指挥中心由我负责。兰丁和弗洛拉都输了，那就由我和梅卡来做最后的了断。", lost: "……够了，是我们输了。"}
+            say: "我是拉贝尔，指挥中心由我负责。兰丁和弗洛拉都输了，那就由我和梅卡来做最后的了断。", lost: "……够了，住手吧。"}
       ];
 
       /** What each creature says when it is free: what it can do. */
@@ -177,7 +181,8 @@ package
             "体力不够时，打开亚比背包的「道具」用高级体力糖；技能次数用完了，用高级活力豆。兵蚁倒下游戏就结束，别让它硬撑。"],
          "ant2": ["打不过可以在战斗中逃跑，恢复好再来。",
             "属性相克：水克火、火克木、电克水和飞行、冰克木、土克火、机械克冰。被克的属性打过来只有一半威力。"],
-         "ant3": ["三个守卫各看着一只牛角滴滴。治安官哈德的斯多王是土属性，卫兵罗伊的冰拳艾司是冰属性——冰克木，别让兵蚁和工蚁硬碰。",
+         "ant3": ["这里有两条路：右上的路通往工蚁聚集地；右下的路通往下水道深处，那里关着三位伙伴，还有蚁将军藏下的宝箱，从那里也能走到工蚁聚集地。藤蔓挡着路，打败看守的守卫才会打开。",
+            "三个守卫各看着一只牛角滴滴。治安官哈德的斯多王是土属性，卫兵罗伊的冰拳艾司是冰属性——冰克木，别让兵蚁和工蚁硬碰。",
             "救出的牛角滴滴是水属性，火属性的对手最怕它；它的寄生种子每回合吸走对手1/10的体力，但对木系无效。"],
          "ant4": ["三个守卫各看着一位伙伴。金刚蛤蟆（水）挨火属性攻击只受一半伤害；毒菇球的毒菇鸠箭能让对手中毒；下水猛鳄的树界降临每回合回复1/4体力。"],
          "ant5": ["机械师马赫的火花龙是火属性，克木属性的兵蚁和工蚁：让水属性的牛角滴滴、金刚蛤蟆出战。"],
@@ -236,7 +241,8 @@ package
       /** The way on stays left of this (the game's buttons on the right). */
       private static const DOOR_RIGHT:Number = 880;
       /** The way on of the room shown (no guard stands in it). */
-      private var doorBox:Rectangle;
+      /** The room's ways on (their doors' rectangles): no guard stands in front of them. */
+      private var doorBoxes:Array = [];
       /** Where the cages of the room shown stand (the last of each guard's), by guard. */
       private var cageFeet:Object = {};
       /** The cages' bounds in the room shown, by guard. */
@@ -363,29 +369,31 @@ package
       {
          if (game.getData("mode") && !game.getData("over") && !game.getData("done")) game.setData("room", r.id);
          addHud(room);
-         // The way on: the scene's own door, open once the room's guards are beaten.
-         var d:DisplayObject = r.door ? room.part(r.door) : null;
-         var b:Rectangle = d != null ? d.getBounds(DisplayObject(room)) : null;
-         if (b != null && r.next)
+         // The ways on: the scene's own doors, open once the room's guards are beaten.
+         doorBoxes = [];
+         var ways:Array = r.ways || (r.next && r.door ? [{door: r.door, to: r.next, arrow: r.arrow}] : []);
+         for each (var way:Object in ways)
          {
+            var d:DisplayObject = room.part(way.door);
+            var b:Rectangle = d != null ? d.getBounds(DisplayObject(room)) : null;
+            if (b == null) continue;
             // Clear of the game's buttons down the right-hand side (图鉴, 工具箱, 沙盒).
             if (b.right > DOOR_RIGHT) b.x -= b.right - DOOR_RIGHT;
-            room.door(b.x, b.y, Math.max(40, b.width), Math.max(40, b.height), "", function():void
-            {
-               if (!roomCleared(r.id)) worker("这里的守卫还没解决，先别急着走。");
-               else game.enter(r.next);
-            }, false);
-            wayOn(room, b, r.arrow as Array);
+            b.width = Math.max(40, b.width);
+            b.height = Math.max(40, b.height);
+            doorBoxes.push(b);
          }
-         // The ways the 副本's code opened (its roadblocks): open from the start, the door is what waits.
-         for each (var on:String in r.open || []) { var op:DisplayObject = room.part(on); if (op && op.parent) op.parent.removeChild(op); }
-         if (r.id == "ant11" && beaten("mutant")) portal(room);
+         // The chest first: the doors over it (its picture may reach under a door's arrow).
          if (r.chest) chest(room, r.chest);
+         for (var wi:int = 0; wi < ways.length && wi < doorBoxes.length; wi++) addWay(room, r, ways[wi].to, doorBoxes[wi], ways[wi].arrow as Array);
+         // The 副本's gates: open where their guard is beaten already, and the room's own once it is clear.
+         for each (var gg:Object in guardsOf(r.id)) if (gg.gate && beaten(gg.id)) openWay(room, gg.gate, false);
+         if (r.cleared && roomCleared(r.id)) openWay(room, r.cleared, false);
+         if (r.id == "ant11" && beaten("mutant")) portal(room);
          for each (var hn:String in r.hide || []) { var hp:DisplayObject = room.part(hn); if (hp) hp.visible = false; }
          // Pieces of the scene gone once a guard falls (the 蚁后's cage).
          for (var fn:String in r.freed || {}) { var fp:DisplayObject = room.part(fn); if (fp && beaten(r.freed[fn])) fp.visible = false; }
          cages = {};
-         doorBox = b;
          cageRects = {};
          cageFeet = {};
          guardBoxes = [];
@@ -410,6 +418,38 @@ package
          room.onLeave(function():void { eye.removeEventListener(Event.ENTER_FRAME, look); });
          if (r.id == "ant1" && !game.getData("mode")) game.after(0.8, chooseMode);
          else if (r.id == "ant1" && !game.getData("intro")) game.after(0.8, intro);
+      }
+
+      /** A way on: door b to room to, once the room's guards are beaten; its arrow. */
+      private function addWay(room:IModRoom, r:Object, to:String, b:Rectangle, arrow:Array):void
+      {
+         room.door(b.x, b.y, b.width, b.height, "", function():void
+         {
+            if (!roomCleared(r.id)) worker("这里的守卫还没解决，先别急着走。");
+            else game.enter(to);
+         }, false);
+         wayOn(room, b, arrow);
+      }
+
+      /**
+       * What the 副本's code did as a way opened (a guard's gate, a room cleared): pieces played to
+       * their last frame (shown so at once unless animated) and pieces of the obstruction taken away.
+       */
+      private function openWay(room:IModRoom, what:Object, animated:Boolean):void
+      {
+         for each (var pn:String in what.play || [])
+         {
+            var mc:MovieClip = room.part(pn) as MovieClip;
+            if (mc == null || mc.totalFrames < 2) continue;
+            if (!animated || mc.currentFrame >= mc.totalFrames) { mc.gotoAndStop(mc.totalFrames); continue; }
+            var last:Function = function(clip:MovieClip):Function
+            {
+               return function(e:Event):void { if (clip.currentFrame >= clip.totalFrames) { clip.stop(); clip.removeEventListener(Event.ENTER_FRAME, arguments.callee); } };
+            };
+            mc.addEventListener(Event.ENTER_FRAME, last(mc));
+            mc.gotoAndPlay(2);
+         }
+         for each (var on:String in what.remove || []) { var op:DisplayObject = room.part(on); if (op && op.parent) op.parent.removeChild(op); }
       }
 
       /**
@@ -515,6 +555,8 @@ package
          box.addEventListener(Event.ENTER_FRAME, shine);
          room.onLeave(function():void { box.removeEventListener(Event.ENTER_FRAME, shine); });
          var b:Rectangle = box.getBounds(DisplayObject(room));
+         // Not over a way on (下水道深处's GO is beside it).
+         for each (var db:Rectangle in doorBoxes) if (b.intersects(db) && db.x > b.x) b.width = Math.max(30, db.x - b.x);
          room.door(b.x, b.y, b.width, b.height, "", function():void
          {
             if (game.getData(key)) { worker("宝箱已经空了。"); return; }
@@ -879,8 +921,8 @@ package
          {
             var px:Number = x >= R.x + R.width / 2 ? R.right + 48 : R.left - 48;
             var py:Number = pg.foot ? Point(pg.foot).y : R.bottom;
-            // front: before its cage (a little to one side, the creature still seen).
-            if (g.front) { px = R.x + R.width / 2 + 34; py += 50; }
+            // front: before its cage (a little to one side, the creature still seen; frontDx: how far).
+            if (g.front) { px = R.x + R.width / 2 + (g.frontDx != null ? Number(g.frontDx) : 34); py += 50; }
             var best:Number = Number.MAX_VALUE;
             for (var cx:Number = R.left - 260; cx <= R.right + 260; cx += 8)
             {
@@ -921,7 +963,7 @@ package
             for each (var cr:Rectangle in cageRects[by]) if (box.intersects(new Rectangle(cr.x, cr.y, cr.width, cr.height + 18))) return false;
          }
          for each (var other:Rectangle in guardBoxes) if (other.intersects(box)) return false;
-         if (doorBox != null && box.intersects(new Rectangle(doorBox.x - 10, doorBox.y - 10, doorBox.width + 20, doorBox.height + 30))) return false;
+         for each (var db:Rectangle in doorBoxes) if (box.intersects(new Rectangle(db.x - 10, db.y - 10, db.width + 20, db.height + 30))) return false;
          return true;
       }
 
@@ -1042,7 +1084,7 @@ package
 
       /**
        * Whom g brings, weakest first, sent out one after another in one battle (fight: together):
-       * m.team 亚比 (简单 2, 普通 4, 困难 6). An 奥拉 guard: the
+       * m.team 亚比 (简单 2, 普通 4, 困难 6), none below m.minLv (80, 90, 100). An 奥拉 guard: the
        * strongest of the three forms of its own 亚比 and of the guard's before it in the list;
        * the 变异蚁将军: the 蚁将军's 兵蚁 before it. 小奥拉 and the three of the 指挥中心 bring
        * their one 亚比 in every mode.
@@ -1055,7 +1097,8 @@ package
          var one:Function = function(r:int, lv:int, main:Boolean = false):Object
          {
             var q:int = main ? pct : int(m.helper);
-            return {race: r, level: Math.max(1, Math.min(100, lv)), hp: main && g.boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q};
+            // Never below the mode's least level (简单 80, 普通 90, 困难 100).
+            return {race: r, level: Math.max(int(m.minLv), Math.min(100, lv)), hp: main && g.boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q};
          };
          var n:int = Math.max(1, int(m.team));
          if (g.id == "mutant")
@@ -1090,6 +1133,12 @@ package
             return;
          }
          markBeaten(g.id);
+         // The 副本's gate this guard kept opens, and the room's own once it is clear.
+         var here0:IModRoom = game.currentRoom;
+         if (here0 != null && g.gate) openWay(here0, g.gate, true);
+         var rd:Object = null;
+         for each (var rr:Object in ROOMS) if (here0 != null && rr.id == here0.id) rd = rr;
+         if (here0 != null && rd != null && rd.cleared && roomCleared(rd.id)) openWay(here0, rd.cleared, true);
          // Held till the words after the win are read (no other guard steps in meanwhile).
          engaged = true;
          engagedAt = game.currentRoom ? game.currentRoom.player : null;
@@ -1188,12 +1237,8 @@ package
          {
             return function():void
             {
+               resetRun();
                game.setData("mode", id);
-               game.setData("beaten", {});
-               game.setData("over", undefined);
-               game.setData("done", undefined);
-               game.setData("intro", undefined);
-               game.setData("room", "ant1");
                game.party(partyDef(true), function(st:Object):void
                {
                   if (st == null) { worker("队伍没能组建起来。"); return; }
@@ -1259,14 +1304,23 @@ package
          });
       }
 
+      /** From the start again: the first room shown anew (every guard, cage and gate back), the difficulty asked. */
       private function restart():void
       {
+         resetRun();
          game.setData("mode", undefined);
+         game.enter("ant1");
+      }
+
+      /** What one game keeps: none of it (the guards beaten, the chests opened, where it was). */
+      private function resetRun():void
+      {
+         game.setData("beaten", {});
          game.setData("over", undefined);
          game.setData("done", undefined);
-         game.setData("beaten", {});
-         if (game.currentRoom != null && game.currentRoom.id == "ant1") chooseMode();
-         else game.enter("ant1");
+         game.setData("intro", undefined);
+         game.setData("room", "ant1");
+         for each (var r:Object in ROOMS) if (r.chest) game.setData("chest_" + r.id, undefined);
       }
 
       // ---------------------------------------------------------------- the strip at the top right

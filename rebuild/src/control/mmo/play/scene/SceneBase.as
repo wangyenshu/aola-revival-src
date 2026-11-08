@@ -378,6 +378,21 @@ package mmo.play.scene
          return _defaultLocation ? _defaultLocation.clone() : null;
       }
 
+      /** REVIVAL. Where the scene puts a player coming in by key (its addInitLocation: the scene he comes from …), or null. */
+      revival function initPoint(key:String):Point
+      {
+         var p:Point = key ? _initPoints[key] as Point : null;
+         return p ? p.clone() : null;
+      }
+
+      /** REVIVAL. The keys of its entry points (tests/e2e). */
+      revival function get initKeys():Array
+      {
+         var out:Array = [];
+         for (var k:String in _initPoints) out.push(k);
+         return out.sort();
+      }
+
       revival function get entranceList():Array
       {
          return _entrances.concat();

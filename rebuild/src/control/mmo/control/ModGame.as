@@ -17,7 +17,9 @@ package mmo.control
    import flash.utils.Timer;
    import flash.system.ApplicationDomain;
    import flash.utils.getDefinitionByName;
+   import flash.utils.getTimer;
    import flash.utils.setTimeout;
+   import flash.text.TextField;
    import mmo.common.dialog.NewDialog;
    import mmo.framework.comm.PetClient;
    import mmo.framework.comm.SocketClient;
@@ -761,11 +763,85 @@ package mmo.control
                {
                   var panel:IMaterialGetPanel = ServiceContainer.getService(IMaterialGetPanel) as IMaterialGetPanel;
                   if (panel != null) panel.showPanel(2, id, n);
+                  watchGotWindows();
                }
                catch (e:Error) { RLog.error("mod item window", e); }
             }
             if (done != null) done(p.res == 1 ? int(p.count) : -1);
          });
+      }
+
+      /** Until then (getTimer) the windows of what is got are looked for (watchGotWindows). */
+      private var gotUntil:int;
+      private var gotTicker:Sprite;
+
+      /**
+       * The game's window of a 道具 got (material/materialservice's ItemGetPanel) says it went into
+       * "你的个人信息卡", beside the player's face: in a mod it is the 背包's (its 道具 page), beside
+       * the player as the mod shows him (playerLook's 亚比). The windows come one after another as
+       * each is closed: looked for a while after each gift.
+       */
+      private function watchGotWindows():void
+      {
+         gotUntil = getTimer() + 60000;
+         if (gotTicker != null) return;
+         gotTicker = new Sprite();
+         var frames:int = 0;
+         var tick:Function = function(e:Event):void
+         {
+            if (gone || getTimer() > gotUntil)
+            {
+               gotTicker.removeEventListener(Event.ENTER_FRAME, tick);
+               gotTicker = null;
+               return;
+            }
+            if (++frames % 4 == 0) fixGotWindows(LayerManager.getBaseTop(), 0);
+         };
+         gotTicker.addEventListener(Event.ENTER_FRAME, tick);
+      }
+
+      private function fixGotWindows(d:DisplayObjectContainer, depth:int):void
+      {
+         if (d == null || depth > 7) return;
+         for (var i:int = 0; i < d.numChildren; i++)
+         {
+            var c:DisplayObject = d.getChildAt(i);
+            var t:TextField = c as TextField;
+            if (t != null && t.name == "txt" && t.text.indexOf("已经放入你的个人信息卡") >= 0)
+            {
+               t.text = t.text.replace("个人信息卡", "背包");
+               var race:int = lookOfPlayer is int || lookOfPlayer is uint ? int(lookOfPlayer) : 0;
+               var pos:DisplayObject = d.getChildByName("mcPos");
+               if (race > 0 && pos != null) facePicture(d, pos, race);
+            }
+            else if (c is DisplayObjectContainer) fixGotWindows(DisplayObjectContainer(c), depth + 1);
+         }
+      }
+
+      /** The window's picture of where the 道具 went (the player's face): the 亚比 the player is shown as. */
+      private function facePicture(into:DisplayObjectContainer, pos:DisplayObject, race:int):void
+      {
+         var b:Rectangle = pos.getBounds(into);
+         var cls:String = "mmo.pet.peticon" + race + "_L";
+         var put:Function = function(... a):void
+         {
+            if (!RDef.has(cls) || pos.parent != into) return;
+            var p:DisplayObject = RDef.make(cls) as DisplayObject;
+            if (p == null) return;
+            var pb:Rectangle = p.getBounds(p);
+            var k:Number = Math.min(b.width / Math.max(1, pb.width), b.height / Math.max(1, pb.height)) * 1.1;
+            p.scaleX = p.scaleY = k;
+            p.x = b.x + (b.width - pb.width * k) / 2 - pb.x * k;
+            p.y = b.y + (b.height - pb.height * k) / 2 - pb.y * k;
+            pos.visible = false;
+            into.addChildAt(p, into.getChildIndex(pos));
+         };
+         if (RDef.has(cls)) put();
+         else
+         {
+            try { ResScheduler.getResource("peticon/peticon" + race, put, cls, function(e:* = null):void {}); }
+            catch (err:Error) {}
+         }
       }
 
       public function gameArt(file:String, className:String, done:Function):void
