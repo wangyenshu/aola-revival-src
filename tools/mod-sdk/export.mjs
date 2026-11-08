@@ -169,6 +169,8 @@ try {
   }
   for (const npc of ex.npcs ?? []) want(`${W}tasknpc/npc${npc}.swf`);
   for (const f of [...(ex.music ?? []), ...(ex.files ?? [])]) if (!want(f.startsWith(W) ? f : W + f)) console.warn(`warning: ${f} is not a game file`);
+  // The windows of what a mod gives (giveItem, givePet), which the walk-through wins nothing to open.
+  for (const f of ["material/itemgetpanel.swf", "material/petgetpanel.swf"]) want(W + f);
   // The battle's backgrounds and sounds, and the data the rebuilt modules read.
   for (const rel of all.keys()) if (/^www\.9aola\.com\/(petfightbackground|revival)\//.test(rel)) keep.add(rel);
   for (const rel of [...keep]) if (/^www\.9aola\.com\/revival\/mods\//.test(rel)) keep.delete(rel);
