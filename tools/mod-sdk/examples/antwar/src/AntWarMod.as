@@ -271,7 +271,7 @@ package
          this.game = game;
          for each (var r:Object in ROOMS) defineRoom(r);
          game.playerLook(BINGYI, "兵蚁");
-         if (!game.getData("mode") || game.getData("over") || game.getData("done"))
+         if (!game.getData("mode") || game.getData("over"))
          {
             game.enter("ant1");
             return;
@@ -375,7 +375,7 @@ package
 
       private function buildRoom(r:Object, room:IModRoom):void
       {
-         if (game.getData("mode") && !game.getData("over") && !game.getData("done")) game.setData("room", r.id);
+         if (game.getData("mode") && !game.getData("over")) game.setData("room", r.id);
          addHud(room);
          // The ways on: the scene's own doors, open once the room's guards are beaten.
          doorBoxes = [];
@@ -1331,9 +1331,9 @@ package
             game.talk({name: "工蚁", picture: WORKER}, [
                "兵蚁大哥……我们真的做到了。",
                "回家吧。蚁后和大家，都在等我们。",
-               {text: "<font color='#FF6600'>通关！（难度：" + m.name + "）</font>", choices: [
-                  ["再玩一次", function():void { restart(); }],
-                  ["离开", function():void { game.endParty(); game.leave(); }]
+               {text: "<font color='#FF6600'>通关！（难度：" + m.name + "）</font><br>伙伴和道具都留着，王朝里可以随便走走；想换个难度从头再来，随时点「重来」。", choices: [
+                  ["回到蚁族王朝", function():void { game.enter("ant1"); }],
+                  ["换个难度从头再来", function():void { restart(); }]
                ]}
             ]);
          });
@@ -1417,7 +1417,7 @@ package
       {
          if (hud == null || game == null) return;
          var m:Object = game.getData("mode") ? mode : null;
-         hud.text = m ? "难度：" + m.name : "";
+         hud.text = m ? (game.getData("done") ? "已通关：" : "难度：") + m.name : "";
          hud.visible = m != null;
          // As wide as its words, at the top right.
          hudHelp.x = hud.visible ? hud.x + hud.width + 8 : 6;
@@ -1437,7 +1437,8 @@ package
          var r:IModRoom = game.currentRoom;
          var left:Array = r ? guardsOf(r.id).filter(function(g:Object, i:int, a:Array):Boolean { return !beaten(g.id); }) : [];
          var pages:Array = [];
-         if (left.length == 0) pages.push("这里已经没有守卫了，从出口前进吧！");
+         if (game.getData("done")) pages.push("蚁族王朝已经夺回来了。伙伴和道具都还在，可以到处走走；想换个难度从头再来，点「重来」。");
+         else if (left.length == 0) pages.push("这里已经没有守卫了，从出口前进吧！");
          else
          {
             var names:Array = left.map(function(g:Object, i:int, a:Array):String { return g.name; });
