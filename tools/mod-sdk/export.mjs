@@ -3,7 +3,7 @@
 // server emulator, the mod, and only the game files the mod uses, which any static web server
 // can serve (docs/MODDING.md, "Exporting a mod").
 //
-//   npm run export:mod -- <mod folder | mod.swf> [--out build/export] [--seconds 900] [--no-record] [--no-zip] [--exe]
+//   npm run export:mod -- <mod folder | mod.swf> [--out build/export] [--seconds 900] [--no-record] [--no-zip]
 //   (node tools/mod-sdk/export.mjs … is the same)
 //
 // What it needs is made first when it is missing or older than its sources: the game's rebuilt
@@ -46,11 +46,10 @@ const { values: a, positionals } = parseArgs({
     seconds: { type: "string", default: "900" },
     "no-record": { type: "boolean", default: false },
     "no-zip": { type: "boolean", default: false },
-    exe: { type: "boolean", default: false },
   },
 });
 if (positionals.length !== 1) {
-  console.error("usage: npm run export:mod -- <mod folder | mod.swf> [--out dir] [--seconds n] [--no-record] [--no-zip] [--exe]");
+  console.error("usage: npm run export:mod -- <mod folder | mod.swf> [--out dir] [--seconds n] [--no-record] [--no-zip]");
   process.exit(2);
 }
 const given = path.resolve(positionals[0]);
@@ -264,60 +263,24 @@ try {
   let total = 0;
   for (const [, full] of walk(out)) total += statSync(full).size;
   console.log(`${listed.length} game files, ${(bytes / 1e6).toFixed(1)} MB; the export: ${(total / 1e6).toFixed(1)} MB in ${path.relative(process.cwd(), out) || out}`);
-  // A .zip of a folder (base/name) or of one file: every entry dated the game's own day
-  // (2013-01-25), not the day it was exported.
-  const zipUp = (zip, base, name, as = name) => {
+  if (!a["no-zip"]) {
+    const zip = `${out}.zip`;
     rmSync(zip, { force: true });
+    // Every entry dated the game's own day (2013-01-25), not the day it was exported.
     execFileSync("python3", ["-c", [
       "import os, sys, zipfile",
-      "zip, base, name, as_ = sys.argv[1:5]",
-      "def put(z, full, arc):",
-      "    info = zipfile.ZipInfo(arc, (2013, 1, 25, 0, 0, 0))",
-      "    info.compress_type = zipfile.ZIP_DEFLATED",
-      "    info.external_attr = 0o644 << 16",
-      "    with open(full, 'rb') as fh: z.writestr(info, fh.read())",
-      "with zipfile.ZipFile(zip, 'w', zipfile.ZIP_DEFLATED) as z:",
-      "    top = os.path.join(base, name)",
-      "    if os.path.isfile(top): put(z, top, as_)",
-      "    for root, dirs, files in os.walk(top):",
+      "out, base, name = sys.argv[1:4]",
+      "with zipfile.ZipFile(out + '.zip', 'w', zipfile.ZIP_DEFLATED) as z:",
+      "    for root, dirs, files in os.walk(os.path.join(base, name)):",
       "        dirs.sort()",
       "        for f in sorted(files):",
       "            full = os.path.join(root, f)",
-      "            put(z, full, os.path.relpath(full, base).replace(os.sep, '/'))",
-    ].join("\n"), zip, base, name, as]);
+      "            info = zipfile.ZipInfo(os.path.relpath(full, base).replace(os.sep, '/'), (2013, 1, 25, 0, 0, 0))",
+      "            info.compress_type = zipfile.ZIP_DEFLATED",
+      "            info.external_attr = 0o644 << 16",
+      "            with open(full, 'rb') as fh: z.writestr(info, fh.read())",
+    ].join("\n"), out, path.dirname(out), path.basename(out)]);
     console.log(`zip: ${path.relative(process.cwd(), zip)} (${(statSync(zip).size / 1e6).toFixed(1)} MB)`);
-  };
-  if (!a["no-zip"]) zipUp(`${out}.zip`, path.dirname(out), path.basename(out));
-  // --exe: a program for Windows with the site inside it (tools/mod-sdk/launcher): double-clicked,
-  // it serves the site on the computer itself (127.0.0.1, at the mod's own port, where the browser
-  // keeps its progress) and opens it in the default browser; offline. Built with Go.
-  if (a.exe) {
-    if (spawnSync("go", ["version"], { stdio: "ignore" }).status !== 0) {
-      console.warn("warning: --exe needs Go (https://go.dev/dl/) to build the Windows program; not made");
-    } else {
-      const lw = mkdtempSync(path.join(os.tmpdir(), "aola-launcher-"));
-      try {
-        const src = path.join(root, "tools/mod-sdk/launcher");
-        for (const f of readdirSync(src)) if (/\.go$|^go\.mod$/.test(f) && f !== "meta.go") copyFileSync(path.join(src, f), path.join(lw, f));
-        cpSync(out, path.join(lw, "site"), { recursive: true });
-        // The mod's own port, the same each time (the browser keeps the progress by address).
-        let h = 2166136261;
-        for (const c of Buffer.from(id)) h = Math.imul(h ^ c, 16777619) >>> 0;
-        const port = String(20000 + (h % 9000));
-        writeFileSync(path.join(lw, "meta.go"), `package main\n\nvar (\n\ttitle   = ${JSON.stringify(title)}\n\tport    = ${JSON.stringify(port)}\n\tmodFile = ${JSON.stringify(file)}\n)\n`);
-        const exe = `${out}.exe`;
-        // No path of this computer, no date, no build id in it.
-        execFileSync("go", ["build", "-trimpath", "-buildvcs=false", "-ldflags", "-s -w -buildid=", "-o", exe, "."], {
-          cwd: lw,
-          stdio: "inherit",
-          env: { ...process.env, GOOS: "windows", GOARCH: "amd64", CGO_ENABLED: "0", GOFLAGS: "" },
-        });
-        console.log(`exe: ${path.relative(process.cwd(), exe)} (${(statSync(exe).size / 1e6).toFixed(1)} MB, port ${port})`);
-        if (!a["no-zip"]) zipUp(`${out}-windows.zip`, path.dirname(exe), path.basename(exe), `${title.replace(/[\\/:*?"<>|]/g, "")}.exe`);
-      } finally {
-        rmSync(lw, { recursive: true, force: true });
-      }
-    }
   }
 } finally {
   rmSync(work, { recursive: true, force: true });
