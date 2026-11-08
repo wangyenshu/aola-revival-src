@@ -834,6 +834,16 @@ export class BattleEngine {
         selfHp -= this.hurt(att, r);
         lines.push(`${name}受到了反作用伤害！`);
       }
+      // 攻击全场 (千杀水翔, 爆炎龙卷, 躁动冲撞): the whole field, the user in it too: the same blow
+      // on itself, its 属性 against its own.
+      if (fx.wholeField && att.pet.hp > 0) {
+        const own = sk.t < 0 ? 1 : typeMultiplier(t.pm, sk.t, att.types);
+        const d = own > 0 ? this.damage(b, att, att, sk, fx, own, rolled, 0, false).dmg : 0;
+        if (d > 0) {
+          selfHp -= this.hurt(att, d);
+          lines.push(`${name}自己也被波及了！`);
+        }
+      }
       // 每次暴击均回复…: each crit of a 连击.
       if (fx.critHeal && crits) selfHp += this.heal(att, att.stats[0] * fx.critHeal * crits);
     }

@@ -13,6 +13,7 @@ package mmo.robot.robotmanager
    import flash.geom.Rectangle;
    import flash.system.ApplicationDomain;
    import flash.utils.getDefinitionByName;
+   import mmo.play.scene.SceneManager;
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
@@ -511,6 +512,14 @@ package mmo.robot.robotmanager
 
       private function onRare():void
       {
+         // A mod's rooms (the 沙盒's room, sandboxroom) are no map of the game: no rare 亚比 come out
+         // there, and the search would wait for one for ever.
+         var here:Object = SceneManager.getInstance().loadedSceneInfo;
+         if (here != null && String(here.sceneName) == "sandboxroom")
+         {
+            NewDialog.showMessage("这里没有稀有亚比出没，搜索仪派不上用场哦！");
+            return;
+         }
          close();
          RareSearch.show();
       }

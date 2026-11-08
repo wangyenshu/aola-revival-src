@@ -3,8 +3,10 @@
 // description is read clause by clause: each reader takes the words it understands, and
 // unread() gives what is left (tools: the check of every skill of the 图鉴's 亚比).
 //
-// 1 against 1 (the wild 亚比 of the 2013 game): 全体 / 全场 / 自己以外 is the one opponent, 我方全体
-// the user; "对守护无效" and the like (bosses) are not told apart.
+// 1 against 1 (the wild 亚比 of the 2013 game): 全体 / 对方全场 / 自己以外的全场 is the one opponent,
+// 我方全体 the user; 攻击全场 / 给全场亚比造成伤害 (千杀水翔, 爆炎龙卷, 躁动冲撞) the opponent and the
+// user too, as the descriptions tell them apart from 自己以外的全场 (wholeField); "对守护无效" and the
+// like (bosses) are not told apart.
 
 export type StatKey = "atk" | "def" | "satk" | "sdef" | "spd" | "acc" | "eva" | "crit";
 export const STATUSES = ["麻痹", "害怕", "冰冻", "睡眠", "烧伤", "中毒", "混乱", "束缚", "衰弱", "寄生"] as const;
@@ -172,6 +174,8 @@ export interface SkillEffects {
   overShield?: boolean;
   recoil?: number;
   recoilChance?: number;
+  /** 攻击全场 / 给全场亚比造成伤害: the whole field, the user too (the same blow on itself). */
+  wholeField?: boolean;
   heal?: number;
   hits?: [number, number];
   /** A 连击's secondary effect ("每次攻击有10%概率…", "每次命中都会…") rolls for each hit. */
@@ -504,6 +508,8 @@ class Reader {
 export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   const r = new Reader(desc);
   const e: SkillEffects = { stages: [], statuses: [], timed: [] };
+  // The whole field (not 自己以外的全场, not 对方全场): the user is hit too. The words stay for FILLER.
+  if (/攻击全场|给全场亚比造成伤害/.test(desc)) e.wholeField = true;
   const cond = (s: string): Cond | undefined => {
     let m: RegExpMatchArray | null;
     if ((m = s.match(/对方(?:被|处于)?(麻痹|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)/))) return { foeStatus: statusOf(m[1]) };

@@ -20,6 +20,8 @@ const pm: PmData = {
     "1021": { n: "瞪眼", p: -1, acc: 100, pp: 30, pri: 0, t: 0, k: 2, d: "削弱对方单体防御等级1级" },
     "1087": { n: "胜利意志", p: -1, acc: 100, pp: 99, pri: 0, t: 0, k: 2, d: "提升自己攻击等级6级" },
     "1106": { n: "狂暴诅咒", p: -1, acc: 100, pp: 15, pri: 0, t: 0, k: 2, d: "令对方单体混乱，并提升对方攻击等级2级" },
+    "11208": { n: "千杀水翔", p: 80, acc: 100, pp: 5, pri: 0, t: 10, k: 1, d: "将周围的水分变为无数根水针来攻击全场" },
+    "10003": { n: "火云", p: 160, acc: 100, pp: 5, pri: 0, t: 9, k: 1, d: "攻击自己以外的全场亚比，30％概率烧伤" },
   },
   chart: { "14": { "11": 2 }, "11": { "14": 1 } },
   exp: { "0": Array.from({ length: 100 }, (_, i) => (i + 1) ** 3) },
@@ -334,4 +336,26 @@ test("狂暴诅咒: 混乱 for 2 or 3 of the foe's actions, each a 1/3 chance of
   const fx = parseEffects("令对方单体混乱，并提升对方攻击等级2级");
   assert.deepEqual(fx.status, { name: "混乱", chance: 100 });
   assert.deepEqual(fx.stages, [{ self: false, stats: ["atk"], delta: 2, chance: 100 }]);
+});
+
+test("攻击全场 (千杀水翔) hits the user too; 自己以外的全场 and 对方全场 spare it", () => {
+  assert.equal(parseEffects("将周围的水分变为无数根水针来攻击全场").wholeField, true);
+  assert.equal(parseEffects("给全场亚比造成伤害").wholeField, true);
+  assert.equal(parseEffects("攻击全场，10％概率烧伤").wholeField, true);
+  assert.equal(parseEffects("攻击自己以外的全场亚比，30％概率烧伤").wholeField, undefined);
+  assert.equal(parseEffects("攻击对方全场，50%概率冰冻").wholeField, undefined);
+  const e = new BattleEngine(tables, () => 0.5);
+  const mine = makePet(tables, 2, 50, "d", 1);
+  const wild = makePet(tables, 2, 50, "d");
+  const b = e.start(1, "aixiscene1", { id: 7, name: "a" }, mine, wild, true);
+  const before = [b.mine.pet.hp, b.wild.pet.hp];
+  const [, r] = e.act(b, b.mine, b.wild, 11208);
+  assert.ok(b.wild.pet.hp < before[1], "the foe hit");
+  assert.ok(b.mine.pet.hp < before[0], "the user hit too");
+  assert.match(JSON.stringify(r), /自己也被波及了/);
+  assert.equal(r.selfHpInc, b.mine.pet.hp - before[0]);
+  const b2 = e.start(1, "aixiscene1", { id: 7, name: "a" }, makePet(tables, 2, 50, "d", 1), makePet(tables, 2, 50, "d"), true);
+  const hp2 = b2.mine.pet.hp;
+  e.act(b2, b2.mine, b2.wild, 10003);
+  assert.equal(b2.mine.pet.hp, hp2, "自己以外的全场: not the user");
 });

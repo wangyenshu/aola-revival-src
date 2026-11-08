@@ -571,8 +571,18 @@ another tab …). Its 奥拉 has no newbie quest and is offered no first 亚比 
 game (the mod's party is his).
 
 Options: `--out <dir>` (default `build/export`), `--seconds <n>` for the
-walk-through (default 900), `--no-record` (by rule only), `--no-zip`. Every file
-in the .zip is dated 2013-01-25, not the day it was exported.
+walk-through (default 900), `--no-record` (by rule only), `--no-zip`, `--exe`.
+Every file in the .zip is dated 2013-01-25, not the day it was exported.
+
+`--exe` also makes a program for Windows, `build/export/<mod>.exe` (and
+`<mod>-windows.zip` holding it as `<name>.exe`), with the whole site inside it
+(`tools/mod-sdk/launcher`, built with Go: `go` must be installed). Double-clicked,
+it serves the game on the computer itself (127.0.0.1, nothing reaches the
+network) and opens it in the default browser; its window says so, and closing
+it ends the game. Each mod has its own port, the same every time, so the
+browser keeps the game's progress for the next time; started twice, the second
+only opens the browser again. Windows may warn about a program it does not know
+(it is not signed): 更多信息 → 仍要运行.
 
 The export is a static website: any web server serves it (GitHub Pages,
 Netlify, Cloudflare Pages, nginx …), over https or from localhost; browsers do

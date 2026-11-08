@@ -141,8 +141,8 @@ package
             say: "我是骑士团长亚瑟。守护骑士保斯由我亲自看守。", lost: "好一支蚁族的队伍……骑士团，撤退！"},
          {id: "knight2", room: "ant10", npc: 146, name: "骑士团卫兵高文", race: 45, level: 90, captive: 223, hide: ["btnPet_2"], cage: [412, 306], side: -1,
             say: "兰斯罗特由我看守，退下！", lost: "团长，我守不住了……"},
-         {id: "magellan", room: "ant10", npc: 9, name: "司令官麦哲伦", race: 236, level: 92, captive: 224, hide: ["btnPet_3"], cage: [608, 380], side: -1,
-            say: "大部队虽然调去和达斯特人作战，我麦哲伦还在这里！", lost: "是我大意了……不该把部队全调走。"},
+         {id: "magellan", room: "ant10", npc: 235, name: "蓝宝骑士帕西瓦尔", race: 236, level: 92, captive: 224, hide: ["btnPet_3"], cage: [608, 380], side: -1,
+            say: "蓝宝骑士帕西瓦尔在此！哥拉海德由我看守，谁也别想带走。", lost: "可恶……这一阵，算你们闯过去了。"},
          {id: "lanbao", room: "ant10", npc: 221, name: "蓝宝卫兵雷恩", race: 33, level: 92, captive: 222, hide: ["btnPet_4"], cage: [804, 433], side: -1, standAt: [100, -50],
             say: "贝德威尔由蓝宝卫队看押，你们过不去！", lost: "守不住了……蓝宝卫队，撤！"},
          {id: "mutant", room: "ant11", race: 227, level: 100, boss: true, look: 227, art: ["btn_general"], name: "变异蚁将军",
@@ -180,7 +180,8 @@ package
       /** The 提示 of each room (then the advice for its guards still standing). */
       private static const ROOM_HINTS:Object = {
          "ant1": ["这里有三个奥拉卫兵，走近他们就会被拦下。每打赢一场，都能缴获高级体力糖和高级活力豆。",
-            "体力不够时，打开亚比背包的「道具」用高级体力糖；技能次数用完了，用高级活力豆。兵蚁倒下游戏就结束，别让它硬撑。"],
+            "体力不够时，打开亚比背包的「道具」用高级体力糖；技能次数用完了，用高级活力豆。兵蚁倒下游戏就结束，别让它硬撑。",
+            "背包里最多带6只亚比，救出的伙伴多了会进仓库。点一下跟在身边的HELLO，选「远程亚比仓库」，就能随时把仓库里的伙伴换进背包。"],
          "ant2": ["打不过可以在战斗中逃跑，恢复好再来。",
             "属性相克：水克火、火克木、电克水和飞行、冰克木、土克火、机械克冰。被克的属性打过来只有一半威力。"],
          "ant3": ["这里有两条路：右上的路通往工蚁聚集地；右下的路通往下水道深处，那里关着三位伙伴，还有蚁将军藏下的宝箱，从那里也能走到工蚁聚集地。藤蔓挡着路，打败看守的守卫才会打开。",

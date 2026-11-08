@@ -206,7 +206,9 @@ The 2013 server's rules are lost. The main reconstructions:
   strong "越少越大" grows, is a guess. 混乱 lasts 2 or 3 of the confused one's
   actions (or a skill's own 回合), each with a 1/3 chance that it hits itself
   instead (a 40-power blow of its own 攻击, its 攻击等级 counted) — the rule
-  the later 奥拉星 states (the 2013 one is lost). A 回复 is shown whole, though the 体力
+  the later 奥拉星 states (the 2013 one is lost). A skill that attacks 全场
+(千杀水翔, 爆炎龙卷, 躁动冲撞: the descriptions tell it from 自己以外的全场 and
+对方全场) hits the user too, the same blow against its own 属性. A 回复 is shown whole, though the 体力
   stops at its maximum; 嗜血之矛's heal past it becomes 护盾 points, which take
   the next blows. A 蓄力 or 连续攻击N回合 skill goes on by itself (the player
   chooses nothing on those turns); a 连续攻击N回合 skill's power grows each
@@ -398,7 +400,13 @@ to `1405` are the player's actions, `2401` to `2422` the server's replies.
 Battle sprites are `fightassets/pet<race>`; a 亚比 without a sprite is shown
 as its large picture, and sprites without a back view are mirrored. Boss
 films (`bossfightmovie/boss<id>`) play when the battle opens and at the HP
-thresholds the later client used.
+thresholds the later client used. After a 道具, by the player or by the computer's
+亚比 (its 高级活力豆 when out of PP), a short movie plays over the 亚比 that
+took it and the battle goes on when it ends, as in the later client
+(`UseItemMovieHelper`): green for 体力糖 and the 药剂, blue for 活力豆. The
+2013 movie was in the lost battle module and the later one
+(`pet/fightasyncres/reverthpmovie`, `revertppmovie`) is not kept, so it is
+drawn in code (light rising, rings at the feet, sparks).
 
 Wild 亚比 (`pet/wildpetservice`) walk in 124 rooms; the list per room comes
 from the November 2012 world map and the later location table, and for the

@@ -3,14 +3,17 @@ package mmo.petfightnew
    import com.greensock.TweenLite;
    import flash.display.DisplayObject;
    import flash.display.FrameLabel;
+   import flash.display.GradientType;
    import flash.display.Graphics;
    import flash.display.MovieClip;
    import flash.display.Shape;
    import flash.display.Sprite;
+   import flash.events.Event;
    import flash.events.KeyboardEvent;
    import flash.events.MouseEvent;
    import flash.events.TimerEvent;
    import flash.filters.GlowFilter;
+   import flash.geom.Matrix;
    import flash.media.Sound;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
@@ -68,6 +71,8 @@ package mmo.petfightnew
       public static const ATTR_NAMES:Array = ["普通", "格斗", "飞行", "毒", "爬行", "土", "虫", "数码", "机械", "火", "水", "木", "电", "神秘", "冰", "上古", "暗黑", "未知", "光明", "龙", "圣灵", "神兵", "王"];
       private static const DEFAULT_BACK:Array = ["mmo.petfight.FightSpace", "petfightbackground/fightspace"];
       private static const BALL_IDS:Object = {32: 1, 64: 1, 67: 1, 68: 1};
+      /** 活力豆: the blue movie after them (the later UseItemMovieHelper's 31, 103, 104; and 391). */
+      private static const PP_ITEMS:Array = [31, 103, 104, 391];
       /** The places of the era pet/fightpreview: myPetHolder (far) and VSPetHolder (near). */
       private static const FAR:Array = [238, 242];
       private static const NEAR:Array = [626, 368];
@@ -1283,11 +1288,13 @@ package mmo.petfightnew
                if (p.refused) { setCommands(true); later(0); break; }
                takeViews(p.pmmList as Array);
                // Mine, or the computer's 亚比 (its 高级活力豆 when out of PP: reqSId 1).
-               if (int(p.hpInc) > 0) float(int(p.reqSId), "+" + int(p.hpInc), 0x3CC21E);
-               refresh(true);
+               var taker:int = int(p.reqSId);
                // My 道具 used: back to 战斗 (the skills) for the next turn.
-               if (int(p.reqSId) == 0 && current == "item") showPage("fight");
-               later(0.8);
+               if (taker == 0 && current == "item") showPage("fight");
+               // As the later battle screen: the movie over the 亚比, its HP number and bar meanwhile,
+               // the next report when the movie ends.
+               itemMovie(taker, int(p.itemId), int(p.hpInc), function():void { later(0.2); });
+               refresh(true);
                break;
             case 2413:
                switchPet(p);
@@ -1476,6 +1483,108 @@ package mmo.petfightnew
          {
             playEffect(int(p.id), att == 0, p.self == true, impact);
          }, step);
+      }
+
+      /**
+       * RECONSTRUCTED. The movie over a 亚比 that took a 道具. The later battle screen of the game
+       * plays one there after every 道具 (UseItemMovieHelper: pet/fightasyncres/reverthpmovie, or
+       * revertppmovie for the 活力豆) and goes on to the next report when it ends; the 2013 movie
+       * was in the lost battle module and the later one is not kept, so it is drawn here: light
+       * rising round the 亚比, two rings at its feet, sparks going up (green crosses after the
+       * 体力糖 and the 药剂, blue drops after the 活力豆), the 亚比 glowing meanwhile.
+       */
+      private function itemMovie(slot:int, itemId:int, hpInc:int, done:Function):void
+      {
+         if (hpInc > 0) TweenLite.delayedCall(0.25, function():void { if (!closed) float(slot, "+" + hpInc, 0x3CC21E); });
+         var pp:Boolean = PP_ITEMS.indexOf(itemId) >= 0;
+         var main:uint = pp ? 0x3FB6FF : 0x4FE03C;
+         var light:uint = pp ? 0xD8F4FF : 0xF2FFC4;
+         var at:Array = holder(slot == 0);
+         var mv:Sprite = new Sprite();
+         mv.x = at[0];
+         mv.y = at[1];
+         mv.mouseEnabled = mv.mouseChildren = false;
+         var beam:Shape = new Shape(), rings:Shape = new Shape(), sparks:Shape = new Shape();
+         rings.filters = [new GlowFilter(main, 1, 8, 8, 2)];
+         sparks.filters = [new GlowFilter(main, 1, 6, 6, 3)];
+         mv.addChild(beam);
+         mv.addChild(rings);
+         mv.addChild(sparks);
+         fxLayer.addChild(mv);
+         var list:Array = [];
+         for (var i:int = 0; i < 22; i++)
+            list.push({x: (Math.random() - 0.5) * 110, y: -10 - Math.random() * 80, d: Math.random() * 0.45, r: 4 + Math.random() * 3, h: 70 + Math.random() * 70});
+         var pet:FightPetView = petViewOf(slot);
+         var was:Array = pet ? pet.filters : null;
+         var glow:GlowFilter = new GlowFilter(light, 0, 14, 14, 2);
+         var LEN:int = 1300;
+         var t0:int = getTimer();
+         var finished:Boolean = false;
+         var ring:Function = function(g:Graphics, u:Number):void
+         {
+            if (u <= 0 || u >= 1) return;
+            var r:Number = 24 + 72 * u;
+            g.lineStyle(1 + 3 * (1 - u), light, 1 - u);
+            g.drawEllipse(-r, -r * 0.3, r * 2, r * 0.6);
+         };
+         var tick:Function = function(e:Event = null):void
+         {
+            if (finished) return;
+            var t:Number = closed ? 1 : Math.min(1, (getTimer() - t0) / LEN);
+            var g:Graphics = beam.graphics;
+            g.clear();
+            var w:Number = 100 * Math.sin(Math.PI * Math.min(1, t * 1.3));
+            if (w > 1)
+            {
+               var m:Matrix = new Matrix();
+               m.createGradientBox(w, 230, 0, -w / 2, -205);
+               g.beginGradientFill(GradientType.RADIAL, [light, main, main], [0.55, 0.3, 0], [0, 140, 255], m);
+               g.drawEllipse(-w / 2, -205, w, 230);
+               g.endFill();
+            }
+            g = rings.graphics;
+            g.clear();
+            ring(g, t * 1.3);
+            ring(g, (t - 0.25) * 1.3);
+            g = sparks.graphics;
+            g.clear();
+            for each (var s:Object in list)
+            {
+               var u:Number = (t - s.d) / 0.55;
+               if (u <= 0 || u >= 1) continue;
+               var a:Number = Math.sin(Math.PI * u);
+               var x:Number = s.x * (1 - 0.3 * u), y:Number = s.y - s.h * u, r:Number = s.r * (1 - 0.3 * u);
+               if (pp)
+               {
+                  g.beginFill(u < 0.5 ? light : main, a);
+                  g.drawCircle(x, y, r);
+                  g.endFill();
+               }
+               else
+               {
+                  // A cross: two bars, each its own fill (one fill would leave their middle empty).
+                  g.beginFill(u < 0.5 ? light : main, a);
+                  g.drawRect(x - r * 0.35, y - r, r * 0.7, r * 2);
+                  g.endFill();
+                  g.beginFill(u < 0.5 ? light : main, a);
+                  g.drawRect(x - r, y - r * 0.35, r * 2, r * 0.7);
+                  g.endFill();
+               }
+            }
+            if (pet)
+            {
+               glow.alpha = 0.9 * Math.sin(Math.PI * t);
+               pet.filters = (was || []).concat([glow]);
+            }
+            if (t < 1) return;
+            finished = true;
+            mv.removeEventListener(Event.ENTER_FRAME, tick);
+            if (mv.parent) mv.parent.removeChild(mv);
+            if (pet) pet.filters = was || [];
+            done();
+         };
+         mv.addEventListener(Event.ENTER_FRAME, tick);
+         tick();
       }
 
       private function playEffect(skillId:int, mine:Boolean, selfTarget:Boolean, done:Function):void
