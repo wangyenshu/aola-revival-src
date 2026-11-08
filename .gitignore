@@ -1,17 +1,20 @@
-# Built
+# Built (build/ holds build/rebuilt, the exports build/export and their zips, build/mods …)
 /node_modules/
 /dist/
 /build/
 /rebuild/out/
 /work/
+# The browser walk-throughs' output when no --out is given (boot2013.mjs, scenewalk.mjs)
+/run/
+/walk/
 # Fetched build tools (rebuild/build/setup-toolchain.sh)
 .toolchain/
 desktop/target/
 __pycache__/
 *.pyc
 
-# Mods built from tools/mod-sdk (build.mjs, VS Code)
-tools/mod-sdk/examples/*/bin/
+# Mods built from tools/mod-sdk (build.mjs, VS Code): bin/ beside each mod's src/
+tools/mod-sdk/**/bin/
 wrangler.toml
 
 # Cloudflare (npx wrangler deploy): its cache, and local secrets
