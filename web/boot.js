@@ -11,8 +11,12 @@
   cfg.base = upgrade(cfg.base);
   cfg.pageScripts = (cfg.pageScripts || []).map(upgrade);
   const status = document.getElementById("status");
-  const say = (t) => {
-    status.textContent = t;
+  // A mod played as a game of its own (cfg.standalone): the page is the game alone, with nothing
+  // written under it but what went wrong.
+  const quiet = !!cfg.standalone;
+  if (quiet) status.textContent = "";
+  const say = (t, wrong = false) => {
+    if (!quiet || wrong) status.textContent = t;
     console.log("[aola] " + t);
   };
 
@@ -222,7 +226,7 @@
     await (typeof player.ruffle === "function" ? player.ruffle().load(opts) : player.load(opts));
     say("Running " + cfg.bootUrl + " (game clock " + cfg.date + ")");
   } catch (e) {
-    say("Error: " + e.message);
+    say("Error: " + e.message, true);
     console.error(e);
   }
 })();

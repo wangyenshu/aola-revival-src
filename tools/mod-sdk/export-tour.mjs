@@ -1,10 +1,12 @@
 // The export's tour (tools/mod-sdk/export.mjs runs it in server/test/e2e/boot2013.mjs): a mod
 // played as a game of its own (?standalone=…) is walked through, so that the files its rooms, its
 // conversations, a battle and the bag load are seen and kept in the export:
+//   - what the mod says it uses (its uses(), the hook moduses) is written down for the export;
 //   - its conversations are answered with their first choice (a difficulty, a "yes");
 //   - each room it has defined is shown (the test hook modenter);
 //   - a battle against EXPORT_RACE is begun and run from;
-//   - the bag, the 物品 panel and the HELLO's menu are opened and closed.
+//   - the bag (its 道具 page too), the 物品 panel, the HELLO's menu and the 亚比仓库 (the HELLO's
+//     远程亚比仓库) are opened and closed.
 export default async function run(h) {
   const room = () => h.hook("modroom");
   // "<mod> <room>" once the mod shows a room (before that: "none …", "<mod> -", or an error while
@@ -21,6 +23,14 @@ export default async function run(h) {
     }
   };
   await h.sleep(4000);
+  const uses = String(await h.hook("moduses"));
+  let first = 0;
+  if (uses.startsWith("{")) {
+    h.log("export tour: uses " + uses);
+    try {
+      first = Number(JSON.parse(uses).races?.[0]) || 0;
+    } catch {}
+  }
   await answer(25);
   const rooms = String(await h.hook("modrooms")).split(",").filter((r) => r && r !== "none" && !r.startsWith("error"));
   h.log("export tour: rooms " + rooms.join(" "));
@@ -30,7 +40,7 @@ export default async function run(h) {
     await h.sleep(7000);
     await answer(10);
   }
-  const race = Number(process.env.EXPORT_RACE) || 1;
+  const race = Number(process.env.EXPORT_RACE) || first || 1;
   const lv = JSON.stringify({ format: "aola-revival-level", version: 1, heal: false, enemies: [{ race, level: 5 }] });
   await h.revival("xt", `SundriesExtension.revival_sandbox lv=${lv} i=0`);
   await h.sleep(15000);
@@ -40,6 +50,11 @@ export default async function run(h) {
   for (const panel of ["pet", "items"]) {
     await h.revival(panel, "");
     await h.sleep(5000);
+    await h.revival("clearmodal");
+  }
+  for (const service of ["PetItem", "PetWareHouse"]) {
+    await h.revival("panel", service);
+    await h.sleep(6000);
     await h.revival("clearmodal");
   }
   await h.revival("xt", "RobotExtension.2-11");

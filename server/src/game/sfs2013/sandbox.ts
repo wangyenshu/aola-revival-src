@@ -2,7 +2,9 @@
 // SandboxPanel): fights the player sets up, a 关卡 of up to SANDBOX_MAX opponents fought one
 // after another, each of any 亚比 that can fight, at a level up to SANDBOX_MAX_LEVEL, its stats
 // multiplied as the player wants. A win brings no experience, effort points or evolution. With
-// "heal" (the default), the bag's 亚比 have their 体力 and PP back before each fight.
+// "heal" (the default), the bag's 亚比 have their 体力 and PP back before each fight. With
+// "together", the opponents are one team in one battle: the next comes out when the one before
+// falls (as an activity boss's helpers, battle.ts Battle.foes); n is then 1.
 //
 //   SundriesExtension.revival_sandbox {lv, i}  -> revival_sandbox {res: 1, i, n, race, level}
 //                                                 then the battle (2303, 2401 …) with the i-th
@@ -11,7 +13,7 @@
 //                                              -> revival_sandbox {res: 0, msg} when lv is not a 关卡
 //
 // The 关卡 file (exported and imported by the panel; docs/MODDING.md):
-//   {"format": "aola-revival-level", "version": 1, "name": "…", "heal": true,
+//   {"format": "aola-revival-level", "version": 1, "name": "…", "heal": true, "together": false,
 //    "enemies": [{"race": 605, "level": 150, "hp": 100, "at": 100, "de": 100, "sa": 100, "sd": 100, "sp": 100}, …]}
 // hp … sp are percentages of the stats the 亚比 has at that level (100: as it is).
 
@@ -36,6 +38,8 @@ export interface SandboxLevel {
   name: string;
   /** The bag's 亚比 healed before each fight. */
   heal: boolean;
+  /** One battle against them all, one after another as they fall. */
+  together?: boolean;
   enemies: SandboxEnemy[];
 }
 
@@ -50,7 +54,7 @@ export function parseSandboxLevel(text: unknown, fights: (race: number) => boole
     return "这不是关卡文件";
   }
   if (!j || typeof j !== "object") return "这不是关卡文件";
-  const o = j as { format?: unknown; name?: unknown; heal?: unknown; enemies?: unknown };
+  const o = j as { format?: unknown; name?: unknown; heal?: unknown; together?: unknown; enemies?: unknown };
   if (o.format !== undefined && o.format !== SANDBOX_FORMAT) return "这不是奥拉星的关卡文件";
   if (!Array.isArray(o.enemies) || o.enemies.length === 0) return "关卡里还没有对手";
   if (o.enemies.length > SANDBOX_MAX) return `一个关卡最多${SANDBOX_MAX}个对手`;
@@ -67,11 +71,11 @@ export function parseSandboxLevel(text: unknown, fights: (race: number) => boole
     });
     enemies.push({ race, level, mul });
   }
-  return { name: String(o.name ?? "").slice(0, 30), heal: o.heal !== false, enemies };
+  return { name: String(o.name ?? "").slice(0, 30), heal: o.heal !== false, ...(o.together === true ? { together: true } : {}), enemies };
 }
 
 /** Starts the fight; false when it could not (a battle still open, no 亚比 able to fight: told in a 2303). */
-export type SandboxBegin = (ctx: XtContext, race: number, level: number, sandbox: { mul: number[]; keep?: number; keepText?: string }) => Promise<boolean>;
+export type SandboxBegin = (ctx: XtContext, race: number, level: number, sandbox: { mul: number[]; keep?: number; keepText?: string; foes?: SandboxEnemy[] }) => Promise<boolean>;
 
 export interface SandboxDeps {
   load: (ctx: XtContext) => Promise<PetOwner>;
@@ -85,7 +89,7 @@ export function installSandbox(world: World, deps: SandboxDeps): void {
     const t = await deps.tables();
     const lv = parseSandboxLevel(ctx.params.lv, (race) => !!speciesOf(t, race));
     if (typeof lv === "string") return ctx.reply({ res: 0, msg: lv });
-    const i = clamp(Math.floor(Number(ctx.params.i)) || 0, 0, lv.enemies.length - 1);
+    const i = lv.together ? 0 : clamp(Math.floor(Number(ctx.params.i)) || 0, 0, lv.enemies.length - 1);
     const e = lv.enemies[i];
     // A mod's party out (mods.ts): healing as it says, and the 亚比 that must not fall.
     const party = (await deps.load(ctx) as { modParty?: { keep?: number; keepText?: string; noHeal?: string } }).modParty;
@@ -99,7 +103,8 @@ export function installSandbox(world: World, deps: SandboxDeps): void {
     }
     // Told before the battle starts (the client then knows the opponent it waits for); a start
     // that is refused says so again, with no words of its own (the 2303 said why).
-    ctx.reply({ res: 1, i, n: lv.enemies.length, race: e.race, level: e.level });
-    if (!(await deps.begin(ctx, e.race, e.level, { mul: e.mul, keep: party?.keep, keepText: party?.keepText }))) ctx.reply({ res: 0, msg: "" });
+    ctx.reply({ res: 1, i, n: lv.together ? 1 : lv.enemies.length, race: e.race, level: e.level });
+    const foes = lv.together ? lv.enemies.slice(1) : undefined;
+    if (!(await deps.begin(ctx, e.race, e.level, { mul: e.mul, keep: party?.keep, keepText: party?.keepText, ...(foes?.length ? { foes } : {}) }))) ctx.reply({ res: 0, msg: "" });
   });
 }

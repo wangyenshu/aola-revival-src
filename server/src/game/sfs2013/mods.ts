@@ -17,15 +17,17 @@
 //                                                             aside until "unparty" (or the next login)
 //   {op: "unparty", mod}              -> {op, tag, res}       the player's own back, the mod's kept for it
 //   {op: "state", mod}                -> {op, tag, res,       the 亚比 and 道具 as they are now (party: the
-//                                         party, pets, items} mod's own are out)
+//                                         party, pets, items, mod's own are out; vip: the player is a 蓝宝石)
+//                                         vip}
 //   {op: "item", mod, id, n}          -> {op, tag, res, msg,  n of the 道具 id (type 2) more (or fewer)
 //                                         count}
 //
 // A party's def (JSON text): {pets: [{race, level, keep, follow}], items: {id: n}, fresh, keepText,
-// noHeal}. keep: the 亚比 that must stay in the bag, whose fall ends a fight as lost (keepText the
+// noHeal, vip}. keep: the 亚比 that must stay in the bag, whose fall ends a fight as lost (keepText the
 // battle's words then); follow: the one that follows the player; noHeal: healing all (the bag's
 // 恢复, the HELLO's 亚比治疗, the 治疗 of the panels) is refused with these words; fresh: a new party
-// even if the mod has one kept. While a party is out, the mod's fights (sandbox.ts) heal nobody
+// even if the mod has one kept; vip: the player is a 蓝宝石 while the party is out (the HELLO's
+// 远程亚比仓库 for the party's 仓库), no longer after it unless he was one before. While a party is out, the mod's fights (sandbox.ts) heal nobody
 // when noHeal is set.
 //
 // A mod's 亚比 (MOD_RACE_MIN–MOD_RACE_MAX) are known only while the page runs, once their mod has
@@ -84,6 +86,8 @@ export interface ModParty {
   keepText?: string;
   /** Healing all is refused, with these words. */
   noHeal?: string;
+  /** The party made the player a 蓝宝石 (def.vip; he was none): no more when it ends. */
+  vip?: boolean;
   aside: { pets: PetRecord[]; storage: PetRecord[]; released: PetRecord[]; items: Record<string, number>; followPet?: number };
 }
 
@@ -96,6 +100,8 @@ export interface ModRec extends PetOwner {
   modParty?: ModParty;
   modParties?: Record<string, ModPartyState>;
   items?: Record<string, Record<string, number>>;
+  /** 蓝宝石 (game.ts). */
+  vip?: boolean;
 }
 
 /** A party's 亚比 at most, and 道具 counts. */
@@ -121,6 +127,7 @@ export function endModParty(rec: ModRec): boolean {
   rec.released = p.aside.released;
   (rec.items ??= {})["2"] = p.aside.items;
   rec.followPet = p.aside.followPet ?? 0;
+  if (p.vip) rec.vip = false;
   delete rec.modParty;
   return true;
 }
@@ -263,8 +270,11 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
           party: rec.modParty?.mod === mod,
           pets: [...(rec.pets ?? []).map((p) => view(p, true)), ...(rec.storage ?? []).map((p) => view(p, false))],
           items: { ...(rec.items?.["2"] ?? {}) },
+          vip: !!rec.vip,
         };
       };
+      // The room's players see the 蓝宝石 (mtype) as the toolbox's change does (game.ts).
+      const tellVip = () => world.setUserVars?.(ctx.session, { mtype: rec.vip ? 4 : 0 });
       const followNow = () => deps.follow?.(ctx, rec, (rec.pets ?? []).find((p) => p.id === rec.followPet) ?? null);
       // The 道具 the game shows (its 物品, the bag's) follow the swap: told as changes of each count.
       const itemsNow = () => ({ ...(rec.items?.["2"] ?? {}) });
@@ -281,12 +291,14 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       if (op === "unparty") {
         if (rec.modParty?.mod === mod) {
           const before = itemsNow();
+          const vip = !!rec.vip;
           endModParty(rec);
           await deps.save(rec);
           followNow();
           tellItems(before);
+          if (vip !== !!rec.vip) tellVip();
         }
-        return reply({ res: 1 });
+        return reply({ res: 1, vip: !!rec.vip });
       }
       if (op === "item") {
         if (deps.gifts === false) return reply({ res: 0, msg: "这个服务器上，模组不能送道具。" });
@@ -356,6 +368,11 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       rec.modParty.keep = made.keep;
       rec.modParty.keepText = made.keepText;
       rec.modParty.noHeal = made.noHeal;
+      const vipNow = def.vip === true && !rec.vip;
+      if (vipNow) {
+        rec.modParty.vip = true;
+        rec.vip = true;
+      }
       rec.pets = made.pets;
       rec.storage = made.storage;
       rec.released = made.released ?? [];
@@ -365,6 +382,7 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       await deps.save(rec);
       followNow();
       tellItems(itemsBefore);
+      if (vipNow) tellVip();
       return reply({ res: 1, ...state() });
     }
     if (op === "give") {

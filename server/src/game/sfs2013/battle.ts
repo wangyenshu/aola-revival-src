@@ -2066,7 +2066,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     onLose?: Battle["onLose"],
     copyId?: number,
     /** 沙盒: the opponent's stats multiplied, and no award for the win. */
-    sandbox?: { mul: number[]; keep?: number; keepText?: string },
+    sandbox?: { mul: number[]; keep?: number; keepText?: string; foes?: { race: number; level: number; mul: number[] }[] },
     /** The battle made, before it is sent (the 道馆: 幻冥's 命运 on the player's 亚比). */
     adjust?: (b: Battle) => void,
   ): Promise<boolean> => {
@@ -2104,6 +2104,18 @@ export function installBattles(world: World, deps: BattleDeps): void {
     if (sandbox?.keep) {
       b.keep = sandbox.keep;
       b.keepText = sandbox.keepText;
+    }
+    // A 沙盒 team in one battle (sandbox.ts together): the others come out as each falls; the end
+    // names the first (the one the client was told of).
+    const team = (sandbox?.foes ?? []).filter((f) => speciesOf(t, f.race)).map((f) => {
+      const p = makePet(t, f.race, f.level, deps.today());
+      p.mul = f.mul;
+      p.hp = statsOf(p, t)[0];
+      return p;
+    });
+    if (team.length) {
+      b.foes = team;
+      b.asked ??= race;
     }
     adjust?.(b);
     // 自动战斗仪 (44, petitems.ts): "开启后，在场景中会自动与野外怪对战。每个可使用100次": a wild

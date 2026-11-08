@@ -137,3 +137,23 @@ test("the game is told the 道具 a party swaps (its 物品 and bag show the par
   // Back: the other way.
   assert.deepEqual(await amounts({ op: "unparty" }), ["2_104_0_-2", `2_30_0_${own}`, "2_61_0_-3"]);
 });
+
+test("a vip party makes the player a 蓝宝石 while it is out, and not after (unless he was one)", async () => {
+  const h = await setup();
+  const r = await h.mod({ op: "party", def: JSON.stringify({ ...PARTY, vip: true }) });
+  assert.equal(r.vip, true);
+  assert.equal((await h.rec()).vip, true);
+  assert.equal((await h.mod({ op: "state" })).vip, true);
+  const back = await h.mod({ op: "unparty" });
+  assert.equal(back.vip, false);
+  assert.equal(!!(await h.rec()).vip, false);
+  // At the next login the party ends the same way.
+  await h.mod({ op: "party", def: JSON.stringify({ ...PARTY, vip: true }) });
+  const rec = await h.rec();
+  endModParty(rec);
+  assert.equal(rec.vip, false);
+  // A 蓝宝石 already stays one.
+  await h.emu.store.set(KEY, { ...rec, vip: true });
+  await h.mod({ op: "party", def: JSON.stringify({ ...PARTY, vip: true, fresh: true }) });
+  assert.equal((await h.mod({ op: "unparty" })).vip, true);
+});

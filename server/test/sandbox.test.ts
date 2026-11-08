@@ -89,3 +89,31 @@ test("a 沙盒 fight: the i-th opponent at its level and stats, not to be caught
   await call("SundriesExtension.revival_sandbox", { lv: JSON.stringify({ heal: false, enemies: [{ race: 1, level: 1 }] }), i: 0 });
   assert.equal(owner.pets![0].hp, 5);
 });
+
+test("a 沙盒 team together: one battle, the next opponent out as each falls, the end names the first", async () => {
+  const handlers = new Map<string, XtHandler>();
+  const world = { xt: (k: string, h: XtHandler) => (handlers.set(k, h), world), setUserVars: () => {} } as unknown as World;
+  const owner: PetOwner = { id: 1, name: "小奥拉", pets: [makePet(tables, 1, 100, "d", 1)], nextPetId: 1 };
+  installBattles(world, { load: async () => owner, save: async () => {}, tables: async () => tables, wild: async () => ({}), today: () => "2013-01-25", rng: () => 0.5 });
+  const call = async (key: string, params: Record<string, unknown> = {}) => {
+    const out: Msg[] = [];
+    const ctx = { params, player: { name: owner.name, room: { name: "starland" } }, reply: (o: Record<string, unknown>, cmd = key.split(".")[1]) => out.push([cmd, o]) } as unknown as XtContext;
+    await handlers.get(key)!(ctx, key);
+    return out;
+  };
+  const lv = JSON.stringify({ format: SANDBOX_FORMAT, together: true, enemies: [{ race: 1, level: 3 }, { race: 43, level: 4, hp: 200 }, { race: 1, level: 5 }] });
+  const start = await call("SundriesExtension.revival_sandbox", { lv, i: 2 });
+  assert.deepEqual(start[0], ["revival_sandbox", { res: 1, i: 0, n: 1, race: 1, level: 3 }]);
+  const out: Msg[] = [];
+  let end: Msg | undefined;
+  for (let i = 0; i < 40 && !end; i++) {
+    const turn = await call("PocketMonsterExtension.1401", { skillId: 1016, tarSId: 1 });
+    out.push(...turn);
+    end = turn.find(([c]) => c === "2403");
+  }
+  const outs = out.filter(([c, o]) => c === "2413" && (o.extInfo as { foe?: boolean }).foe);
+  assert.equal(outs.length, 2);
+  assert.match(String((outs[0][1].extInfo as { desc: string }).desc), /小冰犬出战了/);
+  assert.equal(end?.[1].isWin, true);
+  assert.equal(end?.[1].raceId, 1);
+});

@@ -282,6 +282,13 @@ package mmo.control
          return g != null ? g.roomIds() : [];
       }
 
+      /** What the mod shown says it uses (its uses(), for the export), or null. */
+      public function debugUses():Object
+      {
+         var g:ModGame = shown || (games.length ? games[games.length - 1] : null);
+         return g != null ? g.uses() : null;
+      }
+
       /** The class of a scene's document loaded for a room on its art (SandboxRoom asks), or null. */
       public function sceneDoc(name:String):Class
       {
@@ -491,6 +498,8 @@ package mmo.control
          ask(g, {op: "unparty", mod: g.info.id}, function(p:Object):void
          {
             try { PetClient.instance.viewAllPM(); } catch (e:Error) {}
+            // A 蓝宝石 of the party's (def.vip) no more.
+            if (p.vip != null) ToolboxPanel.setMember(p.vip == true);
          }, true);
       }
 

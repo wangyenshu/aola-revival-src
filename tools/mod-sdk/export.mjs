@@ -12,17 +12,23 @@
 //
 // The mod folder is one tools/mod-sdk/build.mjs builds (asconfig.json); or a mod's .swf already
 // built, with its about.json beside it (<name>.json or about.json) if it has one. about.json gives
-// the name and, under "export", what to keep besides what is seen played:
+// the name and, under "export", the page's and what to keep besides what is seen played:
 //   {"name": "…", "description": "…",
 //    "export": {"player": "the 奥拉's name", "cover": "cover.svg",
-//               "races": [216, …], "npcs": [28, …], "music": ["music/…mp3"], "files": ["www.9aola.com/…"]}}
+//               "races": [216, …], "npcs": [28, …], "items": [61, …], "music": ["music/…mp3"],
+//               "files": ["www.9aola.com/…"]}}
+// The mod itself may say what it uses: a public uses() on its main class answering {races, npcs,
+// items, music, files} (worked out from its own tables: every team of every difficulty …); both
+// lists are kept.
 //
 // Which game files: those the game loads while the mod is walked through (export-tour.mjs, in
 // the headless browser of server/test/e2e/boot2013.mjs: every room it defines, its
-// conversations, a battle, the bag), and by rule for each 亚比 of "races" its battle sprite, its
-// pictures and the animations of the skills it knows by Lv100, for each NPC of "npcs" its
-// picture, and the "music" and "files" named. The page and the emulator are built as
-// npm run build builds them (run it first: the tour plays the site of dist/).
+// conversations, a battle, the bag and its 道具 page, the 物品 panel, the HELLO's menu, the
+// 亚比仓库), and by rule for each 亚比 of "races" its battle sprite, its pictures and the
+// animations of the skills it knows by Lv100, for each NPC of "npcs" its picture, for each 道具
+// of "items" its picture, the "music" and "files" named, the windows of what a mod gives and the
+// battle's backgrounds. The page and the emulator are built as npm run build builds them (made
+// first when older than their sources: the tour plays the site of dist/).
 import { execFileSync, spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, copyFileSync } from "node:fs";
 import os from "node:os";
@@ -122,7 +128,8 @@ const want = (plain) => {
   return byPlain.has(plain);
 };
 
-// 1. What the game loads as the mod is walked through.
+// 1. What the game loads as the mod is walked through (and what the mod says it uses).
+const uses = {};
 const work = mkdtempSync(path.join(os.tmpdir(), "aola-export-"));
 try {
   const overlay = path.join(work, "overlay");
@@ -140,7 +147,7 @@ try {
       "--shots", "",
       "--query", `standalone=${file}&dev=1`,
       "--scenario", path.join(root, "tools/mod-sdk/export-tour.mjs"),
-    ], { stdio: ["ignore", "inherit", "inherit"], env: { ...process.env, EXPORT_RACE: String((ex.races ?? [1])[0]) } });
+    ], { stdio: ["ignore", "inherit", "inherit"], env: { ...process.env, EXPORT_RACE: String(ex.races?.[0] ?? "") } });
     if (r.status !== 0) throw new Error("the walk-through failed");
     const log = readFileSync(path.join(rec, "http.txt"), "utf8").split("\n");
     let seen = 0;
@@ -156,19 +163,31 @@ try {
     const tour = readFileSync(path.join(rec, "console.txt"), "utf8");
     if (!/export tour: done/.test(tour)) console.warn("warning: the walk-through did not finish; some files may be missing");
     console.log(`  ${seen} files loaded`);
+    const told = /export tour: uses (\{.*\})\s*$/m.exec(tour);
+    if (told) {
+      try {
+        Object.assign(uses, JSON.parse(told[1]));
+        console.log(`  the mod uses ${["races", "npcs", "items", "music", "files"].map((k) => `${(uses[k] ?? []).length} ${k}`).join(", ")}`);
+      } catch {
+        console.warn("warning: the mod's uses() did not answer JSON");
+      }
+    }
   }
 
-  // 2. By rule.
+  // 2. By rule: about.json's lists and the mod's (uses()) together.
   const pm = JSON.parse(readFileSync(path.join(root, "rebuild/static/www.9aola.com/revival/pmdata.json"), "utf8"));
   const W = "www.9aola.com/";
-  for (const race of ex.races ?? []) {
+  const both = (k) => [...new Set([...(Array.isArray(ex[k]) ? ex[k] : []), ...(Array.isArray(uses[k]) ? uses[k] : [])])];
+  for (const race of both("races").map(Number).filter((r) => r > 0)) {
     want(`${W}fightassets/pet${race}.swf`);
     want(`${W}peticon/peticon${race}.swf`);
     want(`${W}bossfightmovie/boss${race}.swf`);
     for (const [lv, skill] of pm.species[String(race)]?.learn ?? []) if (lv <= 100) want(`${W}fightassets/effect${skill}.swf`);
   }
-  for (const npc of ex.npcs ?? []) want(`${W}tasknpc/npc${npc}.swf`);
-  for (const f of [...(ex.music ?? []), ...(ex.files ?? [])]) if (!want(f.startsWith(W) ? f : W + f)) console.warn(`warning: ${f} is not a game file`);
+  for (const npc of both("npcs").map(Number).filter((n) => n > 0)) want(`${W}tasknpc/npc${npc}.swf`);
+  // The pictures of the 道具 it gives (the bag's 道具 page, the window of what is got).
+  for (const item of both("items").map(Number).filter((n) => n > 0)) want(`${W}item/view${item}.swf`);
+  for (const f of [...both("music"), ...both("files")].map(String)) if (!want(f.startsWith(W) ? f : W + f)) console.warn(`warning: ${f} is not a game file`);
   // The windows of what a mod gives (giveItem, givePet), which the walk-through wins nothing to open.
   for (const f of ["material/itemgetpanel.swf", "material/petgetpanel.swf"]) want(W + f);
   // The battle's backgrounds and sounds, and the data the rebuilt modules read.
@@ -184,8 +203,10 @@ try {
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   let html = readFileSync(path.join(web, "index.html"), "utf8");
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
-  // The game alone (as ?bare=1 shows it), without the site's decoration.
-  html = html.replace(/<script>if \(\/\[\?&\]bare=1\(&\|\$\)\/\.test\(location\.search\)\) document\.documentElement\.classList\.add\("bare"\);<\/script>/, '<script>document.documentElement.classList.add("bare");</script>');
+  // The game alone (as ?bare=1 shows it), on black, without the site's decoration.
+  const bare = /<script>if \(\/\[\?&\]bare=1\(&\|\$\)\/\.test\(location\.search\)\) document\.documentElement\.classList\.add\("bare"\);<\/script>/;
+  if (!bare.test(html)) throw new Error("web/index.html: no bare switch to replace");
+  html = html.replace(bare, '<script>document.documentElement.classList.add("bare", "solo");</script>');
   writeFileSync(path.join(out, "index.html"), html);
   let cover = "";
   if (ex.cover && existsSync(path.join(modDir, ex.cover))) {

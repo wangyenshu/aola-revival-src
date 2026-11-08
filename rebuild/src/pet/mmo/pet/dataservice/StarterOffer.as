@@ -1,5 +1,6 @@
 package mmo.pet.dataservice
 {
+   import flash.external.ExternalInterface;
    import mmo.framework.comm.PetClient;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.task.ITaskNpcService;
@@ -24,11 +25,26 @@ package mmo.pet.dataservice
 
       public static function watch(d:PetDataService):void
       {
+         // A mod played as a game of its own (the page's AOLA_CONFIG.standalone): its 奥拉 has the
+         // mod's 亚比 (its party), not a first 亚比 of the game to choose.
+         if (standalone()) return;
          data = d;
          SceneManager.getInstance().addEventListener(SceneManagerEvent.SCENE_INITED, onScene);
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_TASK_ACTION, onAction);
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_GET_TASKS, onScene);
          if (SceneManager.getInstance().loadedSceneInfo) onScene(null);
+      }
+
+      private static function standalone():Boolean
+      {
+         try
+         {
+            if (!ExternalInterface.available) return false;
+            var cfg:Object = ExternalInterface.call("aolaRevivalStandalone");
+            return cfg != null && Boolean(cfg.mod);
+         }
+         catch (e:Error) {}
+         return false;
       }
 
       private static function onScene(e:* = null):void

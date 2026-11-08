@@ -246,6 +246,22 @@ package mmo.control
          return roomOrder.concat();
       }
 
+      /**
+       * What the mod says it uses, for tools/mod-sdk/export.mjs: the answer of its optional
+       * public uses() ({races, npcs, items, files}), or null.
+       */
+      internal function uses():Object
+      {
+         var m:Object = mod;
+         if (m == null || gone) return null;
+         try
+         {
+            if ("uses" in m && m.uses is Function) return m.uses();
+         }
+         catch (e:Error) { RLog.error("mod uses " + info.id, e); }
+         return null;
+      }
+
       public function leave():void
       {
          run.leaveMods();
@@ -444,14 +460,14 @@ package mmo.control
          if (frames) mc.gotoAndPlay(1);
       }
 
-      public function fight(team:Array, done:Function = null, heal:Boolean = true):void
+      public function fight(team:Array, done:Function = null, heal:Boolean = true, together:Boolean = false):void
       {
          if (team == null || team.length == 0 || SandboxRun.fighting)
          {
             RLog.log("mod: fight refused (" + (SandboxRun.fighting ? "a fight is on" : "no team") + ")");
             return;
          }
-         SandboxRun.fight({name: info ? info.name : "", heal: heal, enemies: team.slice(0, 10)}, function(win:Boolean, at:int, refused:Boolean = false):void
+         SandboxRun.fight({name: info ? info.name : "", heal: heal, together: together, enemies: team.slice(0, 10)}, function(win:Boolean, at:int, refused:Boolean = false):void
          {
             if (done != null)
             {
@@ -681,19 +697,31 @@ package mmo.control
 
       public function party(def:Object, done:Function = null):void
       {
-         if (gone || def == null) { if (done != null) done(null); return; }
+         if (gone || def == null)
+         {
+            RLog.log("mod: party refused: " + (gone ? "the mod was removed" : "no def"));
+            if (done != null) done(null);
+            return;
+         }
          var self:ModGame = this;
-         var sent:Object = {pets: def.pets, items: def.items, noHeal: def.noHeal ? String(def.noHeal) : "", keepText: def.keepText ? String(def.keepText) : "", fresh: def.fresh === true};
+         var sent:Object = {pets: def.pets, items: def.items, noHeal: def.noHeal ? String(def.noHeal) : "", keepText: def.keepText ? String(def.keepText) : "", fresh: def.fresh === true, vip: def.vip === true};
          run.ask(this, {op: "party", mod: info.id, def: RJson.encode(sent)}, function(p:Object):void
          {
             if (p.res != 1)
             {
-               if (p.msg) RLog.log("mod: party refused: " + p.msg);
+               // The server's reason (a shared server that lets no mod bring its own 亚比 …) is the player's to see.
+               if (p.msg)
+               {
+                  RLog.log("mod: party refused: " + p.msg);
+                  NewDialog.showMessage(String(p.msg));
+               }
                if (done != null) done(null);
                return;
             }
             partyDef = sent;
             run.partyOut(self, sent.noHeal);
+            // def.vip: a 蓝宝石 while it is out (the HELLO's 远程亚比仓库 …).
+            if (p.vip != null) ToolboxPanel.setMember(p.vip == true);
             try { PetClient.instance.viewAllPM(); } catch (e:Error) {}
             if (done != null) done({party: true, pets: p.pets, items: p.items});
          });

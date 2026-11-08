@@ -258,7 +258,8 @@ A mod may bring its own 亚比 and 道具 while you play it (蚁族的反击, on
 examples, gives you a 兵蚁 and a 工蚁 and its own 体力糖): yours are put aside
 and come back when you leave its rooms (or at the next login), and the mod's
 are kept for the next time you start it. Such a mod may refuse the bag's 恢复
-and the HELLO's 亚比治疗, and may keep one 亚比 in the bag.
+and the HELLO's 亚比治疗, may keep one 亚比 in the bag, and may make you a 蓝宝石
+while you play it (蚁族的反击 does, for the HELLO's 远程亚比仓库).
 
 `index.html?standalone=<file>.swf` plays one of the site's mods as a game of
 its own: straight into its first room, with only the buttons its rooms use

@@ -53,9 +53,9 @@ package
        * seldom, so that 普通 and 困难 ask for the allies' skills.
        */
       private static const MODES:Object = {
-         easy: {name: "简单", team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2},
-         normal: {name: "普通", team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2},
-         hard: {name: "困难", team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1}
+         easy: {name: "简单", team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2},
+         normal: {name: "普通", team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2},
+         hard: {name: "困难", team: 6, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1}
       };
 
       /**
@@ -65,7 +65,8 @@ package
        * where the player comes in; hide, pieces that do not belong in the story.
        */
       private static const ROOMS:Array = [
-         {id: "ant1", scene: "fbsiwude1", name: "蚁穴前哨", next: "ant2", door: "et1", arrow: [850, 360, 0, true]},
+         // In from the path at the upper left.
+         {id: "ant1", scene: "fbsiwude1", name: "蚁穴前哨", next: "ant2", door: "et1", arrow: [850, 360, 0, true], spawn: [240, 110]},
          {id: "ant2", scene: "fbsiwude2", name: "蚁兵基地", next: "ant3", door: "pit", arrow: [820, 176, 0, true],
             hide: ["mc_pit", "light_0", "light_0_1", "light_1", "light_1_1", "light_2", "light_2_1", "light_3", "light_3_1"]},
          // The way up at the top right (et2, at the bottom, is not the way on).
@@ -125,7 +126,7 @@ package
          // 蚁神守护大厅, 蚁神巨像, 蚁神殿前殿: the kingdom's warriors in the 奥拉 army's hands.
          {id: "knight1", room: "ant6", npc: 145, name: "骑士团卫兵罗兰", race: 45, level: 80, captive: 218, near: "btn_guard", side: -1,
             say: "守护力士由骑士团看押，不许靠近！", lost: "骑士团……输了。"},
-         {id: "knight3", room: "ant6", npc: 146, name: "骑士团卫兵崔斯坦", race: 204, level: 80, captive: 219, near: "btn_guard", side: 1, stand: -1, stand: -1,
+         {id: "knight3", room: "ant6", npc: 146, name: "骑士团卫兵崔斯坦", race: 204, level: 80, captive: 219, near: "btn_guard", side: 1, stand: -1,
             say: "守护法师交给骑士团看管，谁也别想带走！", lost: "我输了，守护法师你们带走吧。"},
          {id: "vick", room: "ant9", npc: 13, name: "异星使者维克", race: 63, level: 85, captive: 220, art: ["ant_0"],
             say: "蚁族圣斗士由我看守。回去吧，你们赢不了的。", lost: "蚁族……比我想象的更顽强。"},
@@ -298,6 +299,35 @@ package
          return true;
       }
 
+      /**
+       * What it uses beyond its rooms, for the export (tools/mod-sdk/export.mjs asks it): every
+       * 亚比 of every team in every mode, the creatures freed, the NPCs, the 道具 it gives, its music.
+       */
+      public function uses():Object
+      {
+         var races:Object = {};
+         var npcs:Object = {};
+         races[BINGYI] = races[GONGYI] = races[GENERAL] = true;
+         npcs[160] = true;
+         for each (var g:Object in GUARDS)
+         {
+            if (g.npc) npcs[g.npc] = true;
+            if (g.captive) races[g.captive] = true;
+            if (g.gift) races[g.gift] = true;
+            if (g.look is int) races[g.look] = true;
+            for each (var m:Object in MODES)
+               for each (var r:int in (g.race is Array ? g.race : [g.race]))
+                  for each (var e:Object in teamOf(g, r, m)) races[e.race] = true;
+         }
+         var list:Function = function(set:Object):Array
+         {
+            var out:Array = [];
+            for (var k:String in set) out.push(int(k));
+            return out.sort(Array.NUMERIC);
+         };
+         return {races: list(races), npcs: list(npcs), items: [CANDY, BEAN], music: [ANT_MUSIC, CITY_MUSIC]};
+      }
+
       private function partyDef(fresh:Boolean):Object
       {
          var m:Object = mode;
@@ -310,6 +340,8 @@ package
             items: items,
             noHeal: "这台HELLO是从奥拉人那里缴获的，它的治疗模块被锁住了！只能用高级体力糖给亚比恢复体力。",
             keepText: "兵蚁倒下了……蚁族的反击失败了。",
+            // A 蓝宝石's HELLO: its 远程亚比仓库 for the friends freed beyond the bag's six.
+            vip: true,
             fresh: fresh
          };
       }
@@ -1005,11 +1037,12 @@ package
          game.fight(teamOf(g, race, m), function(win:Boolean):void
          {
             game.partyState(function(st:Object):void { afterFight(g, npc, win, st, away); });
-         }, false);
+         }, false, true);
       }
 
       /**
-       * Whom g brings, weakest first: m.team 亚比 (简单 2, 普通 4, 困难 6). An 奥拉 guard: the
+       * Whom g brings, weakest first, sent out one after another in one battle (fight: together):
+       * m.team 亚比 (简单 2, 普通 4, 困难 6). An 奥拉 guard: the
        * strongest of the three forms of its own 亚比 and of the guard's before it in the list;
        * the 变异蚁将军: the 蚁将军's 兵蚁 before it. 小奥拉 and the three of the 指挥中心 bring
        * their one 亚比 in every mode.
@@ -1018,9 +1051,11 @@ package
       {
          var pct:int = g.boss ? m.boss : m.foe;
          var level:int = g.boss ? g.level : Math.min(100, g.level + int(m.lv));
+         // The strongest (out last) at the mode's strength (foe, boss); those before it weaker (helper).
          var one:Function = function(r:int, lv:int, main:Boolean = false):Object
          {
-            return {race: r, level: Math.max(1, Math.min(100, lv)), hp: main && g.boss ? m.bossHp : pct, at: pct, de: pct, sa: pct, sd: pct, sp: pct};
+            var q:int = main ? pct : int(m.helper);
+            return {race: r, level: Math.max(1, Math.min(100, lv)), hp: main && g.boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q};
          };
          var n:int = Math.max(1, int(m.team));
          if (g.id == "mutant")
@@ -1034,7 +1069,9 @@ package
          var i:int = GUARDS.indexOf(g);
          var partner:Object = GUARDS[i > 0 ? i - 1 : i + 1];
          var pr:int = partner.boss ? race : int(partner.race);
-         var all:Array = [one(pr - 2, level - 9), one(race - 2, level - 8), one(pr - 1, level - 6), one(race - 1, level - 5), one(pr, level - 3), one(race, level, true)];
+         // Each a step of levels below the next (step).
+         var st:int = int(m.step);
+         var all:Array = [one(pr - 2, level - 5 * st), one(race - 2, level - 4 * st), one(pr - 1, level - 3 * st), one(race - 1, level - 2 * st), one(pr, level - st), one(race, level, true)];
          return all.slice(all.length - Math.min(n, all.length));
       }
 
@@ -1255,6 +1292,10 @@ package
             ]}]);
          });
          hudBox.addChild(hudReset);
+         // A solid strip: a press on it (or its buttons) does not reach the room, so the player
+         // does not walk there.
+         for each (var type:String in [MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_UP, MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK])
+            hudBox.addEventListener(type, function(e:MouseEvent):void { e.stopPropagation(); });
          hudBox.y = 8;
          room.add(hudBox, 0, 8, "screen");
          refreshHud();

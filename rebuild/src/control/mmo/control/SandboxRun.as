@@ -13,7 +13,8 @@ package mmo.control
    /**
     * The revival's 沙盒 fights (not of 2013): a team of opponents fought one
     * after another through SundriesExtension.revival_sandbox (sandbox.ts),
-    * the next once the battle screen has gone; a loss ends the team. The
+    * the next once the battle screen has gone; a loss ends the team. A team
+    * "together" is one battle, each coming out as the one before falls. The
     * 对手关卡 page and the mods (ModRun) fight this way. The mods' rooms are
     * shown by the 沙盒 room (ROOM, scene/sandboxroom).
     */
@@ -28,16 +29,17 @@ package mmo.control
       private static var watching:Boolean;
 
       /**
-       * Fight `lv` (a version-1 关卡 object: {name, heal, enemies}) one opponent
-       * after another; done(win, reached) once it ends (reached: the opponent
-       * it ended at, from 0).
+       * Fight `lv` (a version-1 关卡 object: {name, heal, together, enemies}) one
+       * opponent after another; done(win, reached) once it ends (reached: the
+       * opponent it ended at, from 0; together: 0).
        */
       public static function fight(lv:Object, done:Function):void
       {
          watch();
          var n:int = lv && lv.enemies is Array ? lv.enemies.length : 0;
          if (n == 0) return;
-         var o:Object = {format: "aola-revival-level", version: 1, name: String(lv.name || ""), heal: lv.heal !== false, enemies: lv.enemies};
+         var o:Object = {format: "aola-revival-level", version: 1, name: String(lv.name || ""), heal: lv.heal !== false, together: lv.together == true, enemies: lv.enemies};
+         if (o.together) n = 1;
          // between: no battle of the team is on (before the first, and from the end of one to
          // the start of the next): a FIGHT_END then is not ours (the battle screen may tell
          // its end more than once as it closes).

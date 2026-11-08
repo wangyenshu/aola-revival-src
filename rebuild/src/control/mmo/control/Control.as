@@ -13,6 +13,7 @@ package mmo.control
    import mmo.loader.scheduler.VersManager;
    import flash.events.Event;
    import mmo.common.dialog.NewDialog;
+   import mmo.common.member.MemberManager;
    import mmo.play.scene.SceneManagerEvent;
    import flash.events.IEventDispatcher;
    import flash.utils.setTimeout;
@@ -47,6 +48,7 @@ package mmo.control
    import mmo.play.scene.revival;
    import mmo.interfaces.task.TaskEvent;
    import mmo.interfaces.task.TaskEventDispatcher;
+   import mmo.revival.RJson;
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
 
@@ -556,6 +558,13 @@ package mmo.control
                   case "modrooms":
                      // The rooms the mod shown has defined (the export's tour).
                      return ModRun.instance.debugRooms().join(",");
+                  case "member":
+                     // 蓝宝石 as the client has it (tests/e2e).
+                     return MemberManager.instance.isMember() ? "1" : "0";
+                  case "moduses":
+                     // What the mod shown says it uses (its uses(): the export's tour), JSON.
+                     var mu:Object = ModRun.instance.debugUses();
+                     return mu ? RJson.encode(mu) : "none";
                   case "modroom":
                      // The mod loaded and the room of it shown.
                      var mr:Object = ModRun.instance.loaded;

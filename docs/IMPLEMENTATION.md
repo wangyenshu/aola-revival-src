@@ -500,8 +500,13 @@ domain of its own and implements `IModGame`; `scene/sandboxroom`, a
 code-only scene, shows a mod's rooms (`SandboxRoom` implements `IModRoom`).
 A mod's 亚比 pictures reach the game's modules through `mmo.revival.RDef`,
 which the bag, the 仓库, the battle screen, following and the rebuilt
-`peticonservice` ask before the application domain. [MODDING.md](MODDING.md)
-has the API and the details.
+`peticonservice` ask before the application domain. A 沙盒 team fought
+"together" is one battle whose other opponents wait in `Battle.foes` (each
+comes out as the one before falls, the end names the first, which the client
+waits for). A mod's party with `vip` sets the 蓝宝石 of the record while it is
+out (`ModParty.vip`: given back by `endModParty`), and the client's
+`MemberManager` follows the reply. [MODDING.md](MODDING.md) has the API and
+the details.
 
 ## Ruffle
 

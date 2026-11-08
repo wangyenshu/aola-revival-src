@@ -288,7 +288,7 @@ The fields of a room's `def`:
 
 | Member | |
 | --- | --- |
-| `fight(team, done = null, heal = true)` | fight 1–10 opponents one after another. Each is `{race, level, hp, at, de, sa, sd, sp}`: `race` is a 亚比 of the game or of the mod, `level` is 1–999, and the six are 体力, 攻击, 防御, 特攻, 特防 and 速度 in percent of the normal value (1–10000, default 100). `done(win:Boolean)` (a team the server refuses counts as a loss). `heal`: the bag's 亚比 get their 体力 and PP back before each fight. A win brings nothing (no experience). More than 10 opponents: the first 10. While a fight is on, another `fight` is ignored (no `done`) |
+| `fight(team, done = null, heal = true, together = false)` | fight 1–10 opponents one after another. Each is `{race, level, hp, at, de, sa, sd, sp}`: `race` is a 亚比 of the game or of the mod, `level` is 1–999, and the six are 体力, 攻击, 防御, 特攻, 特防 and 速度 in percent of the normal value (1–10000, default 100). `done(win:Boolean)` (a team the server refuses counts as a loss). `heal`: the bag's 亚比 get their 体力 and PP back before each fight. `together`: one battle against the whole team, as a trainer sends out one 亚比 after another (the next comes out when the one before falls); otherwise a battle for each. A win brings nothing (no experience). More than 10 opponents: the first 10. While a fight is on, another `fight` is ignored (no `done`) |
 | `species(def, done = null)` | define a 亚比 of the mod (next section). `done(ok:Boolean)` |
 | `givePet(race, level = 1, done = null)` | give the player a 亚比: a 亚比 of the game, or one this mod has defined. `level`: 1–100. It goes to the bag, or to the 仓库 when the bag is full. `done(ok:Boolean)`: false on a shared server whose 工具箱 is closed (`--no-toolbox`: no gifts there) |
 
@@ -340,7 +340,7 @@ player's: a story that starts from nothing, with its own rules.
 
 | Member | |
 | --- | --- |
-| `party(def, done = null)` | the mod's own 亚比 and 道具 instead of the player's (`def` below); `done(state)` as `partyState` gives it, or `done(null)` if refused. The player's own are put aside and come back when the mod's rooms are left (`leave()`, the map, the mod removed) or at the next login; the party is kept for the mod and comes back as it was the next time `party` is called (unless `fresh`) |
+| `party(def, done = null)` | the mod's own 亚比 and 道具 instead of the player's (`def` below); `done(state)` as `partyState` gives it, or `done(null)` if refused (the server's reason, such as a shared server that lets no mod bring its own 亚比, is shown to the player). The player's own are put aside and come back when the mod's rooms are left (`leave()`, the map, the mod removed) or at the next login; the party is kept for the mod and comes back as it was the next time `party` is called (unless `fresh`) |
 | `endParty(done = null)` | the player's own back now |
 | `partyState(done)` | `done({party, pets: [{id, race, level, hp, maxHp, bag, keep}], items: {道具 id: count}})`: as they are now |
 | `giveItem(id, n = 1, done = null, shown = true)` | n of a 道具 (type 2 of the game: 61 高级体力糖, 104 高级活力豆 …), or `-n` to take some; `done(count)`, or `done(-1)` if refused. What is got is shown in the game's own window (as a boss's 亚比蛋 is) unless `shown` is false |
@@ -356,6 +356,7 @@ The fields of a party's `def`:
 | `noHeal` | words: healing all (the bag's 恢复, the HELLO's 亚比治疗, the 治疗 of the panels) is refused with them, and the mod's fights heal nobody whatever their `heal` says. 体力糖 and the like still work |
 | `keepText` | the battle's words when the `keep` one falls |
 | `fresh` | a new party, though the mod's from the last time is kept |
+| `vip` | the player is a 蓝宝石 while the party is out (the HELLO's 远程亚比仓库 for the party's 亚比 beyond the bag's six …), and no longer once it ends unless he was one before |
 
 `giveItem` and `givePet` give to the party while it is out. `fight`'s `done(win)` does not say
 why a fight was lost: `partyState` does (the `keep` one's `hp` is 0, or not: the player ran).
@@ -485,7 +486,7 @@ panels get that one.
 | `hello` | one room drawn in code, a walk function, a character with a question, a door out, saved data (visits) |
 | `story` | two rooms joined by doors (a wide room of 1400), conversations with choices, a film drawn in code (ended with `Event.COMPLETE`), an opponent with a team of the game's 亚比, progress kept with `setData`, a 亚比 given as a reward, music of its own (an embedded MP3) and of the game |
 | `yabi` | a 亚比 of the mod (`species`) standing in the room, fought, and given to the player |
-| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`) who stop the player coming near and challenge them, most keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, and `giveItem`'s window for the 体力糖), then the 变异蚁将军, 小奥拉 (`"avatar:…"`, a new player's 酷蓝 set) and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; the 副本's chest in 下水道深处 (the scene's own piece and its frames), the 奥拉 army's portal from 蚁神殿正殿 to 传送核心 (a `door` over a drawn ring); a 提示 for each room; three difficulties; its `about.json` says how to export it |
+| `antwar` | 蚁族的反击, a game of API 4: the player is a 兵蚁 (`playerLook`) with a 工蚁 following, with the mod's own 亚比 and 体力糖 (`party`, no healing, the 兵蚁 to keep: its fall ends the game), in the rooms of 蚁族王朝, 传送核心 and 指挥中心 (`scene`, their music); the 奥拉 guards are NPCs of the game (`"npc:<id>"`) who stop the player coming near and challenge them with a team of 2, 4 or 6 亚比 by difficulty in one battle (`fight`'s `together`), most keeping one of the 蚁族王朝's creatures in a cage, standing on the floor clear of every cage (`part`, `blocked`); it joins at Lv100 once the guard is beaten (`givePet`, and `giveItem`'s window for the 体力糖), then the 变异蚁将军, 小奥拉 (`"avatar:…"`, a new player's 酷蓝 set) and 指挥中心's 兰丁, 弗洛拉 and 拉贝尔; the 副本's chest in 下水道深处 (the scene's own piece and its frames), the 奥拉 army's portal from 蚁神殿正殿 to 传送核心 (a `door` over a drawn ring); a 提示 for each room; three difficulties; the player a 蓝宝石 while it lasts (`party`'s `vip`: the HELLO's 远程亚比仓库); its `uses()` and `about.json` say how to export it |
 
 ## Exporting a mod
 
@@ -513,7 +514,24 @@ sources: the game's rebuilt modules (`npm run build:swf`), the site
 The game files kept are those the game loads while the mod is walked through
 (`tools/mod-sdk/export-tour.mjs`, in the test browser: every room the mod
 defines, its conversations answered with their first choice, a battle, the
-bag), and by rule those `about.json` names under `export`:
+bag and its 道具 page, the 物品 panel, the HELLO's menu, the 亚比仓库), the
+windows of what a mod gives and the battle's backgrounds, and by rule what the
+mod says it uses and what `about.json` names under `export`.
+
+The mod says what it uses with a public `uses()` on its main class (not part
+of `IMod`: a mod without it is exported all the same), worked out from its own
+tables, so that nothing it fights, shows or gives only later in the game (or
+only in another difficulty) is left out:
+
+```actionscript
+public function uses():Object
+{
+   return {races: [216, 217, 1648], npcs: [28, 94], items: [61, 104], music: ["music/siwudefb.mp3"], files: []};
+}
+```
+
+蚁族的反击's goes through every guard's team in every difficulty. `about.json`
+can name the same lists (both are kept), and the page's:
 
 ```json
 {
@@ -524,6 +542,7 @@ bag), and by rule those `about.json` names under `export`:
     "cover": "cover.jpg",
     "races": [216, 217, 1648],
     "npcs": [28, 94],
+    "items": [61, 104],
     "music": ["music/siwudefb.mp3"],
     "files": []
   }
@@ -536,7 +555,13 @@ bag), and by rule those `about.json` names under `export`:
 | `cover` | a picture of the mod's folder shown over the game while it loads (960 × 560). Whatever the author wants said, such as whose the game's art is, can be drawn on it: 蚁族的反击's (made by its `art/make_cover.py` from the game's 蚁神巨像 and the two ants' battle figures) says that 奥拉星's art and music are 百田's |
 | `races` | 亚比 the mod fights or gives: each one's battle sprite, pictures and the animations of the skills it knows by Lv100 |
 | `npcs` | NPCs of the game the mod shows (`"npc:<id>"`) |
+| `items` | 道具 the mod gives: their pictures (the bag's 道具 page, the window of what is got, the battle's 道具) |
 | `music`, `files` | more game files, by path |
+
+The page of the export is the game alone on black, with nothing written under
+it but what went wrong (a browser without service workers, the game open in
+another tab …). Its 奥拉 has no newbie quest and is offered no first 亚比 of the
+game (the mod's party is his).
 
 Options: `--out <dir>` (default `build/export`), `--seconds <n>` for the
 walk-through (default 900), `--no-record` (by rule only), `--no-zip`.
@@ -571,6 +596,7 @@ another. It saves and reads the list as a JSON file:
 | --- | --- |
 | `name` | up to 30 characters |
 | `heal` | default true: the bag's 亚比 get their 体力 and PP back before each fight |
+| `together` | default false: one battle against all of them, the next coming out when the one before falls (`IModGame.fight`'s `together`) |
 | `enemies` | 1 to 10 opponents. `race`: a 亚比 that can fight. `level`: 1–999 (above 100 the stats keep growing by the same formulas). `hp` … `sp`: 1–10000, percent of the normal value (default 100) |
 
 Mods fight the same way: `IModGame.fight` sends such a list. The server

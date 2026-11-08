@@ -40,6 +40,9 @@
   html.bare #pets { background: none; height: auto; margin-top: 8px; }
   html.bare #news { position: static; width: auto; height: auto; padding: 0; }
   html.bare #status { color: #8fa8d6; margin: 0; }
+  /* A mod exported as a game of its own (tools/mod-sdk/export.mjs): bare, on black. */
+  html.solo body { background: #000; }
+  html.solo #status { color: #f0a0a0; }
 </style>
 <script>if (/[?&]bare=1(&|$)/.test(location.search)) document.documentElement.classList.add("bare");</script>
 </head>

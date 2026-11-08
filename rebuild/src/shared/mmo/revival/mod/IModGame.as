@@ -66,8 +66,11 @@ package mmo.revival.mod
        * Fight a team (1 to 10 opponents, one after another): each {race, level,
        * hp, at, de, sa, sd, sp} (the six are percentages of its stats, default 100).
        * done(win:Boolean). heal: the bag's 亚比 are healed before each fight.
+       * together: one battle against the whole team (as a trainer sends out one
+       * 亚比 after another: the next comes out when the one before falls);
+       * otherwise one battle for each.
        */
-      function fight(team:Array, done:Function = null, heal:Boolean = true):void;
+      function fight(team:Array, done:Function = null, heal:Boolean = true, together:Boolean = false):void;
 
       /**
        * Define a 亚比 of the mod. def:
@@ -149,6 +152,8 @@ package mmo.revival.mod
        *             them, and fights heal nobody
        *   keepText  the battle's words when the one to keep falls
        *   fresh     a new party, though the mod's from the last time is kept
+       *   vip       the player is a 蓝宝石 while the party is out (the HELLO's 远程亚比仓库
+       *             for the party's 亚比 beyond the bag's six …)
        * The party is kept for the mod when it ends and comes back as it was the next time
        * (unless fresh). done(state) as partyState gives it, or done(null) if refused.
        */

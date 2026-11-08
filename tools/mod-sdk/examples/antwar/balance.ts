@@ -1,8 +1,12 @@
 // 蚁族的反击's balance: the campaign played on the server's battle engine by a plain player (it
 // takes the 亚比 whose type suits the opponent best, uses 体力糖 and 活力豆, runs when only the 兵蚁
-// is left, tries a fight three times; it uses no skill for its effect), per difficulty. Its tables
+// is left, tries a fight three times; it uses no skill for its effect), per difficulty. Each
+// guard's team is one battle (its 亚比 come out one after another). Its tables
 // are AntWarMod.as's (MODES and GUARDS): keep them the same when tuning.
 //   node tools/mod-sdk/examples/antwar/balance.ts [easy|normal|hard] [runs] [-v]
+// (MODE='{"helper": 65}' … tries other values.) The plain player does not use 狂暴诅咒's 混乱, which
+// 拉贝儿 is meant to fall to: reaching it counts. Last run (6 each): 简单 6 reached 拉贝儿 (5 beat it),
+// 普通 3, 困难 2.
 import { readFile } from "node:fs/promises";
 import { Emulator } from "../../../../server/src/core/emulator.ts";
 import { MemoryRecorder } from "../../../../server/src/core/recorder.ts";
@@ -11,13 +15,14 @@ import { SFS2013_FRAMING, sfs2013Codec, type XtContext, type XtHandler } from ".
 
 const site = new URL("../../../../rebuild/static/www.9aola.com/", import.meta.url);
 const MODES: Record<string, any> = {
-  easy: { team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2 },
-  normal: { team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2 },
-  hard: { team: 6, lv: 5, foe: 110, boss: 125, bossHp: 230, candy: 3, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1 },
+  easy: { team: 2, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2 },
+  normal: { team: 4, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2 },
+  hard: { team: 6, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1 },
 };
 const G = [
   ["tom", 81, 48], ["kevin", 183, 50], ["nike", 36, 55], ["allen", 153, 56], ["sam", 78, 58], ["guard1", 18, 60],
-  ["roy", 87, 62], ["jason", 75, 63], ["hade", 72, 65, 244], ["guard2", 189, 68, 241], ["hunter", 21, 70, 242], ["lucas", 299, 72, 243],
+  // 蚁穴下水道: the first 牛角滴滴 freed joins (AntWarMod: captive join once).
+  ["roy", 87, 62, 244], ["jason", 75, 63], ["hade", 72, 65], ["guard2", 189, 68, 241], ["hunter", 21, 70, 242], ["lucas", 299, 72, 243],
   ["mach", 99, 75], ["knight1", 45, 80, 218], ["knight3", 204, 80, 219], ["vick", 63, 85, 220], ["bluebrook", 293, 85, 221],
   ["arthur", 290, 90, 225], ["knight2", 45, 90, 223], ["magellan", 236, 92, 224], ["lanbao", 33, 92, 222],
   ["mutant", 227, 100, 226, true], ["kid", [502, 501, 500], 100, 0, true], ["landing", 1648, 100, 0, true], ["flora", 1649, 100, 0, true], ["rabel", 323, 100, 0, true],
@@ -26,7 +31,7 @@ const G = [
 const mode = process.argv[2] ?? "normal";
 const runs = Number(process.argv[3] ?? 3);
 const verbose = process.argv.includes("-v");
-const m = MODES[mode];
+const m = { ...MODES[mode], ...JSON.parse(process.env.MODE ?? "{}") };
 
 const pm = JSON.parse(await readFile(new URL("revival/pmdata.json", site), "utf8"));
 const eff = (a: number, d: number[]) => d.reduce((x, t) => x * (pm.chart[String(a)]?.[String(t)] ?? 1), 1);
@@ -54,30 +59,37 @@ async function campaign(seed: number) {
     const pct = boss ? m.boss : m.foe;
     // AntWarMod.teamOf.
     const L = boss ? level : Math.min(100, level + m.lv);
-    const one = (r2: number, l2: number, main = false) => ({ race: r2, level: Math.max(1, Math.min(100, l2)), hp: main && boss ? m.bossHp : pct, at: pct, de: pct, sa: pct, sd: pct, sp: pct });
+    const one = (r2: number, l2: number, main = false) => {
+      const q = main ? pct : m.helper;
+      return { race: r2, level: Math.max(1, Math.min(100, l2)), hp: main && boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q };
+    };
     let enemies = [one(race, L, true)];
     const gi = G.findIndex((g) => g[0] === id);
     if (id === "mutant") for (let k = 1; k < m.team; k++) enemies.unshift(one(216, 97 - k));
     else if (!boss) {
       const partner = G[gi > 0 ? gi - 1 : gi + 1];
       const pr = partner[4] ? race : (partner[1] as number);
-      enemies = [one(pr - 2, L - 9), one(race - 2, L - 8), one(pr - 1, L - 6), one(race - 1, L - 5), one(pr, L - 3), one(race, L, true)].slice(6 - Math.min(6, m.team));
+      const st = m.step;
+      enemies = [one(pr - 2, L - 5 * st), one(race - 2, L - 4 * st), one(pr - 1, L - 3 * st), one(race - 1, L - 2 * st), one(pr, L - st), one(race, L, true)].slice(6 - Math.min(6, m.team));
     }
-    const lv = JSON.stringify({ format: "aola-revival-level", version: 1, heal: false, enemies });
+    // One battle against the whole team (AntWarMod.fight: together).
+    const lv = JSON.stringify({ format: "aola-revival-level", version: 1, heal: false, together: true, enemies });
     let won = false;
     for (let attempt = 0; attempt < 3 && !won; attempt++) {
-      // Heal outside the fight with 体力糖 (the bag's 道具) the hurt ones, keeping two for the fights.
+      // Heal outside the fight with 体力糖 (the bag's 道具) the hurt and fallen ones, keeping two for the fights.
       let r = await rec();
       for (const p of r.pets) {
         const max = (await mod({ op: "state" })).pets.find((q: any) => q.id === p.id).maxHp;
-        for (let k = 0; k < 3 && p.hp < max * (p.race === 216 ? 0.7 : 0.4) && ((await items())["61"] ?? 0) > 2; k++) {
+        for (let k = 0; k < 2 && p.hp < max * (p.race === 216 ? 0.7 : 0.6) && ((await items())["61"] ?? 0) > 2; k++) {
           await call("MaterialExtension.14_12", { ii: 61, pi: p.id });
           p.hp = (await rec()).pets.find((q: any) => q.id === p.id).hp;
         }
       }
       // Lead: the best counter among the living (not the 兵蚁 if another will do).
       r = await rec();
-      const foeT = types(race);
+      // The opponent out: the first of the team, then each that comes out as the one before falls.
+      let foeIdx = 0;
+      let foeT = types(enemies[0].race);
       const score = (p: any) => {
         const mine = types(p.race);
         const atk = Math.max(...p.skills.filter((s: any) => (pm.skills[String(s.id)]?.p ?? 0) > 0).map((s: any) => eff(pm.skills[String(s.id)].t, foeT)), 0.5);
@@ -113,6 +125,7 @@ async function campaign(seed: number) {
           return call("PocketMonsterExtension.1401", { skillId: best.id });
         })();
         end = out.find(([c]) => c === "2403")?.[1];
+        for (const [c, o] of out) if (c === "2413" && o.extInfo?.foe && foeIdx + 1 < enemies.length) foeT = types(enemies[++foeIdx].race);
         if (out.some(([c]) => c === "2422")) {
           r = await rec();
           const next = r.pets.filter((p: any) => p.hp > 0).sort((a: any, b: any) => score(b) - score(a))[0];
