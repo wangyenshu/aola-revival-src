@@ -9,7 +9,11 @@
 //
 // Static hosting (GitHub Pages, any file server): the build writes the files
 // under files/ with "%" in their names turned into "~" and lists them in
-// files/index.json, so each request is one fetch and misses cost nothing.
+// files/index.json, so each request is one fetch and misses cost nothing. An
+// exported mod has a build (?build=…, from config.js): the list and the files
+// are asked for with it (…?v=<build>), so a browser that kept an earlier
+// export's copies, which the host may call unchanged (the export's files all
+// carry the same date), takes the new ones.
 // Without an index (the Node server's roots), each root is tried in turn and
 // the server's emulated HTTP endpoints are the last resort.
 
@@ -39,11 +43,14 @@ const HOSTS = new Set((params.get("hosts") ?? "www.9aola.com,web.9aola.com,login
 const ROOTS = (params.get("mirror") ?? "./mirror/").split(",").filter(Boolean).map((r) => new URL(r, self.location.href).href);
 const ORIGINAL = new URL("./__original", self.location.href).href;
 const INDEX = params.get("index") ? new URL(params.get("index")!, self.location.href).href : "";
+const BUILD = params.get("build") ?? "";
+/** Added to what is fetched from the static files: this build's own copy. */
+const VERSION = BUILD ? `?v=${encodeURIComponent(BUILD)}` : "";
 let listed: Promise<Set<string> | null> | null = null;
 /** The files the static build put up (relpaths as the mirror names them), or null without an index. */
 function index(): Promise<Set<string> | null> {
   listed ??= INDEX
-    ? fetch(INDEX)
+    ? fetch(INDEX + VERSION)
         .then((r) => (r.ok ? r.json() : null))
         .then((l: string[] | null) => (l ? new Set(l) : null))
         .catch(() => null)
@@ -97,7 +104,7 @@ async function fromMirror(req: Request): Promise<Response> {
     if (hit) {
       // A request for part of the file (Range, as media players ask): pass that on, the static host answers 206.
       const range = req.headers.get("Range");
-      const res = await fetch(ROOTS[0] + encodeURI(staticName(hit)), range ? { headers: { Range: range } } : undefined).catch(() => null);
+      const res = await fetch(ROOTS[0] + encodeURI(staticName(hit)) + VERSION, range ? { headers: { Range: range } } : undefined).catch(() => null);
       if (res?.ok) return respond(res, hit);
     }
     if (withoutQuery(rel).endsWith("/crossdomain.xml")) {

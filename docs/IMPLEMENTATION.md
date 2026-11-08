@@ -406,7 +406,8 @@ took it and the battle goes on when it ends, as in the later client
 (`UseItemMovieHelper`): green for 体力糖 and the 药剂, blue for 活力豆. The
 2013 movie was in the lost battle module and the later one
 (`pet/fightasyncres/reverthpmovie`, `revertppmovie`) is not kept, so it is
-drawn in code (light rising, rings at the feet, sparks).
+drawn in code: a flash round the 亚比, a column of light rising over it, rings
+at its feet, sparks, the 亚比 glowing; about two seconds.
 
 Wild 亚比 (`pet/wildpetservice`) walk in 124 rooms; the list per room comes
 from the November 2012 world map and the later location table, and for the

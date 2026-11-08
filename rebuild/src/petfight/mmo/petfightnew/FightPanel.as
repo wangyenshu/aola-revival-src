@@ -1,6 +1,7 @@
 package mmo.petfightnew
 {
    import com.greensock.TweenLite;
+   import flash.display.BlendMode;
    import flash.display.DisplayObject;
    import flash.display.FrameLabel;
    import flash.display.GradientType;
@@ -1489,68 +1490,87 @@ package mmo.petfightnew
        * RECONSTRUCTED. The movie over a 亚比 that took a 道具. The later battle screen of the game
        * plays one there after every 道具 (UseItemMovieHelper: pet/fightasyncres/reverthpmovie, or
        * revertppmovie for the 活力豆) and goes on to the next report when it ends; the 2013 movie
-       * was in the lost battle module and the later one is not kept, so it is drawn here: light
-       * rising round the 亚比, two rings at its feet, sparks going up (green crosses after the
-       * 体力糖 and the 药剂, blue drops after the 活力豆), the 亚比 glowing meanwhile.
+       * was in the lost battle module and the later one is not kept, so it is drawn here: a flash
+       * round the 亚比, a column of light rising over it, rings spreading at its feet, sparks going
+       * up (green crosses after the 体力糖 and the 药剂, blue drops after the 活力豆), the 亚比
+       * glowing meanwhile; about two seconds.
        */
       private function itemMovie(slot:int, itemId:int, hpInc:int, done:Function):void
       {
-         if (hpInc > 0) TweenLite.delayedCall(0.25, function():void { if (!closed) float(slot, "+" + hpInc, 0x3CC21E); });
+         if (hpInc > 0) TweenLite.delayedCall(0.35, function():void { if (!closed) float(slot, "+" + hpInc, 0x3CC21E); });
          var pp:Boolean = PP_ITEMS.indexOf(itemId) >= 0;
-         var main:uint = pp ? 0x3FB6FF : 0x4FE03C;
-         var light:uint = pp ? 0xD8F4FF : 0xF2FFC4;
+         var main:uint = pp ? 0x2FA8FF : 0x3FD82C;
+         var light:uint = pp ? 0xCFF0FF : 0xEEFFB8;
          var at:Array = holder(slot == 0);
          var mv:Sprite = new Sprite();
          mv.x = at[0];
          mv.y = at[1];
          mv.mouseEnabled = mv.mouseChildren = false;
-         var beam:Shape = new Shape(), rings:Shape = new Shape(), sparks:Shape = new Shape();
-         rings.filters = [new GlowFilter(main, 1, 8, 8, 2)];
-         sparks.filters = [new GlowFilter(main, 1, 6, 6, 3)];
+         var beam:Shape = new Shape(), flash:Shape = new Shape(), rings:Shape = new Shape(), sparks:Shape = new Shape();
+         // Light adds up on the scene (bright on the dark 场地 too).
+         beam.blendMode = flash.blendMode = sparks.blendMode = BlendMode.ADD;
+         rings.filters = [new GlowFilter(main, 1, 10, 10, 3)];
+         sparks.filters = [new GlowFilter(main, 1, 8, 8, 3)];
          mv.addChild(beam);
+         mv.addChild(flash);
          mv.addChild(rings);
          mv.addChild(sparks);
          fxLayer.addChild(mv);
          var list:Array = [];
-         for (var i:int = 0; i < 22; i++)
-            list.push({x: (Math.random() - 0.5) * 110, y: -10 - Math.random() * 80, d: Math.random() * 0.45, r: 4 + Math.random() * 3, h: 70 + Math.random() * 70});
+         for (var i:int = 0; i < 30; i++)
+            list.push({x: (Math.random() - 0.5) * 130, y: -10 - Math.random() * 90, d: Math.random() * 0.55, r: 5 + Math.random() * 4, h: 100 + Math.random() * 80});
          var pet:FightPetView = petViewOf(slot);
          var was:Array = pet ? pet.filters : null;
-         var glow:GlowFilter = new GlowFilter(light, 0, 14, 14, 2);
-         var LEN:int = 1300;
+         var glow:GlowFilter = new GlowFilter(light, 0, 18, 18, 3);
+         var LEN:int = 1900;
          var t0:int = getTimer();
          var finished:Boolean = false;
          var ring:Function = function(g:Graphics, u:Number):void
          {
             if (u <= 0 || u >= 1) return;
-            var r:Number = 24 + 72 * u;
-            g.lineStyle(1 + 3 * (1 - u), light, 1 - u);
+            var r:Number = 26 + 90 * u;
+            g.lineStyle(2 + 4 * (1 - u), light, 1 - u * u);
             g.drawEllipse(-r, -r * 0.3, r * 2, r * 0.6);
          };
          var tick:Function = function(e:Event = null):void
          {
             if (finished) return;
             var t:Number = closed ? 1 : Math.min(1, (getTimer() - t0) / LEN);
+            // The column of light: rises over the first third, stays, fades over the last third.
             var g:Graphics = beam.graphics;
             g.clear();
-            var w:Number = 100 * Math.sin(Math.PI * Math.min(1, t * 1.3));
-            if (w > 1)
+            var up:Number = Math.min(1, t / 0.3), fade:Number = t < 0.65 ? 1 : (1 - t) / 0.35;
+            var w:Number = 140 * Math.sqrt(up) * fade, tall:Number = 290 * up;
+            if (w > 1 && tall > 1)
             {
                var m:Matrix = new Matrix();
-               m.createGradientBox(w, 230, 0, -w / 2, -205);
-               g.beginGradientFill(GradientType.RADIAL, [light, main, main], [0.55, 0.3, 0], [0, 140, 255], m);
-               g.drawEllipse(-w / 2, -205, w, 230);
+               m.createGradientBox(w, tall * 1.1, 0, -w / 2, -tall);
+               g.beginGradientFill(GradientType.RADIAL, [light, main, main], [0.75 * fade, 0.4 * fade, 0], [0, 130, 255], m);
+               g.drawEllipse(-w / 2, -tall, w, tall * 1.1);
+               g.endFill();
+            }
+            // The flash round the 亚比 as it takes the 道具.
+            g = flash.graphics;
+            g.clear();
+            if (t < 0.35)
+            {
+               var f:Number = t / 0.35, fr:Number = 30 + 90 * f;
+               var fm:Matrix = new Matrix();
+               fm.createGradientBox(fr * 2, fr * 2, 0, -fr, -75 - fr);
+               g.beginGradientFill(GradientType.RADIAL, [0xFFFFFF, light, main], [0.9 * (1 - f), 0.6 * (1 - f), 0], [0, 90, 255], fm);
+               g.drawCircle(0, -75, fr);
                g.endFill();
             }
             g = rings.graphics;
             g.clear();
-            ring(g, t * 1.3);
-            ring(g, (t - 0.25) * 1.3);
+            ring(g, t * 1.6);
+            ring(g, (t - 0.2) * 1.6);
+            ring(g, (t - 0.4) * 1.6);
             g = sparks.graphics;
             g.clear();
             for each (var s:Object in list)
             {
-               var u:Number = (t - s.d) / 0.55;
+               var u:Number = (t - s.d) / 0.45;
                if (u <= 0 || u >= 1) continue;
                var a:Number = Math.sin(Math.PI * u);
                var x:Number = s.x * (1 - 0.3 * u), y:Number = s.y - s.h * u, r:Number = s.r * (1 - 0.3 * u);
@@ -1573,7 +1593,7 @@ package mmo.petfightnew
             }
             if (pet)
             {
-               glow.alpha = 0.9 * Math.sin(Math.PI * t);
+               glow.alpha = Math.sin(Math.PI * t);
                pet.filters = (was || []).concat([glow]);
             }
             if (t < 1) return;

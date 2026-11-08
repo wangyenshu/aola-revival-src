@@ -35,7 +35,8 @@
     step(0.02);
     const swUrl =
       `sw.js?hosts=${encodeURIComponent(cfg.hosts.join(","))}&mirror=${encodeURIComponent(cfg.mirror)}` +
-      (cfg.index ? `&index=${encodeURIComponent(cfg.index)}` : "");
+      (cfg.index ? `&index=${encodeURIComponent(cfg.index)}` : "") +
+      (cfg.build ? `&build=${encodeURIComponent(cfg.build)}` : "");
     await navigator.serviceWorker.register(swUrl);
     if (!navigator.serviceWorker.controller) {
       const taken = new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", () => r(true), { once: true }));
@@ -203,7 +204,7 @@
     };
     await new Promise((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = "ruffle/ruffle.js";
+      s.src = "ruffle/ruffle.js" + (cfg.build ? `?v=${encodeURIComponent(cfg.build)}` : "");
       s.onload = resolve;
       s.onerror = () => reject(new Error("ruffle/ruffle.js missing: build the site with `npm run build`"));
       document.head.appendChild(s);

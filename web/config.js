@@ -23,6 +23,10 @@ window.AOLA_CONFIG = {
   // them under files/ and lists them in files/index.json (scripts/build-static.mjs).
   mirror: "files/",
   index: "files/index.json",
+  // An exported mod's build (tools/mod-sdk/export.mjs writes it, from what the export holds): its
+  // files and scripts are asked for with it (…?v=<build>), so a browser that kept the copies of an
+  // earlier export takes the new ones. "" on the site (its servers say to check every file).
+  build: "",
 
   // Game servers the 2012 client connects to (host and port as the client
   // sees them; read them from recon.md or the client's server-list response).

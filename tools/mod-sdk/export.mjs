@@ -30,6 +30,7 @@
 // 亚比 (every 属性's icon, the game's data, the windows of what is got, the battle's backgrounds). The page and the emulator are built as npm run build builds them (made
 // first when older than their sources: the tour plays the site of dist/).
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, copyFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -254,12 +255,48 @@ try {
     "这个文件夹是一个静态网站：把它整个放到任何网页服务器上（GitHub Pages、Netlify、Cloudflare Pages、nginx……），打开 index.html 就能玩。",
     "要用 https（或本机的 localhost）打开；直接双击 index.html 打不开。",
     "进度自动保存在浏览器里（这个网址的 IndexedDB）。屏幕下方的「存档」可以把进度导出成文件，在别的浏览器或电脑上导入。",
+    "换成新导出的版本后，页面会自己换上新版本。如果之前玩的是更早的、还不会自己更新的版本，第一次请按一下 Ctrl+F5。",
     "",
     "This folder is a static website: put it on any web server (GitHub Pages, Netlify, Cloudflare Pages, nginx …) and open index.html.",
     "It has to be served over https (or from localhost); opening index.html as a file does not work.",
     "The game is saved in the browser as it goes (IndexedDB of the page's address). 存档 on the bar exports it to a file, to import in another browser or computer.",
+    "Put a newer export in its place and the page takes it by itself. After an older export that did not yet do so, press Ctrl+F5 once.",
     "",
   ].join("\n"));
+  // 5. Its build: a stamp of everything in it, which its files and scripts are asked for with
+  // (config.js build, the sw's ?v=…): a browser that kept an earlier export's copies, which the
+  // host may call unchanged (the zip dates every file the same day), takes this export's. The page
+  // itself, which no stamp can rename, looks once at the host's copy and reloads when it is another.
+  const stamp = createHash("sha1");
+  for (const [rel, full] of [...walk(out)].sort((x, y) => (x[0] < y[0] ? -1 : 1))) stamp.update(rel + "\0").update(readFileSync(full)).update("\0");
+  const buildId = stamp.digest("hex").slice(0, 12);
+  const cfgFile = path.join(out, "config.js");
+  const cfgText = readFileSync(cfgFile, "utf8");
+  if (!cfgText.includes('  build: "",')) throw new Error("web/config.js: no build setting to fill");
+  writeFileSync(cfgFile, cfgText.replace('  build: "",', `  build: ${JSON.stringify(buildId)},`));
+  const pageFile = path.join(out, "index.html");
+  let page = readFileSync(pageFile, "utf8").replace(/<script src="([a-z]+\.js)"><\/script>/g, (m, f) => `<script src="${f}?v=${buildId}"></script>`);
+  const soloSwitch = '<script>document.documentElement.classList.add("bare", "solo");</script>';
+  if (!page.includes(soloSwitch)) throw new Error("export: the page's solo switch is missing");
+  page = page.replace(soloSwitch, [
+    '<script>document.documentElement.classList.add("bare", "solo");',
+    `// aola-build:${buildId} (the export's build). The browser may show a page it kept from an earlier`,
+    "// export (all its files carry one date, so the host may call it unchanged): the host's is looked",
+    "// at, and when it is another build, it is taken and the page loaded again (once).",
+    "(function (b) {",
+    "  try {",
+    "    fetch(location.pathname, { cache: \"reload\" }).then(function (r) { return r.ok ? r.text() : \"\"; }).then(function (t) {",
+    "      var m = /aola-build:([0-9a-f]{12})/.exec(t);",
+    "      if (m && m[1] !== b && sessionStorage.getItem(\"aola-build-tried\") !== m[1]) {",
+    "        sessionStorage.setItem(\"aola-build-tried\", m[1]);",
+    "        location.reload();",
+    "      }",
+    "    }).catch(function () {});",
+    "  } catch (e) {}",
+    `})(${JSON.stringify(buildId)});</script>`,
+  ].join("\n"));
+  writeFileSync(pageFile, page);
+  console.log(`build: ${buildId}`);
   let total = 0;
   for (const [, full] of walk(out)) total += statSync(full).size;
   console.log(`${listed.length} game files, ${(bytes / 1e6).toFixed(1)} MB; the export: ${(total / 1e6).toFixed(1)} MB in ${path.relative(process.cwd(), out) || out}`);

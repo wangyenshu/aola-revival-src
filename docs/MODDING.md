@@ -579,6 +579,16 @@ Netlify, Cloudflare Pages, nginx …), over https or from localhost; browsers do
 not run it from a file opened on the disk (service workers). Its saves are the
 browser's, for its address.
 
+Each export has a build, a stamp of everything in it (config.js `build`): its
+scripts and files are asked for with it (`…?v=<build>`), and its page looks at
+the host's copy of itself when it opens and loads again once when the host has
+another build. So a new export put in place of an earlier one at the same
+address is the one played, although a browser may keep copies of a site for a
+long time and a host may call the new files unchanged (the zip dates every file
+the same day, and a plain server, `python -m http.server` say, compares dates).
+An export made before builds were stamped has no such page: in a browser that
+played it, the first new export needs one forced reload (Ctrl+F5).
+
 On the site itself, `index.html?standalone=<file>.swf` plays one of its mods
 (`revival/mods/`) the same way.
 
