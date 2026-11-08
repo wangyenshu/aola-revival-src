@@ -20,11 +20,19 @@
     console.log("[aola] " + t);
   };
 
+  // A mod played as a game of its own (cfg.standalone): its cover over the game from the start, with a
+  // bar of how far the loading has gone, as the game's own loading screen has one (正在进入奥拉星……
+  // 46% [43/93]): the page's own steps first, then the game's files as they come, against how many
+  // its first room took when it was exported (cfg.standalone.files, export.mjs).
+  const loading = cfg.standalone ? coverWithBar(cfg.standalone) : null;
+  const step = (f) => loading && loading.step(f);
+
   try {
     if (!("serviceWorker" in navigator)) {
       throw new Error("Service workers are unavailable. Open this page from http://localhost or http://127.0.0.1, not file://.");
     }
     say("Starting the mirror service worker…");
+    step(0.02);
     const swUrl =
       `sw.js?hosts=${encodeURIComponent(cfg.hosts.join(","))}&mirror=${encodeURIComponent(cfg.mirror)}` +
       (cfg.index ? `&index=${encodeURIComponent(cfg.index)}` : "");
@@ -101,6 +109,7 @@
           if (!mine) return { error: "单机模式已经在另一个标签页里打开了：请回到那个标签页玩，或者关掉它再刷新这一页。" };
         }
         say("Starting the in-page emulator…");
+        step(0.05);
         window.aola = window.AolaEmulator.startInPage({
           proxyPrefix: PREFIX,
           date: cfg.date,
@@ -165,28 +174,15 @@
       window.getQS = (k) => (k === "u" ? "standalone" : typeof qs === "function" ? qs(k) : null);
       window.aolaRevivalStandalone = () => cfg.standalone;
       if (cfg.standalone.name) document.title = String(cfg.standalone.name);
-      // Its cover over the game while the game loads, gone once the mod's first room is shown.
-      const stage = document.getElementById("stage");
-      if (stage) {
-        const cover = document.createElement("div");
-        cover.id = "cover";
-        cover.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;display:flex;align-items:flex-end;justify-content:center;" +
-          "background:#0b1b3a center/cover no-repeat;color:#fff;font:bold 16px sans-serif;text-shadow:0 1px 3px #000";
-        if (cfg.standalone.cover) cover.style.backgroundImage = `url("${String(cfg.standalone.cover).replace(/"/g, "")}")`;
-        const note = document.createElement("div");
-        note.style.cssText = "margin-bottom:72px;padding:6px 16px;border-radius:14px;background:rgba(11,27,58,.6)";
-        note.textContent = "正在载入……";
-        cover.appendChild(note);
-        stage.style.position = "relative";
-        stage.appendChild(cover);
-        window.aolaRevivalReady = () => cover.remove();
-      }
+      // Its cover (made as the page began: loading) goes once the mod's first room is shown.
+      window.aolaRevivalReady = () => loading && loading.done();
     }
     // The 百田大剧场: the page script's video functions open the game's own (theatre.js).
     if (window.AolaTheatre) window.AolaTheatre.install();
     if (cfg.beforeRuffle) cfg.beforeRuffle();
 
     say("Loading Ruffle…");
+    step(0.08);
     window.RufflePlayer = window.RufflePlayer || {};
     window.RufflePlayer.config = {
       autoplay: "on",
@@ -222,11 +218,70 @@
     document.getElementById("stage").appendChild(player);
     window.aolaPlayer = player;
     say("Loading " + cfg.bootUrl);
+    step(0.12);
     const opts = { url: cfg.bootUrl, parameters: cfg.flashvars, base: cfg.base };
     await (typeof player.ruffle === "function" ? player.ruffle().load(opts) : player.load(opts));
     say("Running " + cfg.bootUrl + " (game clock " + cfg.date + ")");
+    step(0.15);
   } catch (e) {
     say("Error: " + e.message, true);
     console.error(e);
+  }
+
+  /**
+   * The cover of a mod played as a game of its own, over the stage until done(), with the loading
+   * bar: step(f) the page's steps (0–0.15 of it), then each file of the game loaded (resource timing:
+   * what the page fetched of www.9aola.com) against solo.files.
+   */
+  function coverWithBar(solo) {
+    const stage = document.getElementById("stage");
+    if (!stage) return null;
+    const cover = document.createElement("div");
+    cover.id = "cover";
+    cover.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;z-index:5;display:flex;align-items:flex-end;justify-content:center;" +
+      "background:#0b1b3a center/cover no-repeat";
+    if (solo.cover) cover.style.backgroundImage = `url("${String(solo.cover).replace(/"/g, "")}")`;
+    // The game's bar: a golden capsule, its words in white over it.
+    const bar = document.createElement("div");
+    bar.style.cssText = "position:relative;width:46%;max-width:440px;height:18px;margin-bottom:12.5%;border-radius:10px;" +
+      "background:#5c3a00;border:2px solid #fff3c4;box-shadow:0 0 0 2px #c27c00,0 2px 6px rgba(0,0,0,.5);overflow:hidden";
+    const fill = document.createElement("div");
+    fill.style.cssText = "position:absolute;left:0;top:0;bottom:0;width:0;border-radius:8px;transition:width .25s;" +
+      "background:linear-gradient(#fff7b0,#ffd21f 50%,#f4a300)";
+    const words = document.createElement("div");
+    words.style.cssText = "position:absolute;left:0;right:0;top:0;bottom:0;font:12px/18px SimSun,'宋体','Microsoft YaHei',sans-serif;color:#fff;" +
+      "text-align:center;white-space:nowrap;text-shadow:0 0 2px #7a4a00,0 0 2px #7a4a00,0 0 1px #7a4a00";
+    bar.appendChild(fill);
+    bar.appendChild(words);
+    cover.appendChild(bar);
+    stage.style.position = "relative";
+    stage.appendChild(cover);
+    const name = String(solo.name || "游戏");
+    const expected = Math.max(1, Number(solo.files) || 250);
+    let page = 0;
+    let seen = 0;
+    let finished = false;
+    const show = () => {
+      const f = finished ? 1 : Math.min(0.99, page + (1 - 0.15) * Math.min(1, seen / expected));
+      fill.style.width = (f * 100).toFixed(1) + "%";
+      words.textContent = `正在进入${name}……  ${Math.floor(f * 100)}%` + (seen ? `  [${finished ? expected : Math.min(seen, expected)}/${expected}]` : "");
+    };
+    try {
+      performance.setResourceTimingBufferSize(10000);
+      new PerformanceObserver((list) => {
+        for (const e of list.getEntries()) if (/\/\/www\.9aola\.com\//.test(e.name)) seen++;
+        window.aolaFilesSeen = seen;
+        show();
+      }).observe({ type: "resource", buffered: true });
+    } catch (e) {}
+    show();
+    return {
+      step(f) { page = Math.max(page, f); show(); },
+      done() {
+        finished = true;
+        show();
+        setTimeout(() => cover.remove(), 300);
+      },
+    };
   }
 })();

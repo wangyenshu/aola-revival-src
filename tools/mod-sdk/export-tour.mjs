@@ -15,6 +15,8 @@ export default async function run(h) {
     h.log("export tour: the mod did not show a room");
     return;
   }
+  // How many of the game's files its first room took (boot.js counts them): the loading bar's whole.
+  h.log("export tour: first room after " + (await h.page.evaluate(() => window.aolaFilesSeen || 0)) + " files");
   const answer = async (times) => {
     for (let i = 0; i < times; i++) {
       const t = String(await h.hook("talk", "0"));

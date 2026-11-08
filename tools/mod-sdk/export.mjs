@@ -131,6 +131,8 @@ const want = (plain) => {
 
 // 1. What the game loads as the mod is walked through (and what the mod says it uses).
 const uses = {};
+/** How many of the game's files the mod's first room took in the walk-through (the loading bar's whole). */
+let firstFiles = 0;
 const work = mkdtempSync(path.join(os.tmpdir(), "aola-export-"));
 try {
   const overlay = path.join(work, "overlay");
@@ -164,6 +166,8 @@ try {
     const tour = readFileSync(path.join(rec, "console.txt"), "utf8");
     if (!/export tour: done/.test(tour)) console.warn("warning: the walk-through did not finish; some files may be missing");
     console.log(`  ${seen} files loaded`);
+    const first = /export tour: first room after (\d+) files/.exec(tour);
+    if (first && Number(first[1]) > 0) firstFiles = Number(first[1]);
     const told = /export tour: uses (\{.*\})\s*$/m.exec(tour);
     if (told) {
       try {
@@ -216,7 +220,7 @@ try {
     cover = "cover" + path.extname(ex.cover);
     copyFileSync(path.join(modDir, ex.cover), path.join(out, cover));
   }
-  const solo = { mod: file, name: title, player: String(ex.player || "小奥拉"), ...(cover ? { cover } : {}) };
+  const solo = { mod: file, name: title, player: String(ex.player || "小奥拉"), ...(cover ? { cover } : {}), ...(firstFiles ? { files: firstFiles } : {}) };
   let config = readFileSync(path.join(web, "config.js"), "utf8");
   const start = config.indexOf("  standalone: (function () {");
   const end = config.indexOf("})(),", start);
