@@ -217,35 +217,18 @@ try {
   put(`www.9aola.com/revival/mods/${file}`, swf);
   writeFileSync(path.join(files, "index.json"), JSON.stringify(listed));
 
-  // 4. How to play it.
-  writeFileSync(path.join(out, "serve.py"), `#!/usr/bin/env python3
-"""Serves this folder at http://127.0.0.1:8000/ and opens it (browsers run the game only from a web server)."""
-import http.server, os, socketserver, threading, webbrowser
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-H = http.server.SimpleHTTPRequestHandler
-H.extensions_map.update({".wasm": "application/wasm", ".js": "text/javascript", ".svg": "image/svg+xml"})
-class S(socketserver.ThreadingMixIn, http.server.HTTPServer):
-    daemon_threads = True
-with S(("127.0.0.1", 8000), H) as s:
-    print("${title.replace(/"/g, "")}: http://127.0.0.1:8000/  (Ctrl+C to stop)")
-    threading.Timer(1, lambda: webbrowser.open("http://127.0.0.1:8000/")).start()
-    s.serve_forever()
-`);
-  writeFileSync(path.join(out, "play.bat"), `@echo off\r\ncd /d "%~dp0"\r\npython serve.py || py serve.py\r\npause\r\n`);
-  writeFileSync(path.join(out, "play.sh"), `#!/bin/sh\ncd "$(dirname "$0")" && exec python3 serve.py\n`);
+  // 4. A word on hosting it: the folder is a website, for any static web server.
   writeFileSync(path.join(out, "README.txt"), [
     title,
     "",
     String(about.description || ""),
     "",
-    "怎么玩：游戏在浏览器里运行，要通过网页服务器打开（直接双击 index.html 不行）。",
-    "  Windows：双击 play.bat（需要 Python 3）。macOS / Linux：运行 ./play.sh 或 python3 serve.py。",
-    "  也可以把整个文件夹放到任何静态网站服务器上，打开 index.html。",
+    "这个文件夹是一个静态网站：把它整个放到任何网页服务器上（GitHub Pages、Netlify、Cloudflare Pages、nginx……），打开 index.html 就能玩。",
+    "要用 https（或本机的 localhost）打开；直接双击 index.html 打不开。",
     "进度自动保存在浏览器里（这个网址的 IndexedDB）。屏幕下方的「存档」可以把进度导出成文件，在别的浏览器或电脑上导入。",
     "",
-    "How to play: the game runs in a browser, from a web server (not by opening index.html as a file).",
-    "  Windows: double-click play.bat (Python 3 needed). macOS / Linux: ./play.sh, or python3 serve.py.",
-    "  Any static web server works too (put this folder on it and open index.html).",
+    "This folder is a static website: put it on any web server (GitHub Pages, Netlify, Cloudflare Pages, nginx …) and open index.html.",
+    "It has to be served over https (or from localhost); opening index.html as a file does not work.",
     "The game is saved in the browser as it goes (IndexedDB of the page's address). 存档 on the bar exports it to a file, to import in another browser or computer.",
     "",
   ].join("\n"));

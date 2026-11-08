@@ -541,10 +541,10 @@ bag), and by rule those `about.json` names under `export`:
 Options: `--out <dir>` (default `build/export`), `--seconds <n>` for the
 walk-through (default 900), `--no-record` (by rule only), `--no-zip`.
 
-Browsers run the game only from a web server, not from a file opened on the
-disk (service workers): the export comes with `serve.py` (`play.bat`,
-`play.sh`), which serves it at `http://127.0.0.1:8000/`. Its saves are the
-browser's, for that address.
+The export is a static website: any web server serves it (GitHub Pages,
+Netlify, Cloudflare Pages, nginx …), over https or from localhost; browsers do
+not run it from a file opened on the disk (service workers). Its saves are the
+browser's, for its address.
 
 On the site itself, `index.html?standalone=<file>.swf` plays one of its mods
 (`revival/mods/`) the same way.
