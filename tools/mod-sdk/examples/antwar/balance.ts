@@ -15,9 +15,9 @@ import { SFS2013_FRAMING, sfs2013Codec, type XtContext, type XtHandler } from ".
 
 const site = new URL("../../../../rebuild/static/www.9aola.com/", import.meta.url);
 const MODES: Record<string, any> = {
-  easy: { team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 8, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 4, chestBean: 4 },
-  normal: { team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 5, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 3, chestBean: 3 },
-  hard: { team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 4, winCandy: 1, winBean: 1, bossCandy: 1, bossBean: 1, chestCandy: 2, chestBean: 2 },
+  easy: { team: 2, minLv: 80, topLv: 100, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 8, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 4, chestBean: 4 },
+  normal: { team: 4, minLv: 90, topLv: 110, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 5, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 3, chestBean: 3 },
+  hard: { team: 6, minLv: 100, topLv: 120, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 4, winCandy: 1, winBean: 1, bossCandy: 1, bossBean: 1, chestCandy: 2, chestBean: 2 },
 };
 const G = [
   ["tom", 81, 48], ["kevin", 183, 50], ["nike", 36, 55], ["allen", 153, 56], ["sam", 78, 58], ["guard1", 18, 60],
@@ -58,10 +58,13 @@ async function campaign(seed: number) {
     const race = Array.isArray(raceDef) ? raceDef[seed % 3] : (raceDef as number);
     const pct = boss ? m.boss : m.foe;
     // AntWarMod.teamOf.
-    const L = boss ? level : Math.min(100, level + m.lv);
+    // 小奥拉 and the three of the 指挥中心 (top): the mode's own level.
+    const top = ["kid", "landing", "flora", "rabel"].includes(id);
+    const L = top ? m.topLv : boss ? level : Math.min(100, level + m.lv);
+    const cap = top ? m.topLv : 100;
     const one = (r2: number, l2: number, main = false) => {
       const q = main ? pct : m.helper;
-      return { race: r2, level: Math.max(m.minLv, Math.min(100, l2)), hp: main && boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q };
+      return { race: r2, level: Math.max(m.minLv, Math.min(cap, l2)), hp: main && boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q };
     };
     let enemies = [one(race, L, true)];
     // 小奥拉 (all): its three, in a random order, each at the boss strength.

@@ -53,9 +53,9 @@ package
        * seldom, so that 普通 and 困难 ask for the allies' skills.
        */
       private static const MODES:Object = {
-         easy: {name: "简单", team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 8, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 4, chestBean: 4},
-         normal: {name: "普通", team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 5, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 3, chestBean: 3},
-         hard: {name: "困难", team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 4, winCandy: 1, winBean: 1, bossCandy: 1, bossBean: 1, chestCandy: 2, chestBean: 2}
+         easy: {name: "简单", team: 2, minLv: 80, topLv: 100, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 8, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 4, chestBean: 4},
+         normal: {name: "普通", team: 4, minLv: 90, topLv: 110, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 5, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 3, chestBean: 3},
+         hard: {name: "困难", team: 6, minLv: 100, topLv: 120, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 4, winCandy: 1, winBean: 1, bossCandy: 1, bossBean: 1, chestCandy: 2, chestBean: 2}
       };
 
       /**
@@ -148,13 +148,13 @@ package
          {id: "mutant", room: "ant11", race: 227, level: 100, boss: true, look: 227, art: ["btn_general"], name: "变异蚁将军",
             gift: GENERAL, say: "吼——！！奥拉人……命令……守住……蚁后……", lost: "我……我是……蚁族的……将军……"},
          // all: every 亚比 of race in the one battle, in a random order (each at the mode's boss strength).
-         {id: "kid", room: "core", look: KULAN, name: "小奥拉", race: [502, 501, 500], all: true, level: 100, x: 470, y: 400, boss: true,
+         {id: "kid", room: "core", look: KULAN, name: "小奥拉", race: [502, 501, 500], all: true, top: true, level: 100, x: 470, y: 400, boss: true,
             say: "传送门那头怎么出来的是蚂蚁？……你们是从蚁族王朝一路打过来的？不行，我不能让你们过去！", lost: "竟然一路打到了这里……我这就去通知兰丁队长！"},
-         {id: "landing", room: "hq", npc: 94, name: "兰丁", race: 1648, level: 100, x: 330, y: 430, boss: true,
+         {id: "landing", room: "hq", npc: 94, name: "兰丁", race: 1648, top: true, level: 100, x: 330, y: 430, boss: true,
             say: "我是兰丁。能一路打到指挥中心，你们确实有本事。想谈条件，先过我和菲尔这一关。", lost: "菲尔都挡不住你们……蚁族王朝的事，看来我们欠你们一个解释。"},
-         {id: "flora", room: "hq", npc: 194, name: "弗洛拉", race: 1649, level: 100, x: 610, y: 430, boss: true,
+         {id: "flora", room: "hq", npc: 194, name: "弗洛拉", race: 1649, top: true, level: 100, x: 610, y: 430, boss: true,
             say: "我是弗洛拉。前线的消息我都听说了……来吧，让我看看你们为了家园能拼到什么地步。", lost: "可兰也撑不住了……为家园而战的决心，是我们小看了。"},
-         {id: "rabel", room: "hq", npc: 86, name: "拉贝尔", race: 323, level: 100, x: 470, y: 330, boss: true, need: ["landing", "flora"],
+         {id: "rabel", room: "hq", npc: 86, name: "拉贝尔", race: 323, top: true, level: 100, x: 470, y: 330, boss: true, need: ["landing", "flora"],
             say: "我是拉贝尔，指挥中心由我负责。兰丁和弗洛拉都输了，那就由我和梅卡来做最后的了断。", lost: "梅卡，退下吧。再打下去，只会让更多人受伤。"}
       ];
 
@@ -1118,13 +1118,15 @@ package
       private function teamOf(g:Object, race:int, m:Object):Array
       {
          var pct:int = g.boss ? m.boss : m.foe;
-         var level:int = g.boss ? g.level : Math.min(100, g.level + int(m.lv));
+         // top: 小奥拉 and the three of the 指挥中心, at the mode's own level (简单 100, 普通 110, 困难 120).
+         var level:int = g.top ? int(m.topLv) : g.boss ? g.level : Math.min(100, g.level + int(m.lv));
+         var cap:int = g.top ? int(m.topLv) : 100;
          // The strongest (out last) at the mode's strength (foe, boss); those before it weaker (helper).
          var one:Function = function(r:int, lv:int, main:Boolean = false):Object
          {
             var q:int = main ? pct : int(m.helper);
             // Never below the mode's least level (简单 80, 普通 90, 困难 100).
-            return {race: r, level: Math.max(int(m.minLv), Math.min(100, lv)), hp: main && g.boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q};
+            return {race: r, level: Math.max(int(m.minLv), Math.min(cap, lv)), hp: main && g.boss ? m.bossHp : q, at: q, de: q, sa: q, sd: q, sp: q};
          };
          var n:int = Math.max(1, int(m.team));
          if (g.id == "mutant")
