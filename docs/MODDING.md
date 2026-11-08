@@ -561,8 +561,9 @@ can name the same lists (both are kept), and the page's:
 | `items` | 道具 the mod gives: their pictures (the bag's 道具 page, the window of what is got, the battle's 道具) |
 | `music`, `files` | more game files, by path |
 
-The page of the export is the game alone on black, with nothing written under
-it but what went wrong (a browser without service workers, the game open in
+The page of the export is the game alone on black, as large as the browser
+window lets it be at its own shape (and the browser's full screen, F11, makes it
+the whole screen), with nothing written over it but what went wrong (a browser without service workers, the game open in
 another tab …). Its 奥拉 has no newbie quest and is offered no first 亚比 of the
 game (the mod's party is his).
 
