@@ -15,9 +15,9 @@ import { SFS2013_FRAMING, sfs2013Codec, type XtContext, type XtHandler } from ".
 
 const site = new URL("../../../../rebuild/static/www.9aola.com/", import.meta.url);
 const MODES: Record<string, any> = {
-  easy: { team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2 },
-  normal: { team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2 },
-  hard: { team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1 },
+  easy: { team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 8, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 4, chestBean: 4 },
+  normal: { team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 5, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 3, chestBean: 3 },
+  hard: { team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 4, winCandy: 1, winBean: 1, bossCandy: 1, bossBean: 1, chestCandy: 2, chestBean: 2 },
 };
 const G = [
   ["tom", 81, 48], ["kevin", 183, 50], ["nike", 36, 55], ["allen", 153, 56], ["sam", 78, 58], ["guard1", 18, 60],
@@ -151,7 +151,7 @@ async function campaign(seed: number) {
     if (!won) return { done: false, at: id, log };
     const it = await items();
     await mod({ op: "item", id: 61, n: m.winCandy + (boss ? m.bossCandy : 0) });
-    await mod({ op: "item", id: 104, n: m.winBean });
+    await mod({ op: "item", id: 104, n: m.winBean + (boss ? m.bossBean : 0) });
     if (captive) await call("SundriesExtension.revival_mod", { mod: "antwar", op: "give", race: captive, level: 100 });
     // 下水道深处's chest, once its guards are gone.
     if (id === "lucas") {

@@ -53,9 +53,9 @@ package
        * seldom, so that 普通 and 困难 ask for the allies' skills.
        */
       private static const MODES:Object = {
-         easy: {name: "简单", team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 4, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 4, chestBean: 2},
-         normal: {name: "普通", team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 3, winCandy: 2, winBean: 1, bossCandy: 2, chestCandy: 3, chestBean: 2},
-         hard: {name: "困难", team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 2, winCandy: 1, winBean: 1, bossCandy: 1, chestCandy: 2, chestBean: 1}
+         easy: {name: "简单", team: 2, minLv: 80, lv: -5, foe: 85, boss: 90, bossHp: 120, helper: 60, step: 5, candy: 8, bean: 8, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 4, chestBean: 4},
+         normal: {name: "普通", team: 4, minLv: 90, lv: 0, foe: 100, boss: 110, bossHp: 170, helper: 70, step: 4, candy: 5, bean: 5, winCandy: 2, winBean: 2, bossCandy: 2, bossBean: 2, chestCandy: 3, chestBean: 3},
+         hard: {name: "困难", team: 6, minLv: 100, lv: 3, foe: 105, boss: 125, bossHp: 230, helper: 70, step: 5, candy: 4, bean: 4, winCandy: 1, winBean: 1, bossCandy: 1, bossBean: 1, chestCandy: 2, chestBean: 2}
       };
 
       /**
@@ -231,7 +231,11 @@ package
       /** Where the player last stood out of every guard's reach (where a retreat goes). */
       private var safe:Point;
       /** How near a guard lets the player come (across; on the floor seen at an angle, less up and down). */
-      private static const REACH:Number = 125;
+      private static const REACH:Number = 160;
+      /** The floor seen at an angle: a guard's reach is shorter up and down (dy / SQUASH). */
+      private static const SQUASH:Number = 0.8;
+      /** Gone past a guard towards a way on (nearer it than the guard is) within this: stopped too. */
+      private static const PASS:Number = 300;
       /** Where the 奥拉 army's portal stands in 蚁神殿正殿 (its foot). */
       private static const PORTAL:Array = [820, 360];
       /** The 蚁族王朝 副本's arrows (fbteam/fbsiwude_res's ShowArrowhead). */
@@ -937,7 +941,7 @@ package
             }
          }
          guardBoxes.push(new Rectangle(x - 40, y - 115, 80, 115));
-         var w:Object = {g: g, x: x, y: y};
+         var w:Object = {g: g, x: x, y: y, toDoor: doorBoxes.length ? toDoor(new Point(x, y)) : null};
          var npc:IModNpc = room.npc({
             name: g.name,
             look: g.look ? g.look : "npc:" + g.npc,
@@ -1002,8 +1006,10 @@ package
          {
             if (beaten(w.g.id)) continue;
             var dx:Number = p.x - w.x;
-            var dy:Number = (p.y - w.y) / 0.62;
-            var within:Boolean = dx * dx + dy * dy < REACH * REACH;
+            var dy:Number = (p.y - w.y) / SQUASH;
+            var dd:Number = dx * dx + dy * dy;
+            // Near it, or slipping past it to the way it keeps.
+            var within:Boolean = dd < REACH * REACH || (dd < PASS * PASS && w.toDoor != null && toDoor(p) < Number(w.toDoor) - 30);
             // Within its reach on entering the room: it steps in once the player has been out of it.
             if (w.armed == undefined) w.armed = !within;
             if (!within) w.armed = true;
@@ -1018,6 +1024,14 @@ package
          if (near == null) { safe = p.clone(); return; }
          if (getTimer() < calmUntil) return;
          engage(room, near);
+      }
+
+      /** How far p is from the nearest way on of the room shown (their doors' middles). */
+      private function toDoor(p:Point):Number
+      {
+         var best:Number = Number.MAX_VALUE;
+         for each (var b:Rectangle in doorBoxes) best = Math.min(best, Point.distance(p, new Point(b.x + b.width / 2, b.y + b.height / 2)));
+         return best;
       }
 
       /** The guard w stops the player and challenges them. */
@@ -1041,11 +1055,11 @@ package
          if (from == null) return;
          // Away from the guard, the way the player came (on the floor seen at an angle).
          var dx:Number = from.x - w.x;
-         var dy:Number = (from.y - w.y) / 0.62;
+         var dy:Number = (from.y - w.y) / SQUASH;
          var len:Number = Math.max(1, Math.sqrt(dx * dx + dy * dy));
          for (var d:Number = REACH + 60; d >= REACH + 10; d -= 10)
          {
-            var t:Point = new Point(w.x + dx / len * d, w.y + dy / len * d * 0.62);
+            var t:Point = new Point(w.x + dx / len * d, w.y + dy / len * d * SQUASH);
             if (!room.blocked(t.x, t.y)) { room.walkTo(t.x, t.y); return; }
          }
          if (safe != null) room.walkTo(safe.x, safe.y);
@@ -1149,7 +1163,7 @@ package
          // The reward in the game's own windows (as a boss's 亚比蛋), not in anyone's words.
          var m:Object = mode;
          game.giveItem(CANDY, m.winCandy + (g.boss ? m.bossCandy : 0));
-         game.giveItem(BEAN, m.winBean);
+         game.giveItem(BEAN, m.winBean + (g.boss ? m.bossBean : 0));
          var guardSays:Function = function(then:Function):void
          {
             // An NPC of the game: its picture; an 奥拉 dressed by the mod: as it stood.
