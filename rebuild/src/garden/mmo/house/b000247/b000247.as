@@ -627,7 +627,7 @@ package mmo.house.b000247
          s.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
          {
             e.stopPropagation();
-            RNotice.show(LayerManager.getBaseTop(), isMine() ? "你正在展示" + String(p.nm || "亚比") + "，在亚比仓库里可以取消展示。"
+            RNotice.show(LayerManager.getBaseTop(), isMine() ? "你正在展示" + String(p.nm || "亚比") + "！"
                : who + "正在展示" + String(p.nm || "亚比") + "（Lv." + int(p.lv) + "）！");
          });
          Sprite(getChildByName("foreground")).addChild(s);

@@ -26,6 +26,11 @@ package mmo.petwarehouse.service
    import mmo.interfaces.IService;
    import mmo.interfaces.IShowPanel;
    import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.pet.data.IPetDataService;
+   import mmo.interfaces.pet.data.PetBriefInfo;
+   import mmo.interfaces.pet.ride.IRideService;
+   import mmo.interfaces.pet.ui.IPetUIService;
+   import mmo.interfaces.pet.ui.PetUIServiceEvent;
    import mmo.loader.layer.LayerManager;
    import mmo.loader.scheduler.ResScheduler;
    import mmo.revival.RArt;
@@ -93,6 +98,8 @@ package mmo.petwarehouse.service
       private var skills:Array = [];
       private var tab:String = "skill";
       private var busy:Boolean;
+      /** 亚比替换: the 亚比 to come into the full bag once the one chosen has gone to the 仓库. */
+      private var swapIn:Object;
       private var slots:Array = [];
       private var marks:Shape;
       private var countText:TextField;
@@ -721,8 +728,58 @@ package mmo.petwarehouse.service
       {
          var p:Object = current();
          if (p == null || busy) return;
+         // A full bag (6): 亚比替换, as the game's 亚比仓库 did it (its ExchangePMFuns): the bag's
+         // 亚比 in PetUIService's chooser (the 2012 modules' panel), the one chosen goes to the
+         // 仓库 and this one into the bag in its place. (From the 放生仓库 it goes to the 仓库.)
+         if (loc != 3 && bagPets().length >= 6)
+         {
+            exchange(p);
+            return;
+         }
          busy = true;
          SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1224", {id: int(p.i), loc: 0});
+      }
+
+      private static function bagPets():Array
+      {
+         try { return (ServiceContainer.getService(IPetDataService) as IPetDataService).getMyPets() || []; }
+         catch (e:Error) { RLog.error("warehouse bag", e); }
+         return [];
+      }
+
+      private function exchange(p:Object):void
+      {
+         ServiceContainer.instance.tryGetService(IPetUIService, function(ui:IPetUIService, o:Object = null):void
+         {
+            var ok:Function, closed:Function;
+            ok = function(e:PetUIServiceEvent):void
+            {
+               ui.removeEventListener(PetUIServiceEvent.SELECTPANEL_OK, ok);
+               ui.removeEventListener(PetUIServiceEvent.SELECTPANEL_CLOSE, closed);
+               var out:PetBriefInfo = e.params.pbi as PetBriefInfo;
+               if (out == null || root == null || busy) return;
+               // The one going to the 仓库 gets off and stops following first.
+               try
+               {
+                  var ride:IRideService = ServiceContainer.getService("RideService") as IRideService;
+                  if (ride != null && ride.getMyRidePetId == out.id) ride.rideToWalk();
+               }
+               catch (err:Error) {}
+               swapIn = p;
+               busy = true;
+               SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1224", {id: out.id, loc: 1});
+            };
+            closed = function(e:PetUIServiceEvent):void
+            {
+               ui.removeEventListener(PetUIServiceEvent.SELECTPANEL_OK, ok);
+               ui.removeEventListener(PetUIServiceEvent.SELECTPANEL_CLOSE, closed);
+            };
+            ui.addEventListener(PetUIServiceEvent.SELECTPANEL_OK, ok);
+            ui.addEventListener(PetUIServiceEvent.SELECTPANEL_CLOSE, closed);
+            var title:TextField = new TextField();
+            title.text = "亚比替换";
+            ui.showPackagePetSelectPanel(title);
+         });
       }
 
       private function onMoved(e:SocketClientEvent):void
@@ -739,6 +796,19 @@ package mmo.petwarehouse.service
             SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1224", {id: int(p.i), loc: 1});
             return;
          }
+         if (swapIn != null)
+         {
+            // 亚比替换: the chosen one is in the 仓库 now; the other comes into the bag.
+            var into:Object = swapIn;
+            swapIn = null;
+            if (r == 1 && int(e.params.loc) == 1)
+            {
+               busy = true;
+               SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1224", {id: int(into.i), loc: 0});
+               return;
+            }
+         }
+         if (r == -2 && loc != 3 && int(e.params.loc) == 0 && p != null) { exchange(p); return; }
          if (r == -2) RNotice.show(root, "背包里已经有6只亚比了，先把一只放回仓库吧！");
          else if (r == -3) RNotice.show(root, "背包里至少要留一只亚比哦！");
          else if (r == -4 && e.params.msg) RNotice.show(root, String(e.params.msg));

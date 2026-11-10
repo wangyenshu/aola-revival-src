@@ -591,9 +591,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // level, exitWay, gameName} -> increaseScore {scoreAdded, state, got}; the games show scoreAdded as
   // the 晶币 won and a tip for state -1/-2/-3. The 2013 rates are lost: RECONSTRUCTED as one 晶币 per
   // GAME_SCORE_PER_COIN points, at most GAME_COINS_PER_GAME a game and GAME_COINS_PER_DAY a day (then state -1).
-  world.xt("ScoreManager.increaseScore", async (ctx) => {
-    const rec = await me(ctx);
-    const points = Math.max(0, decryptScore(Number(ctx.params.score) || 0));
+  /** A game's points made 晶币 (the day's cap kept): the 晶币 given and the state (1, or -1 at the cap). */
+  const payGame = (rec: UserRecord, points: number) => {
     const day = emu.clock.now().toISOString().slice(0, 10);
     if (rec.gameCoins?.day !== day) rec.gameCoins = { day, n: 0 };
     let coins = Math.min(GAME_COINS_PER_GAME, Math.floor(points / GAME_SCORE_PER_COIN));
@@ -604,6 +603,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     }
     rec.gameCoins.n += coins;
     rec.score = (rec.score ?? 0) + coins;
+    return { coins, state };
+  };
+  world.xt("ScoreManager.increaseScore", async (ctx) => {
+    const rec = await me(ctx);
+    const points = Math.max(0, decryptScore(Number(ctx.params.score) || 0));
+    const { coins, state } = payGame(rec, points);
     // The level a game ended (or was finished) at, for the games that open their levels one by
     // one (极速3D赛车 gameMyCat: endGame(score, the level finished) when won, 0 when lost; 89_5).
     const game = String(ctx.params.gameName ?? "");
@@ -616,6 +621,22 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     if (coins > 0) ctx.reply({ score: rec.score }, "onScoreUpdated");
     ctx.reply({ scoreAdded: coins, state, got: false, score: rec.score, points, gameName: String(ctx.params.gameName ?? ""), addScore: jifen > 0 }, "increaseScore");
   });
+
+  // 我的伙伴我做主 (game/yabihit, a copy of the 2012-11-23 activity's game, PeriodicActiveExtension):
+  // it asks at its start whether this is the first game (20121123light_G5 {} -> {no}: 1 gave a tool
+  // to start with; RECONSTRUCTED: never) and waited for the answer with its loading on; at its end
+  // it sends the points (20121123light_G4 {score} -> {money}: the 晶币, as any game pays them; -2 at
+  // the day's cap, which its panel says).
+  world.xt("PeriodicActiveExtension.20121123light_G5", async (ctx) => ctx.reply({ no: 0 }, "20121123light_G5"));
+  world.xt("PeriodicActiveExtension.20121123light_G4", async (ctx) => {
+    const rec = await me(ctx);
+    const { coins, state } = payGame(rec, Math.max(0, Number(ctx.params.score) | 0));
+    await save(rec);
+    if (coins > 0) ctx.reply({ score: rec.score }, "onScoreUpdated");
+    ctx.reply({ money: coins === 0 && state === -1 ? -2 : coins }, "20121123light_G4");
+  });
+  // Its tools found during a game (20121123light_G2 {index}): nothing is waited for.
+  world.xt("PeriodicActiveExtension.20121123light_G2", () => {});
 
   // MaterialClient.buyBack (61_2) {tp, mi, qt}: the 兜兜回收器 buys things back for their buyback
   // price in 晶币 (the 2013 material data's). Worn clothes and things without a buyback price stay.

@@ -162,8 +162,8 @@ package mmo.usercard
          if (own)
          {
             // 晶币数 and 星币数.
-            scoreText = counter(26, 300, 0xF6C531, "晶币");
-            coinText = counter(108, 300, 0xE8473A, "星币");
+            scoreText = counter(26, 300, 0xFFE07A, "晶币");
+            coinText = counter(108, 300, 0xFFB4A8, "星币");
             showMoney();
          }
 
@@ -231,24 +231,24 @@ package mmo.usercard
          return b;
       }
 
-      /** 晶币数 / 星币数: a coin and its number in a small bar. */
-      private function counter(x:int, y:int, coin:uint, tip:String):TextField
+      /** 晶币数 / 星币数: its name and its number in a small bar. */
+      private function counter(x:int, y:int, color:uint, name:String):TextField
       {
          var bar:Sprite = new Sprite();
          bar.graphics.lineStyle(1.5, 0xDDF6FF);
          bar.graphics.beginFill(0x0F4F95, 0.85);
          bar.graphics.drawRoundRect(0, 0, 76, 20, 18, 18);
          bar.graphics.endFill();
-         bar.graphics.lineStyle(1.5, 0xFFFFFF);
-         bar.graphics.beginFill(coin);
-         bar.graphics.drawCircle(10, 10, 7);
-         bar.graphics.endFill();
          bar.x = x;
          bar.y = y;
          box.addChild(bar);
-         TipsManager.getInstance().addTips(bar, tip);
+         var label:TextField = text(11, color, true);
+         label.text = name;
+         label.x = x + 6;
+         label.y = y + 2;
+         box.addChild(label);
          var t:TextField = text(11, 0xFFFFFF, true);
-         t.x = x + 20;
+         t.x = x + 32;
          t.y = y + 2;
          box.addChild(t);
          return t;
@@ -297,7 +297,7 @@ package mmo.usercard
       }
 
       /** Cells of a grid page; things: [{id, qty, material, worn}], cellFn(thing):Sprite. */
-      private function grid(things:Array, cellFn:Function, empty:String):void
+      private function grid(things:Array, cellFn:Function):void
       {
          var per:int = COLS * ROWS;
          var pages:int = Math.max(1, Math.ceil(things.length / per));
@@ -310,14 +310,6 @@ package mmo.usercard
             c.x = x;
             c.y = y;
             content.addChild(c);
-         }
-         if (things.length == 0)
-         {
-            var e:TextField = text(12, 0x557799, false);
-            e.text = empty;
-            e.x = PX + PW / 2 - e.width / 2;
-            e.y = GY + ROWS * (CELL + 4) / 2 - 8;
-            content.addChild(e);
          }
          // ◀ 1/4 ▶
          var pt:TextField = text(12, 0x1A5FA8, true);
@@ -424,7 +416,7 @@ package mmo.usercard
                show("clothes");
             });
             return c;
-         }, "还没有服装哦。");
+         });
       }
 
       private static function service(type:int):IMaterialService
@@ -494,8 +486,7 @@ package mmo.usercard
          }
          var type:int = int(KINDS[kind][1]);
          var svc:IMaterialService = service(type);
-         grid(things(type), function(t:Object):Sprite { return thingCell(svc, t.id, t.qty, t.material); },
-            type == 5 && eggs == null ? "正在读取……" : "这里还没有东西。");
+         grid(things(type), function(t:Object):Sprite { return thingCell(svc, t.id, t.qty, t.material); });
       }
 
       private function kindFn(i:int):Function
@@ -519,7 +510,7 @@ package mmo.usercard
             var source:Array = type == 0 ? clothesThings() : things(type);
             for each (var t:Object in source) if (t.material && Object(t.material).hasOwnProperty("vip") && Object(t.material).vip) list.push(t);
          }
-         grid(list, function(t:Object):Sprite { return thingCell(service(int(t.type)), t.id, t.qty, t.material); }, "还没有VIP物品哦。");
+         grid(list, function(t:Object):Sprite { return thingCell(service(int(t.type)), t.id, t.qty, t.material); });
       }
 
       private function clothesThings():Array

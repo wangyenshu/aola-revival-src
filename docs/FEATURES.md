@@ -365,7 +365,7 @@ The 功能 the 2012 world map lists for each place:
 | 命运道馆 | 踢馆！挑战幻冥！、命运玩偶 | 可用 |
 | 命运道馆 | 玩偶迷阵 | 可用 (命运玩偶 one after another, 幻冥's 战斗祝福 on both sides; the run's 战斗力评价 and its rewards) |
 | 光明道馆 | 踢馆！挑战幻光、友情的试炼 | 不可用 (need a team of two and a friend's 亚比) |
-| 光明道馆 | 我的伙伴我做主 | 不可用 (its panel opens empty; its mini game's 积分 and the 幻光 bought for 10000 of them are not answered) |
+| 光明道馆 | 我的伙伴我做主 | 部分 (its panel opens empty; its mini game plays and pays 晶币; the 积分 and the 幻光 bought for 10000 of them are not kept) |
 
 ### Activities of the planets
 
@@ -625,7 +625,9 @@ Each boss stands in its room as its own picture (or dressed as its 亚比 where
 the picture is lost), wakes, talks and fights as in the later client. A
 click offers the fight; the forms are fought in order, a loss starts again
 from the first, and beating the last form gives the 亚比蛋 of the boss's
-line. Bosses cannot be caught. A 守护者 whose 2012 套装 is known (金刚库巴,
+line. Only the boss itself takes clicks (天女若希 on her bed: she, not the bed). The
+battle's end is said in the 2013 game's own message window (HELLO glad on a win, sad on
+a loss, 知道了). Bosses cannot be caught. A 守护者 whose 2012 套装 is known (金刚库巴,
 冰霜之王 and 12 others), and the generals of 武神大陆 (the 武神套装), sometimes
 leave a part of it the player has not got (one win in five, RECONSTRUCTED),
 shown at the end of the battle. In the 形态 column, the number before each
@@ -829,7 +831,7 @@ upload or a later copy. Not every game was played to its end in testing.
 | 飞天奇奇 | `gameFlyingQiQi` | `game/flyingqiqi` | 后期文件 |
 | 极限投篮王 | `gameYaYaSlamDunk` | `game/yayaslamdunk` | 2013 年或更早 |
 | 炮打外星人 | `gameHitAlien` | `game/hitalien` | 2013 年或更早 |
-| 疯狂的水果 | `gameFlyingFruit` | `game/flyingfruit` | 后期文件 |
+| 疯狂的水果 | `gameFlyingFruit` | `game/flyingfruit` | 后期文件 (its code compiled again without the later services it waited for) |
 | 卡尔夫赛马 | `gameHorseRace` | `game/horserace` | 2013 年或更早 |
 | 香槟派对 | `gameHitGame` | `game/hitgame` | 后期文件 |
 | 冰花天降 | `gameDropIcePieces` | `game/dropicepieces` | 2013 年或更早 |
@@ -884,12 +886,15 @@ run pays 晶豆, as its end panel says.
   icons, 按时间顺序 / 按等级顺序, pages of nine, and for the 亚比 chosen 技能 /
   能力 / 信息, 展示 (shown in the 家园 at once), 训练 (the 亚比特训: a 亚比 of the
   仓库 and one of four lessons, 一天 to 七天; the HELLO's 亚比训练), 设为精英 /
-  取消精英, 放入背包, 放生 (kept seven days in the 放生仓库, RECONSTRUCTED), and its
+  取消精英, 放入背包 (with six in the bag, 亚比替换: one of the bag chosen goes to the 仓库 in
+  its place), 放生 (kept seven days in the 放生仓库, RECONSTRUCTED), and its
   昵称 (the pen by its name). The bag's box button puts a 亚比 back (放回仓库).
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
   picture where none exists).
-- Riding (坐骑): one of the 34 亚比 of the 2013 ride list, for 蓝宝骑士: the rider
-  sits on it, which walks and stands with its own movements, as others see it too.
+- Riding (坐骑): one of the 34 亚比 of the 2013 ride list, or of the 9 the later client
+  added (飞天ET, 狼王迪洛斯, 赤翼魔龙王, 噬月武神, 黑炎龙, 圣龙战车, 星际旋风, 苍炎战神, 风暴流星),
+  for 蓝宝骑士: the rider sits on it, which walks and stands with its own movements, as
+  others see it too.
 - The 亚比孵化器 in the 家园: 亚比蛋 from bosses and from the 收费亚比蛋商品册.
 - 亚比融合 (贝鲁特 in 亚比研究中心): two 亚比 and a material make a 元生体, which
   hatches in the 孵化器 of its place (艾夕区奇迹冰殿, 索里德区新世界, 巨人山顶,
@@ -936,7 +941,8 @@ run pays 晶豆, as its end panel says.
   on the art of its 2016 copy.
 - The 兜兜回收器 (buy-back) in 道具店, 服装店, 家具店 and 种植园.
 - The shops' lift (点我前往其他楼层) between 种植园, 家具店 and 服装店.
-- The 财富小管家 in 奥拉广场: 晶豆 savings with interest, 奥币 and 流星碎片 made into 星币.
+- The 财富小管家 in 奥拉广场 (and 流星购物街, the same room): 晶豆 savings with interest,
+  奥币 and 流星碎片 made into 星币; it answers only on the machine itself.
 
 ### Home
 
@@ -972,7 +978,7 @@ run pays 晶豆, as its end panel says.
   log and music switch (its icons cut from the 2012 house tutorial film's
   picture of the bar, at their 2012 places: no 物品 button).
 - The 人物信息卡 laid out as in 2012 (百田's 游戏帮助 of January 2012): the 奥拉形象, name
-  plate, 晶币 and 星币; 人物信息 (改名字, 改密码), 服装 (put on and take off), 道具
+  plate, 晶币 and 星币 (named in words); 人物信息 (改名字, 改密码), 服装 (put on and take off), 道具
   (everything one has: 道具, 亚比蛋, 种植, 射击卡), VIP物品, the 勋章 tab; on another
   奥拉's card 加为好友, 亚比对战, 组队, his HELLO and 参观空间舱. The revival's 物品 panel
   remains in 副本 and for mods played alone.
@@ -1016,6 +1022,10 @@ run pays 晶豆, as its end panel says.
 - The 亚比背包 of 2013 (pet/newpetpackage of December 2012, lost): its 强化 page with the
   特性 (特性晶石, PetCard2: 斗志, 破釜沉舟, 上古之印 …; 奥拉周刊 101 of July 2012) is not
   there; the bag is the earlier 2012 one (信息, 道具, 装扮, 战术卡).
+- Some later copies of mini games ask the server at their end for the bonus of a later
+  activity, which is not answered, and then wait (忍术修炼, 斗魂小星猴, 粽子大作战, 列卡捕鸟,
+  灵兽保卫战, 欢乐萌果果, 抢龙鳞, the 生态园 保卫战 games' 地狱模式); 开心餐厅 and 奥拉大战达斯特
+  are lost.
 - 风暴星系's two mini games, 天降神饼 (斗魂平原) and 斗魂小星猴 (虚无长廊): the
   games and their start panels are there, but the surviving (later) files of
   the two rooms no longer have their entrances.

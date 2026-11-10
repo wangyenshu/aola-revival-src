@@ -569,15 +569,35 @@ for g in carsurf flycat flygame flystone gamellk goldpitman lubigame makecake ma
     "$f" "$W/game/$(basename "$f")"
 done
 
-# The same for later games that have a startGame of their own (冰之迷阵's game/brickgame and six more
-# of the 2013 config): there the name goes to getBuddyByName, which the 2013 SocketClient has (one
+# The same for later games that have a startGame of their own (冰之迷阵's game/brickgame, 霓虹泡泡珠's
+# game/puzzlebobble and six more of the 2013 config): there the name goes to getBuddyByName, which the 2013 SocketClient has (one
 # String in, a lookup in the friend list, nothing sent) and nothing of these games is called.
-for g in brickgame chocolaterabbit eatbeans flyingunicorn onelinegame yinijump zuma; do
+for g in brickgame chocolaterabbit eatbeans flyingunicorn onelinegame puzzlebobble yinijump zuma; do
   f="$(art game/$g.swf)"
   python3 "$TOOLS/abc_rename.py" --rename startGame=getBuddyByName \
     --note "LATER game/$g: SocketClient.startGame (later only) and the game's own startGame renamed getBuddyByName (aola-revival, tools/abc_rename.py)" \
     "$f" "$W/game/$(basename "$f")"
 done
+
+# Later games that load a panel with the later loader's SimpleCustomLoader.loadSingleRes (卖蛋糕小达人
+# and 对决无双, for panels of later activities): the class they name is SimpleCLLoader, play.swf's,
+# which does it with the 2013 loader (with SimpleCLParam, also in play.swf).
+for g in makecake matchthree4activity; do
+  f="$W/game/$(basename "$(art game/$g.swf)")"
+  [ -f "$f" ] || f="$(art game/$g.swf)"
+  python3 "$TOOLS/abc_rename.py" --rename SimpleCustomLoader=SimpleCLLoader \
+    --note "LATER game/$g: SimpleCustomLoader (its loadSingleRes is later only) renamed SimpleCLLoader, play.swf's (aola-revival, tools/abc_rename.py)" \
+    "$f" "$W/game/$g.tmp" && mv "$W/game/$g.tmp" "$W/game/$(basename "$(art game/$g.swf)")"
+done
+
+# 疯狂的水果 (game/flyingfruit, a later copy): its start panel waited for a 2016 activity's count and
+# asked the later praise-and-feedback service (not in the 2013 service list) and material tips, and
+# its end waited for that activity's count too: the screen stayed black. Its decompiled code compiled
+# against the 2013 libraries without them, on its own art.
+build games/flyingfruit mmo/game/flyingfruit/DocClass.as flyingfruit-code.swf ""
+python3 "$TOOLS/swf_transplant.py" --art "$(art game/flyingfruit.swf)" --code "$OUT/flyingfruit-code.swf" --drop-art-abc \
+  --note "LATER game/flyingfruit: its decompiled code compiled against the 2013 libraries without the later praise-and-feedback stamp and material tips (aola-revival), on its own art" \
+  --out "$W/game/$(basename "$(art game/flyingfruit.swf)")"
 
 # The 家园's 亚比批量孵化器 (era pet/pethatchegg): its decompiled code with the
 # eggs' names under them and their pictures while they hatch, on its own art.

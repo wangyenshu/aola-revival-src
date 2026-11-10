@@ -233,7 +233,7 @@ export function applyPetItem(t: PetTables, o: PetItemOwner, ii: number, pet: Pet
     pet.learned.push(skill);
     const carried = pet.skills.length < 4;
     if (carried) pet.skills.push(skillOf(t, skill));
-    return { ok: true, msg: `${name}学会了${skillOf(t, skill).name}！${carried ? "" : "可以在亚比背包的“更换技能”中带上它。"}` };
+    return { ok: true, msg: `${name}学会了${skillOf(t, skill).name}！` };
   }
   if (ii === 34 || ii === 35) return no("DNA芯片要在亚比克隆仪和亚比重组仪里使用哦。");
   return no("这个道具不能对亚比使用哦。");

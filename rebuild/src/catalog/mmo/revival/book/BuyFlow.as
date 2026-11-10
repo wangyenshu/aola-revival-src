@@ -96,7 +96,7 @@ package mmo.revival.book
          if (starCoins) unit = member ? Math.ceil(rmb / 2) : rmb;
          if (material.vip && !member)
          {
-            message("只有蓝宝石才能购买" + material.name + "哦！（工具箱里可以成为蓝宝石）");
+            message("只有蓝宝石才能购买" + material.name + "哦！");
             if (done != null) done(false);
             return;
          }
@@ -116,7 +116,7 @@ package mmo.revival.book
             }
             if (starCoins && UserInfo.xingbi < price)
             {
-               fail("你的星币不够哦！（工具箱里可以增加星币）");
+               fail("你的星币不够哦！");
                if (done != null) done(false);
                return;
             }
@@ -128,11 +128,11 @@ package mmo.revival.book
                // A 礼包 is opened at once: got says what it held (server giftbags.ts).
                var place:String = info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包";
                var n:int = Math.max(1, info.realQuantity);
-               if (res == 1 && e.params.got != undefined) message("购买成功！打开了" + material.name + "，得到：" + String(e.params.got) + "。" + (String(e.params.got).indexOf("经验") >= 0 ? "经验放进了家园的经验分配器。" : ""));
-               else if (res == 1 && info.type == 9) bought(material.name + "的树苗已经放入你的背包中。到家园点一下植树盆，就可以种下它。", view(service, info.id, info.type));
+               if (res == 1 && e.params.got != undefined) message("购买成功！打开了" + material.name + "，得到：" + String(e.params.got) + "。");
+               else if (res == 1 && info.type == 9) bought(material.name + "的树苗已经放入你的背包中。", view(service, info.id, info.type));
                else if (res == 1) bought(n + (info.type == 0 ? "件" : "个") + material.name + "已经放入你的" + place + "中。", view(service, info.id, info.type));
                else if (res == -2) fail("你的晶币不够哦！");
-               else if (res == -5) fail("你的星币不够哦！（工具箱里可以增加星币）");
+               else if (res == -5) fail("你的星币不够哦！");
                else if (res == -6) fail("只有蓝宝石才能购买哦！");
                else if (res == -4 && info.type == 9) fail("你的" + material.name + "树苗已经满了，不能再买了哦！");
                else if (res == -4) fail("你已经有" + material.name + "了！");
@@ -180,7 +180,7 @@ package mmo.revival.book
             if (service.hasMaterial(id)) { had++; continue; }
             if (m.vip && !member)
             {
-               message("只有蓝宝石才能购买" + m.name + "哦！（工具箱里可以成为蓝宝石）");
+               message("只有蓝宝石才能购买" + m.name + "哦！");
                if (done != null) done(false);
                return;
             }
@@ -205,7 +205,7 @@ package mmo.revival.book
          {
             if (!ok) { if (done != null) done(false); return; }
             if (UserInfo.score >= 0 && UserInfo.score < score) { fail("你的晶币不够哦！"); if (done != null) done(false); return; }
-            if (UserInfo.xingbi < coins) { fail("你的星币不够哦！（工具箱里可以增加星币）"); if (done != null) done(false); return; }
+            if (UserInfo.xingbi < coins) { fail("你的星币不够哦！"); if (done != null) done(false); return; }
             var onReply:Function = function(e:SocketClientEvent):void
             {
                SocketClient.instance.removeEventListener(MaterialClient.cmdBuyBatchMateriaal, onReply);
@@ -213,7 +213,7 @@ package mmo.revival.book
                if (e.params.xingbi != undefined) UserInfo.xingbi = int(e.params.xingbi);
                if (res == 1) bought(want.length + "件" + suit.suitName + "已经放入你的衣橱中。", view(service, firstId, 0));
                else if (res == -2) fail("你的晶币不够哦！");
-               else if (res == -5) fail("你的星币不够哦！（工具箱里可以增加星币）");
+               else if (res == -5) fail("你的星币不够哦！");
                else if (res == -6) fail("只有蓝宝石才能购买哦！");
                else if (res == -4) fail("你已经有全套" + suit.suitName + "了！");
                else fail("没有买成，请再试一次。");

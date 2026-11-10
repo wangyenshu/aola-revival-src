@@ -5,6 +5,13 @@ package mmo.pet.petride
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
    import mmo.interfaces.InitServiceEvent;
+   import mmo.interfaces.ServiceContainer;
+   import mmo.interfaces.avatar.SkinPosInfo;
+   import mmo.interfaces.avatar.skininfo.SkinInfoFactory;
+   import mmo.interfaces.material.clothes.Clothes;
+   import mmo.interfaces.material.clothes.ClothesParts;
+   import mmo.interfaces.material.clothes.ClothesSideTypes;
+   import mmo.interfaces.material.clothes.IClothesService;
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.interfaces.pet.data.PetRideInfo;
    import mmo.interfaces.pet.data.PetRideInfosMap;
@@ -30,7 +37,8 @@ package mmo.pet.petride
     * (54_20) takes them away. Riding, the 2013 avatar plays its "r" rows (ActionInfo
     * "ddzr", "ddwr"): the clothes' riding pose, sitting higher, and the ride skin's 坐骑
     * (SkinInfoForRidingPet: rows 10/11, walking 4 frames, standing its stand movie), which
-    * draws nothing in the walking rows. The 2013 training (54_11, 骑乘训练 in the
+    * draws nothing in the walking rows. The 9 坐骑 the later client added (LATER_RIDES) have
+    * their ride clothes added to the 2013 clothes service (addLaterClothes). The 2013 training (54_11, 骑乘训练 in the
     * 蓝宝骑士 service) is counted as done (RECONSTRUCTED: the trained flag is lost).
     */
    public class RideService extends EventDispatcher implements IRideService
@@ -50,6 +58,7 @@ package mmo.pet.petride
          SocketClient.instance.addEventListener("54_12", onRide);
          SocketClient.instance.addEventListener("54_20", onUnride);
          SceneManager.getInstance().addEventListener(SceneManagerEvent.SCENE_INITED, onScene);
+         addLaterClothes();
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
       }
 
@@ -59,6 +68,37 @@ package mmo.pet.petride
        */
       private static const LATER_RIDES:Array = [[1101, 10089, 1.5, 40], [1122, 10087, 1.5, 42], [1350, 10086, 1.5, 40],
          [1423, 10083, 1.3, 40], [1426, 10088, 1.5, 40], [1430, 10081, 1.3, 40], [1448, 10082, 1.3, 40], [1461, 10084, 1.3, 40], [1599, 10085, 1.3, 40]];
+
+      /** The later ride clothes' names (the later materialdata's, 10083 and 10084 as their pictures are). */
+      private static const LATER_NAMES:Object = {10081: "阿波罗", 10082: "星际旋风", 10083: "噬月武神", 10084: "苍炎战神", 10085: "风暴流星",
+         10086: "赤魔导士", 10087: "狼王", 10088: "黑炎龙", 10089: "飞天ET"};
+
+      /**
+       * The later ride clothes (10081–10089) made known to the 2013 clothes service, as the later
+       * materialdata has them (skin/a0100xx: front a0100xx0 and back a0100xx1, the riding layout,
+       * two sides): without them a rider of one of these 亚比 sits on nothing, on every client
+       * (pet/petride is loaded with the game, so others' riders are drawn too).
+       */
+      private static function addLaterClothes():void
+      {
+         try
+         {
+            var svc:IClothesService = ServiceContainer.getService("ClothesService") as IClothesService;
+            if (svc == null) return;
+            for each (var r:Array in LATER_RIDES)
+            {
+               var id:int = int(r[1]);
+               if (svc.getClothesDataById(id) != null) continue;
+               var file:String = "a0" + id;
+               var c:Clothes = new Clothes(id, String(LATER_NAMES[id] || ""), false, 0, false, 1, 0, 0);
+               c.parts = [new ClothesParts(file + "0", SkinPosInfo.QI_CHONG__QIAN, SkinInfoFactory.RIDING_PET, ClothesSideTypes.TWO, "4444555566667777"),
+                  new ClothesParts(file + "1", SkinPosInfo.QI_CHONG__HOU, SkinInfoFactory.RIDING_PET, ClothesSideTypes.TWO, "4444555566667777")];
+               c.fileName = file;
+               svc.getClothesDatas()[id] = c;
+            }
+         }
+         catch (e:Error) { RLog.error("ride: the later ride clothes", e); }
+      }
 
       private static function infoOf(race:int):PetRideInfo
       {
@@ -202,6 +242,7 @@ package mmo.pet.petride
 
       private function onScene(e:SceneManagerEvent):void
       {
+         addLaterClothes();
          quicken();
          showMount();
       }

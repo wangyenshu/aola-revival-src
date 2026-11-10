@@ -3,12 +3,14 @@ package mmo.scene.starland
    import mmo.framework.comm.SocketClient;
    import mmo.interfaces.IService;
    import mmo.interfaces.ServiceContainer;
+   import flash.display.BitmapData;
    import flash.display.DisplayObject;
    import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.events.Event;
    import flash.events.MouseEvent;
+   import flash.geom.Matrix;
    import flash.geom.Point;
    import mmo.play.scene.SceneManager;
    import mmo.common.utils.tips.TipsManager;
@@ -100,12 +102,15 @@ package mmo.scene.starland
             });
          }
          // 财富小管家 (百田's guide of January 2012: the machine of 奥拉广场 that keeps
-         // savings with interest; the later module keeps 晶豆): the red machine with the star of the 2012 art
-         // (overlap.asdasd), which nothing else claims.
-         // The machine itself takes no clicks: a hotspot over it, taking the pointer only over
-         // what the machine draws (its bounds at the start were those of a bigger first frame,
-         // and the rectangle took clicks meant for the floor before it).
-         var machine:DisplayObject = findNamed(this, "asdasd");
+         // savings with interest; the later module keeps 晶豆): the red machine with the star of the 2012 art,
+         // which nothing else claims. Two pictures of the overlap layer bear its name (asdasd): first
+         // its faded reflection on the floor (a taller picture before it), then the machine.
+         // The machine itself takes no clicks: a hotspot over it that takes the pointer only where
+         // the machine is drawn (its picture is a bitmap, whose rectangle hitTestPoint would
+         // count whole: the pixel under the pointer is looked at instead).
+         var named:Array = [];
+         findAllNamed(this, "asdasd", named);
+         var machine:DisplayObject = named.length > 0 ? named[named.length - 1] : null;
          if (machine != null)
          {
             // On top of the scene's layers (the bench before it would take the clicks).
@@ -115,6 +120,7 @@ package mmo.scene.starland
             addChild(bank);
             bank.name = "fortuneMachine";
             var self:Starland = this;
+            var dot:BitmapData = new BitmapData(1, 1, true, 0);
             var fit:Function = function(e:Event = null):void
             {
                if (machine.stage == null || bank.parent == null) return;
@@ -123,7 +129,17 @@ package mmo.scene.starland
                bank.graphics.beginFill(0xFFFFFF, 1);
                bank.graphics.drawRect(r.x, r.y, r.width, r.height);
                bank.graphics.endFill();
-               bank.mouseEnabled = machine.hitTestPoint(machine.stage.mouseX, machine.stage.mouseY, true);
+               var over:Boolean = false;
+               if (r.contains(self.mouseX, self.mouseY))
+               {
+                  // The machine's pixel under the pointer, drawn alone into one pixel.
+                  var at:Point = machine.globalToLocal(new Point(machine.stage.mouseX, machine.stage.mouseY));
+                  var m:Matrix = new Matrix(1, 0, 0, 1, -at.x, -at.y);
+                  dot.fillRect(dot.rect, 0);
+                  try { dot.draw(machine, m); over = (dot.getPixel32(0, 0) >>> 24) > 0x40; }
+                  catch (err:Error) { over = machine.hitTestPoint(machine.stage.mouseX, machine.stage.mouseY, true); }
+               }
+               bank.mouseEnabled = over;
             };
             fit();
             fitBank = fit;
@@ -154,6 +170,14 @@ package mmo.scene.starland
          if (fitBank != null) removeEventListener(Event.ENTER_FRAME, fitBank);
          fitBank = null;
          super.onLeaveRoom();
+      }
+
+      private static function findAllNamed(d:DisplayObject, name:String, out:Array):void
+      {
+         if (d == null) return;
+         if (d.name == name) out.push(d);
+         var c:flash.display.DisplayObjectContainer = d as flash.display.DisplayObjectContainer;
+         for (var i:int = 0; c != null && i < c.numChildren; i++) findAllNamed(c.getChildAt(i), name, out);
       }
 
       private static function findNamed(d:DisplayObject, name:String):DisplayObject

@@ -14,13 +14,14 @@
 //   saved                    -> what the start screen fills in, at once
 //   check {server}           -> {online}: the server answers
 //   rename {server, name, pass, to}   a 联机 奥拉's new name, from the start screen
-//   begin {mode, server, name, pass, remember}   the game starts (boot.js AolaBoot.begin)
+//   begin {mode, server, name, pass, remember}   联机模式: the game starts (boot.js AolaBoot.begin);
+//                               单机模式: only remembered (its game starts on 选择奥拉's 进入)
 //   users                    -> {list: [{name, score, pets, level, createdAt, id}], last}
 //   create {name}, renameRole {from, to}, delete {name}   单机模式's 奥拉
 //   export {name}, exportAll -> {text, file}
 //   import {text, from, as, replace} -> {roles} for a file of several 奥拉 and no from; {name}
 //                               once imported; {conflict} for a name this page already has
-//   chosen {name}            the 奥拉 who plays (remembered)
+//   chosen {name}            the 奥拉 who plays: 单机模式's game starts (AolaBoot.begin), remembered
 // A failure is {error}.
 (function () {
   const KEY = "aolaRevivalStart";
@@ -90,7 +91,10 @@
   }
 
   const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
-  const game = () => window.aola;
+  // 单机模式's game: the started one, else (选择奥拉, before 进入) the page's saves without the
+  // game's sockets (entry.ts openSaves), so choosing 单机模式 and going back (返回) changes nothing.
+  let savesCfg = null;
+  const game = () => window.aola || (savesCfg && window.AolaEmulator && window.AolaEmulator.openSaves ? window.AolaEmulator.openSaves(savesCfg) : null);
 
   /** The 奥拉 of a 存档 file: [{key, name, rec}]. */
   function rolesOf(j) {
@@ -135,6 +139,12 @@
     if (op === "begin") {
       const server = a.mode === "server";
       if (server && !wsBase(a.server)) return { error: "请填写服务器地址。" };
+      if (!server) {
+        // 单机模式: 选择奥拉 next, on the page's saves; the game starts on its 进入 (chosen).
+        savesCfg = { date: cfg.date, verbose: !!cfg.verbose, protocol: cfg.protocol, demo: !!cfg.demo, dev: !!cfg.dev || /[?&]dev=1(&|$)/.test(location.search), standalone: !!cfg.standalone };
+        remember({ mode: "inpage" });
+        return { ok: true };
+      }
       const r = await window.AolaBoot.begin({ mode: server ? "server" : "inpage", server: String(a.server || "").trim(), name: server ? String(a.name || "").trim() : "" });
       if (r.error) return r;
       const fields = { mode: server ? "server" : "inpage" };
@@ -186,6 +196,11 @@
       return { error: r.error || "没有导入。" };
     }
     if (op === "chosen") {
+      // 进入: 单机模式's game starts now (one tab of it at a time: boot.js).
+      if (!window.aola) {
+        const r = await window.AolaBoot.begin({ mode: "inpage", server: "", name: "" });
+        if (r.error) return r;
+      }
       remember({ name: String(a.name) });
       if (window.aolaSession) window.aolaSession.name = String(a.name);
       return { ok: true };

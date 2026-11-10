@@ -17,7 +17,8 @@ package mmo.user.login
     * page already has asks whether to replace that 奥拉 or to take the file's under another name).
     * The game in the page does the work (web/start.js: game.ts listUsers, createUser, deleteUser,
     * addUserFromFile, rename, exportSave), so its rules hold whatever the screen shows.
-    * done(name) once one is chosen.
+    * done(name) once one is chosen; back() on 返回 (to 单机模式 or 联机模式 again: 单机模式's game
+    * starts only on 进入, so 返回 leaves the page as it was).
     */
    public class RolesScreen extends Sprite
    {
@@ -27,6 +28,7 @@ package mmo.user.login
       private static const GAP:int = 22;
 
       private var done:Function;
+      private var back:Function;
       private var roles:Array = [];
       private var last:String = "";
       /** The card being worked on: {i, kind: "new" | "rename" | "delete"} (one at a time). */
@@ -40,11 +42,19 @@ package mmo.user.login
       private var onEsc:Function;
       private var focusField:TextField;
 
-      public function RolesScreen(done:Function)
+      public function RolesScreen(done:Function, back:Function = null)
       {
          super();
          this.done = done;
+         this.back = back;
          addChild(StartPage.backdrop());
+         if (back != null)
+         {
+            var ret:Sprite = RUI.button("返回", function():void { if (sheetLayer.numChildren == 0) back(); }, 80, 30, 0x8FE3FF, 0x1E8FE0, "rolesBack");
+            ret.x = 28;
+            ret.y = 30;
+            addChild(ret);
+         }
          var t:TextField = StartPage.title("选择奥拉", 30);
          t.x = (960 - t.width) / 2;
          t.y = 26;
@@ -311,6 +321,8 @@ package mmo.user.login
       {
          StartPage.ask("chosen", { name: name }, function(r:Object):void
          {
+            // 单机模式's game starts here (one tab of it at a time): a refusal is said on the screen.
+            if (r && r.error) { say(String(r.error), true); return; }
             visible = false;
             done(name);
          });

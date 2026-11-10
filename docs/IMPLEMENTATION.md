@@ -108,7 +108,10 @@ the files. The page does their work through ExternalInterface: `web/start.js`
 (what the start screen remembers; 单机模式's 奥拉) and `web/saves.js` (存档,
 names and passwords), in both modes (the page's own game, or the shared
 server's `/__api/`). Ruffle's sockets go to one address, which `boot.js` routes
-when the login connects: to the in-page game, or to the chosen server.
+when the login connects: to the in-page game, or to the chosen server. 单机模式's game (and its
+one-tab lock) starts on 选择奥拉's 进入; before that 选择奥拉 works on the page's saves without it
+(`AolaEmulator.openSaves`, the same game without its sockets), so 返回 leaves the page as it was
+and 联机模式 can be chosen next.
 
 ### The service worker
 
@@ -328,14 +331,21 @@ the 2013 libraries do not have. They are handled in these ways:
 
 - **Recompiled**: the decompiled later code is compiled against the 2013
   libraries, with later-only calls replaced or removed and marked
-  (`shoot`, `fbservice`, `fbteam`, `spacetime`, `parkour`, several scenes).
+  (`shoot`, `fbservice`, `fbteam`, `spacetime`, `parkour`, several scenes, and the mini game
+  疯狂的水果, `rebuild/src/games/flyingfruit`).
 - **Later interfaces kept**: where a later script calls a method through a
   later interface, the rebuilt service defines that method in the later
   interface's AVM2 namespace, so the unchanged script finds it.
+- **Later classes in play.swf**: a few later classes the later mini games use are written
+  again in `rebuild/src/control` (`mmo.interfaces.game.GameResultWrapper`,
+  `mmo.common.datastructure.ConfuseNumber` of 飞天独角兽 and 毛毛飞天记,
+  `mmo.loader.SimpleCLParam` and `SimpleCLLoader`), so those games find them.
 - **Renamed calls**: `tools/abc_rename.py` renames one string in a SWF's
-  bytecode; 21 later mini games call `SocketClient.startGame`, which the 2013
+  bytecode; 22 later mini games call `SocketClient.startGame`, which the 2013
   library lacks, and now call a harmless method instead (`hasEventListener`;
-  `getBuddyByName` for the seven with a `startGame` of their own, 冰之迷阵 among them).
+  `getBuddyByName` for the eight with a `startGame` of their own, 冰之迷阵 and 霓虹泡泡珠
+  among them); 卖蛋糕小达人 and 对决无双 name `SimpleCLLoader` for the later
+  `SimpleCustomLoader.loadSingleRes`.
 - **Transplanted**: `tools/swf_transplant.py` puts compiled code into an
   original SWF's art, binding the art's symbols to the new classes (the art's
   own classes are renamed `…Revived` so they do not shadow the new ones).
@@ -435,6 +445,8 @@ ActionInfo, `RidingMovingState`), where the clothes sit higher and the ride
 clothes (`skin/a0100xx`, `SkinInfoForRidingPet`) draw the 坐骑, its stand movie
 while standing; the server shares it as the `ms` user variable (`ride;<speed>`,
 `walk`), which the 2013 SocketClient tells every client as `onMovingStateChanged`.
+The ride clothes of the 9 坐骑 the later client added (10081–10089, the later materialdata's
+parts) are added to the 2013 clothes service when `pet/petride` starts, on every client.
 
 ### Bosses
 

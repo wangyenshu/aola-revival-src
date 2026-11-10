@@ -77,7 +77,13 @@ package mmo.user.login
             {
                if (mode == "server") login(name, pass);
                else if (roles != null) roles.again("");
-               else addChild(roles = new RolesScreen(function(n:String):void { login(n, ""); }));
+               else addChild(roles = new RolesScreen(function(n:String):void { login(n, ""); }, function():void
+               {
+                  // 返回: the start screen again, for 联机模式 or 单机模式.
+                  if (roles != null && roles.parent != null) roles.parent.removeChild(roles);
+                  roles = null;
+                  start.again("");
+               }));
             });
             addChild(start);
             return;

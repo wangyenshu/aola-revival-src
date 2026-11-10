@@ -54,7 +54,7 @@ package mmo.revival.book
                if (busy) return true;
                if (name.indexOf("btnMBuy_") == 0 && !member())
                {
-                  NewDialog.showMessage("这件商品只有蓝宝石才能购买哦！（工具箱里可以成为蓝宝石）");
+                  NewDialog.showMessage("这件商品只有蓝宝石才能购买哦！");
                   return true;
                }
                var parts:Array = name.substr(name.indexOf("_") + 1).split("_");

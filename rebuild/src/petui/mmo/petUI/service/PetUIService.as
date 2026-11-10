@@ -1,6 +1,7 @@
 package mmo.petUI.service
 {
    import flash.display.DisplayObject;
+   import flash.text.TextField;
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.events.EventDispatcher;
@@ -43,8 +44,10 @@ package mmo.petUI.service
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, null));
       }
 
+      /** param1: the title; a TextField gives its words to the panel's own question instead. */
       public function showPackagePetSelectPanel(param1:DisplayObject = null):Sprite
       {
+         if (param1 is TextField) return choose(null, TextField(param1).text, null);
          return choose(null, "请先选择一只亚比", param1);
       }
 

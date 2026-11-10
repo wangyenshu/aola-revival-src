@@ -293,10 +293,35 @@ package mmo.dailyactivity
                   }
                   catch (e4:Error) {}
                }
-               // 天女若希 (the 2016 picture): awake, without its sleeping part.
+               // 天女若希 (the 2016 picture): awake, without its sleeping part. The awake frame is
+               // her winged bed, its shadow, she standing on it (the one that moves) and her name: only
+               // she takes the pointer (the bed is most of the picture, and it took clicks around her).
                if (b.cls == "Boss10819")
                {
-                  try { MovieClip(Object(view).mc).gotoAndStop(2); Object(view).p.visible = false; } catch (e3:Error) {}
+                  try
+                  {
+                     var bed:MovieClip = MovieClip(Object(view).mc);
+                     bed.gotoAndStop(2);
+                     Object(view).p.visible = false;
+                     var her:MovieClip = null;
+                     for (var hi:int = 0; hi < bed.numChildren; hi++)
+                     {
+                        var part:DisplayObject = bed.getChildAt(hi);
+                        if (part is MovieClip && MovieClip(part).totalFrames > 1 && her == null) her = MovieClip(part);
+                        else if (part is InteractiveObject)
+                        {
+                           InteractiveObject(part).mouseEnabled = false;
+                           if (part is DisplayObjectContainer) DisplayObjectContainer(part).mouseChildren = false;
+                        }
+                     }
+                     if (her != null)
+                     {
+                        view.mouseEnabled = false;
+                        bed.mouseEnabled = false;
+                        her.buttonMode = true;
+                     }
+                  }
+                  catch (e3:Error) {}
                }
             }
             view.name = "guardian_" + b.part;

@@ -1,5 +1,8 @@
 package mmo.petfightnew
 {
+   import mmo.common.ModalDialogEvent;
+   import mmo.common.ModalDialog;
+   import mmo.common.dialog.NewDialog;
    import com.greensock.TweenLite;
    import flash.display.BlendMode;
    import flash.display.DisplayObject;
@@ -1400,7 +1403,7 @@ package mmo.petfightnew
                later(0);
                break;
             case 2234:
-               results.push("学会了新技能「" + p.name + "」！" + (p.used ? "" : "（可以在亚比背包里更换技能）"));
+               results.push("学会了新技能「" + p.name + "」！");
                later(0);
                break;
             case 2403:
@@ -1845,7 +1848,6 @@ package mmo.petfightnew
             showCaught(caught, done);
             return;
          }
-         var title:String = win ? "战斗胜利" : "战斗失败";
          var lines:Array = results.length ? results : (win ? ["战斗胜利！"] : ["你的亚比都倒下了……", "快打开亚比背包，带它们恢复体力吧！"]);
          if (p.pvp) lines = [win ? "战斗胜利！" : "战斗失败！"];
          // note (the revival's server): what the win brought besides, a boss's 亚比蛋.
@@ -1853,8 +1855,9 @@ package mmo.petfightnew
          // 自动战斗仪: its battles end by themselves, and the 亚比 have all back (the server's words).
          var healed:String = "自动战斗仪回复了亚比的全部状态。";
          if (String(p.desc || "").indexOf(healed) >= 0) lines = (results.length || win ? lines : ["你的亚比都倒下了……"]).concat([healed]);
-         showResult(title, lines, done);
-         if (auto) TweenLite.delayedCall(2.5, done);
+         showResult(win, lines, done);
+         // 自动战斗仪: its battles close by themselves.
+         if (auto) TweenLite.delayedCall(2.5, function():void { if (resultDialog != null) resultDialog.close(); else done(); });
       }
 
       /**
@@ -1908,24 +1911,23 @@ package mmo.petfightnew
          box.addChild(ok);
       }
 
-      private function showResult(title:String, lines:Array, onOk:Function):void
+      /**
+       * The end of a battle in the 2013 library's own message dialog (common_res_dialog's
+       * MessageDialog_Icon with HELLO glad on a win, sad on a loss, and 知道了: NewDialog), as the
+       * battle module's SuccessPanel and FailPanel drew it; onOk once it is closed.
+       */
+      private var resultDialog:ModalDialog;
+
+      private function showResult(win:Boolean, lines:Array, onOk:Function):void
       {
-         var w:int = 360, h:int = 150 + lines.length * 22;
-         var box:Sprite = dialog(title, w, h);
-         var body:TextField = new TextField();
-         body.defaultTextFormat = new TextFormat("宋体", 14, 0x1D4F7A, false, null, null, null, null, TextFormatAlign.CENTER);
-         body.multiline = body.wordWrap = true;
-         body.selectable = false;
-         body.width = w - 40;
-         body.x = 20;
-         body.y = 66;
-         body.height = lines.length * 22 + 8;
-         body.text = lines.join("\n");
-         box.addChild(body);
-         okButton(box, w, h, onOk);
-         box.alpha = 0;
-         popupLayer.addChild(box);
-         TweenLite.to(box, 0.3, {alpha: 1});
+         var md:ModalDialog = NewDialog.getMessageDialog(lines.join("\n"), null, null, win ? NewDialog.getSucceedIcon() : NewDialog.getFailIcon());
+         resultDialog = md;
+         md.addEventListener(ModalDialogEvent.CLOSE, function(e:ModalDialogEvent):void
+         {
+            if (resultDialog == md) resultDialog = null;
+            onOk();
+         });
+         md.show();
       }
 
       /** 捕捉成功, after the 2011 panel: where it went, picture, name, level, 性格, stats. */

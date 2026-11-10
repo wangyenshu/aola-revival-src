@@ -537,6 +537,9 @@ package mmo.control
                switch (cmd)
                {
                   case "goto": sm.loadScene(arg); return "ok";
+                  // A 小游戏 by its room (tests/e2e: "gameFlyingUnicorn").
+                  case "game": sm.loadGame(arg); return "ok";
+                  case "ungame": sm.unloadGame(); return "ok";
                   case "mod":
                      // Load the site's example mod revival/mods/<arg> and start it (tests/e2e).
                      var ml:URLLoader = new URLLoader();

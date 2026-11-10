@@ -39,6 +39,8 @@ the same).
 | 删除 | asked in the card (删除 / 取消, with 先导出一份); it cannot be undone |
 | 新建奥拉 (an empty place) | a new 奥拉: write its name |
 
+返回 (top left) goes back to the 进入奥拉星 screen, to choose 联机模式 instead.
+
 导入奥拉 takes a 存档 file (of either mode) as one more 奥拉: a file with several
 asks which one; a name this browser already has asks whether to replace that
 奥拉's game with the file's (替换) or to bring it in under a new name. With three
