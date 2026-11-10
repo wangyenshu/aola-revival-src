@@ -77,9 +77,11 @@ package mmo.play.scene
          "employmenttown": [[465, "职业协会！", "465_occupationMes"], [465, "职业亚比大变身！", "465_evolution"]],
          "yabiunion": [[827, "亚比协会", "827_YabiUnion"]],
          "aolatree": [[44, "奥拉星历史漫画", "revival_historycomic"]],
-         // 亚比融合 (PetMixService, pet/petmixnew): the rebuilt 亚比研究中心's art (the 2014 copy) has
-         // no machine of its own for it; 贝鲁特 offers it (RECONSTRUCTED: where it is asked for).
-         "yabistudy": [[11, "亚比融合", "revival_service:PetMixService"]],
+         // 亚比融合 (PetMixService, pet/petmixnew) and 亚比超进化 (the 超进化机, pet/superevolution, rebuilt):
+         // the rebuilt 亚比研究中心's art (the 2014 copy) has no machine of its own for them; 贝鲁特 offers
+         // them (RECONSTRUCTED: where they are asked for; the 2012 map lists both among its 功能).
+         "yabistudy": [[11, "亚比融合", "revival_service:PetMixService"],
+            [11, "亚比超进化", "revival_panel:pet/superevolution|mmo.superevolution.SuperEvolutionPanel"]],
          // The 道馆 (the later scenes of their 2015 return lost the masters' 2012 trials): each
          // master offers the map's three functions, opening the panels of November 2012
          // (activityres/activity121115, 121122) where the later scene does not.

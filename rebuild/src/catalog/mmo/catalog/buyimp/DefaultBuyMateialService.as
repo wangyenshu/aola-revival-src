@@ -24,6 +24,12 @@ package mmo.catalog.buyimp
          sourceKey = key;
       }
 
+      /** 购买全套 (a book page's btnSetBuy_<套装>). */
+      public function buySet(suitId:int, done:Function):void
+      {
+         BuyFlow.buySet(suitId, done);
+      }
+
       public function buy(info:BuyMaterialInfo, callback:Function, thisObject:* = null):void
       {
          BuyFlow.buy(info, function(ok:Boolean):void

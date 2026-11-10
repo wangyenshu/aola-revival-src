@@ -27,8 +27,9 @@ package mmo.scene.yabi
     * is lost, and the machine opens the 天赋启迪 of 17 January 2013
     * (activityres/activity130117/geniusedification), the era's other panel that
     * raises a 亚比's 天赋, whose own hint sends players to this machine. The pad
-    * of the two 亚比 (btndetect) is the 亚比训练 (the era pet/pettraining, as the HELLO's). 亚比融合 (PetMixService) is 贝鲁特's (engine ScenePatches.MENUS),
-    * the art having no machine of its own for it. The 亚比蛋 shop (btnbuyegg:
+    * of the two 亚比 (btndetect) is the 亚比训练 (the era pet/pettraining, as the HELLO's). 亚比融合 (PetMixService)
+    * and 亚比超进化 (the 超进化机, pet/superevolution) are 贝鲁特's (engine ScenePatches.MENUS), the art
+    * having no machine of its own for them. The 亚比蛋 shop (btnbuyegg:
     * the 收费亚比蛋商品册). The ways out are
     * RECONSTRUCTED on the copy's signs: 升级基地 to the 亚比训练室, 进阶研究室 to
     * the 科学院, 奥拉广场 to 奥拉广场, and to 蓝宝石要塞 (where the later scene

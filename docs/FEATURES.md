@@ -873,7 +873,12 @@ run pays 晶豆, as its end panel says.
   either way) on the later battle module's own panel (the 2013 one is lost).
 - Catching with 亚比球 (the 2013 balls and their rules).
 - Experience, levels, effort points, learning skills, evolution.
-- The 亚比 bag: details, healing, 更换技能 (choose four of the learnt skills).
+- The 亚比 bag: details, healing, 更换技能 (choose four of the learnt skills); its
+  道具 page uses several 学习力果实, 摇摇果实 or 初始亚比经验糖 at once (我要使用, the
+  later 道具 module's own panel).
+- The 自动战斗仪: the 亚比 fights by itself with its hardest blow against the foe;
+  停止自动战斗 in the battle hands it back to the player (the battles left are
+  kept), 开启自动战斗 starts it again.
 - The 亚比仓库 (from the 家园 and the HELLO's 远程亚比仓库) in its 2012 look (the
   January 2012 tutorial's picture of it): 亚比仓库 / 精英仓库 / 放生仓库, the 系
   icons, 按时间顺序 / 按等级顺序, pages of nine, and for the 亚比 chosen 技能 /
@@ -883,13 +888,22 @@ run pays 晶豆, as its end panel says.
   昵称 (the pen by its name). The bag's box button puts a 亚比 back (放回仓库).
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
   picture where none exists).
-- Riding (坐骑): one of the 34 亚比 of the 2013 ride list, for 蓝宝骑士.
+- Riding (坐骑): one of the 34 亚比 of the 2013 ride list, for 蓝宝骑士: the rider
+  sits on it, which walks and stands with its own movements, as others see it too.
 - The 亚比孵化器 in the 家园: 亚比蛋 from bosses and from the 收费亚比蛋商品册.
 - 亚比融合 (贝鲁特 in 亚比研究中心): two 亚比 and a material make a 元生体, which
   hatches in the 孵化器 of its place (艾夕区奇迹冰殿, 索里德区新世界, 巨人山顶,
   奇迹谷底, 生命之树, 水下广场, 烈焰洞穴) in 24 or 72 hours.
 - 天赋启迪 (the 天赋改造机 in 亚比研究中心): raising a 亚比's 天赋 with 启迪能量
-  or 星币.
+  or 星币; 选择亚比 chooses any 亚比 of the bag (in the chooser the 2012 modules share).
+- 亚比超进化 (贝鲁特 in 亚比研究中心: the 超进化机, on the art of its 2015 copy): the nine
+  超进化 of early 2013 (露西亚 → 古渊露龙, 大师兔 → 终结兔, 爆焰吉拉 → 魔焰吉拉, 烈焰鸟 →
+  烈焰凤凰 with a 炎之结晶, 利牙海狮 → 极冰海牙, 尖钻虎王 → 金刚虎王, 寒冰玉兔 → 寒冰公主,
+  白古丁 → 白羽公主, 花冠狮 → 花冠公主) with their 进化水晶 and items: at level 60 or
+  more, back to level 1 with the new form's skills, 学习力 cleared, 天赋 and 性格 kept;
+  its 超进化手册 (book201103, the 超进化方程式 of 2011–13, five pages) and the
+  限量超进化礼包 (蓝宝石; its crystals RECONSTRUCTED). The 进化水晶 came from the
+  许愿图腾 of 蓝宝石要塞, which is lost.
 - The 亚比图鉴 (the 图鉴 button under 任务, its 2012 icon: the garden's, from the
   January 2012 tutorial picture): the later game's panel (2017) on
   the 2013 files, with the 亚比 up to 1651 (those after January 2013 from the
@@ -910,7 +924,9 @@ run pays 晶豆, as its end panel says.
   own frames (the desk with page numbers and money each 商品册 carries; the 周刊's
   and handbooks' containers); a close is added only to a book without its own.
 - 晶币 for ordinary goods; 星币 for the real-money goods (half price for
-  蓝宝石).
+  蓝宝石). A page's 全套购买 buys the pieces of the 套装 one lacks at once. The
+  购买 dialogs are catalogservice's own (名称, 单价, 购买数量, 总价, what 蓝宝石 saves,
+  你现在拥有); what was bought is shown in the 2013 message box with its picture.
 - 礼包 open when bought: what each held goes into the bag, its 经验 to the
   HELLO's 经验分配器 (the lists are RECONSTRUCTED from the bags' 2013
   descriptions and catalog pages; a 亚比服装, HELLO服装 or 家园种植 thing in a
@@ -954,7 +970,14 @@ run pays 晶豆, as its end panel says.
 
 - The control bar of December 2011 with its phrases, faces, actions, chat
   log and music switch (its icons cut from the 2012 house tutorial film's
-  picture of the bar); the player card and wardrobe; the 物品 panel.
+  picture of the bar, at their 2012 places: no 物品 button).
+- The 人物信息卡 laid out as in 2012 (百田's 游戏帮助 of January 2012): the 奥拉形象, name
+  plate, 晶币 and 星币; 人物信息 (改名字, 改密码), 服装 (put on and take off), 道具
+  (everything one has: 道具, 亚比蛋, 种植, 射击卡), VIP物品, the 勋章 tab; on another
+  奥拉's card 加为好友, 亚比对战, 组队, his HELLO and 参观空间舱. The revival's 物品 panel
+  remains in 副本 and for mods played alone.
+- The tips of the whole game (the big ones with a title, e.g. an item's name and
+  description) on their own art.
 - The world map of November 2012.
 - Walking round obstacles; other players and their 亚比 drawn in rooms.
 - Each room's music, and battle music; the game's music up to the end of 2014
@@ -990,6 +1013,9 @@ run pays 晶豆, as its end panel says.
 - The job unions (冒险协会, 动物协会, 亚比协会), 星际兑换机, 星际航线,
   上古神殿's panels, 模拟空间.
 - Quests that call services that are still stand-ins may stop partway.
+- The 亚比背包 of 2013 (pet/newpetpackage of December 2012, lost): its 强化 page with the
+  特性 (特性晶石, PetCard2: 斗志, 破釜沉舟, 上古之印 …; 奥拉周刊 101 of July 2012) is not
+  there; the bag is the earlier 2012 one (信息, 道具, 装扮, 战术卡).
 - 风暴星系's two mini games, 天降神饼 (斗魂平原) and 斗魂小星猴 (虚无长廊): the
   games and their start panels are there, but the surviving (later) files of
   the two rooms no longer have their entrances.

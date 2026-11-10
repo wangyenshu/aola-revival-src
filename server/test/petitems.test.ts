@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { award } from "../src/game/sfs2013/battle.ts";
-import { applyPetItem, installPetItems, type PetItemOwner } from "../src/game/sfs2013/petitems.ts";
+import { applyPetItem, applyPetItems, installPetItems, type PetItemOwner } from "../src/game/sfs2013/petitems.ts";
 import type { PmData } from "../src/game/sfs2013/pmdata.ts";
 import { makePet, statsOf, type PetTables } from "../src/game/sfs2013/pets.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
@@ -77,6 +77,19 @@ test("学习力 fruits stop at 255 for one and 510 in all; 遗忘喷雾 not at l
   top.level = 99;
   assert.equal(applyPetItem(t, owner(), 523, top).ok, true);
   assert.deepEqual(top.ev, [0, 0, 0, 0, 0, 0]);
+});
+
+test("several 学习力果实 or 摇摇果实 at once: as many as do something", () => {
+  const p = pet(10, 20);
+  p.ev = [0, 240, 0, 0, 0, 0];
+  // 攻击果实 (525): 5 each up to 255, so 3 of 10 are used.
+  const r = applyPetItems(t, owner(), 525, p, 10);
+  assert.deepEqual([r.ok, r.used, p.ev[1]], [true, 3, 255]);
+  assert.match(r.msg, /使用了3个.*攻击学习力增加了15点/);
+  const q = pet(10, 20);
+  const e = applyPetItems(t, owner(), 419, q, 4);
+  assert.deepEqual([e.ok, e.used], [true, 4]);
+  assert.match(e.msg, /4000点经验/);
 });
 
 test("降级喷雾, 还原喷雾 and 形态固化剂", () => {

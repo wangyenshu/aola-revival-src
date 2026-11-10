@@ -69,7 +69,9 @@ package mmo.dailyactivity
        * team, pig, feier, start, one), forms "race:level,…".
        */
       private static const BOSSES:Array = [
-         ["aixiscene6", "冰拳艾司", 20087, "IceBoss", 0, 0, "wake", null, 64, "iceboss", "std", "20087:80"],
+         // 冰拳艾司 on the snowy stone stand before the 冰晶 shrine, at the later BossConfig's spot for its
+         // "iceboss" (370, 170; behind the crystals at the arrow guide's point it was hidden).
+         ["aixiscene6", "冰拳艾司", 20087, "IceBoss", 370, 170, "wake", null, 64, "iceboss", "std", "20087:80"],
          ["amusementpark", "星光角斗士", 20427, "Boss10427", 0, 0, "wake", null, 324, "boss10427", "std", "20427:60"],
          ["suolide5", "沙麒麟", 10090, "SandBoss", 0, 0, "wake", null, 65, "sandboss", "std", "10090:60,20090:80"],
          ["siwude3", "木面侠", 10093, "TreeBoss", 0, 0, "wake", null, 76, "treeboss", "std", "10093:60,20093:80"],
@@ -105,18 +107,19 @@ package mmo.dailyactivity
          // 极速威锋 (奥运守护者, September 2011), 满月巨灵 (中秋, September 2011), 天之巨灵 (天王星守护者,
          // October 2011), 赤影飞狐 (新年, December 2011), 赤魔导士 (新春, January 2012), 天女若希
          // (Valentine 2012), 猪猪超人 (March 2012), 翡冷翠 (端午 2012); they were never there all at
-         // once, and stand apart (the spots of those drawn round their middle RECONSTRUCTED).
+         // once, and stand apart where one can walk (the scene's obstruction): on the sun stage, and
+         // 极速威锋, 翡冷翠 on the star platform, none before another (RECONSTRUCTED spots).
          ["mysticearth2", "友人契约书", 11259, "Boss11259", 0, 0, "panel", "activityres/activity121018/friendcontract|mmo.activity121018.friendcontract.FriendContractPanel", 821, null, "one", "11259:100"],
-         ["themepark", "猪猪超人", 10884, "Boss10884", 895, 345, "still", null, 635, "boss10886", "one", "10884:100"],
-         ["themepark", "满月巨灵", 10639, "Boss10639", 299, 328, "film", "BossMovie10639", 435, "themeparkMoonboss", "std", "10639:100"],
+         ["themepark", "猪猪超人", 10884, "Boss10884", 854, 293, "still", null, 635, "boss10886", "one", "10884:100"],
+         ["themepark", "满月巨灵", 10639, "Boss10639", 297, 316, "film", "BossMovie10639", 435, "themeparkMoonboss", "std", "10639:100"],
          ["themepark", "赤魔导士", 10796, "Boss10796", 0, 0, "still", null, 563, "boss10796", "std", "10796:80,20796:100"],
          ["themepark", "赤影飞狐", 10771, "Boss10771", 0, 0, "film", "BossMovie10771", 546, "boss10771", "std", "10771:80,20771:100"],
          ["themepark", "极速威锋", 10633, "Boss10633", 0, 0, "film", "BossMovie10633", 433, "themeparkTeamboss", "team", "10633:100"],
-         ["themepark", "天之巨灵", 10665, "Boss10665", 760, 120, "film", "BossMovie10665", 460, "themepark10665", "std", "10665:100"],
+         ["themepark", "天之巨灵", 10665, "Boss10665", 730, 145, "film", "BossMovie10665", 460, "themepark10665", "std", "10665:100"],
          ["themepark", "天女若希", 10819, "Boss10819", 0, 0, "still", null, 586, "boss12619", "std", "10819:80,20819:100"],
          // 翡冷翠 (端午 2012, fought at the top of the 粽子塔 entered from 主题公园; its picture and
          // talks are lost): in the park, dressed as its 亚比 (RECONSTRUCTED).
-         ["themepark", "翡冷翠", 10995, "Boss10995", 160, 420, "ask", null, 0, null, "one", "10995:100"],
+         ["themepark", "翡冷翠", 10995, "Boss10995", 162, 418, "ask", null, 0, null, "one", "10995:100"],
          ["dreamhouse", "年兽", 10493, "Boss10493", 480, 320, "film", "BossMovie10493", 242, "dreamhouseTeamboss", "std", "10493:100"],
          // 多古拉伯爵, the 万圣节守护者 of 2012: its card of the 守护者 calendar (dailyactivitybossres/boss1266,
          // 24 October 2012) names 挑战地点 奥拉之树, 10月26日—11月1日. Its picture in the scene is lost: it
@@ -141,10 +144,11 @@ package mmo.dailyactivity
 
       /**
        * Pictures drawn in scene coordinates moved aside where bosses of different
-       * events now stand together: 极速威锋 stood where 赤魔导士 stands in 主题公园; 猎空's
-       * (drawn for spacetimechallenge) off 挑战平台's middle.
+       * events now stand together: in 主题公园 onto ground one can walk, apart (极速威锋 stood
+       * where 赤魔导士 stands; 赤魔导士 and 赤影飞狐 off the stage's front, over the water);
+       * 猎空's (drawn for spacetimechallenge) off 挑战平台's middle.
        */
-      private static const SHIFTED:Object = {"10633": [-330, 30], "31697": [110, -30]};
+      private static const SHIFTED:Object = {"10633": [-495, 37], "31697": [110, -30], "10796": [0, -102], "10771": [2, -131], "10819": [-10, -1]};
 
       /** Bosses whose picture dailyactivity/dailyboss<file> is lost (they stand dressed as their 亚比): not asked for. */
       private static const NO_PICTURE:Object = {"10884": true, "11190": true, "10995": true, "11267": true};

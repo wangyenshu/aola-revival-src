@@ -204,6 +204,8 @@ export interface Battle {
   noAward?: boolean;
   /** Fought by the 自动战斗仪: at its end every 亚比 of the bag has all its 体力 and PP back. */
   auto?: boolean;
+  /** A battle the 自动战斗仪 may fight (a wild 亚比 of the room, caught or not). */
+  autoMay?: boolean;
   /** The opponents still to come after the one fighting (an activity's boss with its helpers). */
   foes?: PetRecord[];
   /** 最强防御PK战: the rounds to stand (won once they are over, the 亚比 standing); no switching. */
@@ -420,6 +422,27 @@ export class BattleEngine {
   wildChoice(b: Battle): number {
     const usable = b.wild.pet.skills.filter((s) => s.pp > 0);
     return usable.length ? usable[Math.floor(this.rng() * usable.length)].id : 0;
+  }
+
+  /**
+   * The 自动战斗仪's choice for the player's 亚比 (RECONSTRUCTED: the 2013 rule is lost): the skill
+   * with uses left that hits hardest by its power, its 属性 against the foe's, the same-属性 bonus
+   * and its accuracy, one of the nearly best at random; a status skill only with no blow at all.
+   */
+  autoChoice(b: Battle): number {
+    const usable = b.mine.pet.skills.filter((s) => s.pp > 0);
+    if (!usable.length) return 0;
+    const score = (id: number): number => {
+      const sk = this.skill(id);
+      if (sk.k === 2 || !(sk.p > 0)) return 0;
+      const mult = sk.t < 0 ? 1 : typeMultiplier(this.t.pm, sk.t, b.wild.types);
+      const stab = sk.t >= 0 && (b.mine.types[0] === sk.t || b.mine.types[1] === sk.t) ? 1.5 : 1;
+      return sk.p * mult * stab * Math.min(100, sk.acc > 0 ? sk.acc : 100) / 100;
+    };
+    const scored = usable.map((s) => ({ id: s.id, v: score(s.id) }));
+    const best = Math.max(...scored.map((x) => x.v));
+    const pool = best > 0 ? scored.filter((x) => x.v >= best * 0.9) : scored;
+    return pool[Math.floor(this.rng() * pool.length)].id;
   }
 
   /** The skill a fighter uses this turn: the one it gathers power for or keeps using, else its choice. */
@@ -2062,8 +2085,29 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const room = sceneOfRoom(ctx.player.room);
     // auto (not of 2013): battles left of a 自动战斗仪 (petitems.ts); the wild 亚比 module then
     // goes for the wild 亚比 of the room by itself.
-    const auto = ((await deps.load(ctx)) as PetItemOwner).boosts?.auto ?? 0;
+    const boosts = ((await deps.load(ctx)) as PetItemOwner).boosts;
+    const auto = boosts?.autoOff ? 0 : (boosts?.auto ?? 0);
     ctx.reply({ pms: (await deps.wild())[room] ?? [], ...(auto ? { auto } : {}) });
+  });
+
+  // revival_auto {on} (not of 2013): the 自动战斗仪 stopped (on 0: the battle screen's 停止自动战斗;
+  // its battles left are kept) or going on (on 1; in a wild battle it takes this one, a use of it).
+  // -> {on, left, auto}: whether the battle now under way fights by itself.
+  world.xt("PetExtension.revival_auto", async (ctx) => {
+    const o = await deps.load(ctx);
+    const boosts = ((o as PetItemOwner).boosts ??= {});
+    const on = Number(ctx.params.on) === 1;
+    const b = battles.get(o.id);
+    if (on && boosts.auto) {
+      delete boosts.autoOff;
+      if (b && !b.over && !b.auto && b.autoMay) {
+        b.auto = true;
+        boosts.auto -= 1;
+        if (boosts.auto <= 0) delete boosts.auto;
+      }
+    } else if (!on) boosts.autoOff = true;
+    await deps.save(o);
+    ctx.reply({ on: on && !boosts.autoOff, left: boosts.auto ?? 0, auto: !!b?.auto && !b.over && on }, "revival_auto");
   });
 
   const begin = async (
@@ -2132,8 +2176,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
     // battle while it lasts is fought by the battle screen itself (auto), one use each.
     const boosts = (o as PetItemOwner).boosts;
     // (A wild 亚比 of the room: the one battle that may be caught.)
-    const auto = !!boosts?.auto && catchable && !copyId && !sandbox;
+    const auto = !!boosts?.auto && !boosts.autoOff && catchable && !copyId && !sandbox;
     b.auto = auto;
+    b.autoMay = catchable && !copyId && !sandbox;
     if (auto && boosts) {
       boosts.auto = (boosts.auto ?? 0) - 1;
       if (boosts.auto <= 0) delete boosts.auto;
@@ -2147,7 +2192,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
       ["2303", { esc: true, sw: true, ch: canCatch, cd: catchStars(speciesOf(t, race)!.c[0]), chp: catchHpLimit(t, race), pmmList: engine.views(b) }],
       // boss: the opponent's id as the fight was asked for (variant * 10000 + species for the
       // bosses), by which the battle screen finds the boss's films (bossfightmovie/boss<id>).
-      ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race, ...(auto ? { auto: true, autoLeft: boosts?.auto ?? 0 } : {}) }],
+      // autoOff: a 自动战斗仪 with battles left that the player stopped (the screen offers it again).
+      ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race, ...(auto ? { auto: true, autoLeft: boosts?.auto ?? 0 } : boosts?.auto && b.autoMay ? { autoOff: true, autoLeft: boosts.auto } : {}) }],
     ]);
     // The 图鉴 (petdic.ts): the species met (not the 沙盒's).
     if (!sandbox && markDic(o, t, race, MET)) {
@@ -2830,7 +2876,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       out.push(...r.msgs);
       if (!b.noAward) {
         const used: string[] = [];
-        for (const k of [mult.exp === 3 ? "exp3" : mult.exp === 2 ? "exp2" : "", mult.ev === 2 ? "ev2" : "", boosts.radar ? "radar" : ""] as (keyof Boosts | "")[]) {
+        for (const k of [mult.exp === 3 ? "exp3" : mult.exp === 2 ? "exp2" : "", mult.ev === 2 ? "ev2" : "", boosts.radar ? "radar" : ""] as (Exclude<keyof Boosts, "autoOff"> | "")[]) {
           if (!k) continue;
           boosts[k] = Math.max(0, (boosts[k] ?? 0) - 1);
           if (!boosts[k]) delete boosts[k];
@@ -2900,6 +2946,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const forced = e.forcedOf(b.mine);
     // No PP left: the player's 亚比 does nothing this turn (no 挣扎); the other acts.
     if (!usable.length && forced === undefined) return idle(b, e, t);
+    // The 自动战斗仪's turn (skillId -1): the battle chooses (autoChoice).
+    if (id === -1 && b.auto) return e.skillTurn(b, forced ?? e.autoChoice(b));
     const chosen = usable.find((s) => s.id === id) ? id : usable.length ? usable[0].id : 0;
     return e.skillTurn(b, forced ?? chosen);
   });

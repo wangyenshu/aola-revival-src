@@ -32,6 +32,8 @@ export interface Boosts {
   radar?: number;
   /** 自动战斗仪 (44): battles in which the 亚比 fights by itself. */
   auto?: number;
+  /** The 自动战斗仪 stopped by the player (its battles kept; battle.ts revival_auto). */
+  autoOff?: boolean;
 }
 
 export interface PetItemOwner extends PetOwner {
@@ -75,7 +77,7 @@ const NATURE_SETS: Record<number, string[]> = {
 /** 强化药剂: [stat, points] for the next battle (its first 20 rounds). */
 export const BUFF_ITEMS: Record<number, [number, number]> = { 381: [3, 260], 382: [4, 260], 383: [1, 260], 384: [2, 260], 385: [5, 200] };
 /** Items used on no 亚比: what they count and for how many wins. */
-const BOOST_ITEMS: Record<number, [keyof Boosts, number]> = {
+const BOOST_ITEMS: Record<number, [Exclude<keyof Boosts, "autoOff">, number]> = {
   43: ["exp2", 50], 120: ["exp2", 20], 499: ["exp2", 50], 378: ["exp3", 50],
   62: ["ev2", 30], 189: ["radar", 20], 663: ["radar", 20], 44: ["auto", 100],
 };
@@ -124,6 +126,7 @@ export function applyPetItem(t: PetTables, o: PetItemOwner, ii: number, pet: Pet
     const [key, wins] = boost;
     const b = (o.boosts ??= {});
     b[key] = (b[key] ?? 0) + wins;
+    if (key === "auto") delete b.autoOff; // 开启 again
     const what = { exp2: "战斗经验翻倍", exp3: "战斗经验翻三倍", ev2: "学习力提升加倍", radar: "战斗胜利后可以得到晶币", auto: "亚比会自己战斗" }[key];
     return { ok: true, msg: `接下来的${b[key]}场战斗胜利，${what}！` };
   }
@@ -236,6 +239,42 @@ export function applyPetItem(t: PetTables, o: PetItemOwner, ii: number, pet: Pet
   return no("这个道具不能对亚比使用哦。");
 }
 
+/** Items one may use several of at once (useItem's num): 学习力果实, 摇摇果实, 初始亚比经验糖. */
+export const MULTI_ITEMS: number[] = [...Object.keys(EV_FRUITS), ...Object.keys(FRUIT_EXP), ...Object.keys(STARTER_EXP)].map(Number);
+
+/**
+ * Up to num of one item on a 亚比, one after another, stopping at the first that does nothing
+ * (学习力 full, level 100): what they did together, and how many were used (0: the first refused).
+ */
+export function applyPetItems(t: PetTables, o: PetItemOwner, ii: number, pet: PetRecord | undefined, num: number): Outcome & { used: number } {
+  const first = applyPetItem(t, o, ii, pet);
+  if (!first.ok || num <= 1 || !MULTI_ITEMS.includes(ii) || !pet) return { ...first, used: first.ok ? 1 : 0 };
+  const name = pet.nick || nameOf(t, pet.race);
+  const msgs: Msg[] = [...(first.msgs ?? [])];
+  let used = 1;
+  let raceChanged = !!first.raceChanged;
+  let stop = "";
+  const evBefore = EV_FRUITS[ii] !== undefined ? (pet.ev ?? [0, 0, 0, 0, 0, 0])[EV_FRUITS[ii]] : 0;
+  const expBefore = FRUIT_EXP[ii] ?? STARTER_EXP[ii] ?? 0;
+  while (used < num) {
+    const r = applyPetItem(t, o, ii, pet);
+    if (!r.ok) {
+      stop = r.msg;
+      break;
+    }
+    used++;
+    msgs.push(...(r.msgs ?? []));
+    raceChanged ||= !!r.raceChanged;
+  }
+  let msg: string;
+  if (EV_FRUITS[ii] !== undefined) {
+    const i = EV_FRUITS[ii];
+    msg = `使用了${used}个，${name}的${STAT_NAMES[i]}学习力增加了${(pet.ev ?? [])[i] - evBefore + Number(first.msg.match(/增加了(\d+)点/)?.[1] ?? 0)}点！`;
+  } else msg = `使用了${used}个，${name}获得了${expBefore * used}点经验！`;
+  if (stop) msg += `\n${stop}`;
+  return { ok: true, msg, msgs, raceChanged, used };
+}
+
 export function installPetItems(world: World, deps: PetItemDeps): void {
   world.xt("MaterialExtension.14_12", async (ctx) => {
     const ii = Number(ctx.params.ii) | 0;
@@ -248,13 +287,15 @@ export function installPetItems(world: World, deps: PetItemDeps): void {
     if ((bag[String(ii)] ?? 0) < 1) return reply(0, "你没有这个道具哦。");
     const pet = pi > 0 ? [...(o.pets ?? []), ...(o.storage ?? [])].find((p) => p.id === pi) : undefined;
     if (pi > 0 && !pet) return reply(0, "找不到这只亚比。");
-    const r = applyPetItem(t, o, ii, pet);
+    // num: several at once (MULTI_ITEMS), no more than one has.
+    const num = Math.max(1, Math.min(Number(ctx.params.num) | 0 || 1, bag[String(ii)], 999));
+    const r = applyPetItems(t, o, ii, pet, num);
     if (!r.ok) return reply(0, r.msg);
-    const left = bag[String(ii)] - 1;
+    const left = bag[String(ii)] - r.used;
     if (left > 0) bag[String(ii)] = left;
     else delete bag[String(ii)];
     await deps.save(o);
-    ctx.reply({ amount: `2_${ii}_0_-1` }, "onAmountUpdated");
+    ctx.reply({ amount: `2_${ii}_0_-${r.used}` }, "onAmountUpdated");
     for (const [cmd, body] of r.msgs ?? []) ctx.reply(body, cmd);
     if (r.raceChanged && pet) deps.changedRace?.(ctx, o, pet);
     reply(1, r.msg);

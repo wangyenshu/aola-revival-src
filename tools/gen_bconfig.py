@@ -14,14 +14,17 @@ whose file is not an era file are left out, so later clothes are not sold.
 
   tools/gen_bconfig.py --bconfig tools/data/live-bconfig.xml --mirror mirror \\
       --game game --materials rebuild/static/www.9aola.com/revival/materials.json \\
-      --out rebuild/gen/bconfig
+      --pets build/rebuilt/www.9aola.com/revival/pets.json --out rebuild/gen/bconfig
 
 With --game and --materials, page files that are in game/ but not in the
 mirror (copies taken from the live server later, tools/add_later.py, for
 books whose 2013 pages the archive lacks: the 道具, 家具, 种植 and 射击卡
 books) count too, when every item they sell (buttons btnBuy_<type>_<id>) is
 in the 2013 material data and they sell something: a page selling anything
-newer than January 2013 is a later page and stays out.
+newer than January 2013 is a later page and stays out. The guide books
+(GUIDES, the 超进化手册) sell nothing: their pages from game/ count when every
+道具 and 亚比 their tips name (tipsItem_<id>, tipsPet_<race>) is in the 2013
+material data and, with --pets, in the 2013 亚比 list.
 (tools/data/live-bconfig.xml is the live list: ConfigEmbed_bconfigClass.bin.)
 """
 from __future__ import annotations
@@ -41,6 +44,9 @@ HOST = "www.9aola.com"
 # 迷幻星域故事书 tells of the 迷幻星域 room, which the 家具商品册 sells on
 # jiaju30 (1/173), the eighteenth page in the live list's order (REVIVAL choice).
 FEATURED = {"catalog201003": [(30, 1)]}
+
+# Books that only tell (no 购买): the 超进化手册 (超进化方程式, its 亚比 and 道具 as tips).
+GUIDES = {"book201103"}
 
 
 def swf_body(b: bytes) -> bytes:
@@ -84,6 +90,17 @@ def sells_2013(materials: dict):
     return accept
 
 
+def names_2013(materials: dict, pets: dict | None):
+    """accept() for guide pages taken later: no 购买, and every 道具 and 亚比 they name is of 2013."""
+    def accept(n: int, body: bytes) -> bool:
+        if b"btnBuy_" in body:
+            return False
+        items = {i.decode() for i in re.findall(rb"tipsItem_(\d+)", body)}
+        races = {r.decode() for r in re.findall(rb"tipsPet_(\d+)", body)}
+        return bool(items or races) and items <= set(materials.get("2", {})) and (pets is None or races <= set(pets))
+    return accept
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--bconfig", required=True)
@@ -91,10 +108,13 @@ def main(argv=None) -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--game", help="game/: page files added from the live server count too (with --materials)")
     ap.add_argument("--materials", help="revival/materials.json, the 2013 material data")
+    ap.add_argument("--pets", help="revival/pets.json, the 2013 亚比 (for the guide books' pages)")
     a = ap.parse_args(argv)
-    later = None
+    later = guide = None
     if a.game and a.materials:
-        later = sells_2013(json.load(open(a.materials, encoding="utf-8")))
+        mats = json.load(open(a.materials, encoding="utf-8"))
+        later = sells_2013(mats)
+        guide = names_2013(mats, json.load(open(a.pets, encoding="utf-8")) if a.pets else None)
     text = open(a.bconfig, encoding="utf-8-sig").read()
     root = ET.fromstring(text)
     kept = dropped = 0
@@ -109,7 +129,7 @@ def main(argv=None) -> None:
             from_mirror = bool(era)
             if later is not None and t:
                 have = {n for n, _ in era}
-                era += [p for p in era_pages(a.game, f, t, later) if p[0] not in have]
+                era += [p for p in era_pages(a.game, f, t, guide if el.get("no") in GUIDES else later) if p[0] not in have]
             era_files = {n for n, _ in era}
             # The cover (file 1) from the live list, when game/ has its file at all.
             have_cover = not a.game or glob.glob(glob.escape(os.path.join(a.game, HOST, *f.split("/"))) + "1.swf*")

@@ -124,3 +124,55 @@ test("bought in the catalog: opened, what it held through onAmountUpdated, got i
   assert.equal(r2.res, 1);
   assert.equal(r2.got, undefined);
 });
+
+test("购买全套 (61_4): what one lacks of the 套装, its prices added up, all or none", async () => {
+  const materials = { 0: { 8: [9_000_000, 0, 0, 1, 0, "金冠"], 9: [200, 100, 0, 1, 0, "香蕉衣"], 10: [100, 50, 0, 1, 0, "香蕉裤"], 11: [50, 25, 0, 1, 0, "香蕉鞋"] } };
+  const store = new MemoryStore();
+  const host = createGameHost({ store, loadJson: async (p) => (p === "revival/materials.json" ? materials : undefined), toolbox: true });
+  const out: Uint8Array[] = [];
+  const s = host.attach({ remote: "t", send: (b) => out.push(b), close: () => {} });
+  let pn = -1;
+  const send = (payload: Uint8Array) => s.receive(encodeClientFrame((pn = nextPacketNum(pn)), payload));
+  const sp = new FrameSplitter(SFS2013_FRAMING);
+  let first = true;
+  const got: Record<string, unknown>[] = [];
+  const pull = () => {
+    let all = concat(...out.splice(0));
+    if (first && all[0] === 0x3c) all = all.subarray(all.indexOf(0) + 1);
+    first = false;
+    for (const f of sp.push(all)) {
+      const r = new Reader(f);
+      r.i32();
+      if (r.u8() === 1) got.push(r.amf3() as Record<string, unknown>);
+    }
+  };
+  const wait = async (cmd: string) => {
+    for (let i = 0; i < 300; i++) {
+      pull();
+      const k = got.findIndex((o) => o._cmd === cmd);
+      if (k >= 0) return got.splice(k, 1)[0];
+      await tick(10);
+    }
+    return undefined;
+  };
+  const xt = (ext: string, cmd: string, params: Record<string, unknown>) =>
+    send(clientPayload(1, Up.XtReq, 1).i16(EXT(ext)).utf(cmd).raw(amf3Encode(params)).body());
+  send(clientPayload(0, Up.Login, -1).utf("aola").utf("小奥拉").utf("").body());
+  assert.ok(await wait("logOK"));
+  xt("SundriesExtension", "revival_toolbox", { score: 1000 });
+  assert.ok(await wait("revival_toolbox"));
+  xt("MaterialExtension", "buyMaterial", { tp: 0, mi: 9, qt: 1 });
+  assert.equal((await wait("buyMaterial"))!.res, 1);
+  // Too little 晶币 for all: none is bought.
+  xt("MaterialExtension", "61_4", { m: "0,8,1;0,10,1" });
+  assert.equal((await wait("61_4"))!.res, -2);
+  got.length = 0;
+  // The 香蕉衣 had already is left out; the other two for 150.
+  xt("MaterialExtension", "61_4", { m: "0,9,1;0,10,1;0,11,1" });
+  const r = (await wait("61_4"))!;
+  assert.deepEqual([r.res, r.m], [1, "0,10,1;0,11,1"]);
+  assert.equal(r.score, (got.find((o) => o._cmd === "onScoreUpdated") as { score: number }).score);
+  assert.ok(got.some((o) => o._cmd === "onAmountUpdated" && o.amount === "0_10_0_1#0_11_0_1"));
+  xt("MaterialExtension", "61_4", { m: "0,9,1;0,10,1;0,11,1" });
+  assert.equal((await wait("61_4"))!.res, -4);
+});

@@ -4,7 +4,9 @@
 // gave what a bag holds when it was bought; that server and its list are lost.
 //
 // What each bag holds is RECONSTRUCTED from its 2013 ItemData description, or, where that says
-// nothing exact (271, 272, 299, 300, 321, 230), from what its catalog page shows. Left out: what
+// nothing exact (271, 272, 299, 300, 321, 230), from what its catalog page shows; 限量超进化礼包 (337,
+// "进化水晶助你轻松进化", sold by the 超进化机) holds the crystals of one of the later 超进化 (10
+// 次级进化水晶 and 4 进化水晶, superevo.ts). Left out: what
 // this revival has no data for (230's two 亚比服装, 299's HELLO服装 兔子头 and 亚比服装 半沙之子,
 // 300's 5色满天星, 321's 家园种植 things). The 经验 of a bag goes to the HELLO's 经验分配器 (as
 // quest 经验 does, RobotClient 2-12); before the player has a HELLO it waits for it (helloExp).
@@ -58,6 +60,7 @@ export const GIFT_BAGS: Record<number, GiftBag> = {
   299: { got: [UNDO(5), FIX(4), DOWN(5), RESHAPE(4)], exp: 100000, first: BALL_DRAGON("七", 286) },
   300: { got: [EGG("酷波", 481)], exp: 100000, first: BALL_DRAGON("四", 283) },
   321: { got: [EGG("年兽", 493), AUTO(1), LEARN2(2), EXP2(2), TALENT(3)], exp: 200000 },
+  337: { got: [I("次级进化水晶", 265, 10), I("进化水晶", 266, 4)] },
   462: { got: [I("天赋重组药剂", 178, 5), EXP2(2), RESHAPE(2), TALENT(2), LEARN2(1), AUTO(1)], exp: 60000 },
   463: { got: [["初级加速饲料", 13, 5, 4], ["中级加速饲料", 13, 6, 4], ["二星变异饲料", 13, 3, 4], ["小奶牛", 12, 10008, 1], ["小狸狸", 12, 10019, 1]], exp: 20000 },
   484: { got: [LEARN2(1), RADAR(1), RESHAPE(1), EGG("神蛋蛋", 765), EXP2(2)], exp: 110000 },

@@ -7,6 +7,7 @@ package mmo.scene.starland
    import flash.display.InteractiveObject;
    import flash.display.MovieClip;
    import flash.display.Sprite;
+   import flash.events.Event;
    import flash.events.MouseEvent;
    import flash.geom.Point;
    import mmo.play.scene.SceneManager;
@@ -101,15 +102,32 @@ package mmo.scene.starland
          // 财富小管家 (百田's guide of January 2012: the machine of 奥拉广场 that keeps
          // savings with interest; the later module keeps 晶豆): the red machine with the star of the 2012 art
          // (overlap.asdasd), which nothing else claims.
-         // The machine itself takes no clicks: a hotspot over it.
+         // The machine itself takes no clicks: a hotspot over it, taking the pointer only over
+         // what the machine draws (its bounds at the start were those of a bigger first frame,
+         // and the rectangle took clicks meant for the floor before it).
          var machine:DisplayObject = findNamed(this, "asdasd");
          if (machine != null)
          {
             // On top of the scene's layers (the bench before it would take the clicks).
-            var r:flash.geom.Rectangle = machine.getBounds(this);
-            var bank:Sprite = hotspot(r.x, r.y, r.width, r.height);
+            var bank:Sprite = new Sprite();
+            bank.buttonMode = true;
+            bank.alpha = 0;
             addChild(bank);
             bank.name = "fortuneMachine";
+            var self:Starland = this;
+            var fit:Function = function(e:Event = null):void
+            {
+               if (machine.stage == null || bank.parent == null) return;
+               var r:flash.geom.Rectangle = machine.getBounds(self);
+               bank.graphics.clear();
+               bank.graphics.beginFill(0xFFFFFF, 1);
+               bank.graphics.drawRect(r.x, r.y, r.width, r.height);
+               bank.graphics.endFill();
+               bank.mouseEnabled = machine.hitTestPoint(machine.stage.mouseX, machine.stage.mouseY, true);
+            };
+            fit();
+            fitBank = fit;
+            addEventListener(Event.ENTER_FRAME, fit);
             tips.addTips(bank, "财富小管家");
             bank.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void { e.stopPropagation(); });
             bank.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
@@ -127,6 +145,15 @@ package mmo.scene.starland
          var house:Sprite = hotspot(84, 258, 150, 70);
          tips.addTips(house, "家具店");
          addEntrances(house, "furnitureshop", "fromstarshopping");
+      }
+
+      private var fitBank:Function;
+
+      override protected function onLeaveRoom():void
+      {
+         if (fitBank != null) removeEventListener(Event.ENTER_FRAME, fitBank);
+         fitBank = null;
+         super.onLeaveRoom();
       }
 
       private static function findNamed(d:DisplayObject, name:String):DisplayObject

@@ -88,7 +88,15 @@ unset GEN
 java -jar "$FFDEC" -swf2swc "$OUT/swc/bconfig.swc" "$OUT/bconfig.swf" > /dev/null
 export EXTRA_SWC="$OUT/swc/play.swc $OUT/swc/bconfig.swc"
 build catalog mmo/bookclub/DocBookClub.as bookclub.swf "catalog/bookclubservice.swf%3F121101"
-build catalog mmo/catalog/DocCatalog.as catalog.swf "catalog/catalogservice.swf%3F130117"
+# catalogservice's 购买 dialogs are those of its copy under the 2013 URL (ConfirmBuy, ConfirmBuyClothes;
+# its later code left out, BuyFlow showing them).
+build catalog mmo/catalog/DocCatalog.as catalog-code.swf ""
+CD=mmo.catalog.dialogs
+python3 "$TOOLS/swf_transplant.py" --art "$(art catalog/catalogservice.swf)" --code "$OUT/catalog-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.catalog.DocCatalog --bind 163=$CD.ConfirmBuy --bind 161=$CD.ConfirmBuyClothes \
+  --bind 156=$CD.InfoPanel \
+  --note "REBUILT catalog/catalogservice (aola-revival) on the art of its copy under the 2013 URL" \
+  --out "$W/catalog/catalogservice.swf%3F130117"
 export EXTRA_SWC="$OUT/swc/play.swc"
 
 # Player card with the wardrobe: rebuilt usercard/usercardservice.
@@ -135,12 +143,30 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petpackage.swf)" --code "$OU
   --note "REBUILT pet/petpackage: rebuilt code (aola-revival) on the original 亚比背包 art" \
   --out "$W/pet/petpackage.swf%3F1210"
 # The bag's 道具 page: rebuilt pet/petitem (service PetItem; 14_12, server petitems.ts) on the
-# art of its later copy (the page, symbol 668, and its squares, 706).
+# art of its later copy (the page, symbol 668, its squares, 706, and 我要使用, 517).
 build petitem mmo/pet/petitem/DocPetItem.as petitem-code.swf ""
 python3 "$TOOLS/swf_transplant.py" --art "$(art pet/petitem.swf)" --code "$OUT/petitem-code.swf" --drop-art-abc \
   --bind 0=mmo.pet.petitem.DocPetItem --bind 668=mmo.pet.petitem.PetItemPanel --bind 706=mmo.pet.petitem.ItemView \
+  --bind 517=mmo.pet.petitem.QuantitySelectePanel \
   --note "REBUILT pet/petitem (aola-revival) on the art of its later copy" \
   --out "$W/pet/petitem.swf%3F130124"
+# The views of the tips (TipsManager): rebuilt library_res/common_res_tips on the art of its later
+# copy, whose own code calls what the 2013 libraries lack (every big tip failed with it).
+build tipsres mmo/revival/tipsres/DocTipsRes.as tipsres-code.swf ""
+TP=mmo.common.utils.tips
+python3 "$TOOLS/swf_transplant.py" --art "$(art library_res/common_res_tips.swf)" --code "$OUT/tipsres-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.tipsres.DocTipsRes --bind 12=$TP.TipsView --bind 8=$TP.TipsViewBig --bind 30=$TP.HtmlTipsViewBig --bind 27=$TP.SkillTipsViewBig \
+  --note "REBUILT library_res/common_res_tips (aola-revival) on the art of its later copy" \
+  --out "$W/library_res/common_res_tips.swf%3F121115"
+# The 超进化机 of the 亚比研究中心 (config of 7 February 2013: pet/superevolution v130131, lost): rebuilt
+# on the art of its 2015 copy, the 2013 超进化 only (贝鲁特 opens it; server superevo.ts).
+build superevolution mmo/superevolution/DocSuperEvolution.as superevolution-code.swf ""
+SE=mmo.superevolution
+python3 "$TOOLS/swf_transplant.py" --art "$(art pet/superevolution.swf)" --code "$OUT/superevolution-code.swf" --drop-art-abc --only-binds \
+  --bind 0=$SE.DocSuperEvolution --bind 858=$SE.SuperEvolutionPanel --bind 1679=$SE.EvoPanel --bind 1776=$SE.ChoosePetPanel \
+  --bind 1763=$SE.PetContainer --bind 1644=$SE.ItemView --bind 1754=$SE.EvolutionMovie --bind 1643=$SE.StopClip \
+  --note "REBUILT pet/superevolution (aola-revival) on the art of its 2015 copy" \
+  --out "$W/pet/superevolution.swf%3F1210"
 # The 植树盆's tree panel: rebuilt yz/treemanager (on the art of its 2016 build) and the
 # panels it opens, yz/panel_res (盆栽道具, 守护亚比; on their April 2012 art).
 build treemanager mmo/treemanager/DocTreeManager.as treemanager-code.swf ""
@@ -456,6 +482,15 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art scene/summerhotspring.swf)" \
 
 # The eggs being hatched (pet/peteggservice, lost): panels read them through it.
 build peteggservice mmo/pet/peteggservice/DocPetEggService.as peteggservice.swf "pet/peteggservice.swf%3F1210"
+# The pet choice panels (pet/petUIservice, lost): 天赋启迪's 选择亚比.
+build petui mmo/petUI/service/DocPetUIService.as petuiservice-code.swf ""
+# Its 选择亚比 is the chooser of the 2012 modules: character 29 of the era activityres/breakegg.
+rm -rf "$OUT/petselect"
+java -jar "$FFDEC" -selectid 29 -format sprite:swf -export sprite "$OUT/petselect" "$(art activityres/breakegg.swf)" > /dev/null
+python3 "$TOOLS/swf_transplant.py" --art "$(ls "$OUT"/petselect/DefineSprite_29*/1.swf)" --wrap-root 29 --drop-art-abc \
+  --code "$OUT/petuiservice-code.swf" --bind 0=mmo.petUI.service.DocPetUIService --bind 29=mmo.petUI.petselect.PetSelectPanel \
+  --note "REBUILT pet/petUIservice (aola-revival); its 选择亚比 is character 29 of the era activityres/breakegg" \
+  --out "$W/pet/petUIservice.swf%3F130103"
 # "PetPackage" (pet/newpetpackage, lost), asked for by scenes with bars of their own (时空隧道,
 # 实战特训场, the 竞技场): the control bar's 亚比 panel.
 build newpetpackage mmo/petpackage/service/DocNewPetPackage.as newpetpackage.swf "pet/newpetpackage.swf%3F121220"
@@ -531,6 +566,16 @@ for g in carsurf flycat flygame flystone gamellk goldpitman lubigame makecake ma
   f="$(art game/$g.swf)"
   python3 "$TOOLS/abc_rename.py" --rename startGame=hasEventListener \
     --note "LATER game/$g: SocketClient.startGame (later only) renamed hasEventListener (aola-revival, tools/abc_rename.py)" \
+    "$f" "$W/game/$(basename "$f")"
+done
+
+# The same for later games that have a startGame of their own (冰之迷阵's game/brickgame and six more
+# of the 2013 config): there the name goes to getBuddyByName, which the 2013 SocketClient has (one
+# String in, a lookup in the friend list, nothing sent) and nothing of these games is called.
+for g in brickgame chocolaterabbit eatbeans flyingunicorn onelinegame yinijump zuma; do
+  f="$(art game/$g.swf)"
+  python3 "$TOOLS/abc_rename.py" --rename startGame=getBuddyByName \
+    --note "LATER game/$g: SocketClient.startGame (later only) and the game's own startGame renamed getBuddyByName (aola-revival, tools/abc_rename.py)" \
     "$f" "$W/game/$(basename "$f")"
 done
 

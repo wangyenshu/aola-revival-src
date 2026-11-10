@@ -22,6 +22,7 @@ import { installParkour, type ParkourRankRow, type ParkourRec } from "./parkour.
 import { installMiniGames, type LimitBombRec, type LimitBombRow } from "./minigames.ts";
 import { installPlanetActs } from "./planetacts.ts";
 import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
+import { installSuperEvo } from "./superevo.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
 import { endModParty, installMods, stashModPets, type ModRec } from "./mods.ts";
 import { World, type XtContext } from "./server.ts";
@@ -414,6 +415,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     await emu.store.set(`uid/${rec.id}`, rec.name);
     // The 2013 client reads the worn clothes as "avatar" (SocketClient) and "c" (ClothesService).
     const follow = rec.pets?.find((p) => p.id === rec!.followPet);
+    riding.delete(rec.name); // a new login walks
     return {
       id: rec.id,
       name: rec.name,
@@ -706,6 +708,49 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ctx.reply({ res: 1, result: 1, tp: Number(tp), mi: Number(mi), qt, score: rec.score, ...(d.got !== undefined ? { got: d.got } : {}) });
   });
 
+  // MaterialClient.buyBatchMaterial (61_4) {m}: several things at once, a 商品册's 购买全套 (btnSetBuy_<套装>,
+  // ClothesData's ClothesSuit). The 2013 catalogservice that sent it is lost: m RECONSTRUCTED as
+  // "tp,mi,qt;tp,mi,qt;…". All or none: what one has already is left out, every price is added up
+  // (晶币, and 星币 for those of real money as buyMaterial takes them).
+  //   -> 61_4 {res (1, -1 not for sale, -2 too little 晶币, -4 nothing left to buy, -5 too little 星币,
+  //      -6 蓝宝石 only), m (what was bought), score, xingbi}, onScoreUpdated, onXingBiUpdate, onAmountUpdated
+  world.xt("MaterialExtension.61_4", async (ctx) => {
+    const rec = await me(ctx);
+    const tab = await table();
+    const want = String(ctx.params.m ?? "").split(";").slice(0, 40).map((x) => x.split(",").map((n) => Number(n) | 0));
+    const fail = (res: number) => ctx.reply({ res, m: "" }, "61_4");
+    const buy: { tp: string; mi: string; qt: number }[] = [];
+    let score = 0;
+    let coins = 0;
+    for (const [t, i, q] of want) {
+      const tp = String(t), mi = String(i), qt = Math.max(1, q || 1);
+      const row = tab[tp]?.[mi];
+      if (!row || tp === "9" || isGiftBag(tp, mi)) return fail(-1);
+      const [price, buyback, rmb, maxQ, vipOnly] = row;
+      if (vipOnly && !rec.vip) return fail(-6);
+      if (((rec.items ??= {})[tp]?.[mi] ?? 0) + qt > Math.max(1, maxQ) || buy.some((b) => b.tp === tp && b.mi === mi)) continue;
+      const unit = price > 0 ? price : buyback * 2;
+      if (unit <= 0 && rmb > 0) coins += (rec.vip ? Math.ceil(rmb / 2) : rmb) * qt;
+      else if (unit > 0) score += unit * qt;
+      else return fail(-1);
+      buy.push({ tp, mi, qt });
+    }
+    if (!buy.length) return fail(-4);
+    if ((rec.score ?? 0) < score) return fail(-2);
+    if ((rec.xingbi ?? 0) < coins) return fail(-5);
+    rec.score = (rec.score ?? 0) - score;
+    rec.xingbi = (rec.xingbi ?? 0) - coins;
+    for (const b of buy) {
+      const owned = (rec.items![b.tp] ??= {});
+      owned[b.mi] = (owned[b.mi] ?? 0) + b.qt;
+    }
+    await save(rec);
+    if (score) ctx.reply({ score: rec.score }, "onScoreUpdated");
+    if (coins) ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
+    ctx.reply({ amount: buy.map((b) => `${b.tp}_${b.mi}_0_${b.qt}`).join("#") }, "onAmountUpdated");
+    ctx.reply({ res: 1, m: buy.map((b) => `${b.tp},${b.mi},${b.qt}`).join(";"), score: rec.score, xingbi: rec.xingbi }, "61_4");
+  });
+
   // ---------------------------------------------------------------- gathering
 
   // GatherService (the original gather/gather): fruit, ore and soil points in scenes.
@@ -965,7 +1010,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // 坐骑 (the rebuilt pet/petride; PetClient2): 54_12 {pmId, cId} ride, 54_20 {} get off, 54_11 {pmId}
   // train. The 34 亚比 of the 2013 PetRideInfosMap and the 9 the later one adds up to 1651
   // (race: [ride clothes, speed, level]); only a 蓝宝骑士 rides. The ride clothes join the worn
-  // ones in the "avatar" user variable while riding (not saved: a new login walks).
+  // ones in the "avatar" user variable while riding (not saved: a new login walks), and the
+  // way of moving is the "ms" user variable the 2013 SocketClient tells as onMovingStateChanged
+  // ("ride;<speed>", "walk"), with which every client plays the rider's riding rows.
   const RIDE: Record<number, [number, number, number]> = {
     30: [10049, 1.2, 36], 45: [10047, 1.3, 36], 105: [10048, 1.2, 40], 141: [10051, 1.2, 36], 278: [10052, 1.5, 40], 138: [10050, 1.2, 36],
     198: [10053, 1.3, 36], 300: [10054, 1.2, 36], 189: [10055, 1.2, 40], 299: [10056, 1.3, 40], 153: [10057, 1.2, 40], 24: [10058, 1.2, 32],
@@ -990,13 +1037,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     if (!rec.vip) return ctx.reply({ succ: false, msg: "只有蓝宝骑士才能骑乘亚比哦！" }, "54_12");
     if (pet.level < ride[2]) return ctx.reply({ succ: false, msg: `要到${ride[2]}级才能骑乘哦！` }, "54_12");
     riding.set(rec.name, { pmId: pet.id, cloth: ride[0] });
-    world.setUserVars(ctx.session, { avatar: wornWithRide(rec), c: wornWithRide(rec) });
+    world.setUserVars(ctx.session, { avatar: wornWithRide(rec), c: wornWithRide(rec), ms: `ride;${ride[1]}` });
     ctx.reply({ succ: true, pmId: pet.id, cId: ride[0], sp: ride[1] }, "54_12");
   });
   world.xt("PetExtension.54_20", async (ctx) => {
     const rec = await me(ctx);
     riding.delete(rec.name);
-    world.setUserVars(ctx.session, { avatar: rec.avatar, c: rec.avatar });
+    world.setUserVars(ctx.session, { avatar: rec.avatar, c: rec.avatar, ms: "walk" });
     ctx.reply({ succ: true }, "54_20");
   });
   world.xt("PetExtension.54_11", async (ctx) => ctx.reply({ succ: true, pmId: Number(ctx.params.pmId) | 0 }, "54_11"));
@@ -1203,6 +1250,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     set: (k, v) => emu.store.set(k, v),
     pets: tables,
   });
+  // 亚比超进化 (the 超进化机, pet/superevolution): the same 54e_1, for the 亚比 that have a fourth form.
+  installSuperEvo(world, { load: me, save: (o) => save(o as UserRecord), tables });
 
   // 黑星堡垒 (viparena, VipArenaClient, VipTowerExtension): the floors one has reached and passed
   // (VipArenaLevelManager). Floor n is reached on entering its first room (viparena1, 4, 7) and

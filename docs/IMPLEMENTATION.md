@@ -178,6 +178,7 @@ extension name and command (`PetExtension.54_16`).
 | `costumes.ts` | the 2012 套装 the 守护者 and 武神大陆's generals leave a part of |
 | `godbosses.ts` | 天空之神 (拉诺斯), 施瓦辛格, 波塞冬 and 魔龙之战 (赤翼魔龙王), with the helpers that come out after the boss (`ActFight.team`) |
 | `yabistudy.ts` | 亚比研究中心's 亚比融合 (and its 孵化器) and 天赋启迪 |
+| `superevo.ts` | 亚比超进化 (the 超进化机, `PetExtension2.54e_1` after the 小独角兽's and the union 亚比's): the nine 超进化 of early 2013 and what each takes |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比, gifts and parties (their own 亚比 and 道具) |
 | `petcards.ts`, `petitems.ts`, `giftbags.ts` | 战术卡, 亚比道具, what each 礼包 holds |
 | `host.ts`, `accounts.ts`, `api.ts`, `saves.ts` | the game for any host; names and passwords (the lock on wrong ones); the shared server's small API; 存档 files, and the page's own 奥拉 |
@@ -218,7 +219,11 @@ The 2013 server's rules are lost. The main reconstructions:
   时空隧道, quests, 道馆) take a 高级活力豆 instead, of which they have no end:
   their turn goes on it (20 uses back on every skill) and they fight on.
   A 自动战斗仪 battle ends by itself, won or lost, and gives every 亚比 of the
-  bag all its 体力 and PP back, so that the next one can come.
+  bag all its 体力 and PP back, so that the next one can come. Its 亚比 uses
+  the hardest blow against this foe (power, 属性, same-属性 bonus and accuracy;
+  `autoChoice`, skill `-1`); the battle screen's 停止自动战斗 hands the turns to
+  the player and stops the device (its battles kept; `revival_auto`), 开启自动战斗
+  starts it again.
 - **Catching**: an ordinary 亚比球 works once a wild 亚比 is down to a fifth
   of its HP, earlier for easy species, at any HP for the 朵朵兔 (as the 2011
   walkthrough says); better balls raise the chance.
@@ -280,26 +285,30 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 
 | Folder | Module |
 | --- | --- |
-| `control` | the control bar (its icons cut from the 2012 picture of it in the 小屋 tutorial film, `ShotIcons`), the engine classes (see above), the 工具箱, the 沙盒, the 物品 panel, the place picker, the debug hook |
+| `control` | the control bar (its icons cut from the 2012 picture of it in the 小屋 tutorial film, `ShotIcons`, at their 2012 places), the engine classes (see above), the 工具箱, the 沙盒, the 物品 panel (in 副本 and for mods played alone; elsewhere the 信息卡's 道具), the place picker, the debug hook |
 | `play`, `login` | the boot modules |
-| `shared` | code compiled into several modules: `mmo.revival.*` (logging, JSON, base64, UI drawing, `RDef`), the mod API `mmo.revival.mod` |
+| `shared` | code compiled into several modules: `mmo.revival.*` (logging, JSON, base64, UI drawing, `RDef`, `RMaterialView`: a material's picture as it loads), the mod API `mmo.revival.mod` |
 | `scenes` | rebuilt scenes: 奥拉广场 and 流星购物街 (`starland`), 主题公园, 亚比研究中心, 奥拉之树, 生态园, 十字大道, 图书馆, 欢乐岛, 烈焰洞穴 (`feier4`), 崩坏的上古神殿 (`temple1`), 道具店, 奇草树林, the 沙盒 room |
 | `tasknpc`, `taskservice`, `taskdefines`, `taskextmanager`, `taskpanelnew`, `tasktransport`, `taskext` | NPCs, conversations and the quest engine; the newbie quest's scripts |
 | `pet`, `petpackage`, `newpetpackage`, `petwarehouse`, `petfollow`, `petride`, `peteggservice`, `pethatchegg`, `petskillmes`, `pmservice`, `petfight`, `wildpet`, `peticonservice`, `peticonfill` | 亚比 data, the 亚比 tables (PMService), the bag (and the "PetPackage" service that opens it), the 仓库, following, riding, eggs, the battle screen and battle entry, wild 亚比, 亚比 pictures |
 | `dailyactivity` | the 守护者 and event bosses, the planets' activities |
 | `fbservice`, `fbteam`, `fbchoosepanel` | the 四大副本 (later code on the 2013 interfaces) |
 | `spacetime` | 时空隧道 (later code) |
-| `catalog`, `bconfig`, `buyback`, `rmbmall` | the catalog books, the buy flow, the 兜兜回收器, the 商城 |
+| `catalog`, `bconfig`, `buyback`, `rmbmall` | the catalog books, the buy flow (catalog/catalogservice on the art of its copy under the 2013 URL: its ConfirmBuy and ConfirmBuyClothes dialogs), the 兜兜回收器, the 商城; the 超进化手册 (book201103) is a guide book of `gen_bconfig.py` (`GUIDES`: its later page files count when every 道具 and 亚比 they name is of 2013) |
 | `catalogpages` | the 收费亚比蛋商品册's first page (catalog/egg1), on its 2016 art |
 | `house`, `housecommon`, `garden`, `zoo` | the 小屋 (with yz/plantdecorator: the trees made furniture), the 家园, the 动物园 |
 | `zoopanels` | the 动物园's 2012 panels on their art (their later code cannot run on the 2013 files): the 动物仓库 (zoo/zoores_1), 动物园信息 (zoo/zoores), an animal's panel (zoo/petbreedingservice), each a module `zoo/revival/*` |
 | `treemanager`, `treepanelres`, `plantitemview` | the 植树盆's 2012 tree panel and films (yz/treemanager, on the art of its later copy), its 盆栽道具 and 守护亚比 panels (yz/panel_res, April 2012 art), the 盆栽道具's pictures (plantitem/view1 … view7, the era files lost: drawn from the 种植手册 and the tree manager's art) |
 | `gamemanager`, `parkour`, `catchanimalpanel` | mini games; 酷跑星世界; 动物捕捉's panel (its later art, the lost 动物乐园购买册 drawn) |
 | `shoot`, `shooteffect` | 射击 (later code on the 2013 interfaces) |
-| `usercard`, `face`, `scenetalk`, `helloicon`, `robotmanager`, `map`, `weekly`, `notifyview`, `scenearrow`, `sceneinit`, `antiaddiction`, `yakestarpanel` | the player card, faces, chat, the HELLO, the world map, the 奥拉周刊, notices, scene arrows, scene music, the play-time limit (never reached), 巨锁石灵's panel |
+| `usercard`, `face`, `scenetalk`, `helloicon`, `robotmanager`, `map`, `weekly`, `notifyview`, `scenearrow`, `sceneinit`, `antiaddiction`, `yakestarpanel` | the 人物信息卡 (drawn after the January 2012 游戏帮助's picture: 人物信息, 服装, 道具, VIP物品, 勋章), faces, chat, the HELLO, the world map, the 奥拉周刊, notices, scene arrows, scene music, the play-time limit (never reached), 巨锁石灵's panel |
 | `starcoin` | fortunemanager/starcoin (the later copy): the 星币 machine's exchange panel (奥币铸造星币, 碎片铸造星币, the 财富小管家's 晶豆储蓄), its code on the 2013 libraries without the real-money 购买星币 panel; fortunemanager/fortunemanager (later) is served as it is |
 | `wnking` | 狼王再现 and 夜王回归 (activity130221/wolfandnightking, 2016) on the 2013 libraries |
 | `petridepanel` | 亚比骑乘训练 (pet/petridepanel, its 2021 copy) on the 2013 libraries |
+| `petui` | pet/petUIservice: the choice of a 亚比 (天赋启迪's 选择亚比, a 超进化's), in the chooser the 2012 modules share (character 29 of activityres/breakegg) |
+| `superevolution` | pet/superevolution (the 超进化机, config of 7 February 2013, lost) on the art of its 2015 copy: the 2013 超进化 only, their cards laid out anew |
+| `petitem` | the bag's 道具 page (pet/petitem on its later art), with that art's 我要使用 (QuantitySelectePanel) |
+| `tipsres` | library_res/common_res_tips: the views of every tip (TipsView, TipsViewBig …) on the art of its later copy, whose code called what the 2013 libraries lack |
 | `helloskillicons` | the HELLO menu's skill icons, from the HELLO's own panels of 2012 (`robot/revival/helloskillicons`) |
 | `abyssevil` | 魔龙之战's panel (activity121220/abyssevilmainpanel, 2015) on the 2013 libraries, without the later buff bar |
 
@@ -309,7 +318,8 @@ For every 2013 service whose module is lost and not yet rebuilt,
 `tools/gen_stubs.py` generated a class with the original name and interface
 (`rebuild/gen/stubs/`, 147 modules). Every method returns an empty value and
 logs its first call (`[rebuilt] stub called: …` in the browser console). A
-click that reaches a stand-in shows 这个功能还在修复中.
+click that reaches a stand-in shows 这个功能还在修复中. A rebuilt module is listed in
+`rebuild/build/no-stub.txt`, or its stand-in, installed after it, takes its place.
 
 ### Using later code
 
@@ -323,8 +333,9 @@ the 2013 libraries do not have. They are handled in these ways:
   later interface, the rebuilt service defines that method in the later
   interface's AVM2 namespace, so the unchanged script finds it.
 - **Renamed calls**: `tools/abc_rename.py` renames one string in a SWF's
-  bytecode; 14 later mini games call `SocketClient.startGame`, which the 2013
-  library lacks, and now call a harmless method instead.
+  bytecode; 21 later mini games call `SocketClient.startGame`, which the 2013
+  library lacks, and now call a harmless method instead (`hasEventListener`;
+  `getBuddyByName` for the seven with a `startGame` of their own, 冰之迷阵 among them).
 - **Transplanted**: `tools/swf_transplant.py` puts compiled code into an
   original SWF's art, binding the art's symbols to the new classes (the art's
   own classes are renamed `…Revived` so they do not shadow the new ones).
@@ -418,8 +429,12 @@ from the November 2012 world map and the later location table, and for the
 story rooms of 风暴星系 from `tools/data/wildpets-extra.json` (its sources per
 亚比). The
 following 亚比 wears its walking figure (`PetClothesMap` → `skin/a0<id>`)
-or, without one, its large picture. Riding (`pet/petride`) draws the ride's
-two layers under and over the raised rider.
+or, without one, its large picture. Riding (`pet/petride`) is the engine's own:
+the player's actions turn to their riding rows (`ddzr`, `ddwr`: the "r" of
+ActionInfo, `RidingMovingState`), where the clothes sit higher and the ride
+clothes (`skin/a0100xx`, `SkinInfoForRidingPet`) draw the 坐骑, its stand movie
+while standing; the server shares it as the `ms` user variable (`ride;<speed>`,
+`walk`), which the 2013 SocketClient tells every client as `onMovingStateChanged`.
 
 ### Bosses
 
@@ -483,6 +498,8 @@ The catalog books (`catalog/*`) page through the archived page SWFs; the
 pages to show and their order come from `rebuild/gen/bconfig`. The buy flow
 uses the original material services. 晶币 pay for ordinary goods; goods
 priced in real money in 2012 are paid in 星币, which only the 工具箱 gives.
+A page's 全套购买 (`btnSetBuy_<套装>`) buys the 2013 ClothesSuit's clothes one
+lacks in one `buyBatchMaterial` (`61_4`, "tp,mi,qt;…", RECONSTRUCTED).
 
 ### Home, garden and zoo
 
@@ -496,7 +513,8 @@ art). 我的荣誉 is the era `honour/honourservice` with the April 2013
 `honour/honour_res` and the 280 `honouricon` pictures; the server is
 `honour.ts`. The bar's 勋章 is the player card's 勋章 page (`usercard/usercard_badge`,
 its later copy), its 勋章 from the server's `70-1` (`honour.ts`). The 植树盆 offers
-the owner's 树苗 (`SaplingPicker`; bought in the 种植手册, kept by `plants.ts`). A player's avatar in a picture (the garden's cards, the zoo's
+the owner's 树苗 (`SaplingPicker`; bought in the 种植手册, kept by `plants.ts`); a tree's
+panel is the rebuilt `yz/treemanager` (kept out of the stand-ins, `no-stub.txt`). A player's avatar in a picture (the garden's cards, the zoo's
 动物园信息) is the rebuilt `useravatar/useravatarservice` (`mmo.revival.RAvatar`). The 小屋 is built by the
 rebuilt `house/houseloader` from the player's house record. The 动物园
 (`furniture/b020000`) stands on the art of a later copy with code for the

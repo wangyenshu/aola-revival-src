@@ -1,5 +1,6 @@
 package mmo.revival.book
 {
+   import mmo.common.dialog.NewDialog;
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.InteractiveObject;
@@ -522,8 +523,8 @@ package mmo.revival.book
                else if (/^btnPage\d$/.test(n) && t.parent == frame) go(group * GROUP + int(n.charAt(7)));
                else if (n == "btnReturn" || low == "btnhomepage") go(0);
                else if (n.indexOf("btnjumppage_") == 0 && n.split("_").length >= 3) go(Math.max(0, book.getPageIndex(int(n.split("_")[1]), int(n.split("_")[2]))));
-               else if (n == "btnBlue") BuyFlow.message("蓝宝石可以在工具箱里开通哦！");
-               else if (n == "btnStarCoin" || n == "btnbuysth") BuyFlow.message("星币可以在工具箱里得到哦！");
+               else if (n == "btnBlue") NewDialog.showMessage("蓝宝石可以在工具箱里开通哦！");
+               else if (n == "btnStarCoin" || n == "btnbuysth") NewDialog.showMessage("星币可以在工具箱里得到哦！");
                else done = onPageClick != null && onPageClick(n) === true;
                if (done)
                {

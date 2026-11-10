@@ -1,17 +1,12 @@
 package mmo.revival.book
 {
    import flash.display.DisplayObject;
-   import flash.display.GradientType;
    import flash.display.Sprite;
-   import flash.events.Event;
-   import flash.events.FocusEvent;
-   import flash.events.MouseEvent;
-   import flash.filters.DropShadowFilter;
-   import flash.geom.Matrix;
-   import flash.text.TextField;
-   import flash.text.TextFieldAutoSize;
-   import flash.text.TextFieldType;
-   import flash.text.TextFormat;
+   import mmo.catalog.dialogs.ConfirmBuy;
+   import mmo.catalog.dialogs.ConfirmBuyClothes;
+   import mmo.common.ModalDialog;
+   import mmo.common.ModalDialogEvent;
+   import mmo.common.dialog.NewDialog;
    import mmo.common.member.MemberManager;
    import mmo.common.user.UserInfo;
    import mmo.framework.comm.SocketClient;
@@ -22,25 +17,30 @@ package mmo.revival.book
    import mmo.interfaces.material.IMaterialFactory;
    import mmo.interfaces.material.IMaterialService;
    import mmo.interfaces.material.Material;
-   import mmo.loader.layer.LayerManager;
+   import mmo.interfaces.material.clothes.ClothesSuit;
+   import mmo.interfaces.material.clothes.IClothesService;
+   import mmo.interfaces.avatar.IAvatarService;
+   import flash.geom.Rectangle;
+   import flash.utils.setTimeout;
+   import mmo.revival.RMaterialView;
    import mmo.revival.RLog;
 
    /**
-    * REBUILT buying (the 2013 confirm dialog was in the lost
-    * catalog/catalogservice; drawn here). Shows the item's picture, name and
-    * price from the 2013 material data, then sends MaterialClient.buyMaterial
-    * (MaterialExtension "buyMaterial" {tp, mi, qt}) and waits for the reply
-    * {res, tp, mi, qt}; the server also pushes onAmountUpdated (the original
-    * AmountUpdateService adds the item) and onScoreUpdated (晶币).
+    * REBUILT buying, in catalog/catalogservice only (the book modules buy through its
+    * BuyMaterialService<type>). The dialogs are those of the catalogservice art under the 2013 URL
+    * (mmo.catalog.dialogs: ConfirmBuy, ConfirmBuyClothes; the 2013 copy is lost): the
+    * item's picture, name and price from the 2013 material data, 购买数量 with the 2013 library's
+    * UseNumericComponent (from 1 to the most one may have, a plant one), then
+    * MaterialClient.buyMaterial (MaterialExtension "buyMaterial" {tp, mi, qt}) and its reply
+    * {res, tp, mi, qt}; the server also pushes onAmountUpdated (the original AmountUpdateService
+    * adds the item) and onScoreUpdated (晶币). What was bought, or what went wrong, is said with the
+    * 2013 NewDialog (a purchase with the thing's picture large in it).
     *
-    * Goods of real money (rmb, priced in 星币 on the era pages, "原价" and
-    * the half "蓝宝石价") are bought with 星币 (UserInfo.xingbi, which the
-    * revival's 工具箱 adds): buyMaterial with ed = true, the server takes
-    * the 星币 and pushes onXingBiUpdate.
+    * Goods of real money (rmb, priced in 星币 on the era pages, "原价" and the half "蓝宝石价") are
+    * bought with 星币 (UserInfo.xingbi, which the revival's 工具箱 adds): buyMaterial with ed = true,
+    * the server takes the 星币 and pushes onXingBiUpdate.
     *
-    * How many: the 2013 dialog's count, as the 2013 library's UseNumericComponent
-    * works it (mc_usenum: btnFirst, btnDec, txtValue for digits, btnAdd, btnEnd;
-    * from 1 to the most one may have, a plant one), the price following it.
+    * 购买全套 (buySet): a 套装's clothes in one buyBatchMaterial, in the clothes' dialog.
     */
    public class BuyFlow
    {
@@ -67,7 +67,7 @@ package mmo.revival.book
          // A tree is bought as a 树苗, kept until it is planted (several may be had).
          if (material.maxQuantity <= 1 && info.type != 9 && service.hasMaterial(info.id))
          {
-            message("你已经有" + material.name + "了！");
+            fail("你已经有" + material.name + "了！");
             if (done != null) done(false);
             return;
          }
@@ -83,7 +83,7 @@ package mmo.revival.book
          var packs:int = info.type == 9 ? 1 : Math.min(9999, int(room / Math.max(1, info.unitage)));
          if (packs < 1)
          {
-            message("你的" + material.name + "已经满了，不能再买了哦！");
+            fail("你的" + material.name + "已经满了，不能再买了哦！");
             if (done != null) done(false);
             return;
          }
@@ -102,19 +102,21 @@ package mmo.revival.book
          }
          // What is sent (realQuantity: packs × their size, a book's "×n" button) is what the server charges for.
          info.quantity = Math.max(1, Math.min(info.quantity, packs));
-         confirm(material, info, unit, packs, service, starCoins, member, function(ok:Boolean):void
+         // What 蓝宝石 saves (its half price of goods of real money), shown in the dialog.
+         var saving:int = starCoins ? rmb - Math.ceil(rmb / 2) : 0;
+         confirm(material, info, unit, packs, service, starCoins, member, saving, function(ok:Boolean):void
          {
             if (!ok) { if (done != null) done(false); return; }
             var price:int = unit * Math.max(1, info.realQuantity);
             if (!starCoins && UserInfo.score >= 0 && UserInfo.score < price)
             {
-               message("你的晶币不够哦！");
+               fail("你的晶币不够哦！");
                if (done != null) done(false);
                return;
             }
             if (starCoins && UserInfo.xingbi < price)
             {
-               message("你的星币不够哦！（工具箱里可以增加星币）");
+               fail("你的星币不够哦！（工具箱里可以增加星币）");
                if (done != null) done(false);
                return;
             }
@@ -124,20 +126,108 @@ package mmo.revival.book
                var res:int = int(e.params.res);
                if (e.params.xingbi != undefined) UserInfo.xingbi = int(e.params.xingbi);
                // A 礼包 is opened at once: got says what it held (server giftbags.ts).
+               var place:String = info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包";
+               var n:int = Math.max(1, info.realQuantity);
                if (res == 1 && e.params.got != undefined) message("购买成功！打开了" + material.name + "，得到：" + String(e.params.got) + "。" + (String(e.params.got).indexOf("经验") >= 0 ? "经验放进了家园的经验分配器。" : ""));
-               else if (res == 1 && info.type == 9) message("购买成功！到家园点一下植树盆，就可以种下" + material.name + "。");
-               else if (res == 1) message("购买成功！" + material.name + "已经放进你的" + (info.type == 0 ? "衣橱" : info.type == 1 ? "家具仓库" : "背包") + "。");
-               else if (res == -2) message("你的晶币不够哦！");
-               else if (res == -5) message("你的星币不够哦！（工具箱里可以增加星币）");
-               else if (res == -6) message("只有蓝宝石才能购买哦！");
-               else if (res == -4 && info.type == 9) message("你的" + material.name + "树苗已经满了，不能再买了哦！");
-               else if (res == -4) message("你已经有" + material.name + "了！");
-               else message("没有买成，请再试一次。");
+               else if (res == 1 && info.type == 9) bought(material.name + "的树苗已经放入你的背包中。到家园点一下植树盆，就可以种下它。", view(service, info.id, info.type));
+               else if (res == 1) bought(n + (info.type == 0 ? "件" : "个") + material.name + "已经放入你的" + place + "中。", view(service, info.id, info.type));
+               else if (res == -2) fail("你的晶币不够哦！");
+               else if (res == -5) fail("你的星币不够哦！（工具箱里可以增加星币）");
+               else if (res == -6) fail("只有蓝宝石才能购买哦！");
+               else if (res == -4 && info.type == 9) fail("你的" + material.name + "树苗已经满了，不能再买了哦！");
+               else if (res == -4) fail("你已经有" + material.name + "了！");
+               else fail("没有买成，请再试一次。");
                if (done != null) done(res == 1);
             };
             SocketClient.instance.addEventListener(MaterialClient.cmdBuyMaterial, onReply);
             MaterialClient.getInstance().buyMaterial(info.type, info.id, info.realQuantity, starCoins);
          });
+      }
+
+      /**
+       * 购买全套 (a page's btnSetBuy_<套装>): the clothes of the 2013 ClothesSuit one has not yet, at
+       * their prices added up, in one MaterialClient.buyBatchMaterial (61_4, "tp,mi,qt;…").
+       */
+      public static function buySet(suitId:int, done:Function):void
+      {
+         var suit:ClothesSuit = null;
+         var service:IMaterialService = null;
+         try
+         {
+            suit = (ServiceContainer.getService(IClothesService) as IClothesService).getSuitDataById(suitId);
+            service = (ServiceContainer.getService(IMaterialFactory) as IMaterialFactory).getService(0);
+         }
+         catch (e:Error) { RLog.error("buy set " + suitId, e); }
+         if (suit == null || service == null)
+         {
+            message("这套服装现在买不到哦。");
+            if (done != null) done(false);
+            return;
+         }
+         var member:Boolean = isMember();
+         var want:Array = [];
+         var names:Array = [];
+         var score:int = 0;
+         var coins:int = 0;
+         var saved:int = 0;
+         var had:int = 0;
+         var firstId:int = 0;
+         for each (var id:int in suit.clothesList)
+         {
+            var m:Material = null;
+            try { m = service.getMaterialById(id); } catch (e1:Error) {}
+            if (m == null) continue;
+            if (service.hasMaterial(id)) { had++; continue; }
+            if (m.vip && !member)
+            {
+               message("只有蓝宝石才能购买" + m.name + "哦！（工具箱里可以成为蓝宝石）");
+               if (done != null) done(false);
+               return;
+            }
+            var unit:int = m.price > 0 ? m.price : m.sale * 2;
+            if (unit <= 0 && m.rmb > 0)
+            {
+               coins += member ? Math.ceil(m.rmb / 2) : m.rmb;
+               saved += m.rmb - Math.ceil(m.rmb / 2);
+            }
+            else score += unit;
+            if (firstId == 0) firstId = id;
+            want.push("0," + id + ",1");
+            names.push(m.name);
+         }
+         if (want.length == 0)
+         {
+            message("你已经有全套" + suit.suitName + "了！");
+            if (done != null) done(false);
+            return;
+         }
+         var answer:Function = function(ok:Boolean):void
+         {
+            if (!ok) { if (done != null) done(false); return; }
+            if (UserInfo.score >= 0 && UserInfo.score < score) { fail("你的晶币不够哦！"); if (done != null) done(false); return; }
+            if (UserInfo.xingbi < coins) { fail("你的星币不够哦！（工具箱里可以增加星币）"); if (done != null) done(false); return; }
+            var onReply:Function = function(e:SocketClientEvent):void
+            {
+               SocketClient.instance.removeEventListener(MaterialClient.cmdBuyBatchMateriaal, onReply);
+               var res:int = int(e.params.res);
+               if (e.params.xingbi != undefined) UserInfo.xingbi = int(e.params.xingbi);
+               if (res == 1) bought(want.length + "件" + suit.suitName + "已经放入你的衣橱中。", view(service, firstId, 0));
+               else if (res == -2) fail("你的晶币不够哦！");
+               else if (res == -5) fail("你的星币不够哦！（工具箱里可以增加星币）");
+               else if (res == -6) fail("只有蓝宝石才能购买哦！");
+               else if (res == -4) fail("你已经有全套" + suit.suitName + "了！");
+               else fail("没有买成，请再试一次。");
+               if (done != null) done(res == 1);
+            };
+            SocketClient.instance.addEventListener(MaterialClient.cmdBuyBatchMateriaal, onReply);
+            MaterialClient.getInstance().buyBatchMaterial(want.join(";"));
+         };
+         // The clothes' dialog: the 套装 (how many pieces, how many one has) at its prices added up,
+         // in 晶币 or, for clothes of real money, 星币 (half for 蓝宝石).
+         var name:String = suit.suitName;
+         // (a 套装 of both 晶币 and 星币 clothes: the 晶币 part said beside it)
+         if (score > 0 && coins > 0) name += " +" + score + "晶币";
+         ask(new ConfirmBuyClothes(new BuyMaterialInfo(0, firstId, 1, 1), view(service, firstId, 0), name, coins > 0 ? coins : score, coins > 0, member, coins > 0 ? saved : 0), answer);
       }
 
       private static function isMember():Boolean
@@ -146,242 +236,96 @@ package mmo.revival.book
          return false;
       }
 
-      private static function confirm(m:Material, info:BuyMaterialInfo, unit:int, packs:int, service:IMaterialService, starCoins:Boolean, member:Boolean, answer:Function):void
+      private static function confirm(m:Material, info:BuyMaterialInfo, unit:int, packs:int, service:IMaterialService, starCoins:Boolean, member:Boolean, saving:int, answer:Function):void
       {
-         var counted:Boolean = packs > 1;
-         var h:int = counted ? 250 : 210;
-         var box:Sprite = panel(360, h);
-         var title:TextField = text(16, 0x1A5FA8, true);
-         title.text = "确认购买";
-         title.x = (360 - title.width) / 2;
-         title.y = 12;
-         box.addChild(title);
-         var pic:Sprite = new Sprite();
-         pic.x = 30;
-         pic.y = 50;
-         box.addChild(pic);
-         try
-         {
-            var view:DisplayObject = service.getView(info.id);
-            if (view != null)
-            {
-               var b:Object = view.getBounds(view);
-               var s:Number = Math.min(1, 100 / Math.max(1, b.width), 100 / Math.max(1, b.height));
-               view.scaleX = view.scaleY = s;
-               view.x = -b.left * s + (100 - b.width * s) / 2;
-               view.y = -b.top * s + (100 - b.height * s) / 2;
-               pic.addChild(view);
-            }
-         }
-         catch (e:Error) {}
-         var name:TextField = text(15, 0x333333, true);
-         name.text = m.name + (info.unitage > 1 ? "（每份" + info.unitage + "个）" : "");
-         name.x = 150;
-         name.y = 58;
-         box.addChild(name);
-         var cost:TextField = text(14, 0xC77700, true);
-         cost.x = 150;
-         cost.y = 86;
-         box.addChild(cost);
-         var each:TextField = text(12, 0x666666, false);
-         each.x = 150;
-         each.y = 108;
-         box.addChild(each);
-         var have:TextField = text(12, 0x666666, false);
-         have.text = starCoins ? "我的星币：" + UserInfo.xingbi : "我的晶币：" + (UserInfo.score < 0 ? "…" : String(UserInfo.score));
-         have.x = 150;
-         have.y = 126;
-         box.addChild(have);
-         var showPrice:Function = function():void
-         {
-            var price:int = unit * Math.max(1, info.realQuantity);
-            cost.text = price <= 0 ? "免费" : starCoins ? "价格：" + price + " 星币" + (member ? "（蓝宝石价）" : "") : "价格：" + price + " 晶币";
-            each.text = counted && unit > 0 ? "单价：" + unit + (starCoins ? " 星币" : " 晶币") : "";
-         };
-         showPrice();
-         if (counted) box.addChild(counter(info, packs, showPrice));
-         var ok:Sprite = pill("购 买", 0x40A93C, function():void { remove(box); answer(true); });
-         ok.name = "buyOk";
-         ok.x = 70;
-         ok.y = h - 50;
-         box.addChild(ok);
-         var no:Sprite = pill("取 消", 0x8A8A8A, function():void { remove(box); answer(false); });
-         no.name = "buyCancel";
-         no.x = 200;
-         no.y = h - 50;
-         box.addChild(no);
-         show(box);
-      }
-
-      /**
-       * 购买数量: |< − [n] + >| and the most, as UseNumericComponent: digits only, an empty or 0
-       * field goes back to 1, more than the most becomes the most; each change sets info.quantity.
-       */
-      private static function counter(info:BuyMaterialInfo, most:int, changed:Function):Sprite
-      {
-         var row:Sprite = new Sprite();
-         row.name = "buyCount";
-         row.x = 30;
-         row.y = 158;
-         var label:TextField = text(14, 0x333333, true);
-         label.text = "购买数量：";
-         label.y = 4;
-         row.addChild(label);
-         var field:TextField = new TextField();
-         field.name = "txtValue";
-         field.type = TextFieldType.INPUT;
-         field.defaultTextFormat = new TextFormat("Arial", 14, 0x333333, true, null, null, null, null, "center");
-         field.restrict = "0-9";
-         field.maxChars = 4;
-         field.border = true;
-         field.borderColor = 0x3A8FD9;
-         field.background = true;
-         field.backgroundColor = 0xFFFFFF;
-         field.width = 52;
-         field.height = 22;
-         field.x = 136;
-         field.y = 3;
-         var buttons:Array = [];
-         var put:Function = function(n:int):void
-         {
-            info.quantity = Math.max(1, Math.min(most, n));
-            field.text = String(info.quantity);
-            for each (var bt:Object in buttons) bt.b.alpha = bt.on() ? 1 : 0.4;
-            changed();
-         };
-         var button:Function = function(caption:String, x:int, to:Function, on:Function, name:String):void
-         {
-            var b:Sprite = new Sprite();
-            b.name = name;
-            b.buttonMode = true;
-            b.mouseChildren = false;
-            b.graphics.lineStyle(1, 0xFFFFFF);
-            b.graphics.beginFill(0x3A8FD9);
-            b.graphics.drawRoundRect(0, 0, 24, 22, 8, 8);
-            b.graphics.endFill();
-            var t:TextField = text(13, 0xFFFFFF, true);
-            t.text = caption;
-            t.x = (24 - t.width) / 2;
-            t.y = 2;
-            b.addChild(t);
-            b.x = x;
-            b.y = 3;
-            b.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); if (on()) put(to()); });
-            row.addChild(b);
-            buttons.push({b: b, on: on});
-         };
-         button("|<", 78, function():int { return 1; }, function():Boolean { return info.quantity > 1; }, "btnFirst");
-         button("-", 106, function():int { return info.quantity - 1; }, function():Boolean { return info.quantity > 1; }, "btnDec");
-         row.addChild(field);
-         button("+", 192, function():int { return info.quantity + 1; }, function():Boolean { return info.quantity < most; }, "btnAdd");
-         button(">|", 220, function():int { return most; }, function():Boolean { return info.quantity < most; }, "btnEnd");
-         var max:TextField = text(12, 0x666666, false);
-         max.text = "最多" + most;
-         max.x = 252;
-         max.y = 6;
-         row.addChild(max);
-         field.addEventListener(Event.CHANGE, function(e:Event):void
-         {
-            if (field.text == "") return;
-            var n:int = int(field.text);
-            if (n < 1 || n > most) put(n);
-            else
-            {
-               info.quantity = n;
-               for each (var bt:Object in buttons) bt.b.alpha = bt.on() ? 1 : 0.4;
-               changed();
-            }
-         });
-         field.addEventListener(FocusEvent.FOCUS_OUT, function(e:FocusEvent):void { put(int(field.text)); });
-         // A click into the field takes all of it, so that the number typed replaces it.
-         var fresh:Boolean = false;
-         field.addEventListener(FocusEvent.FOCUS_IN, function(e:FocusEvent):void { fresh = true; });
-         field.addEventListener(MouseEvent.MOUSE_UP, function(e:MouseEvent):void
-         {
-            if (fresh) field.setSelection(0, field.length);
-            fresh = false;
-         });
-         put(info.quantity);
-         return row;
+         var name:String = m.name;
+         if (info.type == 0) ask(new ConfirmBuyClothes(info, view(service, info.id, info.type), name, unit, starCoins, member, saving), answer);
+         else ask(new ConfirmBuy(info, view(service, info.id, info.type), name, unit, packs, starCoins, member, saving), answer);
       }
 
       public static function message(s:String):void
       {
-         var t:TextField = text(14, 0x333333, true);
-         t.wordWrap = true;
-         t.width = 280;
-         t.text = s;
-         t.x = 20;
-         t.y = 24;
-         // As tall as the text needs (a 礼包's list runs to several lines).
-         var okY:int = Math.max(84, int(t.y + t.height + 14));
-         var box:Sprite = panel(320, okY + 46);
-         box.addChild(t);
-         var ok:Sprite = pill("确 定", 0x3A8FD9, function():void { remove(box); });
-         ok.name = "msgOk";
-         ok.x = 115;
-         ok.y = okY;
-         box.addChild(ok);
-         show(box);
+         NewDialog.showMessage(s);
       }
 
-      private static function show(box:Sprite):void
+      private static function fail(s:String):void
       {
-         var layer:Sprite = new Sprite();
-         layer.graphics.beginFill(0x000000, 0.25);
-         layer.graphics.drawRect(0, 0, 960, 560);
-         layer.graphics.endFill();
-         layer.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); });
-         box.x = Math.round((960 - box.width) / 2);
-         box.y = Math.round((560 - box.height) / 2);
-         layer.addChild(box);
-         LayerManager.getBaseTop().addChild(layer);
+         NewDialog.showFailMessage(s);
       }
 
-      private static function remove(box:Sprite):void
+      /**
+       * 购买成功: what was bought and where it went, with its picture in the 2013 message dialog's
+       * picture square (NewDialog.showMessage's icon, fitted large in the middle of the dialog), once
+       * the picture has loaded.
+       */
+      private static function bought(s:String, view:DisplayObject):void
       {
-         if (box.parent && box.parent.parent) box.parent.parent.removeChild(box.parent);
+         if (view == null)
+         {
+            NewDialog.showSucceedMessage(s);
+            return;
+         }
+         var tries:int = 0;
+         var go:Function = function():void
+         {
+            var own:Rectangle = view.getBounds(view);
+            var ready:Boolean = own.width > 0 && own.height > 0;
+            if (!ready && ++tries < 60)
+            {
+               setTimeout(go, 50);
+               return;
+            }
+            if (!ready)
+            {
+               NewDialog.showSucceedMessage(s);
+               return;
+            }
+            // IconDialogBase fits a picture drawn from its top left.
+            var pic:Sprite = new Sprite();
+            view.scaleX = view.scaleY = 1;
+            view.x = -own.x;
+            view.y = -own.y;
+            pic.addChild(view);
+            NewDialog.showMessage(s, pic);
+         };
+         go();
       }
 
-      private static function panel(w:int, h:int):Sprite
+      /** A dialog of the art (DialogBase): answer(true) on 购买, answer(false) on 取消 or the close. */
+      private static function ask(dialog:Sprite, answer:Function):void
+      {
+         var md:ModalDialog = ModalDialog.getCustomDialog(dialog);
+         var done:Boolean = false;
+         md.addEventListener(ModalDialogEvent.OK, function(e:ModalDialogEvent):void { if (!done) { done = true; answer(true); } });
+         md.addEventListener(ModalDialogEvent.CANCEL, function(e:ModalDialogEvent):void { if (!done) { done = true; answer(false); } });
+         md.show();
+      }
+
+      private static function view(service:IMaterialService, id:int, type:int):DisplayObject
+      {
+         if (type == 0) return clothesView(id);
+         return RMaterialView.of(service, id);
+      }
+
+      /** A piece of clothes' picture (IAvatarService.getClothesIcon, as the later dialog has it), about its middle, 56 across. */
+      private static function clothesView(id:int):DisplayObject
       {
          var s:Sprite = new Sprite();
-         var m:Matrix = new Matrix();
-         m.createGradientBox(w, h, Math.PI / 2);
-         s.graphics.lineStyle(3, 0x3A8FD9);
-         s.graphics.beginGradientFill(GradientType.LINEAR, [0xFFFFFF, 0xDDF0FF], [1, 1], [0, 255], m);
-         s.graphics.drawRoundRect(0, 0, w, h, 22, 22);
-         s.graphics.endFill();
-         s.filters = [new DropShadowFilter(3, 90, 0, 0.4, 8, 8)];
+         try
+         {
+            (ServiceContainer.getService(IAvatarService) as IAvatarService).getClothesIcon(id, -1, -1, function(i:int, icon:Sprite):void
+            {
+               if (icon == null) return;
+               var b:Rectangle = icon.getBounds(icon);
+               var k:Number = Math.min(1.5, 56 / Math.max(1, b.width), 56 / Math.max(1, b.height));
+               icon.scaleX = icon.scaleY = k;
+               icon.x = -(b.x + b.width / 2) * k;
+               icon.y = -(b.y + b.height / 2) * k;
+               s.addChild(icon);
+            });
+         }
+         catch (e:Error) { RLog.error("buy: clothes icon " + id, e); }
          return s;
-      }
-
-      private static function pill(label:String, color:uint, f:Function):Sprite
-      {
-         var b:Sprite = new Sprite();
-         b.buttonMode = true;
-         b.mouseChildren = false;
-         b.graphics.lineStyle(2, 0xFFFFFF);
-         b.graphics.beginFill(color);
-         b.graphics.drawRoundRect(0, 0, 90, 30, 26, 26);
-         b.graphics.endFill();
-         var t:TextField = text(14, 0xFFFFFF, true);
-         t.text = label;
-         t.x = (90 - t.width) / 2;
-         t.y = 5;
-         b.addChild(t);
-         b.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); f(); });
-         return b;
-      }
-
-      private static function text(size:int, color:uint, bold:Boolean):TextField
-      {
-         var t:TextField = new TextField();
-         t.defaultTextFormat = new TextFormat("SimSun", size, color, bold);
-         t.autoSize = TextFieldAutoSize.LEFT;
-         t.selectable = false;
-         t.mouseEnabled = false;
-         return t;
       }
    }
 }

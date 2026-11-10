@@ -1,6 +1,8 @@
 package mmo.taskpanelnew
 {
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
+   import flash.display.MovieClip;
    import flash.display.GradientType;
    import flash.display.Graphics;
    import flash.display.Sprite;
@@ -34,14 +36,17 @@ package mmo.taskpanelnew
     * can start. The 2013 panel is lost; this one shows each task's own
     * pictures from taskpanel/tp<id> (the task and its reward above, the
     * current step below; for the story quests the classes the later
-    * TaskPanelResDefine names), framed in drawn glass, and takes the player
-    * to where a task that can start begins (前往, with the scene's extInfo
-    * taskIdFromTP as the 2013 task transport did).
+    * TaskPanelResDefine names) at their own size, framed in drawn glass, and
+    * takes the player to where a task begins (its picture's own 前往 when it
+    * has one, else a drawn one; with the scene's extInfo taskIdFromTP as the
+    * 2013 task transport did).
     */
    public class TaskPanelNewService extends EventDispatcher implements ITaskPanelNewService
    {
       private var icon:Sprite;
       private var panel:Sprite;
+      /** The task shown last: a picture loaded for one shown before it is left out. */
+      private var shown:int;
       private var badge:Sprite;
 
       public function TaskPanelNewService()
@@ -226,21 +231,22 @@ package mmo.taskpanelnew
          return b;
       }
 
-      /** Task<id> (the task) above Task<step> (what to do now), from taskpanel/tp<id>. */
+      /**
+       * Task<id> (the task) above Task<step> (what to do now), from taskpanel/tp<id>, at their own
+       * size where they fit (the area right of the tabs, 480 x 418; the later panel shows them
+       * unscaled). A picture with its own 前往 (btnGoAndLock, as the later TaskDecPanel finds it:
+       * frame 1 its btnGo) takes the player there; the drawn 前往 is only for one without.
+       */
       private function showTask(ts:ITaskService, id:int, area:Sprite, canStart:Boolean = false):void
       {
          while (area.numChildren) area.removeChildAt(0);
+         var ask:int = ++shown;
          var res:Object = panelRes(id);
          var url:String = res && res.fn ? String(res.fn) : "taskpanel/tp" + id;
          var cls:String = res && res.cn ? String(res.cn) : "mmo.taskpanel.Task" + id;
          var stepId:int = canStart ? -1 : ts.getTaskDoingStep(id);
          var stepRes:Object = stepId > 0 ? panelRes(stepId) : null;
          var stepCls:String = stepRes && stepRes.cn ? String(stepRes.cn) : "mmo.taskpanel.Task" + stepId;
-         ResScheduler.getResource(url, function(o:*):void
-         {
-            put(area, cls, 280, 96, 560, 210);
-            if (stepId > 0) put(area, stepCls, 290, 300, 560, 210);
-         }, cls);
          // 前往 for a task being done too: to the scene of its current step
          // (else of the task), as the later panel's 前往 does.
          var where:String = canStart ? sceneOf(id) : "";
@@ -249,49 +255,102 @@ package mmo.taskpanelnew
             try { where = ts.getTaskSceneByTaskId(stepId) || ts.getTaskSceneByTaskId(id); } catch (e:Error) {}
             if (!where) where = sceneOf(id);
          }
-         if (where) area.addChild(goButton(id, where));
+         ResScheduler.getResource(url, function(o:*):void
+         {
+            if (panel == null || area.parent == null || ask != shown) return;
+            var pics:Array = [];
+            var top:DisplayObject = make(cls);
+            if (top != null) pics.push(top);
+            var step:DisplayObject = stepId > 0 ? make(stepCls) : null;
+            if (step != null) pics.push(step);
+            var W:Number = 480, H:Number = 418, X:Number = 270, Y:Number = 92;
+            var maxW:Number = 1, sumH:Number = 0;
+            for each (var d:DisplayObject in pics)
+            {
+               var b:Rectangle = d.getBounds(d);
+               maxW = Math.max(maxW, b.width);
+               sumH += b.height;
+            }
+            var k:Number = Math.min(1, W / maxW, (H - 6 * (pics.length - 1)) / Math.max(1, sumH));
+            var y:Number = Y + Math.max(0, (H - sumH * k - 6 * (pics.length - 1)) / 2);
+            for each (d in pics)
+            {
+               b = d.getBounds(d);
+               d.scaleX = d.scaleY = k;
+               d.x = X + (W - b.width * k) / 2 - b.left * k;
+               d.y = y - b.top * k;
+               y += b.height * k + 6;
+               area.addChild(d);
+            }
+            var own:MovieClip = null;
+            for each (d in pics) if (own == null) own = findGo(d);
+            if (own != null && where)
+            {
+               own.gotoAndStop(1);
+               own.buttonMode = true;
+               own.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void { e.stopPropagation(); go(id, where); });
+            }
+            else if (own != null) own.visible = false;
+            else if (where) area.addChild(goButton(id, where));
+         }, cls);
       }
 
-      /** 前往: to the scene the task begins in, telling it which task brought the player (taskIdFromTP). */
+      private static function make(cls:String):DisplayObject
+      {
+         if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return null;
+         try { return new (getDefinitionByName(cls) as Class)() as DisplayObject; } catch (e:Error) {}
+         return null;
+      }
+
+      /** A picture's own 前往 (btnGoAndLock), among its children or theirs. */
+      private static function findGo(d:DisplayObject, depth:int = 0):MovieClip
+      {
+         if (d.name == "btnGoAndLock" && d is MovieClip) return MovieClip(d);
+         var c:DisplayObjectContainer = d as DisplayObjectContainer;
+         if (c == null || depth > 2) return null;
+         for (var i:int = 0; i < c.numChildren; i++)
+         {
+            var f:MovieClip = findGo(c.getChildAt(i), depth + 1);
+            if (f != null) return f;
+         }
+         return null;
+      }
+
+      /** To the scene the task begins in (or goes on in), telling it which task brought the player (taskIdFromTP). */
+      private function go(id:int, scene:String):void
+      {
+         if (panel && panel.parent) panel.parent.removeChild(panel);
+         panel = null;
+         var ext:SceneExtInfo = new SceneExtInfo();
+         ext.taskIdFromTP = id;
+         SceneManager.getInstance().loadScene(scene, "default", true, false, "ld", ext);
+      }
+
+      /** 前往 for a task whose pictures have none: below right, clear of them. */
       private function goButton(id:int, scene:String):Sprite
       {
          var b:Sprite = new Sprite();
+         b.name = "taskGo";
          b.buttonMode = true;
          b.mouseChildren = false;
          var m:Matrix = new Matrix();
-         m.createGradientBox(160, 40, Math.PI / 2, 0, 0);
+         m.createGradientBox(110, 36, Math.PI / 2, 0, 0);
          b.graphics.lineStyle(2, 0xFFFFFF);
          b.graphics.beginGradientFill(GradientType.LINEAR, [0xFFC24D, 0xEF7A10], [1, 1], [0, 255], m);
-         b.graphics.drawRoundRect(0, 0, 160, 40, 20, 20);
+         b.graphics.drawRoundRect(0, 0, 110, 36, 18, 18);
          b.graphics.endFill();
          var t:TextField = label("前往", 18, 0xFFFFFF, 0x9A3A00);
-         t.x = 80 - t.width / 2;
-         t.y = 20 - t.height / 2;
+         t.x = 55 - t.width / 2;
+         t.y = 18 - t.height / 2;
          b.addChild(t);
-         b.x = 480;
-         b.y = 440;
+         b.x = 756;
+         b.y = 468;
          b.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void
          {
             e.stopPropagation();
-            if (panel && panel.parent) panel.parent.removeChild(panel);
-            panel = null;
-            var ext:SceneExtInfo = new SceneExtInfo();
-            ext.taskIdFromTP = id;
-            SceneManager.getInstance().loadScene(scene, "default", true, false, "ld", ext);
+            go(id, scene);
          });
          return b;
-      }
-
-      private static function put(into:Sprite, cls:String, x:Number, y:Number, w:Number, h:Number):void
-      {
-         if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-         var d:DisplayObject = new (getDefinitionByName(cls) as Class)() as DisplayObject;
-         var b:Rectangle = d.getBounds(d);
-         var k:Number = Math.min(1, w / Math.max(1, b.width), h / Math.max(1, b.height));
-         d.scaleX = d.scaleY = k;
-         d.x = x - b.left * k;
-         d.y = y - b.top * k;
-         into.addChild(d);
       }
 
       private static function label(text:String, size:int, color:uint, edge:uint, font:String = "黑体"):TextField

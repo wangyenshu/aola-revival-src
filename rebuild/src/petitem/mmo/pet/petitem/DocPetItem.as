@@ -15,6 +15,7 @@ package mmo.pet.petitem
          var a:PetItem;
          var b:PetItemPanel;
          var c:ItemView;
+         var d:QuantitySelectePanel;
       }
    }
 }

@@ -2,6 +2,8 @@ package mmo.play.player.sceneplayer
 {
    import mmo.play.player.dressily.mstate.IMovingState;
    import mmo.play.player.dressily.mstate.NormalMovingState;
+   import mmo.play.player.dressily.mstate.RidingMovingState;
+   import mmo.interfaces.movestate.MoveStateType;
    import flash.display.DisplayObject;
    import flash.display.DisplayObjectContainer;
    import flash.display.Graphics;
@@ -40,6 +42,7 @@ package mmo.play.player.sceneplayer
       private var _bubble:Sprite;
       private var _flipV:Boolean;
       private var _bubbleTimer:Timer;
+      private var _moving:IMovingState = NormalMovingState.INSTANCE;
 
       public function Player(userName:String, b1:Boolean = false, b2:Boolean = false)
       {
@@ -100,14 +103,27 @@ package mmo.play.player.sceneplayer
          return isNaN(t) || t == 0 ? -80 : t;
       }
 
+      /** An action, in the player's way of moving (a riding player's "ddsn" is its "ddsr"). */
       final public function action(code:String):void
       {
-         if (_dressily) _dressily.action(code);
+         if (_dressily) _dressily.action(_moving.decorateAction(code));
       }
 
       final public function getMovingState():IMovingState
       {
-         return NormalMovingState.INSTANCE;
+         return _moving;
+      }
+
+      /**
+       * Walking or riding (MoveStateType; the "ms" user variable, set by the rebuilt
+       * pet/petride): the player's actions turn to that way's rows at once.
+       */
+      final public function setMovingState(type:String):void
+      {
+         var next:IMovingState = type == String(MoveStateType.RIDE) ? RidingMovingState.INSTANCE : NormalMovingState.INSTANCE;
+         if (next == _moving) return;
+         _moving = next;
+         onMoveStateChanged();
       }
 
       final public function currentAction():String
@@ -308,7 +324,7 @@ package mmo.play.player.sceneplayer
       {
          if (_dressily == null) return;
          var cur:String = _dressily.currentAction();
-         var want:String = directionCode + (isMoving() ? "wn" : "zn");
+         var want:String = _moving.decorateAction(directionCode + (isMoving() ? "w" : "z"));
          if (cur != want) _dressily.action(want);
       }
 

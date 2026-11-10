@@ -70,3 +70,5 @@ pet/pmservice
 pet/petitem
 robot/robotitem
 pet/petridepanel
+pet/petUIservice
+yz/treemanager

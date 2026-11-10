@@ -9,11 +9,13 @@ package mmo.revival.book
    import mmo.revival.RLog;
    import mmo.revival.RNotice;
    import mmo.loader.layer.LayerManager;
+   import mmo.common.dialog.NewDialog;
 
    /**
     * REBUILT: opens a book of the era book list (BConfigReader) in a BookView
     * and turns its page buttons into the 2013 actions: btnBuy_<type>_<id>[_<n>]
-    * and btnMBuy_ (members) buy through BuyMaterialService<type>,
+    * and btnMBuy_ (members) buy through BuyMaterialService<type>, btnSetBuy_<套装> the whole
+    * 套装 (BuyMaterialService0's buySet),
     * btnjumppage_<n> turns to a page, btnClose closes.
     */
    public class BookOpener
@@ -52,7 +54,7 @@ package mmo.revival.book
                if (busy) return true;
                if (name.indexOf("btnMBuy_") == 0 && !member())
                {
-                  BuyFlow.message("这件商品只有蓝宝石才能购买哦！（工具箱里可以成为蓝宝石）");
+                  NewDialog.showMessage("这件商品只有蓝宝石才能购买哦！（工具箱里可以成为蓝宝石）");
                   return true;
                }
                var parts:Array = name.substr(name.indexOf("_") + 1).split("_");
@@ -62,6 +64,20 @@ package mmo.revival.book
                {
                   svc.logSourceKey(no);
                   svc.buy(info, function(ok:Boolean):void { busy = false; view.showMoney(); });
+               });
+               return true;
+            }
+            if (name.indexOf("btnSetBuy_") == 0)
+            {
+               // 购买全套: the 套装 of that id (ClothesData's ClothesSuit), by catalogservice's
+               // BuyMaterialService0 (BuyFlow.buySet there).
+               if (busy) return true;
+               busy = true;
+               var suit:int = int(name.split("_")[1]);
+               ServiceContainer.instance.tryGetBuyMaterialService(0, function(svc:IBuyMaterial, o:Object):void
+               {
+                  svc.logSourceKey(no);
+                  Object(svc).buySet(suit, function(ok:Boolean):void { busy = false; view.showMoney(); });
                });
                return true;
             }

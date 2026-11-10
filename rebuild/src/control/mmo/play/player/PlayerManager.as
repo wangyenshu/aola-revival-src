@@ -128,6 +128,7 @@ package mmo.play.player
             standIn(p);
          }
          else p.visible = _visible;
+         if (u != null) applyMoving(p, u.getVariable("ms"));
          _playerList[name] = p;
          if (layer) layer.addChild(p);
          dispatchEvent(new PlayerManagerEvent(PlayerManagerEvent.ENTER_ROOM, name, p));
@@ -261,6 +262,26 @@ package mmo.play.player
          sc.addEventListener(SocketClientEvent.onUserJump, onPoint);
          sc.addEventListener(SocketClientEvent.onUserAvatarChange, onAvatar);
          sc.addEventListener(SocketClientEvent.onAction, onAction);
+         sc.addEventListener(SocketClientEvent.onMovingStateChanged, onMovingState);
+      }
+
+      /**
+       * The way of moving in a "ms" user variable ("ride;<speed>", "walk"; none: walking): the
+       * player's rows, and another player's walk at his 坐骑's speed (mine: pet/petride's).
+       */
+      private function applyMoving(p:PlayerBase, ms:*):void
+      {
+         var a:Array = ms == null ? ["walk"] : String(ms).split(";");
+         if (p is Player) Player(p).setMovingState(String(a[0]));
+         if (ms != null && p != _myPlayer) p.walkSpeed = Math.round(PlayerBase.WALK_SPEED * (a[0] == "ride" && Number(a[1]) > 0 ? Number(a[1]) : 1));
+      }
+
+      /** Someone (or I) got on a 坐骑 or off it ("ms", the 2013 SocketClient's onMovingStateChanged). */
+      private function onMovingState(e:SocketClientEvent):void
+      {
+         var u:User = e.params.user as User;
+         var p:PlayerBase = u ? _playerList[u.getName()] as PlayerBase : null;
+         if (p) applyMoving(p, e.params.ms);
       }
 
       /** Someone else's "[Action]" (sitting …): play it on their avatar. */

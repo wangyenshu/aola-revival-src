@@ -151,6 +151,10 @@ package mmo.petfightnew
       private var switchSent:Boolean;
       /** 自动战斗仪 (server petitems.ts): the battle picks the skills by itself. */
       private var auto:Boolean;
+      /** Its button (停止/开启自动战斗), while the player has one with battles left. */
+      private var autoBtn:FightButton;
+      /** 开启自动战斗 asked, the server's answer awaited. */
+      private var autoAsked:Boolean;
       private var turn:int = 1;
       /** The boss's films (BossFilmConfig) and those already played this fight. */
       private var films:Array;
@@ -925,21 +929,68 @@ package mmo.petfightnew
          PetClient.instance.useSkill(id, 1, true);
       }
 
-      /** 自动战斗仪: the first skill with uses left (the struggle with none), as if clicked. */
+      /**
+       * 自动战斗仪: the battle chooses the skill (skill -1: the server's autoChoice, the hardest
+       * blow against this foe among those with uses left), as if clicked.
+       */
       private function autoSkill():void
       {
          if (closed || !commandsOn || !auto || forcedSwitch) return;
-         var b:Object = brief(me);
-         var id:int = 0;
-         for each (var sk:Object in b ? (b.skills as Array) || [] : [])
-         {
-            if (sk != null && int(String(sk.pp || "0/0").split("/")[0]) > 0) { id = int(sk.id); break; }
-         }
          hideTooltip();
          setCommands(false);
-         // No PP left: the turn is skipped (no 挣扎).
-         if (id > 0) PetClient.instance.useSkill(id, 1, true);
-         else PetClient.instance.standby(true);
+         PetClient.instance.useSkill(-1, 1, true);
+      }
+
+      /** Top left: 停止自动战斗 (the player chooses from now on) or 开启自动战斗 (server revival_auto). */
+      private function showAutoButton():void
+      {
+         if (autoBtn == null)
+         {
+            autoBtn = new FightButton("停止自动战斗", 112, 30, 13, null, -1, true);
+            autoBtn.x = 12;
+            autoBtn.y = 12;
+            autoBtn.name = "autoFight";
+            autoBtn.addEventListener(MouseEvent.CLICK, onAutoButton);
+            ui.addChild(autoBtn);
+            SocketClient.instance.addEventListener("revival_auto", onAutoReply);
+         }
+         autoBtn.text = auto ? "停止自动战斗" : "开启自动战斗";
+      }
+
+      private function onAutoButton(e:MouseEvent):void
+      {
+         e.stopPropagation();
+         if (closed) return;
+         var stop:Boolean = auto;
+         if (stop)
+         {
+            auto = false;
+            TweenLite.killDelayedCallsTo(autoSkill);
+            addLog("<font color='#7FE0FF'>自动战斗仪停止了，请选择技能。</font>");
+            showAutoButton();
+            if (commandsOn) newTurnClock();
+         }
+         autoAsked = !stop;
+         SocketClient.instance.sendXtMessage("PetExtension", "revival_auto", {on: stop ? 0 : 1});
+      }
+
+      private function onAutoReply(e:SocketClientEvent):void
+      {
+         var asked:Boolean = autoAsked;
+         autoAsked = false;
+         if (closed || e.params == null || auto) return;
+         if (e.params.auto != true)
+         {
+            // No battle left on the device (or this battle is not one it fights).
+            if (asked) addLog("<font color='#7FE0FF'>" + (int(e.params.left) > 0 ? "这场战斗不能自动战斗哦。" : "自动战斗仪已经用完了。") + "</font>");
+            return;
+         }
+         auto = true;
+         addLog("<font color='#7FE0FF'>自动战斗仪开启中（还可以使用" + int(e.params.left) + "次）</font>");
+         showAutoButton();
+         deadline = 0;
+         onClock(null);
+         if (commandsOn && !forcedSwitch && forcedSkill() <= 0) TweenLite.delayedCall(0.5, autoSkill);
       }
 
       private function applyCommandState():void
@@ -1269,6 +1320,7 @@ package mmo.petfightnew
          {
             case 2401:
                auto = p.auto == true;
+               if (auto || p.autoOff == true) showAutoButton();
                films = BossFilmConfig.get(int(p.boss));
                var opening:String = filmOf(BossFilmConfig.OPENING) ? BossFilmConfig.OPENING : BossFilmConfig.REVIVE;
                playFilm(opening, function():void
@@ -1928,6 +1980,7 @@ package mmo.petfightnew
          removeEventListener(MouseEvent.MOUSE_MOVE, onPointer);
          removeEventListener(MouseEvent.ROLL_OUT, onPointer);
          SocketClient.instance.removeEventListener(SocketClientEvent.onPublicMessage, onChatHeard);
+         SocketClient.instance.removeEventListener("revival_auto", onAutoReply);
          TweenLite.killDelayedCallsTo(next);
          if (myView) myView.dispose();
          if (vsView) vsView.dispose();

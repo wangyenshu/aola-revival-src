@@ -47,7 +47,8 @@ package mmo.wildpet
       /**
        * 自动战斗仪 (item 44, server petitems.ts): "开启后，在场景中会自动与野外怪对战". The server's
        * 54_7 says how many battles are left (auto, not of 2013); while there are, the player goes
-       * for the nearest wild 亚比 by itself when standing idle (RECONSTRUCTED: the 2013 code is lost).
+       * for the nearest wild 亚比 by itself when standing idle (RECONSTRUCTED: the 2013 code is lost);
+       * the battle screen's 停止自动战斗 stops it (its battles kept), 开启自动战斗 starts it again.
        */
       private var autoLeft:int;
       private var autoTimer:Timer = new Timer(4000);
@@ -66,6 +67,7 @@ package mmo.wildpet
          CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_START, onFightStart);
          CommonEventDispatcher.instance.addEventListener(PetFightEvent.FIGHT_END, onFightEnd);
          autoTimer.addEventListener(TimerEvent.TIMER, onAutoTime);
+         SocketClient.instance.addEventListener("revival_auto", onAutoSet);
          dispatchEvent(new InitServiceEvent(InitServiceEvent.onInited, {}));
       }
 
@@ -164,6 +166,13 @@ package mmo.wildpet
             if (c != null && c.numChildren > 0 && getQualifiedClassName(c).indexOf("ModalDialogContainer") >= 0) return true;
          }
          return false;
+      }
+
+      /** The battle screen stopped the 自动战斗仪 or started it again (server revival_auto {on, left}). */
+      private function onAutoSet(e:SocketClientEvent):void
+      {
+         autoLeft = e.params != null && e.params.on == true ? int(e.params.left) : 0;
+         if (autoLeft <= 0) autoTimer.stop();
       }
 
       /** 自动战斗仪: idle, with no panel open, the nearest wild 亚比 of the room. */

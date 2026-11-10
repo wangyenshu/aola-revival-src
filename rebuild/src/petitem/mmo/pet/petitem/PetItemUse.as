@@ -24,12 +24,15 @@ package mmo.pet.petitem
     * The later module's checks (written again here, its code being of the later
     * libraries): items that need no 亚比 (经验器, 学习器, 寻宝雷达, 自动战斗仪) ask
     * only whether to use them; a 进化石 or 技能石 says which 亚比 it is for; the rest
-    * ask "你确定要对…使用…吗？". The server checks everything again.
+    * ask "你确定要对…使用…吗？", with 使用数量 for the items one may use several of at once
+    * (学习力果实, 摇摇果实, 初始亚比经验糖: 14_12's num). The server checks everything again.
     */
    public class PetItemUse
    {
       /** Used on no 亚比: they count the next wins. */
       private static const NO_TARGET:Array = [43, 44, 120, 62, 189, 378, 499, 663];
+      /** Several of these may be used at once (server petitems.ts MULTI_ITEMS): 学习力果实, 摇摇果实, 初始亚比经验糖. */
+      private static const MULTI:Array = [524, 525, 526, 527, 528, 529, 419, 664, 665, 233, 234, 235, 236, 237, 238, 239, 240, 241];
       /** Of the battle only (no status outlasts it). */
       private static const IN_BATTLE:Array = [94, 95, 96, 97, 98, 99, 100, 101];
 
@@ -95,7 +98,23 @@ package mmo.pet.petitem
             }
          }
          catch (e:Error) {}
-         ask(q, ii, pet.id);
+         if (MULTI.indexOf(ii) >= 0 && u.quantity > 1) askCount(u, ii, pet.id, Math.min(999, u.quantity));
+         else ask(q, ii, pet.id);
+      }
+
+      /** 学习力 a 学习力果实 adds, 经验 a 摇摇果实 or 初始亚比经验糖 does (server petitems.ts). */
+      private static const EFFECT:Object = {524: 5, 525: 5, 526: 5, 527: 5, 528: 5, 529: 5, 419: 1000, 664: 5000, 665: 400000,
+         233: 500, 234: 3000, 235: 7000, 236: 12000, 237: 17000, 238: 22000, 239: 27000, 240: 32000, 241: 37000};
+
+      /**
+       * 我要使用: the later module's QuantitySelectePanel (its art; as many as one has, the server
+       * using as many as do something).
+       */
+      private function askCount(u:UserItem, ii:int, pi:int, most:int):void
+      {
+         var each:int = int(EFFECT[ii]) || 1;
+         var title:String = ii >= 524 && ii <= 529 ? "增加学习力：" : "增加经验：";
+         new QuantitySelectePanel(function(n:int):void { send(ii, pi, n); }, title, u, each, each * most).showPanel();
       }
 
       private function selected():PetBriefInfo
@@ -116,12 +135,12 @@ package mmo.pet.petitem
          });
       }
 
-      private function send(ii:int, pi:int):void
+      private function send(ii:int, pi:int, num:int = 1):void
       {
          busy = true;
          SocketClient.instance.addEventListener(MaterialClient.cmdUsePetItem, onUsed);
          ProgressFullSprite.show();
-         MaterialClient.getInstance().useItem(ii, pi, -1, 1);
+         MaterialClient.getInstance().useItem(ii, pi, -1, num);
       }
 
       private function onUsed(e:SocketClientEvent):void

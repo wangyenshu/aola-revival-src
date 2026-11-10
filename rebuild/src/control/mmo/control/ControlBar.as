@@ -33,7 +33,8 @@ package mmo.control
     * stage): 地图 (the ringed planet, original art from the era
     * newBieHelpSystem module) and the HELLO on its glowing stand at the left;
     * 发言 表情 动作 射击; the chat line (当前, the box, ↵, and the △ for what was
-    * said); 信息卡 好友 组队 战队 亚比 (the 2013 背包) 回家; the cart of the 商城, the sound
+    * said); 信息卡 好友 组队 战队 亚比 (the 2013 背包) 回家 (what one has is in the 信息卡, as in 2012); the
+    * cart of the 商城, the sound
     * switch and the clock at the right. The icons are those of 2012, cut out of an era tutorial's
     * screenshot (ShotIcons; drawn, BarIcons, until it is loaded and for the revival's own buttons).
     */
@@ -54,8 +55,11 @@ package mmo.control
       private var popup:DisplayObject;
 
       private static const LEFT:Array = [["phrase", "发言", 181], ["face", "表情", 232], ["action", "动作", 277], ["shoot", "射击", 320]];
-      // 物品 (the revival's: every item one has) between 背包 and 回家, the others closer together for it.
-      private static const RIGHT:Array = [["card", "信息卡", 572], ["friend", "好友", 618], ["team", "组队", 664], ["squad", "战队", 710], ["pet", "亚比", 756], ["items", "物品", 802], ["home", "回家", 847]];
+      // Where the 2012 bar had them (the March 2012 tutorial's screenshot, ShotIcons). What one has is
+      // in the 信息卡 (its 道具, as in 2012); the revival's 物品 shows only where the 信息卡 does not
+      // (副本 and a mod played alone), in 战队's place.
+      private static const RIGHT:Array = [["card", "信息卡", 596], ["friend", "好友", 640], ["team", "组队", 689], ["squad", "战队", 739], ["pet", "亚比", 788], ["home", "回家", 839]];
+      private static const ITEMS_X:int = 739;
       private static const ICON_Y:int = 526;
       private static const LABEL_DY:int = 15;
 
@@ -74,12 +78,13 @@ package mmo.control
          // The icons of 2012 once the tutorial they are cut from is loaded (ShotIcons); drawn until then.
          for each (var l:Array in LEFT) addButton(new BarButton("btn_" + l[0], icon(l[0]), l[1], 0, LABEL_DY, click), l[2], ICON_Y);
          for each (var r:Array in RIGHT) addButton(new BarButton("btn_" + r[0], icon(r[0]), r[1], 0, LABEL_DY, click), r[2], ICON_Y);
+         addButton(new BarButton("btn_items", icon("items"), "物品", 0, LABEL_DY, click), ITEMS_X, ICON_Y).visible = false;
          var mall:BarButton = new BarButton("btn_mall", icon("mall"), null, 0, 0, click);
          addButton(mall, 938, 512);
          // 副本 mode: the way out (IControl.fbLeaveButton; the 四大副本's FBButtonManager listens on it), where 回家 is.
-         addButton(new BarButton("btn_fbleave", icon("home"), "离开", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
+         addButton(new BarButton("btn_fbleave", icon("home"), "离开", 0, LABEL_DY, click), 839, ICON_Y).visible = false;
          // A mod played as a game of its own: its 存档 (to a file and back), where 回家 is.
-         addButton(new BarButton("btn_saves", BarIcons.make("saves"), "存档", 0, LABEL_DY, click), 847, ICON_Y).visible = false;
+         addButton(new BarButton("btn_saves", BarIcons.make("saves"), "存档", 0, LABEL_DY, click), 839, ICON_Y).visible = false;
          // The 亚比图鉴 (pet/petdictionary), under the task icon; its 2012 icon (PetDicIcon) once loaded.
          var dicIcon:Sprite = BarIcons.make("petdic");
          addButton(new BarButton("btn_petdic", dicIcon, "图鉴", 0, 20, click), 936, 114);
@@ -441,7 +446,7 @@ package mmo.control
             if (k == "btnMap") continue;
             if (mode == "fb") buttons[k].visible = FB_BUTTONS.indexOf(k) >= 0;
             else if (solo) buttons[k].visible = SOLO_BUTTONS.indexOf(k) >= 0;
-            else buttons[k].visible = (mode == "common") && k != "btn_fbleave" && k != "btn_saves";
+            else buttons[k].visible = (mode == "common") && k != "btn_fbleave" && k != "btn_saves" && k != "btn_items";
          }
          if (chat) chat.visible = mode != "spacetime" && !solo;
       }

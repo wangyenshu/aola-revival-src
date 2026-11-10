@@ -520,14 +520,25 @@ package mmo.house.b000247
          if (tree != null) treePanel("show");
       }
 
+      private static var treePanelDomain:ApplicationDomain;
+
       /** The tree panel of yz/treemanager (rebuilt), the module loaded first. */
       private function treePanel(what:String):void
       {
          var cls:String = "mmo.treemanager.treepanel.TreePanel";
          var go:Function = function(d:* = null):void
          {
-            if (!ApplicationDomain.currentDomain.hasDefinition(cls)) return;
-            var C:Object = ApplicationDomain.currentDomain.getDefinition(cls);
+            // The module's own domain when it did not go into the game's (ResScheduler's content).
+            var dom:ApplicationDomain = ApplicationDomain.currentDomain;
+            if (!dom.hasDefinition(cls) && d is DisplayObject && DisplayObject(d).loaderInfo != null) dom = DisplayObject(d).loaderInfo.applicationDomain;
+            if (dom.hasDefinition(cls)) treePanelDomain = dom;
+            else if (treePanelDomain != null) dom = treePanelDomain;
+            if (!dom.hasDefinition(cls))
+            {
+               RLog.log("garden: no " + cls + " (" + d + ")");
+               return;
+            }
+            var C:Object = dom.getDefinition(cls);
             try
             {
                if (what == "hide" || tree == null || pot.stage == null) C.hide();
@@ -535,7 +546,7 @@ package mmo.house.b000247
             }
             catch (err:Error) { RLog.error("garden tree panel", err); }
          };
-         if (ApplicationDomain.currentDomain.hasDefinition(cls)) go();
+         if (ApplicationDomain.currentDomain.hasDefinition(cls) || treePanelDomain != null) go();
          else if (what != "hide") ResScheduler.getResource("yz/treemanager", go, "", function(e:* = null):void { RLog.log("garden: yz/treemanager not loaded"); });
       }
 

@@ -1,13 +1,6 @@
 package mmo.pet.petride
 {
-   import flash.display.Bitmap;
-   import flash.display.BitmapData;
-   import flash.display.DisplayObject;
-   import flash.display.DisplayObjectContainer;
-   import flash.utils.getQualifiedClassName;
    import flash.events.EventDispatcher;
-   import flash.system.ApplicationDomain;
-   import mmo.loader.scheduler.ResScheduler;
    import mmo.common.member.MemberManager;
    import mmo.framework.comm.SocketClient;
    import mmo.framework.comm.SocketClientEvent;
@@ -17,7 +10,9 @@ package mmo.pet.petride
    import mmo.interfaces.pet.data.PetRideInfosMap;
    import mmo.interfaces.pet.ride.IRideService;
    import mmo.loader.layer.LayerManager;
+   import mmo.interfaces.movestate.MoveStateType;
    import mmo.play.player.PlayerManager;
+   import mmo.play.player.sceneplayer.Player;
    import mmo.play.player.sceneplayer.PlayerBase;
    import mmo.play.scene.SceneManager;
    import mmo.play.scene.SceneManagerEvent;
@@ -30,11 +25,12 @@ package mmo.pet.petride
     * the 2013 interfaces' PetRideInfosMap: each has its ride clothes (10047–10080, the
     * "骑宠" skins skin/a0100xx), the level it must have reached and its speed. A ride
     * (PetExtension 54_12 {pmId, cId}) puts the ride clothes on the player for everyone
-    * (the server adds them to the "avatar" user variable) and quickens the player's walk;
-    * getting off (54_20) takes them away. The engine draws no ride clothes, so the
-    * service shows the 坐骑 itself under the player, from the ride skin's own two
-    * layers (a0<id>0_C behind, a0<id>1_C in front; one standing frame, RECONSTRUCTED:
-    * the 2013 riding animation is lost). The 2013 training (54_11, 骑乘训练 in the
+    * (the server adds them to the "avatar" user variable), sets the player riding (the
+    * "ms" user variable: MoveStateType.RIDE) and quickens the player's walk; getting off
+    * (54_20) takes them away. Riding, the 2013 avatar plays its "r" rows (ActionInfo
+    * "ddzr", "ddwr"): the clothes' riding pose, sitting higher, and the ride skin's 坐骑
+    * (SkinInfoForRidingPet: rows 10/11, walking 4 frames, standing its stand movie), which
+    * draws nothing in the walking rows. The 2013 training (54_11, 骑乘训练 in the
     * 蓝宝骑士 service) is counted as done (RECONSTRUCTED: the trained flag is lost).
     */
    public class RideService extends EventDispatcher implements IRideService
@@ -171,93 +167,13 @@ package mmo.pet.petride
       }
 
       /**
-       * The standing frame shown of the ride skin: its two layers' bitmaps of that frame
-       * (a0<id>0_C_<n> behind the rider, a0<id>1_C_<n> in front), which share their place
-       * on the skin's sheet, so set at the same corner, round the rider's feet.
+       * My player on the 坐骑 or off it at once (the server's "ms" user variable tells every
+       * client, mine too, a moment later): the riding rows of the clothes and the ride skin.
        */
-      private static const MOUNT_FRAME:int = 30;
-      private var back:Bitmap;
-      private var front:Bitmap;
-      private var skinDomain:ApplicationDomain;
-      private var skinOf:int;
-
       private function showMount():void
       {
-         hideMount();
-         if (myCloth == 0) return;
-         var cloth:int = myCloth;
-         var put:Function = function(dom:ApplicationDomain):void
-         {
-            var me:DisplayObjectContainer = PlayerManager.getInstance().myPlayer as DisplayObjectContainer;
-            if (me == null || myCloth != cloth || dom == null) return;
-            skinDomain = dom;
-            skinOf = cloth;
-            back = frame(dom, "a0" + cloth + "0_C_" + MOUNT_FRAME);
-            front = frame(dom, "a0" + cloth + "1_C_" + MOUNT_FRAME);
-            var w:Number = Math.max(back ? back.width : 0, front ? front.width : 0);
-            var h:Number = Math.max(back ? back.height : 0, front ? front.height : 0);
-            for each (var b:Bitmap in [back, front])
-            {
-               if (b == null) continue;
-               b.x = -w / 2;
-               b.y = 18 - h;
-            }
-            if (back != null) me.addChildAt(back, 0);
-            if (front != null) me.addChild(front);
-            lift(me, true);
-            RLog.log("ride: mount a0" + cloth + " " + int(w) + "x" + int(h));
-         };
-         if (skinDomain != null && skinOf == cloth) put(skinDomain);
-         else ResScheduler.getResource("skin/a0" + cloth, function(content:*):void
-         {
-            var dom:ApplicationDomain = null;
-            try { dom = content.loaderInfo.applicationDomain; } catch (e0:Error) {}
-            put(dom || ApplicationDomain.currentDomain);
-         }, "", function(e:* = null):void { RLog.log("ride: no skin a0" + cloth); });
-      }
-
-      private static function frame(dom:ApplicationDomain, cls:String):Bitmap
-      {
-         try
-         {
-            if (!dom.hasDefinition(cls)) return null;
-            var bd:BitmapData = new (dom.getDefinition(cls) as Class)(0, 0) as BitmapData;
-            return bd != null && bd.width > 4 ? new Bitmap(bd) : null;
-         }
-         catch (err:Error) { RLog.error("ride: frame " + cls, err); }
-         return null;
-      }
-
-      /** The rider sits on the 坐骑's back: the avatar raised by LIFT (RECONSTRUCTED), back down on foot. */
-      private static const LIFT:int = 55;
-      private var lifted:DisplayObject;
-
-      private function lift(me:DisplayObjectContainer, up:Boolean):void
-      {
-         if (lifted != null)
-         {
-            lifted.y += LIFT;
-            lifted = null;
-         }
-         if (!up || me == null) return;
-         for (var i:int = 0; i < me.numChildren; i++)
-         {
-            var c:DisplayObject = me.getChildAt(i);
-            if (getQualifiedClassName(c).indexOf("SkinProxyContainer") >= 0)
-            {
-               c.y -= LIFT;
-               lifted = c;
-               return;
-            }
-         }
-      }
-
-      private function hideMount():void
-      {
-         lift(null, false);
-         for each (var m:Bitmap in [back, front]) if (m != null && m.parent != null) m.parent.removeChild(m);
-         back = null;
-         front = null;
+         var me:Player = PlayerManager.getInstance().myPlayer as Player;
+         if (me != null) me.setMovingState(myRide != 0 ? String(MoveStateType.RIDE) : String(MoveStateType.WALK));
       }
 
       private function onRide(e:SocketClientEvent):void
@@ -281,13 +197,13 @@ package mmo.pet.petride
          myCloth = 0;
          mySpeed = 1;
          quicken();
-         hideMount();
+         showMount();
       }
 
       private function onScene(e:SceneManagerEvent):void
       {
          quicken();
-         if (myRide != 0) showMount();
+         showMount();
       }
 
       /** The player's walk at the 坐骑's speed (PlayerBase.WALK_SPEED alone on foot). */
