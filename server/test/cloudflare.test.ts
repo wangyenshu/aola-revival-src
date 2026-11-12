@@ -10,9 +10,15 @@ function fakeStorage() {
     async get<T>(k: string) { return m.get(k) as T | undefined; },
     async put<T>(k: string, v: T) { m.set(k, v); },
     async delete(k: string) { return m.delete(k); },
-    async list<T>(o: { prefix?: string } = {}) { return new Map([...m].filter(([k]) => k.startsWith(o.prefix ?? ""))) as Map<string, T>; },
+    // As a Durable Object's: sorted by key, from after startAfter, at most limit.
+    async list<T>(o: { prefix?: string; startAfter?: string; limit?: number } = {}) {
+      lists++;
+      const keys = [...m.keys()].filter((k) => k.startsWith(o.prefix ?? "") && (o.startAfter === undefined || k > o.startAfter)).sort();
+      return new Map(keys.slice(0, o.limit ?? keys.length).map((k) => [k, m.get(k)])) as Map<string, T>;
+    },
   };
 }
+let lists = 0;
 
 test("the Durable Object store keeps JSON copies and lists by prefix", async () => {
   const s = new DurableStore(fakeStorage());
@@ -24,6 +30,13 @@ test("the Durable Object store keeps JSON copies and lists by prefix", async () 
   assert.deepEqual(await s.keys("user/"), ["user/x"]);
   await s.delete("user/x");
   assert.equal(await s.get("user/x"), undefined);
+  // Many keys: listed a page at a time, every one of them.
+  for (let i = 0; i < 100; i++) await s.set(`user/p${String(i).padStart(3, "0")}`, { i });
+  lists = 0;
+  const all = await s.keys("user/");
+  assert.equal(all.length, 100);
+  assert.equal(all[99], "user/p099");
+  assert.ok(lists >= 4, `${lists} pages`);
 });
 
 test("the Worker: the site from the assets, the game and its API from the Durable Object", async () => {

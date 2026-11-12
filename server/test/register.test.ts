@@ -9,7 +9,7 @@ import { addrKey } from "../src/core/addr.ts";
 import { Emulator } from "../src/core/emulator.ts";
 import { MemoryRecorder } from "../src/core/recorder.ts";
 import { MemoryStore } from "../src/core/store.ts";
-import { looksLikeToken, SignupGuard, SIGNUP_TOO_FAST, SIGNUP_TOO_MANY, WRONG } from "../src/game/sfs2013/accounts.ts";
+import { hashPass, looksLikeToken, SignupGuard, SIGNUP_TOO_FAST, SIGNUP_TOO_MANY, WRONG } from "../src/game/sfs2013/accounts.ts";
 import { handleApi } from "../src/game/sfs2013/api.ts";
 import { createGameHost } from "../src/game/sfs2013/host.ts";
 import { Up, clientPayload, encodeClientFrame, nextPacketNum } from "../src/game/sfs2013/protocol.ts";
@@ -287,4 +287,40 @@ test("a record of the anchored clock, read by the real one: what would be lost 1
   const anchored = await run("2012-08-15");
   assert.equal(anchored.realClock, undefined);
   assert.equal(anchored.released[0].relAt, Date.UTC(2012, 7, 16, 3, 0));
+});
+
+test("names alike: an index, one read; two asked at once, one made; an old full-width name still logs in", async () => {
+  // The index: 注册 does not list every save (on Cloudflare a list brings the values).
+  let listed = 0;
+  class Counting extends MemoryStore {
+    override async keys(prefix = ""): Promise<string[]> {
+      listed++;
+      return super.keys(prefix);
+    }
+  }
+  const store = new Counting();
+  // Saves from before the index: one of them a name alike to what is asked later.
+  await store.set(key("Abc"), { id: 10001, name: "Abc", avatar: "" });
+  // Two saved before names were normalised: a full-width one and its plain form.
+  await store.set(key("ＸＹＺ"), { id: 10002, name: "ＸＹＺ", avatar: "", pass: await hashPass("old-secret") });
+  await store.set(key("XYZ"), { id: 10003, name: "XYZ", avatar: "", pass: await hashPass("new-secret") });
+  await store.set("meta/nextUserId", 10003);
+  const host = createGameHost({ store, loadJson: async () => undefined, accounts: { required: true, register: true } });
+  assert.match(String(await host.register("abc", "secret-1")), /已经有奥拉用了/, "the index made for the saves before it");
+  for (const n of ["一号", "二号", "三号"]) assert.equal(await host.register(n, "secret-1", `ws ${n}`), null);
+  assert.equal(listed, 1, "the saves listed once, to make the index");
+  // Two alike at once: one is made.
+  const both = await Promise.all([host.register("Kai", "secret-1", "ws a"), host.register("kai", "secret-1", "ws b")]);
+  assert.equal(both.filter((r) => r === null).length, 1, String(both));
+  // The old full-width name and the plain one: both log in, each with its own password; a new
+  // one alike to them is not made.
+  assert.match(String(await host.register("xyz", "secret-1", "ws c")), /已经有奥拉用了/);
+  const login = async (name: string, pass: string) => {
+    const s = host.attach({ remote: `ws ${name}`, send: () => {}, close: () => {} });
+    s.receive(encodeClientFrame(nextPacketNum(-1), clientPayload(0, Up.Login, -1).utf("aola").utf(name).utf(pass).body()));
+    for (let i = 0; i < 300 && !host.world.player(s); i++) await tick(10);
+    return host.world.player(s)?.name;
+  };
+  assert.equal(await login("ＸＹＺ", "old-secret"), "ＸＹＺ");
+  assert.equal(await login("XYZ", "new-secret"), "XYZ");
 });

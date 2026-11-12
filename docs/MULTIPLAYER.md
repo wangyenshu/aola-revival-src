@@ -186,7 +186,12 @@ invite.
 - **注册** makes an 奥拉 (not with `--closed`): a name of 1 to 12 characters
   without spaces, symbols or invisible characters, kept as its NFKC form (a
   full-width ＡＢＣ is ABC), and not alike to another's (the same letters in
-  another case count as alike), and a password of 6 to 32 (改密码's rule too). One
+  another case count as alike), and a password of 6 to 32 (改密码's rule too).
+  Names alike are found by an index of their alike form (`name/<folded>`, one
+  read; made once, from the keys only, for the saves before it), and 注册 and
+  改名字 of names alike go one after the other, so two asked at once are not
+  both made. An 奥拉 saved before names were kept in one form logs in by its
+  name exactly as written, even where another 奥拉 has its plain form. One
   address signs up `--signups-per-day` 奥拉 a day and tries 注册 ten times in
   ten minutes at most (a name taken counts). Then only that password opens
   it, and one game a name: a second login ends the first.

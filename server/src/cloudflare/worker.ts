@@ -26,7 +26,7 @@ interface DurableObjectStorage {
   get<T>(key: string): Promise<T | undefined>;
   put<T>(key: string, value: T): Promise<void>;
   delete(key: string): Promise<boolean>;
-  list<T>(options?: { prefix?: string }): Promise<Map<string, T>>;
+  list<T>(options?: { prefix?: string; startAfter?: string; limit?: number }): Promise<Map<string, T>>;
 }
 interface DurableObjectState {
   storage: DurableObjectStorage;
@@ -115,10 +115,26 @@ export class DurableStore implements Store {
   async delete(key: string): Promise<void> {
     await this.storage.delete(key);
   }
+  /**
+   * The keys under a prefix. A Durable Object's list() brings the values too: a page of them at
+   * a time (KEYS_PAGE), each let go before the next, so the keys of every save are not all the
+   * saves in memory at once.
+   */
   async keys(prefix = ""): Promise<string[]> {
-    return [...(await this.storage.list({ prefix })).keys()].sort();
+    const out: string[] = [];
+    let after: string | undefined;
+    for (;;) {
+      const page = await this.storage.list<string>({ prefix, limit: KEYS_PAGE, ...(after !== undefined ? { startAfter: after } : {}) });
+      for (const k of page.keys()) out.push(k);
+      if (page.size < KEYS_PAGE) break;
+      after = out[out.length - 1];
+    }
+    return out.sort();
   }
 }
+
+/** Keys listed a page at a time (DurableStore.keys): the values of a page are at most this many saves. */
+const KEYS_PAGE = 32;
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" };
 

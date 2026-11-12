@@ -147,7 +147,7 @@ esbuild into `dist/emulator.js`) and in Node (`npm start`).
 | `core/locks.ts` | work on named things one after another (an account's name, a record everyone writes) |
 | `core/addr.ts` | a client's address as the limits count it (an IPv6 one by its /64) |
 | `core/plain.ts` | a bounded plain copy of what a client sent, and bounded text of it for logs |
-| `core/store.ts` | key-value store interface (IndexedDB in the page, JSON files in Node); a player's record is made JSON once a save (measured, and written as that text: `setText`) |
+| `core/store.ts` | key-value store interface (IndexedDB in the page, JSON files in Node, a Durable Object's storage on Cloudflare, whose keys are listed a page at a time: its list brings the values); a player's record is made JSON once a save (measured, and written as that text: `setText`) |
 | `core/recorder.ts` | logs of the traffic for debugging |
 | `browser/entry.ts`, `idbStore.ts`, `shim.ts` | the in-page start, IndexedDB store, the socket proxy for Ruffle |
 | `node/main.ts`, `http.ts`, `transports.ts`, `fileStore.ts` | the Node dev server: HTTP mirror, WebSocket bridge, raw TCP ports, the policy file |

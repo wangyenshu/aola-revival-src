@@ -389,24 +389,78 @@ async function accountRecord(emu: Emulator, name: string): Promise<UserRecord | 
   return rec;
 }
 
-/** An account by its name as kept (NFKC), else as written (a name kept before names were). */
+/**
+ * An account by its name as written, if an 奥拉 has exactly that (one kept before names were
+ * normalised: a full-width ＡＢＣ whose plain ABC another 奥拉 has since taken still logs in),
+ * else by its name as kept (NFKC).
+ */
 async function findAccount(emu: Emulator, name: string, raw: string): Promise<UserRecord | undefined> {
-  return (await accountRecord(emu, name)) ?? (raw && raw !== name ? await accountRecord(emu, raw) : undefined);
+  if (raw && raw !== name) {
+    const exact = await accountRecord(emu, raw);
+    if (exact) return exact;
+  }
+  return accountRecord(emu, name);
+}
+
+/** The names of one account's work, its written form too (its lock: locked). */
+const namesOf = (name: string, raw = "") => (raw && raw !== name ? [name, raw] : [name]);
+/**
+ * The lock of all names alike to the eye (nameFold): 注册 and 改名字 take it, so two names alike
+ * asked at once are one after the other, and the second finds the first's.
+ */
+const foldLock = (name: string) => `≈${nameFold(name)}`;
+
+/**
+ * The index of names by their form alike to the eye (nameFold): name/<folded> -> the 奥拉's
+ * name. One read says whether a name alike is taken (a list of every save would read them all:
+ * on Cloudflare a list brings the values).
+ */
+const nameIndexKey = (name: string) => `name/${encodeURIComponent(nameFold(name))}`;
+const NAME_INDEX_MADE = "meta/nameIndex";
+const indexing = new WeakMap<Emulator, Promise<void>>();
+
+/** The index made once for the 奥拉 saved before it (the keys only, a page at a time on Cloudflare). */
+function nameIndex(emu: Emulator): Promise<void> {
+  let made = indexing.get(emu);
+  if (!made) {
+    made = (async () => {
+      if (await emu.store.get(NAME_INDEX_MADE)) return;
+      for (const k of await emu.store.keys("user/")) {
+        let n: string;
+        try {
+          n = decodeURIComponent(k.slice("user/".length));
+        } catch {
+          continue;
+        }
+        if (!(await emu.store.get(nameIndexKey(n)))) await emu.store.set(nameIndexKey(n), n);
+      }
+      await emu.store.set(NAME_INDEX_MADE, 1);
+    })();
+    indexing.set(emu, made);
+    made.catch(() => indexing.delete(emu));
+  }
+  return made;
+}
+
+/** An 奥拉 of this name now owns its form alike to the eye. */
+async function indexName(emu: Emulator, name: string): Promise<void> {
+  await emu.store.set(nameIndexKey(name), name);
+}
+
+/** A name gone (renamed away, deleted): its form is nobody's, if it was this one's. */
+async function unindexName(emu: Emulator, name: string): Promise<void> {
+  if ((await emu.store.get<string>(nameIndexKey(name))) === name) await emu.store.delete(nameIndexKey(name));
 }
 
 /** A name an 奥拉 here has, or one alike to the eye (nameFold), but `except`'s own. */
 async function nameTaken(emu: Emulator, name: string, except = ""): Promise<boolean> {
   if (name !== except && (await accountRecord(emu, name))) return true;
-  const want = nameFold(name);
-  for (const k of await emu.store.keys("user/")) {
-    let other: string;
-    try {
-      other = decodeURIComponent(k.slice("user/".length));
-    } catch {
-      continue;
-    }
-    if (other !== except && nameFold(other) === want) return true;
-  }
+  await nameIndex(emu);
+  const owner = await emu.store.get<string>(nameIndexKey(name));
+  if (!owner || owner === except) return false;
+  if (await emu.store.get(userKey(owner))) return true;
+  // An index of a name no 奥拉 has now: let go.
+  await emu.store.delete(nameIndexKey(name));
   return false;
 }
 
@@ -600,7 +654,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   const world = new World(emu, {
     login: (zone, user, pass, s) => {
       const name = opts.accounts?.required ? normName(user) : (user || "小奥拉").trim();
-      return locked(emu, [name], () => login(zone, name, pass, s.link.remote, String(user ?? "").trim()));
+      const raw = String(user ?? "").trim();
+      return locked(emu, namesOf(name, raw), () => login(zone, name, pass, s.link.remote, raw));
     },
     refuseDelayMs: opts.accounts?.required ? 1000 : 0,
     loginWaitMs: opts.accounts?.required ? LOGIN_WAIT_MS : 0,
@@ -1885,7 +1940,7 @@ export async function renameUser(
   to: string,
   opts: RenameOptions = {},
 ): Promise<string | null> {
-  return locked(emu, [normName(from), normName(to)], () => rename(emu, from, to, opts));
+  return locked(emu, [...namesOf(normName(from), from.trim()), normName(to), foldLock(from), foldLock(to)], () => rename(emu, from, to, opts));
 }
 
 export interface RenameOptions {
@@ -1924,6 +1979,7 @@ async function rename(
   rec.name = b;
   try {
     await emu.store.set(renamingKey(rec.id), { from: a, to: b });
+    await indexName(emu, b);
     await emu.store.set(userKey(b), rec);
     await emu.store.set(`uid/${rec.id}`, b);
   } catch {
@@ -1935,6 +1991,7 @@ async function rename(
   }
   await emu.store.delete(userKey(a));
   await emu.store.delete(renamingKey(rec.id));
+  if (nameFold(a) !== nameFold(b)) await unindexName(emu, a);
   // The 排行榜 keep names: the new one there too.
   for (const key of RANKED) {
     await updateShared<{ dd?: string; nn?: string }[]>(emu, key, (rows) =>
@@ -1970,11 +2027,12 @@ export async function registerUser(
   if (busy) return busy;
   // The hash before the name's turn (it takes a while; the turn is the name's alone).
   const hash = await hashPass(pass);
-  return locked(emu, [n], async () => {
+  return locked(emu, [n, foldLock(n)], async () => {
     if (await nameTaken(emu, n)) return "这个名字已经有奥拉用了，换一个吧。";
     const rec = await newUser(emu, n);
     rec.pass = hash;
     await emu.store.set(userKey(n), rec);
+    await indexName(emu, n);
     await emu.store.set(`uid/${rec.id}`, n);
     guard.made(addr);
     return null;
@@ -1993,7 +2051,7 @@ export async function rememberUser(
 ): Promise<{ token?: string; error?: string }> {
   if (!opts.accounts?.required) return { error: "单机模式没有密码。" };
   const n = normName(name);
-  return locked(emu, [n], async () => {
+  return locked(emu, namesOf(n, name.trim()), async () => {
     const rec = await findAccount(emu, n, name.trim());
     const wrong = await passProblem(emu, n, rec, pass, opts.addr, false);
     if (wrong || !rec) return { error: wrong ?? WRONG };
@@ -2008,7 +2066,7 @@ export async function rememberUser(
 /** 记住密码 taken off: that token is the 奥拉's no longer. */
 export async function forgetToken(emu: Emulator, name: string, token: string): Promise<void> {
   const n = normName(name);
-  await locked(emu, [n], async () => {
+  await locked(emu, namesOf(n, name.trim()), async () => {
     const rec = await findAccount(emu, n, name.trim());
     if (!rec?.tokens?.length) return;
     const h = await tokenHash(String(token));
@@ -2029,7 +2087,7 @@ export async function exportSave(
   opts: { pass?: string; addr?: string; accounts?: AccountOptions },
 ): Promise<{ save?: SaveFile; error?: string }> {
   const n = normName(name);
-  return locked(emu, [n], async () => {
+  return locked(emu, namesOf(n, name.trim()), async () => {
     const rec = await findAccount(emu, n, name.trim());
     if (opts.accounts?.required) {
       const wrong = await passProblem(emu, n, rec, opts.pass, opts.addr);
@@ -2062,7 +2120,7 @@ export async function importSave(
   if (!from) return { error: opts.from ? `存档里没有${opts.from}。` : "存档里有好几个奥拉，请选一个。", names: [...roles.keys()] };
   if (jsonBytes(from) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
   const n = normName(name);
-  return locked(emu, [n], async () => {
+  return locked(emu, namesOf(n, name.trim()), async () => {
     const rec = await findAccount(emu, n, name.trim());
     if (opts.accounts?.required) {
       const wrong = await passProblem(emu, n, rec, opts.pass, opts.addr);
@@ -2126,7 +2184,7 @@ export async function changePassword(
   const bad = to ? passwordProblem(to) : "请输入新密码。";
   if (bad) return bad;
   const n = normName(name);
-  return locked(emu, [n], async () => {
+  return locked(emu, namesOf(n, name.trim()), async () => {
     const rec = await findAccount(emu, n, name.trim());
     // The password itself (not a token of 记住密码).
     const wrong = await passProblem(emu, n, rec, pass, opts.addr, false);
@@ -2202,6 +2260,7 @@ export async function deleteUser(emu: Emulator, name: string, end?: (name: strin
     if (!rec) return "没有这个奥拉。";
     end?.(rec.name);
     await emu.store.delete(userKey(rec.name));
+    await unindexName(emu, rec.name);
     await emu.store.delete(`uid/${rec.id}`);
     await emu.store.delete(`visits/${rec.id}`);
     return null;
