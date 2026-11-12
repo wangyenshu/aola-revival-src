@@ -354,6 +354,7 @@ The rebuilt modules in `rebuild/src/`, one folder per module:
 | `tasknpc`, `taskservice`, `taskdefines`, `taskextmanager`, `taskpanelnew`, `tasktransport`, `taskext` | NPCs, conversations and the quest engine; the newbie quest's scripts |
 | `pet`, `petpackage`, `newpetpackage`, `petwarehouse`, `petfollow`, `petride`, `peteggservice`, `pethatchegg`, `petskillmes`, `pmservice`, `petfight`, `wildpet`, `peticonservice`, `peticonfill` | 亚比 data, the 亚比 tables (PMService), the bag (and the "PetPackage" service that opens it), the 仓库, following, riding, eggs, the battle screen and battle entry, wild 亚比, 亚比 pictures |
 | `dailyactivity` | the 守护者 and event bosses, the planets' activities |
+| `shikarsky` | 猎空's 守护者之战 panel (dailyactivity/bosspanel/shikarskybosspanel, August 2013), on its art |
 | `fbservice`, `fbteam`, `fbchoosepanel` | the 四大副本 (later code on the 2013 interfaces) |
 | `spacetime` | 时空隧道 (later code) |
 | `catalog`, `bconfig`, `buyback`, `rmbmall` | the catalog books, the buy flow (catalog/catalogservice on the art of its copy under the 2013 URL: its ConfirmBuy and ConfirmBuyClothes dialogs), the 兜兜回收器, the 商城; the 超进化手册 (book201103) is a guide book of `gen_bconfig.py` (`GUIDES`: its later page files count when every 道具 and 亚比 they name is of 2013) |
@@ -443,7 +444,9 @@ The modules and the emulator read tables generated once from the decompiled
 Each scene SWF provides a `DocSceneBase` whose scene class extends
 `SceneBase`. `SceneManager.loadScene` loads the SWF, builds the scene, joins
 the server room of the same name, places the players and calls the scene's
-`onJoinRoom`. Entrances are walk targets: a click walks the player to the
+`onJoinRoom`. The layers are stacked obstruction, background, overlap,
+foreground, topground whatever their depths in the art; art left under the
+background stays under it (松软蛋糕店's stray green block). Entrances are walk targets: a click walks the player to the
 door, and arrival loads the next scene with an entry key. `ScenePatches`
 then applies per-scene fixes; `FbEntrances` adds the 副本 doors that the
 later copies of their rooms lost.
@@ -514,7 +517,12 @@ their own pictures (`dailyactivity/dailyboss<id>`), wakes them, plays their
 films and talks (from the later conversation tables) and starts their
 fights (`IPetFight.fightWithBoss`, `54_16`). The table of bosses, scenes and
 forms is at the top of `DailyActivityService.as`; the server's is `GUARDIANS`
-in `battle.ts`, and the wins count for 我的荣誉's 胜利数量 (`bossWins`).
+in `battle.ts`, and the wins count for 我的荣誉's 胜利数量 (`bossWins`). The egg a win
+brings is `guardianEgg` there: the last form's, the egg of its line among the 2013
+PetEggData's and `LATER_EGGS` (守护者 eggs of the February and August 2013 tables, which
+the client adds at start, `control` `LaterEggs`), or `BOSS_EGGS` (终极麦斗王's 麦斗猪蛋,
+猎空's egg). 猎空's panel (`dailyactivity/bosspanel/shikarskybosspanel`, August 2013) is its
+decompiled code compiled against the 2013 libraries (`rebuild/src/shikarsky`), on its art.
 
 The 念之塔 (黑暗念之塔) is the seals' scenes of 2011–12 (`scene/thinktowerof*`)
 with `thinktower/thinktowerservice` (the later module's code compiled

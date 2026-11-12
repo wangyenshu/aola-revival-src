@@ -40,7 +40,10 @@ package mmo.revival.book
     *     of money (it would lie over their prices), RECONSTRUCTED.
     *   - a 周刊 has a <prefix>1_Container (catalogservice BookService), a handbook a
     *     <prefix>Container (HandBookService): its "container" holds the pages, "txtpage" the
-    *     page number.
+    *     page number. A 周刊's contents (the later WeeklyContainerHandler): its lists
+    *     mcPage0, mcPage1 … one at a time (btnContentBack / btnContentNext, "txtcontentpage"),
+    *     their entries mc1, mc2 … (each round its btnjumppage_<page>) on their first frame but
+    *     the one of the page shown (left playing, every entry flashed between the two).
     *   - else the page alone, in stage coordinates, with the drawn 上一页 / 下一页 bar and the
     *     player's 晶币 here, for pages without their own.
     * A close is drawn only when neither the frame nor the page has its own (btnClose…, any case).
@@ -76,6 +79,11 @@ package mmo.revival.book
       private var bar:Sprite;
       private var money:Sprite;
       private var closeBtn:Sprite;
+      /** A 周刊's contents: its lists (mcPage0 …), their entries (mc1 …) and each entry's page. */
+      private var lists:Array = [];
+      private var entries:Array = [];
+      private var entryPage:Array = [];
+      private var listAt:int;
 
       public static function open(book:BookInfo, index:int):BookView
       {
@@ -265,6 +273,7 @@ package mmo.revival.book
             hideMoneyRow();
          }
          if (mode == "bar") wireBar();
+         if (mode == "container") wireContents();
          // While the first page loads (or if it is lost), a way out.
          closeBtn.visible = !has(frame, ["btnclose"]);
          done();
@@ -286,6 +295,63 @@ package mmo.revival.book
             b.mouseChildren = false;
          }
          showMoney();
+      }
+
+      /** A 周刊's contents (WeeklyContainerHandler.init): its lists and their entries, stopped. */
+      private function wireContents():void
+      {
+         lists = [];
+         entries = [];
+         entryPage = [];
+         for (var i:int = 0; frame.getChildByName("mcPage" + i) is MovieClip; i++) lists.push(frame.getChildByName("mcPage" + i));
+         for each (var l:MovieClip in lists)
+         {
+            l.stop();
+            for (var k:int = 0; k < l.numChildren; k++)
+            {
+               var e:MovieClip = l.getChildAt(k) as MovieClip;
+               if (e == null || !/^mc\d+$/.test(e.name)) continue;
+               var at:int = int(e.name.substr(2)) - 1;
+               entries[at] = e;
+               var first:DisplayObject = e.numChildren > 0 ? e.getChildAt(0) : null;
+               entryPage[at] = first != null && first.name.indexOf("btnjumppage_") == 0 ? int(first.name.split("_")[1]) : -1;
+               e.gotoAndStop(1);
+            }
+         }
+         var labels:DisplayObjectContainer = frame.getChildByName("labelSet") as DisplayObjectContainer;
+         if (labels != null) labels.mouseEnabled = labels.mouseChildren = false;
+         var t:TextField = frame.getChildByName("txtcontentpage") as TextField;
+         if (t != null) t.selectable = false;
+         showList(0);
+      }
+
+      /** The entry of page `index` lit (the last entry at or before it), and its list shown. */
+      private function markContents():void
+      {
+         var lit:MovieClip = null;
+         for (var i:int = 0; i < entries.length; i++)
+         {
+            var e:MovieClip = entries[i] as MovieClip;
+            if (e == null) continue;
+            e.gotoAndStop(1);
+            if (int(entryPage[i]) >= 0 && int(entryPage[i]) <= index) lit = e;
+         }
+         if (lit == null) return;
+         lit.gotoAndStop(2);
+         var at:int = lists.indexOf(lit.parent);
+         if (at >= 0) showList(at);
+      }
+
+      /** List `n` of the contents shown, the others hidden, with its number and turning buttons. */
+      private function showList(n:int):void
+      {
+         if (lists.length == 0) return;
+         listAt = Math.max(0, Math.min(lists.length - 1, n));
+         for (var i:int = 0; i < lists.length; i++) DisplayObject(lists[i]).visible = i == listAt;
+         var t:TextField = named("txtcontentpage") as TextField;
+         if (t != null) t.text = (listAt + 1) + "/" + lists.length;
+         gray(named("btnContentBack"), listAt <= 0);
+         gray(named("btnContentNext"), listAt >= lists.length - 1);
       }
 
       /** The desk's money (yellowM, blueM, jingdouM) and the coins drawn beside them. */
@@ -383,6 +449,7 @@ package mmo.revival.book
          var txt:TextField = named("txtpage") as TextField;
          if (txt != null) txt.text = (index + 1) + "/" + book.pageCount;
          if (mode == "bar") showBar();
+         if (entries.length > 0) markContents();
          var info:PageInfo = book.page[index] as PageInfo;
          var my:int = ++token;
          // The last page's "lost" must not stay on while this one loads.
@@ -522,6 +589,8 @@ package mmo.revival.book
                else if (n == "btnNextPage" || low.indexOf("btnnext") == 0) go(index + 1);
                else if (/^btnPage\d$/.test(n) && t.parent == frame) go(group * GROUP + int(n.charAt(7)));
                else if (n == "btnReturn" || low == "btnhomepage") go(0);
+               else if (n == "btnContentBack") showList(listAt - 1);
+               else if (n == "btnContentNext") showList(listAt + 1);
                else if (n.indexOf("btnjumppage_") == 0 && n.split("_").length >= 3) go(Math.max(0, book.getPageIndex(int(n.split("_")[1]), int(n.split("_")[2]))));
                else if (n == "btnBlue") NewDialog.showMessage("蓝宝石可以在工具箱里开通哦！");
                else if (n == "btnStarCoin" || n == "btnbuysth") NewDialog.showMessage("星币可以在工具箱里得到哦！");

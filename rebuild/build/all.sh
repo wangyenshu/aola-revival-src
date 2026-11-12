@@ -121,6 +121,13 @@ build notifyview mmo/notifyview/DocNotifyView.as notifyview.swf "baseservice/not
 build buyback mmo/buyback/stuff/DocStuffBuyBack.as stuffbuyback.swf "buyback/stuffbuyback.swf%3F1210"
 # The 守护者 (the areas' bosses of BossTimeHelper): rebuilt dailyactivity/dailyactivityservice.
 build dailyactivity mmo/dailyactivity/DocDailyActivity.as dailyactivity.swf "dailyactivity/dailyactivityservice.swf%3F130117"
+# 猎空's panel (守护者之战 猎空, August 2013): its decompiled code on the 2013 libraries, on its art.
+build shikarsky mmo/revival/shikarsky/DocShikarSky.as shikarsky-code.swf ""
+mkdir -p "$W/dailyactivity/bosspanel"
+python3 "$TOOLS/swf_transplant.py" --art "$(art dailyactivity/bosspanel/shikarskybosspanel.swf)" --code "$OUT/shikarsky-code.swf" --drop-art-abc --only-binds \
+  --bind 0=mmo.revival.shikarsky.DocShikarSky --bind 127=mmo.bosspanel.shikarsky.ShikarSkyBossPanel --bind 68=mmo.bosspanel.shikarsky.BossInfoPanel \
+  --note "LATER dailyactivity/bosspanel/shikarskybosspanel on the 2013 libraries (aola-revival): the 背包, 治疗 and 远程仓库 on the 2013 services" \
+  --out "$W/dailyactivity/bosspanel/shikarskybosspanel.swf%3F1210"
 # What panels ask about a 亚比 or skill (names, evolution, egg pictures): rebuilt
 # pet/petskillmesservice on the revival's tables (rebuild/gen/petmes, tools/gen_petmes.py).
 export GEN="$HERE/../gen/petmes"
@@ -298,6 +305,10 @@ build helloicon mmo/hellohelper/helloicon/DocClass.as helloicon.swf "hellohelper
 export GEN="$HERE/../gen/weekly"
 build weekly mmo/weekly/DocClass.as weekly.swf "baseservice/weekly.swf%3F130117"
 unset GEN
+# Pages 7 and 10 of the January 2013 周刊 (weekly/weekly128) are asked for at ?1301251, the other
+# pages at the loader's ?1210 under which game/ keeps them all: those two at that name too.
+mkdir -p "$W/weekly/weekly128"
+for p in 7 10; do cat "$(art weekly/weekly128/aolaweekly128_$p.swf)" > "$W/weekly/weekly128/aolaweekly128_$p.swf%3F1301251"; done
 
 # The home (小屋): rebuilt house/housecommon (HouseBase of every home SWF),
 # houseloader, houseservice, furnituredecorator and yz/plantdecorator; the menu and the storage

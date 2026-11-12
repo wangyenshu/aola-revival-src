@@ -1982,8 +1982,10 @@ const BOSS_SPECIES: Record<number, number> = { 10112: 114, 20112: 114 };
  * 11516, fought one after another) gives the 麦斗猪蛋 (520, the line of 麦斗队长 and 麦斗司令) when
  * its last 亚比 is beaten (RECONSTRUCTED: 麦斗王 523 himself is 无法获得; the 图鉴 names 斗魂空间 as
  * where the 麦斗 line is got). 0: no egg for that form (蓝羽灵者's first two; its last gives the 小羽灵蛋).
+ * 猎空's last form gives the 猎空亚比蛋 (1696, of the August 2013 PetEggData: it hatches 猎小空), its
+ * line being later than the species table the eggs are looked up in.
  */
-export const BOSS_EGGS: Record<number, number> = { 11516: 520, 31394: 0, 21394: 0, 11394: 1393 };
+export const BOSS_EGGS: Record<number, number> = { 11516: 520, 31394: 0, 21394: 0, 11394: 1393, 11697: 1696 };
 
 /**
  * Bosses whose 亚比蛋 comes only with the first win of their last form, as their panels say: 蓝羽灵者
@@ -1994,9 +1996,10 @@ const FIRST_WIN_ONLY = new Set([11394, 11259, 31213]);
 
 /**
  * Bosses' marks in 54_19's list once beaten: 友人契约书's panel shows the egg as got when "1257" is in
- * it, 岩波斗魂者's (dailyactivity/stonebosspanel) when "1211" (its egg) is, after its last form, 31213.
+ * it, 岩波斗魂者's (dailyactivity/stonebosspanel) when "1211" (its egg) is, after its last form, 31213;
+ * 猎空's (dailyactivity/bosspanel/shikarskybosspanel) shows 已战胜 when "1695" is.
  */
-const BOSS_MARKS: Record<number, number> = { 11259: 1257, 31213: 1211, 11394: 1393 };
+const BOSS_MARKS: Record<number, number> = { 11259: 1257, 31213: 1211, 11394: 1393, 11697: 1695 };
 
 /**
  * A 守护者 form's level (its race at that index), else that race's level wherever its row has it (the
@@ -2031,12 +2034,20 @@ export function lastGuardianForm(race: number, index: number): boolean {
   return true;
 }
 
+/**
+ * The eggs of 守护者 the January 2013 PetEggData lacks, as the February and August 2013 ones have
+ * them (年兽, 极速威锋, 赤魔导士, 猪猪超人, 翡冷翠亚比蛋): without them a win over those bosses brought
+ * nothing. The client adds the same rows (rebuild control LaterEggs); they are not sold (materials).
+ * 猎空's (1696, it hatches 猎小空) is given by BOSS_EGGS.
+ */
+export const LATER_EGGS = [491, 631, 795, 883, 994];
+
 /** The 亚比蛋 of the 2013 PetEggData (materials type 5): egg N hatches race N, the first form of a line. */
 export const EGG_IDS = new Set([
   13, 37, 64, 73, 79, 82, 85, 88, 91, 94, 97, 100, 103, 106, 109, 112, 127, 130, 178, 193, 253, 265, 267, 276, 282, 285, 297, 315,
   337, 392, 409, 416, 425, 467, 470, 473, 482, 488, 515, 520, 602, 637, 663, 680, 705, 713, 755, 770, 786, 817, 839, 856, 858, 864,
   873, 890, 947, 1143, 1160, 1184, 1188, 1211, 1226, 1237, 1239, 1256, 1258, 1260, 1264, 1266, 1275, 1277, 1292, 1311, 1319, 1321,
-  1337, 1340, 1393,
+  1337, 1340, 1393, ...LATER_EGGS,
 ]);
 
 /** The egg of a species' evolution line (its first form, when PetEggData has that egg), else 0. */
@@ -2046,6 +2057,24 @@ export function eggOfLine(t: { species: Record<string, { next?: number }> }, rac
   let r = race;
   for (let i = 0; i < 6 && !EGG_IDS.has(r) && prev.has(r); i++) r = prev.get(r)!;
   return EGG_IDS.has(r) ? r : 0;
+}
+
+/**
+ * The species of a boss form: variant * 10000 + species, or for 终极麦斗王's 14523 / 11514 / 11516
+ * (PetAssetsMap) variant * 1000 + species.
+ */
+export function guardianSpecies(t: PetTables, asked: number): number {
+  return BOSS_SPECIES[asked] ?? (speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000);
+}
+
+/**
+ * The 亚比蛋 a win over this 守护者 form brings, else 0: the last form's, of its line or BOSS_EGGS;
+ * none for 终极麦斗王's first two (麦斗王 and 战魂猛犸: the 麦斗猪蛋 comes with the last).
+ */
+export function guardianEgg(t: PetTables, asked: number, index: number): number {
+  if (asked in BOSS_EGGS) return BOSS_EGGS[asked];
+  if (asked === 14523 || asked === 11514 || !lastGuardianForm(asked, index)) return 0;
+  return eggOfLine(t, guardianSpecies(t, asked));
 }
 
 /** A fair server: the levels a client asks for a fight, at most this over his strongest 亚比. */
@@ -2801,10 +2830,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const index = Math.max(0, Number(ctx.params.index) | 0);
     if (!isGuardian(asked)) return ctx.reply({ msg: "这里没有可以挑战的守护者。" }, "2303");
     const t = await deps.tables();
-    // The species of a boss form: variant * 10000 + species, or for 终极麦斗王's 14523 / 11514 / 11516
-    // (PetAssetsMap) variant * 1000 + species.
-    const species = BOSS_SPECIES[asked] ?? (speciesOf(t, asked % 10000) ? asked % 10000 : speciesOf(t, asked % 1000) ? asked % 1000 : asked % 10000);
-    const egg = BOSS_EGGS[asked] ?? (asked === 14523 || asked === 11514 || !lastGuardianForm(asked, index) ? 0 : eggOfLine(t, species));
+    const species = guardianSpecies(t, asked);
+    const egg = guardianEgg(t, asked, index);
     const mark = BOSS_MARKS[asked];
     const bossName = nameOf(t, species);
     const onWin: Battle["onWin"] = (o) => {

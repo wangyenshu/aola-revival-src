@@ -91,6 +91,7 @@ package mmo.control
          SocketClient.instance.addEventListener(SocketClientEvent.onJoinRoom, function(e:SocketClientEvent):void { bar.closePopup(); });
          installDebugHook();
          LaterItems.install();
+         LaterEggs.install();
          TheatrePanel.install();
          // The 图鉴: a grey 亚比's page opens too.
          PetDicPeek.install(LayerManager.stage);

@@ -56,3 +56,29 @@ test("only the last form of a 守护者 brings its egg", async () => {
   assert.equal(lastGuardianForm(10884, 0), true); // 猪猪超人, one form
   assert.equal(lastGuardianForm(12345, 0), true); // not in the table
 });
+
+test("every 守护者's last form brings an egg (猪猪超人, 年兽 … 猎空 too), but 终极麦斗王's first two", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { GUARDIANS, guardianEgg } = await import("../src/game/sfs2013/battle.ts");
+  const revival = new URL("../../rebuild/static/www.9aola.com/revival/", import.meta.url);
+  const t = {
+    species: JSON.parse(readFileSync(new URL("pets.json", revival), "utf8")),
+    pm: JSON.parse(readFileSync(new URL("pmdata.json", revival), "utf8")),
+  };
+  const none: number[] = [];
+  for (const [races] of GUARDIANS) {
+    for (const pair of races.split("#")) {
+      const chain = pair.split(",").map(Number);
+      const last = chain[chain.length - 1];
+      if (!guardianEgg(t, last, chain.length - 1)) none.push(last);
+    }
+  }
+  assert.deepEqual(none, [14523, 11514]);
+  assert.equal(guardianEgg(t, 10884, 0), 883); // 猪猪超人亚比蛋
+  assert.equal(guardianEgg(t, 10493, 0), 491); // 年兽亚比蛋
+  assert.equal(guardianEgg(t, 10633, 0), 631); // 极速威锋亚比蛋
+  assert.equal(guardianEgg(t, 20796, 1), 795); // 赤魔导士亚比蛋
+  assert.equal(guardianEgg(t, 10995, 0), 994); // 翡冷翠亚比蛋
+  assert.equal(guardianEgg(t, 11697, 2), 1696); // 猎空亚比蛋 (hatches 猎小空)
+  assert.equal(guardianEgg(t, 21697, 1), 0); // not its last form
+});

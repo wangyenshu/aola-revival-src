@@ -625,7 +625,11 @@ Each boss stands in its room as its own picture (or dressed as its 亚比 where
 the picture is lost), wakes, talks and fights as in the later client. A
 click offers the fight; the forms are fought in order, a loss starts again
 from the first, and beating the last form gives the 亚比蛋 of the boss's
-line. Only the boss itself takes clicks (天女若希 on her bed: she, not the bed). The
+line (every boss but 终极麦斗王's first two; 猪猪超人, 年兽, 极速威锋, 赤魔导士, 翡冷翠 and
+猎空 with the eggs of the February and August 2013 egg tables). Only the boss itself takes
+clicks (天女若希 on her bed: she, not the bed; 神龟's 海螺, not the ripple over the turtle
+in the scene). 超T兔's 糖先生的秘密机器 stands still until it is clicked, then makes 超T兔,
+who talks when clicked. The
 battle's end is said in the 2013 game's own message window (HELLO glad on a win, sad on
 a loss, 知道了). Bosses cannot be caught. A 守护者 whose 2012 套装 is known (金刚库巴,
 冰霜之王 and 12 others), and the generals of 武神大陆 (the 武神套装), sometimes
@@ -682,7 +686,11 @@ estimates.
 The event bosses of 2011–12 (主题公园's eight, 年兽, 时间之神, 影刃 and 鬼王,
 友人契约书, 多古拉伯爵 the 万圣节守护者 of October 2012 at 奥拉之树) stand where their
 events placed them. 蓝羽灵者 of 迷境花园 is of 11 January 2013. 猎空 came later
-(August 2013, 银河冠军擂台, whose 2013 room is lost): it stands in 挑战平台.
+(August 2013, 银河冠军擂台, whose 2013 room is lost): it stands in 挑战平台. As in
+August 2013 a click wakes it and the next opens its 守护者之战 panel (开始挑战, 挑战秘籍,
+背包, 治疗, 远程仓库, 购买亚比; 已战胜 once beaten); after each of its first two forms 猎空
+speaks (就凭这点实力想进入星战空间？…) and its answer leads to the next. Its 亚比蛋
+hatches 猎小空.
 
 ### Other boss fights
 
@@ -995,7 +1003,8 @@ run pays 晶豆, as its end panel says.
   points' things).
 - 射击 with 射击卡 and their effects.
 - The 奥拉周刊 of every week from July 2010 (126 issues) and the 亚比手册 in the
-  图书馆.
+  图书馆. The 奥拉新闻 of January 2013 (第128期) with its contents: one list at a time,
+  turned with its arrows, the page shown lit, a line clicked turning to its page.
 - The 百田大剧场 with the films that survive: 奥拉星2周年 (July 2012) and the
   战队 film, played in the game (their FLVs).
 - 欢乐岛's hot spring with its costumes (seen by the others in the room) and

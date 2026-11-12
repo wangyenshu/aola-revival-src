@@ -470,10 +470,25 @@ package mmo.play.scene
       private function arrangeLayers():void
       {
          var order:Array = [obStruction, backGround, container, foreGround, topGround];
+         // Art the author left under the background stays under it (松软蛋糕店's stray green
+         // block, hidden by the background in Flash; moved over everything it showed).
+         var under:Array = [];
+         if (backGround != null && backGround.parent == this)
+         {
+            for (var u:int = 0; u < getChildIndex(backGround); u++)
+            {
+               var below:DisplayObject = getChildAt(u);
+               if (order.indexOf(below) < 0) under.push(below);
+            }
+         }
          var at:int = 0;
          for each (var layer:DisplayObject in order)
          {
             if (layer == null || layer.parent != this) continue;
+            if (layer == backGround)
+            {
+               for each (var b:DisplayObject in under) setChildIndex(b, at++);
+            }
             setChildIndex(layer, at++);
             // A layer is never a click target itself (what it holds still is):
             // art its author made click-through (mouseEnabled = false, as the

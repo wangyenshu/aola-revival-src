@@ -65,7 +65,7 @@ package mmo.dailyactivity
    {
       /**
        * scene, name, file (dailyactivity/dailyboss<file>), class, x, y, kind (wake, still, film, book, panel, ask,
-       * stone, wand), film class (for panel and stone: "file|class" of the panel), npc, talk key, talk set (std,
+       * stone, wand, shell, machine), film class (for panel and stone: "file|class" of the panel), npc, talk key, talk set (std,
        * team, pig, feier, start, one), forms "race:level,…".
        */
       private static const BOSSES:Array = [
@@ -86,11 +86,11 @@ package mmo.dailyactivity
          ["yishuzhidu1", "浮云尊者", 104751, "Boss104751", 285, 295, "still", null, 399, "yishuzhidu1Teamboss", "team", "10475:100"],
          ["yishuzhidu1", "浮云尊者", 104752, "Boss104752", 569, 298, "still", null, 399, "yishuzhidu1Teamboss", "team", "20475:100"],
          ["fairytalestar1", "童心", 30682, "Boss10682", 0, 0, "book", null, 462, "themepark30682", "std", "30682:88,10682:100"],
-         ["haikustar2", "神龟", 10715, "Boss10715", 0, 0, "still", null, 513, "boss10715", "std", "10715:80,20715:100"],
+         ["haikustar2", "神龟", 10715, "Boss10715", 0, 0, "shell", null, 513, "boss10715", "std", "10715:80,20715:100"],
          ["fightspace2", "终极麦斗王", 14523, "BossInteraction.PigBoss", 187, 272, "still", null, 278, "courageDoorBoss", "pig", "14523:100,11514:80,11516:80"],
          ["bingxuestar4", "暴雪山神", 10757, "Boss10757", 0, 0, "wand", "BossMovie10757", 538, "boss10757", "std", "10757:80,20757:100"],
          ["yakestar4", "神罗麦提", 10840, "Boss10840", 0, 0, "film", "Boss10840Movie", 589, "boss12702", "std", "10840:80,20840:100"],
-         ["candystar3", "超T兔", 10865, "Boss10865", 0, 0, "still", null, 613, "boss12731", "std", "10865:80,20865:100"],
+         ["candystar3", "超T兔", 10865, "Boss10865", 0, 0, "machine", null, 613, "boss12731", "std", "10865:80,20865:100"],
          ["cloudstar4", "岩波斗魂者", 11213, "StoneBoss", 0, 0, "stone", "dailyactivity/stonebosspanel|mmo.stoneboss.StoneBossPanel", 786, null, "one", "11213:60,21213:80,31213:100"],
          ["mysticocean5", "伊泽和迦娜", 11320, "Boss11320", 0, 0, "still", null, 842, "hello_before_OceanBoss", "one", "11320:100,11322:100"],
          ["feier4", "烈焰鸟", 30278, "Feier4boss", 640, 454, "wake", null, 80, "feier4boss", "feier", "30278:80"],
@@ -128,8 +128,10 @@ package mmo.dailyactivity
          // 猎空, the 守护者 of 银河冠军擂台 from August 2013 (later than this world: asked for by its
          // players). The later BossTimeHelper fights its three forms 31697, 21697, 11697 at 60, 80, 100
          // in spacetimechallenge, whose 2013 scene is lost (the 战斗星域 stand-in, BattleZoneHub): it
-         // stands in 挑战平台 instead, as its picture dailyactivity/dailyboss31697 (the tornado).
-         ["spacetimechallenge3", "猎空", 31697, "Boss31697", 0, 0, "ask", null, 0, null, "one", "31697:60,21697:80,11697:100"],
+         // stands in 挑战平台 instead, as its picture dailyactivity/dailyboss31697 (the tornado). As the
+         // later ShikarSkyInteraction: a click wakes it, then a click opens its 守护者之战 panel, whose
+         // 开始挑战 fights the forms and whose talks (boss11697win, boss21697win) lead from one to the next.
+         ["spacetimechallenge3", "猎空", 31697, "Boss31697", 0, 0, "stone", "dailyactivity/bosspanel/shikarskybosspanel|mmo.bosspanel.shikarsky.ShikarSkyBossPanel", 1064, null, "one", "31697:60,21697:80,11697:100"],
          // 时间之神, the 时间守护者 of the 泡泡节 (缤纷泡泡街, from 27 May 2011): the clock of the
          // street's fountain is turned to call it (its film, the same clock, plays over the street's);
          // then it stands by the clock (spot RECONSTRUCTED).
@@ -275,6 +277,40 @@ package mmo.dailyactivity
                if (view is MovieClip && b.cls == "Boss11320") MovieClip(view).gotoAndStop(MovieClip(view).totalFrames);
                // 时间之神 comes when the clock is turned.
                if (b.kind == "clock" && !b.filmed) view.visible = false;
+               // 超T兔 (Boss10865Strategy of the later module): 糖先生的秘密机器 waits on its first
+               // frame (left playing, the machine made 超T兔 over and over); a click plays it once.
+               if (b.kind == "machine")
+               {
+                  var machine:MovieClip = view.getChildByName("mc") as MovieClip;
+                  if (machine != null && machine.totalFrames > 1)
+                  {
+                     machine.gotoAndStop(1);
+                     b.tip = "糖先生的秘密机器";
+                  }
+               }
+               // 神龟 (Boss10715Strategy): only its 海螺 (shell) takes the pointer. The ripple (a
+               // wide dark ring over the turtle drawn in the scene) waits hidden until the 海螺 has
+               // been blown, and the scene's own 海螺 (bossitemnew) makes way for the picture's.
+               if (b.kind == "shell")
+               {
+                  var shell:MovieClip = view.getChildByName("shell") as MovieClip;
+                  var ripple:MovieClip = view.getChildByName("ripple") as MovieClip;
+                  if (ripple != null)
+                  {
+                     ripple.gotoAndStop(1);
+                     ripple.visible = false;
+                     ripple.mouseEnabled = ripple.mouseChildren = false;
+                  }
+                  if (shell != null)
+                  {
+                     shell.gotoAndStop(1);
+                     view.mouseEnabled = false;
+                     b.hit = shell;
+                     b.tip = "试试用海螺唤醒灵龟吧";
+                     var own:DisplayObject = findNamed(into.parent as DisplayObjectContainer, "bossitemnew", 3);
+                     if (own != null) own.visible = false;
+                  }
+               }
                // 暴雪山神's totem loops its wand until the film has played (its last frame: the 山神 standing).
                if (view is MovieClip && b.kind == "wand" && MovieClip(view).totalFrames > 2)
                {
@@ -327,11 +363,14 @@ package mmo.dailyactivity
             view.name = "guardian_" + b.part;
             view.buttonMode = true;
             b.view = view;
-            try { TipsManager.getInstance().addTips(view, "守护者 " + b.name); } catch (e2:Error) {}
+            // What takes the clicks: the picture, or the part of it that calls the boss (神龟's 海螺).
+            var hit:Sprite = (b.hit as Sprite) || view;
+            hit.buttonMode = true;
+            try { TipsManager.getInstance().addTips(hit, b.tip || "守护者 " + b.name); } catch (e2:Error) {}
             into.addChild(view);
             shown.push(b);
-            ClickAndHitHelper.instance.registerTarget(view, true, 120);
-            view.addEventListener(ClickAndHitEvent.ON_CLICK_AND_HIT, function(ev:ClickAndHitEvent):void { clicked(b); });
+            ClickAndHitHelper.instance.registerTarget(hit, true, 120);
+            hit.addEventListener(ClickAndHitEvent.ON_CLICK_AND_HIT, function(ev:ClickAndHitEvent):void { clicked(b); });
             RLog.log("guardian: " + b.name + " in " + b.scene);
          };
          if (ApplicationDomain.currentDomain.hasDefinition(cls) || NO_PICTURE[b.file]) put();
@@ -426,6 +465,7 @@ package mmo.dailyactivity
                var v:Sprite = b.view as Sprite;
                if (v == null) continue;
                ClickAndHitHelper.instance.remove(v);
+               if (b.hit != null) ClickAndHitHelper.instance.remove(b.hit);
                if (v.parent) v.parent.removeChild(v);
                if (v is BossAvatar) BossAvatar(v).dispose();
                if (b.item != null) DisplayObject(b.item).y += 2000000;
@@ -488,6 +528,8 @@ package mmo.dailyactivity
             // 岩波斗魂者 (StoneBossInteraction of the later module): the first click wakes it
             // (frame 2: its mc plays once), then it stands awake (frame 3) and a click opens
             // its panel (dailyactivity/stonebosspanel), whose 挑战 fights its three forms.
+            // 猎空 (ShikarSkyInteraction) the same, its waking clip unnamed, its panel
+            // dailyactivity/bosspanel/shikarskybosspanel (its talks between the forms in it).
             if (view.currentFrame < 3)
             {
                if (view.currentFrame == 2) return;
@@ -500,7 +542,7 @@ package mmo.dailyactivity
                view.addFrameScript(1, function():void
                {
                   view.addFrameScript(1, null);
-                  var mc:MovieClip = view.getChildByName("mc") as MovieClip;
+                  var mc:MovieClip = (view.getChildByName("mc") as MovieClip) || (view.numChildren > 0 ? view.getChildAt(0) as MovieClip : null);
                   if (mc == null || mc.totalFrames < 2) { awake(); return; }
                   mc.addFrameScript(mc.totalFrames - 1, function():void { mc.stop(); awake(); });
                   mc.gotoAndPlay(1);
@@ -551,6 +593,60 @@ package mmo.dailyactivity
             });
             return;
          }
+         if (b.kind == "machine" && !b.awake && view != null)
+         {
+            // 糖先生的秘密机器 plays once and 超T兔 stands there; then only 超T兔 (mcNpc) talks.
+            if (b.playing) return;
+            var made:MovieClip = view.getChildByName("mc") as MovieClip;
+            if (made != null && made.totalFrames > 1)
+            {
+               b.playing = true;
+               made.addFrameScript(made.totalFrames - 1, function():void
+               {
+                  made.stop();
+                  made.addFrameScript(made.totalFrames - 1, null);
+                  b.playing = false;
+                  b.awake = true;
+                  robotOnly(b, made);
+               });
+               made.play();
+               return;
+            }
+            b.awake = true;
+         }
+         if (b.kind == "shell" && view != null)
+         {
+            // 神龟: the 海螺 is blown (its own clip), the water ripples, then the turtle talks;
+            // the 海螺 is ready again for the next time.
+            if (b.playing) return;
+            var conch:MovieClip = view.getChildByName("shell") as MovieClip;
+            var rings:MovieClip = view.getChildByName("ripple") as MovieClip;
+            if (conch != null && conch.totalFrames > 1)
+            {
+               b.playing = true;
+               var calm:Function = function():void
+               {
+                  b.playing = false;
+                  conch.gotoAndStop(1);
+                  talk(b);
+               };
+               conch.addFrameScript(conch.totalFrames - 1, function():void
+               {
+                  conch.stop();
+                  if (rings == null || rings.totalFrames < 2) { calm(); return; }
+                  rings.visible = true;
+                  rings.addFrameScript(rings.totalFrames - 1, function():void
+                  {
+                     rings.gotoAndStop(1);
+                     rings.visible = false;
+                     calm();
+                  });
+                  rings.gotoAndPlay(2);
+               });
+               conch.gotoAndPlay(2);
+               return;
+            }
+         }
          if (b.kind == "ask")
          {
             // A boss whose talks are lost (鬼王): asked plainly.
@@ -582,6 +678,26 @@ package mmo.dailyactivity
             return;
          }
          talk(b);
+      }
+
+      /** 超T兔 made: the machine's picture no longer takes the pointer, only 超T兔 (mcNpc). */
+      private static function robotOnly(b:Object, made:MovieClip):void
+      {
+         var view:Sprite = b.view as Sprite;
+         var robot:Sprite = made.getChildByName("mcNpc") as Sprite;
+         try { TipsManager.getInstance().removeTips(view); } catch (e0:Error) {}
+         if (view == null || robot == null) return;
+         view.mouseEnabled = false;
+         made.mouseEnabled = false;
+         for (var i:int = 0; i < made.numChildren; i++)
+         {
+            var part:InteractiveObject = made.getChildAt(i) as InteractiveObject;
+            if (part == null || part == robot) continue;
+            part.mouseEnabled = false;
+            if (part is DisplayObjectContainer) DisplayObjectContainer(part).mouseChildren = false;
+         }
+         robot.buttonMode = true;
+         try { TipsManager.getInstance().addTips(robot, "守护者 " + b.name); } catch (e1:Error) {}
       }
 
       private function openPanel(b:Object):void
