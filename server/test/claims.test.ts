@@ -16,7 +16,8 @@ import { capMoney, keepMoney, MONEY_MAX } from "../src/game/sfs2013/money.ts";
 import { EXT_NAMES, Reader, Up, clientPayload, encodeClientFrame, nextPacketNum } from "../src/game/sfs2013/protocol.ts";
 import { SFS2013_FRAMING } from "../src/game/sfs2013/server.ts";
 import { recordWin } from "../src/game/sfs2013/wins.ts";
-import { FAIR_ABOVE } from "../src/game/sfs2013/battle.ts";
+import { addActFight, FAIR_ABOVE } from "../src/game/sfs2013/battle.ts";
+import { FREE_HEALS_PER_DAY } from "../src/game/sfs2013/gyms.ts";
 import { PARKOUR_CMD, PARKOUR_EXT } from "../src/game/sfs2013/parkour.ts";
 
 const TABLES = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../rebuild/static/www.9aola.com");
@@ -205,4 +206,85 @@ test("an imported 放生仓库 is rebuilt as the bag's 亚比 are", async () => 
   assert.equal(rec.released.length, 1);
   assert.deepEqual([rec.released[0].id, rec.released[0].level, rec.released[0].relAt, rec.released[0].evil], [9, 100, 123, undefined]);
   assert.ok(rec.nextPetId >= 9);
+});
+
+/** A player with a starter, in maintown1, the live record at hand. */
+async function withStarter(name = "战士") {
+  const p = await fairPlayer(name);
+  p.join("maintown1");
+  await tick(50);
+  p.xt("PocketMonsterExtension", "1201", { raceId: 7, level: 5 });
+  await tick(100);
+  const live = async () => (await p.host.emulator.store.get<Record<string, any>>(key(p.name)))!;
+  return { ...p, live };
+}
+
+test("no heal, card or form change while a fight is on; the free 恢复 so many a day", async () => {
+  const p = await withStarter();
+  const pet = (await p.live()).pets[0];
+  p.xt("PetExtension", "54_2", { raceId: 1, level: 5 });
+  await p.wait("2303");
+  pet.hp = 1;
+  p.xt("PetExtension", "54_4", { nd: 1 });
+  assert.equal((await p.wait("54_4"))?.res, false, "治疗 refused in a fight");
+  assert.equal((await p.live()).pets[0].hp, 1);
+  p.xt("SundriesExtension", "revival_sandbox", { lv: "1:5", i: 0 });
+  assert.equal((await p.wait("revival_sandbox"))?.res, 0, "the 沙盒's heal refused in a fight");
+  assert.equal((await p.live()).pets[0].hp, 1);
+  p.xt("PetExtension", "54_25", { pid: pet.id, cid: 1 });
+  assert.match(String((await p.wait("54_25"))?.msg), /战斗还没有结束/);
+  p.xt("PetExtension2", "54e_1", { pid: pet.id, t: 1 });
+  assert.match(String((await p.wait("54e_1"))?.msg), /战斗还没有结束/);
+  // Out of the fight (escape): the free 恢复 works, FREE_HEALS_PER_DAY a day, then it costs.
+  p.xt("PocketMonsterExtension", "1404", {});
+  await p.wait("2414");
+  const rec = await p.live();
+  rec.score = 0;
+  let free = 0;
+  for (let i = 0; i < FREE_HEALS_PER_DAY + 2; i++) {
+    p.xt("PetExtension", "54_4", { nd: 1 });
+    if ((await p.wait("54_4"))?.res === true) free++;
+  }
+  assert.equal(free, FREE_HEALS_PER_DAY, "then 50 晶币 (none here)");
+});
+
+test("the films teach their own skill; the arena and the dark gym fight their own; a fate kept till its fight", async () => {
+  const p = await withStarter();
+  const rec = await p.live();
+  rec.pets[0].race = 230;
+  p.xt("PetExtension2", "54e_5", { pid: rec.pets[0].id, sid: 1012 });
+  assert.equal((await p.wait("54e_5"))?.res, false, "not any skill");
+  // The arena: only the boss of the room one is in.
+  p.xt("PetExtension", "54_22", { type: 12, mi: 70001, rm: "viparena2" });
+  assert.match(String((await p.wait("2303"))?.msg), /不能进行/);
+  p.xt("PetExtension", "54_22", { type: 88, raceId: 1 });
+  assert.match(String((await p.wait("2303"))?.msg), /不能进行/, "a 命运玩偶 only");
+  // 84_4: a win of a floor's boss that does not pass it.
+  p.xt("VipTowerExtension", "84_2", { fl: 1 });
+  await p.wait("84_2");
+  recordWin(p.s, 70329, "viparena6");
+  p.xt("VipTowerExtension", "84_4", { fl: 1 });
+  await p.wait("84_4");
+  assert.equal((await p.live()).vipTower.ps, false);
+  // 幻冥's 命运: asked twice, the same.
+  p.xt("PeriodicActiveExtension", "Dark_7", {});
+  const a = await p.wait("Dark_7");
+  p.xt("PeriodicActiveExtension", "Dark_7", {});
+  const b = await p.wait("Dark_7");
+  assert.deepEqual(a, b);
+});
+
+test("an activity's try is not spent on a fight that cannot start", async () => {
+  const p = await withStarter();
+  let tries = 0;
+  addActFight(p.host.world, 9901, () => {
+    tries++;
+    return { race: 1, level: 5 };
+  });
+  p.xt("PetExtension", "54_2", { raceId: 1, level: 5 });
+  await p.wait("2303");
+  p.clear();
+  p.xt("PetExtension", "54_22", { type: 9901 });
+  assert.match(String((await p.wait("2303"))?.msg), /另外一个战场/);
+  assert.equal(tries, 0, "refused before the try");
 });

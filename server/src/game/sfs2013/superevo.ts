@@ -16,6 +16,7 @@
 // 亚比 comes back at level 1 with its new form's skills of that level, its 学习力 cleared, its 天赋
 // (individual values) and 性格 kept.
 
+import { inFight } from "./fighting.ts";
 import type { World, XtContext } from "./server.ts";
 import { followVar, learntFor, skillOf, speciesOf, statsOf, type PetRecord, type PetTables } from "./pets.ts";
 import { skillsAt } from "./pmdata.ts";
@@ -86,8 +87,11 @@ export function superEvolve(t: PetTables, o: SuperOwner, pet: PetRecord): { to: 
 
 export function installSuperEvo<O extends SuperOwner>(world: World, deps: SuperDeps<O>): void {
   const before = world.handlers?.get("PetExtension2.54e_1");
+  // 54e_1 (超进化, and before it the 职业亚比 and the 小独角兽's: areafuncs.ts, planetacts.ts):
+  // no form changes in a fight (its 亚比 are the bag's own, and 超进化 brings the 体力 back).
   world.xt("PetExtension2.54e_1", async (ctx, cmd) => {
     const o = await deps.load(ctx);
+    if (inFight(world, (o as { id?: number }).id ?? -1)) return ctx.reply({ res: 1, msg: "战斗还没有结束，现在不能这样做。" }, "54e_1");
     const pet = o.pets?.find((p) => p.id === (Number(ctx.params.pid) | 0));
     if (before && !(pet && superTarget(pet.race) !== undefined)) return before(ctx, cmd);
     if (!pet) return ctx.reply({ res: 1, msg: "背包里没有这只亚比哦！" }, "54e_1");

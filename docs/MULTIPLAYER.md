@@ -242,7 +242,13 @@ invite.
   not the client's to finish (动物捕捉's sure first catch of a game, 6 a day
   however often a game is started); 猜弹珠 counts wins only as far as the games
   played allow; 斑比向前冲's 晶币 count to the mini games' 1000 a day; a 亚比
-  in a fight is not moved, let go or fused; 酷跑 runs a role neither owned nor
+  in a fight is not moved, let go or fused, healed (治疗, the 沙盒's heal), given
+  a 战术卡 or changed in form (超进化, 职业亚比, 骑士, 武神); the free 恢复 of the
+  activities 40 a day; a learning film teaches only its own skill; the
+  黑星堡垒 fights only the boss of the room one is in, and a floor is passed by
+  its own boss; the dark gym fights only its 命运玩偶, and its 命运 is not rolled
+  again till its fight; an activity's try (and 关羽's 魂) is not spent on a
+  fight that cannot start (one already on, no 亚比 with 体力); 酷跑 runs a role neither owned nor
   rented as the first one; money stays within 0 … 9,999,999 (`money.ts`).
 
 ## What works together

@@ -13,6 +13,7 @@
 // A card worn or taken off changes the inventory as onAmountUpdated "8_<id>_0_<±1>" says, and
 // the 亚比's stats (pets.ts statsOf: cardBonus).
 
+import { inFight } from "./fighting.ts";
 import type { World, XtContext } from "./server.ts";
 
 export const PET_CARD = 8;
@@ -134,6 +135,8 @@ export function installPetCards<R extends CardOwner>(world: World, deps: CardDep
     if (!pet) return reply(0, "背包里没有这只亚比。");
     // cid 0: only what it wears.
     if (cid === 0) return reply(1, "");
+    // Not in a fight (its 亚比 are the bag's own: a card changes its 体力 and stats).
+    if (inFight(world, (o as { id?: number }).id ?? -1)) return reply(0, "战斗还没有结束，现在不能换战术卡。");
     const def = PET_CARDS[cid];
     if (!def) return reply(0, "没有这种战术卡。");
     const have = ((o.items ??= {})[String(PET_CARD)] ??= {});

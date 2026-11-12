@@ -39,6 +39,7 @@
 // 诸葛亮 95, 吕布 99, 刘备 100), the wait between two 注入 and the 黄巾小兵's drops are RECONSTRUCTED;
 // 诸葛亮 fights alone (the panel's "战胜诸葛亮和迷雾龙": the revival's battles are one against one).
 
+import { inFight } from "./fighting.ts";
 import { addActFight, type Battle, type Msg } from "./battle.ts";
 import type { PetOwner, PetRecord } from "./pets.ts";
 import type { World, XtContext } from "./server.ts";
@@ -196,7 +197,7 @@ export function installFightKing(world: World, deps: WushenDeps): void {
     const f = flagOf(o);
     const t = Math.max(0, Math.min(1, Number(ctx.params.t) | 0));
     const pet = (o.pets ?? []).find((p) => p.id === (Number(ctx.params.pi) | 0)) as PetRecord | undefined;
-    if (!pet || pet.race !== 853 || pet.level < 20 || f.bars[t] < FLAG_FULL) return ctx.reply({}, "w_soul_6");
+    if (!pet || pet.race !== 853 || pet.level < 20 || f.bars[t] < FLAG_FULL || inFight(world, (o as { id?: number }).id ?? -1)) return ctx.reply({}, "w_soul_6");
     pet.race = t === 0 ? 854 : 855;
     pet.level = 1;
     pet.exp = 0;

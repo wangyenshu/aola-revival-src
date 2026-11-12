@@ -6,7 +6,7 @@ import { takeWin } from "./wins.ts";
 import { keepMoney, MONEY_MAX } from "./money.ts";
 import type { Emulator } from "../../core/emulator.ts";
 import { installPets, maxHpOf, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
-import { installBattles, gainExp, type WildEntry } from "./battle.ts";
+import { installBattles, gainExp, MEMBER_ARENA_PASS, type WildEntry } from "./battle.ts";
 import { installPetDic } from "./petdic.ts";
 import { installPetItems, type Boosts } from "./petitems.ts";
 import {
@@ -1595,8 +1595,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const rec = await me(ctx);
     const fl = Number(ctx.params.fl) | 0;
     const v = (rec.vipTower ??= { fl: 0, ps: false });
-    // Passed by its boss (54_22 type 12: 70000 + species) beaten just now in the 堡垒.
-    if (fl === v.fl && !v.ps && takeWin(ctx.session, (w) => w.id >= 70000 && w.id < 80000 && /^viparena/.test(w.scene))) {
+    // Passed by the boss of that floor (MEMBER_ARENA_PASS: 54_22 type 12) beaten just now there.
+    if (fl === v.fl && !v.ps && takeWin(ctx.session, (w) => (MEMBER_ARENA_PASS[fl] ?? []).includes(w.id) && /^viparena/.test(w.scene))) {
       v.ps = true;
       await save(rec);
     }

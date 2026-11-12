@@ -66,6 +66,7 @@
 //   s_s_2 {c}                -> {res}            put c 糖果 (item 513, won from the 布布兔) in; true when the
 //                                                bottle is full: a 小白吐 (846, Lv 1) — one a day ("每天只能获得1只小白吐")
 
+import { inFight } from "./fighting.ts";
 import { chinaDay } from "../../core/clock.ts";
 import { serial } from "../../core/locks.ts";
 import type { World, XtContext } from "./server.ts";
@@ -288,6 +289,8 @@ export function installAreaFuncs(world: World, deps: AreaDeps): void {
   });
   const becomeKnight = (ctx: XtContext, rec: AreaRec, pmId: number, race: number) => {
     const p = rec.pets?.find((x) => x.id === pmId);
+    // Not in a fight (its 亚比 are the bag's own).
+    if (inFight(world, (rec as { id?: number }).id ?? -1)) return false;
     if (!p || p.race !== KNIGHT_PET || p.level < KNIGHT_LEVEL || !KNIGHTS.includes(race)) return false;
     p.race = race;
     if (rec.followPet === p.id) world.setUserVarOnce(ctx.session, "p", followVar(p as PetRecord));

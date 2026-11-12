@@ -60,7 +60,7 @@ import {
 import { PET_CARD, PET_CARDS, cardDrop } from "./petcards.ts";
 import { costumeDrop, GUARDIAN_SUITS, WUSHEN_RACES, WUSHEN_SUIT } from "./costumes.ts";
 import { installSandbox } from "./sandbox.ts";
-import { applyFate, dollLevel, gymOf, gymWon, installGyms, mazeDoll, rollFate, towerFloorWon, waterAttacker, waterRunEnd, GYM_DARK, WATER_BLESS, WATER_ROUNDS, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
+import { applyFate, dollLevel, DARK_DOLLS, gymOf, gymWon, installGyms, mazeDoll, rollFate, towerFloorWon, waterAttacker, waterRunEnd, GYM_DARK, WATER_BLESS, WATER_ROUNDS, GYM_LIGHT, GYM_MASTERS, GYM_THUNDER, GYM_TOWER, TOWER_FLOORS as THUNDER_FLOORS } from "./gyms.ts";
 import { sceneOfRoom, type World, type XtContext } from "./server.ts";
 import { registerFights } from "./fighting.ts";
 import { markDic, MET, NEW_RECORD, OWNED } from "./petdic.ts";
@@ -1962,7 +1962,11 @@ export const GUARDIANS: [string, string][] = [
 ];
 
 /** The 亚比 whose skill film the game has (petlearning/petlearning<race>: 艾尔利克 192 and 230). */
-const FILM_RACES = new Set([192, 230]);
+/**
+ * The films of petlearning<race> and the one skill each teaches (Pet192LearnSkillPanel.skillId;
+ * 艾尔利克's from the quest that opens its film, Task1417Initialler: learnSkill(230, 10224)).
+ */
+const FILM_SKILLS: Record<number, number> = { 192: 11244, 230: 10224 };
 
 /** The boss forms of GUARDIANS: what 54_16 fights (any other id is no 守护者). */
 const GUARDIAN_RACES = new Set(GUARDIANS.flatMap(([races]) => races.split(/[#,]/).map(Number)));
@@ -2051,6 +2055,19 @@ export const FAIR_ABOVE = 5;
 export const FIGHT_IN_MEMBER_ARENA = 12;
 /** 黑星堡垒's bosses' levels by room: floor 1 (viparena2, 3), 2 (5, 6), 3 (7) (RECONSTRUCTED). */
 export const MEMBER_ARENA_LEVELS: Record<string, number> = { viparena2: 50, viparena3: 50, viparena5: 65, viparena6: 65, viparena7: 80 };
+/**
+ * The bosses of each room of the 堡垒 (viparena/flooroneres, floortwores, floorthreeres: the
+ * Scene0nInitialler's bossId, 70000 + species): a room fights only its own.
+ */
+export const MEMBER_ARENA_BOSSES: Record<string, number[]> = {
+  viparena2: [70536],
+  viparena3: [70560],
+  viparena5: [70328],
+  viparena6: [70329],
+  viparena7: [70436, 70311],
+};
+/** The bosses whose win passes a floor (the scenes that then regPassLevel): 84_4 (game.ts). */
+export const MEMBER_ARENA_PASS: Record<number, number[]> = { 1: [70536, 70560], 2: [70329], 3: [70311] };
 /** The NPC's 亚比 per mode (新手训练, 小试身手, 勇士挑战). RECONSTRUCTED. */
 const NPC_LEVELS = [8, 18, 30];
 /**
@@ -2119,6 +2136,13 @@ export function installBattles(world: World, deps: BattleDeps): void {
     ctx.reply({ on: on && !boosts.autoOff, left: boosts.auto ?? 0, auto: !!b?.auto && !b.over && on }, "revival_auto");
   });
 
+  /** Why a battle cannot start for this player now (one is on; no 亚比 with 体力), else null. */
+  const cannotBegin = (o: PetOwner): string | null => {
+    const old = battles.get(o.id);
+    if (old && !old.over) return "你不能够在离开一个战场之前，加入另外一个战场！";
+    if (!(o.pets ?? []).some((p) => p.hp > 0)) return WEAK;
+    return null;
+  };
   const begin = async (
     ctx: XtContext,
     race: number,
@@ -2136,12 +2160,11 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const o = await deps.load(ctx);
     const t = await deps.tables();
     for (const p of o.pets ?? []) normalisePet(p, t);
-    const old = battles.get(o.id);
     // A refused start: told in a 2303 with msg alone; false to the caller.
     const refuse = (msg: string) => (ctx.reply({ msg }, "2303"), false);
-    if (old && !old.over) return refuse("你不能够在离开一个战场之前，加入另外一个战场！");
-    const active = (o.pets ?? []).find((p) => p.hp > 0);
-    if (!active) return refuse(WEAK);
+    const no = cannotBegin(o);
+    if (no) return refuse(no);
+    const active = (o.pets ?? []).find((p) => p.hp > 0)!;
     if (!speciesOf(t, race)) return refuse("这只亚比还不能对战哦！");
     const lesson = tutorial(o, race);
     const wildPet = makePet(t, race, lesson ? Math.min(level, 2) : level, deps.today());
@@ -2315,7 +2338,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
       return void (await begin(ctx, floor.race, floor.level, false, (o) => towerFloorWon(o, layer, deps.now?.() ?? Date.now())));
     }
     if (type === GYM_DARK && Number(ctx.params.raceId) > 0) {
+      // 命运玩偶 only (their four numbers), at their own levels.
       const raceId = Number(ctx.params.raceId) | 0;
+      if (!DARK_DOLLS.includes(raceId)) return refuse("这个挑战现在还不能进行哦！");
       ctx.reply({ res: true });
       return void (await begin(ctx, raceId % 10000, dollLevel(raceId), false, undefined, raceId));
     }
@@ -2403,9 +2428,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // 黑星堡垒 (viparena, PetFightTypes.FIGHT_IN_MEMBER_ARENA 12): {mi, rm}, a floor's boss
       // numbered 70000 + species (70536 震天石魔 in viparena2). Its level by the room's floor,
       // not to be caught (RECONSTRUCTED: the 2013 server's bosses are lost).
+      // The boss of the room the player is in (not the room or the species the client names).
       const mi = Number(ctx.params.mi) | 0;
-      const rm = String(ctx.params.rm ?? "");
-      const level = Object.hasOwn(MEMBER_ARENA_LEVELS, rm) ? MEMBER_ARENA_LEVELS[rm] : 60;
+      const rm = sceneOfRoom(ctx.player.room);
+      if (!Object.hasOwn(MEMBER_ARENA_BOSSES, rm) || !MEMBER_ARENA_BOSSES[rm].includes(mi)) {
+        ctx.reply({ res: false });
+        return ctx.reply({ msg: "这个挑战现在还不能进行哦！" }, "2303");
+      }
+      const level = MEMBER_ARENA_LEVELS[rm] ?? 60;
       return void (await begin(ctx, mi % 10000, level, false, undefined, mi));
     }
     const type = Number(ctx.params.type);
@@ -2414,6 +2444,12 @@ export function installBattles(world: World, deps: BattleDeps): void {
     if (act) {
       const o = await deps.load(ctx);
       const t = await deps.tables();
+      // What begin would refuse, before the activity counts its try (or takes 关羽's 魂) and saves.
+      const no = cannotBegin(o);
+      if (no) {
+        ctx.reply({ res: false });
+        return ctx.reply({ msg: no }, "2303");
+      }
       const f = await act(ctx, o, t);
       if (typeof f === "string") {
         ctx.reply({ res: false });
@@ -2736,9 +2772,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const o = await deps.load(ctx);
     const pet = (o.pets ?? []).find((p) => p.id === (Number(ctx.params.pid) | 0));
     const sid = Number(ctx.params.sid) | 0;
-    // The films there are (petlearning<race>) teach their own 亚比, a skill of the tables.
+    // The films there are (petlearning<race>) teach their own 亚比 their own skill, one of the
+    // tables (a skill the battle does not know could not be used).
     const t = await deps.tables();
-    if (!pet || !sid || !FILM_RACES.has(pet.race) || !t.pm.skills[String(sid)]) return ctx.reply({ res: false }, "54e_5");
+    if (!pet || !sid || FILM_SKILLS[pet.race] !== sid || !t.pm.skills[String(sid)]) return ctx.reply({ res: false }, "54e_5");
     pet.learned = [...new Set([...(pet.learned ?? []), sid])];
     await deps.save(o);
     ctx.reply({ res: true, pid: pet.id, sid }, "54e_5");

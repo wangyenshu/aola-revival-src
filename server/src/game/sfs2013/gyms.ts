@@ -29,6 +29,7 @@
 // stones and the 命运's range are RECONSTRUCTED. 幻光's 踢馆 takes a team of two (its panel says so)
 // and 友情的试炼 (54_22 type 89) a friend's 亚比: neither is played here (refused with a message).
 
+import { inFight } from "./fighting.ts";
 import type { World, XtContext } from "./server.ts";
 import { normalisePet, statsOf, type PetOwner, type PetRecord, type PetTables } from "./pets.ts";
 
@@ -72,8 +73,11 @@ export const TOWER_FLOORS: { race: number; level: number }[] = [
   { race: 1300, level: 100 }, // 幻雷
 ];
 export const TOWER_SPECIAL_FLOOR = 4;
+/** The free 恢复 of the activities (54_4 nd) a day: 最强防御PK战's 30 局 and a few more. */
+export const FREE_HEALS_PER_DAY = 40;
 
 /** 命运玩偶's 亚比 (FightPetAction: 10175 / 10697 and 20175 / 20697): variant 1 at Lv35, 2 at Lv55 (RECONSTRUCTED). */
+export const DARK_DOLLS = [10175, 10697, 20175, 20697];
 export function dollLevel(raceId: number): number {
   return Math.floor(raceId / 10000) >= 2 ? 55 : 35;
 }
@@ -110,6 +114,8 @@ export interface GymFightRec {
   waterMax?: number;
   waterDay?: { day: string; best: number; taken: number[] };
   waterBless?: number;
+  /** The free 恢复 of activities (54_4 nd) used today. */
+  freeHeals?: { day: string; n: number };
 }
 
 /**
@@ -331,10 +337,11 @@ export function installGyms(world: World, deps: GymDeps): void {
     ctx.reply({ bn: item ? 1 : 0 });
   });
   // 幻冥's 命运 for the next 踢馆.
+  // The same 命运 till its 踢馆 is fought (asked again, it is not rolled again).
   world.xt(`${PA}.Dark_7`, async (ctx) => {
     const o = await deps.load(ctx);
-    const fate = rollFate(deps.rng);
-    gymOf(o).fate = fate;
+    const g = gymOf(o);
+    const fate = (g.fate ??= rollFate(deps.rng));
     await deps.save(o);
     ctx.reply(Object.fromEntries(fate.map((v, i) => [`s${i}`, v])));
   });
@@ -355,16 +362,24 @@ export function installGyms(world: World, deps: GymDeps): void {
     const g = gymOf(await deps.load(ctx));
     ctx.reply({ r: `${towerRank(g)}:${g.towerBest ?? 0}`, p: "0,0,0,0", c: g.towerRuns ?? 0 });
   });
-  // 治疗: every 亚比 of the bag back to full, 50 晶币 (free for 蓝宝石).
+  // 治疗: every 亚比 of the bag back to full, 50 晶币 (free for 蓝宝石). Not in a fight: the
+  // battle's 亚比 are the bag's own (a heal there would make every fight won).
   world.xt("PetExtension.54_4", async (ctx) => {
     const o = await deps.load(ctx);
+    if (inFight(world, (o as { id?: number }).id ?? -1)) return ctx.reply({ res: false }, "54_4");
     const t = await deps.tables();
-    // nd: PetClient2.pmRevealAllHpFree, the free 恢复 of an activity's run (最强防御PK战 before each 局).
-    const cost = o.vip || ctx.params.nd ? 0 : 50;
+    // nd: PetClient2.pmRevealAllHpFree, the free 恢复 of an activity's run (最强防御PK战 before each
+    // 局, 友情试炼, 倒立金字塔's flag): FREE_HEALS_PER_DAY a day, then it costs as any 治疗.
+    const g = gymOf(o);
+    const today = deps.today();
+    if (g.freeHeals?.day !== today) g.freeHeals = { day: today, n: 0 };
+    const free = !!ctx.params.nd && g.freeHeals.n < FREE_HEALS_PER_DAY;
+    const cost = o.vip || free ? 0 : 50;
     // A mod's party out that heals nobody (mods.ts).
     if ((o as { modParty?: { noHeal?: string } }).modParty?.noHeal) return ctx.reply({ res: false }, "54_4");
     if ((o.score ?? 0) < cost) return ctx.reply({ res: false }, "54_4");
     o.score = (o.score ?? 0) - cost;
+    if (free && !o.vip) g.freeHeals.n++;
     for (const p of o.pets ?? []) {
       normalisePet(p, t);
       p.hp = statsOf(p, t)[0];

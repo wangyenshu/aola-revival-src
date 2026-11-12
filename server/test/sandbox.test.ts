@@ -70,9 +70,11 @@ test("a 沙盒 fight: the i-th opponent at its level and stats, not to be caught
   assert.equal(join.ch, false);
   assert.equal(join.pmmList[1].battleView.pmList[0].pmSView.r, 43);
   assert.equal(join.pmmList[1].battleView.pmList[0].pmSView.lv, 120);
-  // A battle still open: the start is refused, and the 沙盒 says so (res 0, no words of its own).
+  // A battle still open: refused before anything (its heal would heal that battle's 亚比).
+  owner.pets![0].hp = 1;
   const again = await call("SundriesExtension.revival_sandbox", { lv, i: 1 });
-  assert.deepEqual(again.map(([c, o]) => [c, o.res ?? o.msg]), [["revival_sandbox", 1], ["2303", "你不能够在离开一个战场之前，加入另外一个战场！"], ["revival_sandbox", 0]]);
+  assert.deepEqual(again, [["revival_sandbox", { res: 0, msg: "战斗还没有结束，现在不能这样做。" }]]);
+  assert.equal(owner.pets![0].hp, 1, "not healed");
   await call("PocketMonsterExtension.1404", {}); // run away: the next fight may start
   // The first opponent (Lv3) is beaten without any experience.
   const exp0 = owner.pets![0].exp;

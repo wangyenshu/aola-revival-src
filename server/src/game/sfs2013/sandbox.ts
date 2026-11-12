@@ -17,6 +17,7 @@
 //    "enemies": [{"race": 605, "level": 150, "hp": 100, "at": 100, "de": 100, "sa": 100, "sd": 100, "sp": 100}, …]}
 // hp … sp are percentages of the stats the 亚比 has at that level (100: as it is).
 
+import { inFight } from "./fighting.ts";
 import type { World, XtContext } from "./server.ts";
 import { speciesOf, statsOf, type PetOwner, type PetTables } from "./pets.ts";
 
@@ -91,6 +92,9 @@ export function installSandbox(world: World, deps: SandboxDeps): void {
     if (typeof lv === "string") return ctx.reply({ res: 0, msg: lv });
     const i = lv.together ? 0 : clamp(Math.floor(Number(ctx.params.i)) || 0, 0, lv.enemies.length - 1);
     const e = lv.enemies[i];
+    // Not in a fight: its heal would heal that fight's 亚比 (the start is refused after it).
+    const me = await deps.load(ctx);
+    if (inFight(world, (me as { id?: number }).id ?? -1)) return ctx.reply({ res: 0, msg: "战斗还没有结束，现在不能这样做。" });
     // A mod's party out (mods.ts): healing as it says, and the 亚比 that must not fall.
     const party = (await deps.load(ctx) as { modParty?: { keep?: number; keepText?: string; noHeal?: string } }).modParty;
     if (lv.heal && !party?.noHeal) {
