@@ -28,17 +28,24 @@
 // are left out. The 晶豆 rates are lost: RECONSTRUCTED as one 晶豆 per LB_POINTS_PER_BEAN points, at
 // most LB_BEANS_PER_RUN a run and LB_BEANS_PER_WEEK a week; a run's points count up to LB_RUN_MAX.
 
+import { MONEY_MAX } from "./money.ts";
+import { serial } from "../../core/locks.ts";
 import { gainExp } from "./battle.ts";
 import type { PetRecord, PetTables } from "./pets.ts";
 import type { World, XtContext } from "./server.ts";
 
 export const NINJA_PAY_CAP = 1000;
+/**
+ * 斑比向前冲's 晶币 count towards the day's 晶币 of the mini games (game.ts GAME_COINS_PER_DAY:
+ * the same record, gameCoins): what the client says it won is paid only within it.
+ */
+export const NINJA_PAY_DAY = 1000;
 
 export const LB_POINTS_PER_BEAN = 10;
 export const LB_BEANS_PER_RUN = 50;
 export const LB_BEANS_PER_WEEK = 500;
 export const LB_RUN_MAX = 200_000;
-export const LB_TOTAL_MAX = 9_999_999;
+export const LB_TOTAL_MAX = MONEY_MAX;
 export const LB_BOARD_SIZE = 100;
 /** LBLevelConfig.scoreConfig: the most points of 军衔 1 (学员) … 6; above the last, 7 (校尉). */
 export const LB_LEVELS = [1999, 7999, 19999, 49999, 99999, 299999];
@@ -70,6 +77,8 @@ export interface MiniGameRec {
   jingdou?: number;
   pets?: PetRecord[];
   limitBomb?: LimitBombRec;
+  /** 晶币 of the mini games today (game.ts payGame, 斑比向前冲). */
+  gameCoins?: { day: string; n: number };
 }
 
 export interface LimitBombRow {
@@ -85,8 +94,11 @@ export interface MiniGameDeps {
   now?: () => number;
   /** The pet tables (经验 of the 军衔奖励). */
   pets?: () => Promise<PetTables>;
-  /** The 排行榜 of everyone (the emulator store); without it, the player alone. */
-  board?: { get(): Promise<LimitBombRow[]>; set(rows: LimitBombRow[]): Promise<void> };
+  /**
+   * The 排行榜 of everyone (the emulator store); without it, the player alone. update reads,
+   * changes and writes it one change at a time (game.ts updateShared).
+   */
+  board?: { get(): Promise<LimitBombRow[]>; set(rows: LimitBombRow[]): Promise<void>; update?(f: (rows: LimitBombRow[]) => LimitBombRow[]): Promise<unknown> };
 }
 
 export function lbLevel(points: number): number {
@@ -97,13 +109,22 @@ export function lbLevel(points: number): number {
 const weekOf = (ms: number) => Math.floor((ms / 86_400_000 - 4) / 7);
 
 export function installMiniGames(world: World, deps: MiniGameDeps): void {
+  // The 排行榜 one change at a time (two games ending at once would lose one).
+  const turn = serial();
+  const updateBoard = (f: (rows: LimitBombRow[]) => LimitBombRow[]) => {
+    const b = deps.board!;
+    return b.update ? b.update(f) : turn(async () => b.set(f((await b.get()) ?? [])));
+  };
   world.xt("UserGameExtension.89_bb1", (ctx) => ctx.reply({ suc: true }, "89_bb1"));
   world.xt("UserGameExtension.89_bb2", async (ctx) => {
     const rec = await deps.load(ctx);
     const score = Math.max(0, Number(ctx.params.score) | 0);
-    const pay = Math.min(NINJA_PAY_CAP, Math.max(0, Number(ctx.params.money) | 0));
+    const day = new Date(deps.now ? deps.now() : Date.now()).toISOString().slice(0, 10);
+    if (rec.gameCoins?.day !== day) rec.gameCoins = { day, n: 0 };
+    const pay = Math.min(NINJA_PAY_CAP, Math.max(0, Number(ctx.params.money) | 0), Math.max(0, NINJA_PAY_DAY - rec.gameCoins.n));
     if (pay > 0) {
-      rec.score = (rec.score ?? 0) + pay;
+      rec.gameCoins.n += pay;
+      rec.score = Math.min(MONEY_MAX, (rec.score ?? 0) + pay);
       await deps.save(rec);
       ctx.reply({ score: rec.score }, "onScoreUpdated");
     }
@@ -152,13 +173,16 @@ export function installMiniGames(world: World, deps: MiniGameDeps): void {
       type = 2;
     }
     g.beans = (g.beans ?? 0) + money;
-    rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + money);
+    rec.jingdou = Math.min(MONEY_MAX, (rec.jingdou ?? 0) + money);
     await deps.save(rec);
     if (deps.board && p > 0) {
-      const rows = ((await deps.board.get()) ?? []).filter((r) => r.dd !== rec.name);
-      rows.push({ dd: rec.name ?? "", nn: rec.name ?? "", score: g.total });
-      rows.sort((a, b) => b.score - a.score);
-      await deps.board.set(rows.slice(0, LB_BOARD_SIZE));
+      const total = g.total;
+      await updateBoard((all) => {
+        const rows = all.filter((r) => r.dd !== rec.name);
+        rows.push({ dd: rec.name ?? "", nn: rec.name ?? "", score: total });
+        rows.sort((a, b) => b.score - a.score);
+        return rows.slice(0, LB_BOARD_SIZE);
+      });
     }
     ctx.reply({ suc: true, money, type }, "89_19");
   });

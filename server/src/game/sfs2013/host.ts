@@ -9,7 +9,7 @@ import { Emulator, type Link, type Session } from "../../core/emulator.ts";
 import { MemoryRecorder, type Recorder } from "../../core/recorder.ts";
 import { LiveRecordStore, type Store } from "../../core/store.ts";
 import type { AccountOptions } from "./accounts.ts";
-import { addUserFromFile, changePassword, createUser, deleteUser, exportSave, importSave, installSfs2013, listUsers, renameUser, type LocalRole } from "./game.ts";
+import { addUserFromFile, changePassword, createUser, deleteUser, exportSave, forgetToken, importSave, installSfs2013, listUsers, registerUser, rememberUser, renameUser, type LocalRole } from "./game.ts";
 import type { SaveFile } from "./saves.ts";
 import { SFS2013_FRAMING, sfs2013Codec, type World } from "./server.ts";
 
@@ -32,7 +32,20 @@ export interface GameHostOptions {
   toolbox?: boolean;
   /** Players may 导入存档 over their 奥拉 (game.ts importSave; default: as toolbox). */
   imports?: boolean;
+  /** At most this many in the game at once (a shared server). */
+  maxPlayers?: number;
 }
+
+/**
+ * Connections a shared server takes that have not logged in (yet): all of them, and of one
+ * address; and the connections of one address in all (a family behind one router, a few tabs
+ * each). A connection not logged in is closed after LOGIN_WAIT_MS (game.ts), so a page that
+ * opens many and never logs in holds few places, and those briefly; the game's places
+ * (maxPlayers) are counted at the login.
+ */
+export const PENDING_MAX = 40;
+export const PENDING_PER_ADDRESS = 4;
+export const PER_ADDRESS = 12;
 
 export interface GameHost {
   emulator: Emulator;
@@ -56,6 +69,18 @@ export interface GameHost {
   exportSave(name: string, pass?: string, addr?: string): Promise<{ save?: SaveFile; error?: string }>;
   /** 导入存档: an 奥拉 of a 存档 file over this one (its game ended first). */
   importSave(name: string, pass: string | undefined, file: unknown, from?: string, addr?: string): Promise<{ error?: string; names?: string[] }>;
+  /** 注册 (the start screen of 联机模式): a new 奥拉 and its password; null if done. */
+  register(name: string, pass: string, addr?: string): Promise<string | null>;
+  /** 记住密码: a token for the page to keep instead of the password. */
+  remember(name: string, pass: string, addr?: string): Promise<{ token?: string; error?: string }>;
+  forget(name: string, token: string): Promise<void>;
+  /** Whether the server takes new names (注册). */
+  readonly registers: boolean;
+  /**
+   * Whether a new connection from this address is taken now (a shared server's host asks before
+   * it attaches one): null if so, else why not ("full", "address").
+   */
+  admit(remote: string): "full" | "address" | null;
   /** Players may import saves here. */
   readonly imports: boolean;
   /** How many 奥拉 are in the game. */
@@ -80,7 +105,7 @@ export function createGameHost(o: GameHostOptions): GameHost {
     recorder: o.recorder ?? new MemoryRecorder(),
     answerPolicy: o.answerPolicy ?? false,
   });
-  const w = installSfs2013(emulator, { loadJson: o.loadJson, dev: o.dev, accounts: o.accounts, toolbox: o.toolbox, standalone: o.standalone });
+  const w = installSfs2013(emulator, { loadJson: o.loadJson, dev: o.dev, accounts: o.accounts, toolbox: o.toolbox, standalone: o.standalone, maxPlayers: o.maxPlayers });
   world = w;
   const playing = (name: string) => [...emulator.sessions].some((s) => w.player(s)?.name === name);
   const imports = o.imports ?? o.toolbox ?? true;
@@ -108,7 +133,24 @@ export function createGameHost(o: GameHostOptions): GameHost {
     addUser: (file, a = {}) => addUserFromFile(emulator, file, { ...a, end }),
     exportSave: (name, pass, addr) => exportSave(emulator, name, { pass, addr, accounts: o.accounts }),
     importSave: (name, pass, file, from, addr) => importSave(emulator, name, file, { pass, addr, from, accounts: o.accounts, imports, end }),
+    register: (name, pass, addr) => registerUser(emulator, name, pass, { addr, accounts: o.accounts }),
+    remember: (name, pass, addr) => rememberUser(emulator, name, pass, { addr, accounts: o.accounts }),
+    forget: (name, token) => forgetToken(emulator, name, token),
+    registers: !!o.accounts?.required && !!o.accounts.register,
+    admit: (remote) => {
+      let pending = 0, mine = 0, minePending = 0;
+      for (const s of emulator.sessions) {
+        const inGame = !!w.player(s);
+        if (!inGame) pending++;
+        if (s.link.remote !== remote) continue;
+        mine++;
+        if (!inGame) minePending++;
+      }
+      if (mine >= PER_ADDRESS || minePending >= PENDING_PER_ADDRESS) return "address";
+      if (pending >= PENDING_MAX || emulator.sessions.size >= (o.maxPlayers ?? Infinity) + PENDING_MAX) return "full";
+      return null;
+    },
     imports,
-    online: () => [...emulator.sessions].filter((s) => w.player(s)).length,
+    online: () => w.playing(),
   };
 }

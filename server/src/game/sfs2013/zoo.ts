@@ -60,10 +60,17 @@ export const TD_ITEMS = [431, 469];
 /** 地狱模式: 晶币 a wave passed and at most a game (RECONSTRUCTED). */
 export const TD_ENDLESS_WAVE = 10;
 export const TD_ENDLESS_MAX = 300;
-/** Catching odds in percent when the game leaves them to the server (RECONSTRUCTED). */
+/**
+ * Catching odds in percent. The game (CAEnemy.catchMe) asks 100 for the first animal of a game,
+ * 50 for the second, and leaves the others to the server (-1): CATCH_RATE (RECONSTRUCTED). The
+ * server keeps the count of the game itself (from 97_100 enterGame), so the odds are its own,
+ * whatever rate a client sends.
+ */
 export const CATCH_RATE = 40;
-/** The most a catch's own odds (its rate) may be. */
-export const CATCH_RATE_MAX = 80;
+export const CATCH_RATES_FIRST = [100, 50];
+/** The count of a 动物捕捉 game, the session's. */
+const CAUGHT = "zoo.caught";
+const gameOf = (ctx: XtContext) => ((ctx.session as { data?: Record<string, unknown> } | undefined)?.data ?? {});
 /** 晶币 the 保卫战 (wins and the 地狱模式) pay a day, at most. RECONSTRUCTED. */
 export const TD_DAY_MAX = 3000;
 /** The places (the three 保卫战) and their zones and steps a client may name. */
@@ -339,7 +346,10 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     ctx.reply({ items: list }, "97_104");
   });
 
-  world.xt(`${ZOO_EXT}.97_100`, async (ctx) => ctx.reply({ res: 1 }, "97_100"));
+  world.xt(`${ZOO_EXT}.97_100`, async (ctx) => {
+    gameOf(ctx)[CAUGHT] = 0;
+    ctx.reply({ res: 1 }, "97_100");
+  });
   world.xt(`${ZOO_EXT}.97_101`, async (ctx) => ctx.reply({ res: 1 }, "97_101"));
 
   world.xt(`${ZOO_EXT}.97_102`, async (ctx) => {
@@ -359,8 +369,8 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const o = await deps.me(ctx);
     const race = Number(ctx.params.raceId) | 0;
     const tool = String(Number(ctx.params.itemId) | 0);
-    const rate = Number(ctx.params.rate);
-    const odds = Math.min(CATCH_RATE_MAX, rate >= 0 ? rate : CATCH_RATE);
+    const n = Number(gameOf(ctx)[CAUGHT]) || 0;
+    const odds = CATCH_RATES_FIRST[n] ?? CATCH_RATE;
     const mine = items(o);
     // A catch takes its tool, and is of an animal of the zoo (a baby one: its race, not its key).
     if (!((mine[tool] ?? 0) > 0) || !ANIMAL.has(race)) return ctx.reply({ res: 0, raceId: race }, "97_103");
@@ -369,6 +379,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     ctx.reply({ amount: `2_${tool}_0_-1` }, "onAmountUpdated");
     const caught = rnd() * 100 < odds;
     if (caught) {
+      gameOf(ctx)[CAUGHT] = n + 1;
       const zoo = animalsOwned(o);
       const key = String(BABY_BASE + race);
       zoo[key] = (zoo[key] ?? 0) + 1;

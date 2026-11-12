@@ -49,6 +49,8 @@
 // that rents count by the day, which task 5–9 a day draws, the welcome box, the list (the best
 // runs of all, BOARD_SIZE long) and that what costs 星币 in the client (复活, 金币, 星星能量) is free.
 
+import { MONEY_MAX } from "./money.ts";
+import { serial } from "../../core/locks.ts";
 import type { World, XtContext } from "./server.ts";
 
 export const PARKOUR_EXT = "HolidayExtension";
@@ -93,7 +95,7 @@ export const GAME_MONEY_MAX = 2000;
 export const EXP_PER_METER = 1;
 export const BOARD_SIZE = 10;
 export const WELCOME_MONEY = 1000;
-const MONEY_CAP = 9_999_999;
+const MONEY_CAP = MONEY_MAX;
 const SENDER = "酷跑星世界";
 
 export interface ParkourLevel {
@@ -154,7 +156,13 @@ export interface ParkourDeps {
   today(): string;
   now?(): number;
   /** Everyone's best runs; without it the list holds the player alone. */
-  board?: { get(): Promise<ParkourRankRow[]>; set(rows: ParkourRankRow[]): Promise<void> };
+  /**
+   * The shop's 金币 and 星星能量 for nothing (_buyJingBi, _buyEngery: 2013's were bought with
+   * 奥币): as the 工具箱's, so off where it is closed (default on).
+   */
+  free?: boolean;
+  /** The 排行榜, everyone's: update reads, changes and writes it one change at a time (game.ts updateShared). */
+  board?: { get(): Promise<ParkourRankRow[]>; set(rows: ParkourRankRow[]): Promise<void>; update?(f: (rows: ParkourRankRow[]) => ParkourRankRow[]): Promise<unknown> };
 }
 
 /** 金币 a level costs and experience a level takes (ParkourRoleUserData / ParkourRidePetUserData). */
@@ -257,6 +265,12 @@ export function loveCd(p: ParkourRec, now: number): number {
 const int = (v: unknown, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.trunc(Number(v)) || 0));
 
 export function installParkour(world: World, deps: ParkourDeps): void {
+  // The 排行榜 one change at a time (two runs ending at once would lose one).
+  const turn = serial();
+  const updateBoard = (f: (rows: ParkourRankRow[]) => ParkourRankRow[]) => {
+    const b = deps.board!;
+    return b.update ? b.update(f) : turn(async () => b.set(f((await b.get()) ?? [])));
+  };
   const now = () => (deps.now ? deps.now() : Date.now());
   const on = (name: string, h: (ctx: XtContext) => Promise<void>) => world.xt(`${PARKOUR_EXT}.${PARKOUR_CMD}${name}`, h);
   const open = async (ctx: XtContext) => {
@@ -315,14 +329,19 @@ export function installParkour(world: World, deps: ParkourDeps): void {
     if (p.love <= 0) return ctx.reply({ res: 0, e: p.love });
     const askedRole = int(ctx.params.pId, 0, 99);
     const askedRide = int(ctx.params.rId, 0, 99);
-    const pId = PARKOUR_ROLES[askedRole] ? askedRole : 1;
+    let pId = PARKOUR_ROLES[askedRole] ? askedRole : 1;
     const rId = PARKOUR_RIDES[askedRide] && p.rides[String(askedRide)] ? askedRide : 1;
     // A role not owned runs at level 1 and uses up a rent of it (ParkourGameSceneJoinProxy
-    // returns the rent once the run begins); without one it is let through all the same.
-    const rented = !p.roles[String(pId)];
+    // returns the rent once the run begins); a role neither owned nor rented runs as the first
+    // one (its 金币 are the first one's: the 超酷程度 of a role is bought or rented).
+    let rented = !p.roles[String(pId)];
     if (rented) {
       const r = p.rents.list.find(([id, used]) => id === pId && !used);
       if (r) r[1] = 1;
+      else {
+        pId = 1;
+        rented = false;
+      }
     }
     const t = now();
     spendLove(p, t);
@@ -354,10 +373,13 @@ export function installParkour(world: World, deps: ParkourDeps): void {
     addExp(ride, meters * EXP_PER_METER, MAX_RIDE_LEVEL);
     pay(ctx, o, money);
     if (better && deps.board) {
-      const rows = ((await deps.board.get()) ?? []).filter((r) => r.dd !== o.name);
-      rows.push({ dd: o.name, nn: o.name, md: p.best });
-      rows.sort((a, b) => b.md - a.md);
-      await deps.board.set(rows.slice(0, BOARD_SIZE));
+      const best = p.best;
+      await updateBoard((all) => {
+        const rows = all.filter((r) => r.dd !== o.name);
+        rows.push({ dd: o.name, nn: o.name, md: best });
+        rows.sort((a, b) => b.md - a.md);
+        return rows.slice(0, BOARD_SIZE);
+      });
     }
     await deps.save(o);
     ctx.reply({ sc: real, money, j: o.score ?? 0 });
@@ -428,7 +450,7 @@ export function installParkour(world: World, deps: ParkourDeps): void {
 
   on("_buyJingBi", async (ctx) => {
     const id = Number(ctx.params.id);
-    if (!Number.isInteger(id) || !BUY_MONEY[id]) return ctx.reply({ res: 0 });
+    if (deps.free === false || !Number.isInteger(id) || !BUY_MONEY[id]) return ctx.reply({ res: 0 });
     const { o } = await open(ctx);
     pay(ctx, o, BUY_MONEY[id]);
     await deps.save(o);
@@ -437,7 +459,7 @@ export function installParkour(world: World, deps: ParkourDeps): void {
 
   on("_buyEngery", async (ctx) => {
     const id = Number(ctx.params.id);
-    if (!Number.isInteger(id) || !BUY_LOVE[id]) return ctx.reply({ res: 0 });
+    if (deps.free === false || !Number.isInteger(id) || !BUY_LOVE[id]) return ctx.reply({ res: 0 });
     const { o, p } = await open(ctx);
     p.love += BUY_LOVE[id];
     if (p.love >= MAX_LOVE) p.loveAt = now();

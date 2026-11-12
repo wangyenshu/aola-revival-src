@@ -18,6 +18,8 @@ function page() {
 /** A connection logged in as name (pass on a shared server); its closed state. */
 async function play(host: ReturnType<typeof createGameHost>, store: MemoryStore, name: string, pass = "") {
   let closed = false;
+  // A shared server: 注册 first (a name already there: no matter).
+  if (pass) await host.register(name, pass, `ws reg ${name}`);
   const s = host.attach({ remote: "ws test", send: () => {}, close: () => (closed = true) });
   s.receive(encodeClientFrame(nextPacketNum(-1), clientPayload(0, Up.Login, -1).utf("aola").utf(name).utf(pass).body()));
   for (let i = 0; i < 100 && !host.world.online(name); i++) await tick(10);
@@ -89,14 +91,14 @@ test("改密码 on a shared server: the old password first, the game goes on", a
   const store = new MemoryStore();
   const host = createGameHost({ store, loadJson: async () => undefined, accounts: { required: true, register: true } });
   const a = await play(host, store, "奥拉E", "old-pass");
-  assert.equal(await host.changePassword("奥拉E", "wrong", "new-pass"), "密码不对哦。");
+  assert.equal(await host.changePassword("奥拉E", "wrong", "new-pass"), "名字或密码不对哦。");
   assert.match(String(await host.changePassword("奥拉E", "old-pass", "")), /新密码/);
   assert.equal(await host.changePassword("奥拉E", "old-pass", "new-pass"), null);
   assert.equal(a.closed(), false, "still in the game");
-  assert.equal((await host.exportSave("奥拉E", "old-pass")).error, "密码不对哦。");
+  assert.equal((await host.exportSave("奥拉E", "old-pass")).error, "名字或密码不对哦。");
   assert.ok((await host.exportSave("奥拉E", "new-pass")).save);
   // A rename in the game asks for the password too.
-  assert.equal(await host.rename("奥拉E", "奥拉F", "nope", undefined, true), "密码不对哦。");
+  assert.equal(await host.rename("奥拉E", "奥拉F", "nope", undefined, true), "名字或密码不对哦。");
   assert.equal(a.closed(), false);
   assert.equal(await host.rename("奥拉E", "奥拉F", "new-pass", undefined, true), null);
   assert.equal(a.closed(), true);

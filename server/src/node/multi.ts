@@ -23,6 +23,7 @@ import { createGameHost } from "../game/sfs2013/host.ts";
 import { apiBodyMax, handleApi } from "../game/sfs2013/api.ts";
 import { NullRecorder } from "../core/recorder.ts";
 import { JsonFileStore } from "./fileStore.ts";
+import { addrKey, localAddr } from "../core/addr.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const { values: a } = parseArgs({
@@ -41,6 +42,7 @@ const { values: a } = parseArgs({
     adopt: { type: "boolean", default: process.env.AOLA_ADOPT === "1" },
     "max-players": { type: "string", default: process.env.AOLA_MAX_PLAYERS ?? "200" },
     "trust-proxy": { type: "boolean", default: process.env.AOLA_TRUST_PROXY === "1" },
+    "signups-per-day": { type: "string", default: process.env.AOLA_SIGNUPS_PER_DAY ?? "5" },
     help: { type: "boolean", short: "h", default: false },
   },
 });
@@ -54,11 +56,12 @@ if (a.help) {
   --web DIR         the static site to serve too (default dist; "" for none)
   --tables DIR      where www.9aola.com/revival/*.json are (default <web>/files)
   --date DAY        anchor of the game clock, China time (default 2012-08-15)
-  --closed          no new names: only 奥拉 the server already has may log in
+  --closed          no 注册: only 奥拉 the server already has may log in
   --no-toolbox      close the 工具箱 (晶币, 亚比 … for nothing), mods' gifts of 亚比 and 导入存档
                     to the players (a fair server); open by default, as in 单机模式
   --adopt           a save with no password (copied in) takes the password of its first login
   --max-players N   at most N in the game at once (default 200)
+  --signups-per-day N  new 奥拉 one address may 注册 a day (default 5; 0: no limit)
   --trust-proxy     behind a reverse proxy or tunnel: the client's address is the X-Forwarded-For
                     header's (the password lock is per address); off by default, when the header
                     could be anyone's`);
@@ -104,9 +107,10 @@ const host = createGameHost({
     }
   },
   date: a.date,
-  accounts: { required: true, register: !a.closed, adopt: a.adopt },
+  accounts: { required: true, register: !a.closed, adopt: a.adopt, signupsPerDay: count(a["signups-per-day"], 5) },
   recorder: new NullRecorder(),
   toolbox: a.toolbox === true ? true : !a["no-toolbox"],
+  maxPlayers,
 });
 
 function inside(dir: string, rel: string): string | null {
@@ -159,17 +163,38 @@ const API_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access
  */
 const clientAddr = (req: http.IncomingMessage) => {
   const fwd = a["trust-proxy"] ? (String(req.headers["x-forwarded-for"] ?? "").split(",").pop() ?? "").trim() : "";
+  if (!a["trust-proxy"]) proxyWarning(req);
   return `ws ${addrKey(fwd || req.socket.remoteAddress || "")}`;
 };
+/**
+ * Behind a proxy without --trust-proxy, every player is the proxy's address: one password lock,
+ * one count of connections and of 注册 for all. Said once, when a request shows it.
+ */
+let warned = false;
+function proxyWarning(req: http.IncomingMessage): void {
+  if (warned || !req.headers["x-forwarded-for"] || !localAddr(req.socket.remoteAddress ?? "")) return;
+  warned = true;
+  console.warn(
+    "[aola] requests come through a proxy (X-Forwarded-For from " +
+      (req.socket.remoteAddress ?? "?") +
+      ") but --trust-proxy is off: every player counts as that one address (the password lock, connections, 注册). " +
+      "Start with --trust-proxy if the proxy is yours.",
+  );
+}
 
-/** Connections one address may hold at once (a family behind one router, a few tabs each). */
-const PER_ADDRESS = 12;
-const perAddress = new Map<string, number>();
 /** Every this often a ping: a connection that has not answered the last one is ended. */
 const PING_MS = 30_000;
 
 const server = http.createServer((req, res) => {
-  const url = new URL(req.url ?? "/", "http://x");
+  // A request line URL cannot read (`GET //`, `GET http://[`) is refused, not thrown: a throw
+  // here is outside every promise and would end the process.
+  let url: URL;
+  try {
+    url = new URL(req.url ?? "/", "http://x");
+  } catch {
+    res.writeHead(400, { "Content-Type": "text/plain" });
+    return void res.end("bad request\n");
+  }
   const task = url.pathname.startsWith("/__api/")
     ? (async () => {
         const chunks: Buffer[] = [];
@@ -202,20 +227,10 @@ const wss = new WebSocketServer({ noServer: true, maxPayload: 1 << 20 });
 server.on("upgrade", (req, socket, head) => {
   const m = /^\/__socket\/(\d+)/.exec(req.url ?? "");
   if (!m) return void socket.destroy();
-  // Every connection counts, logged in or not (a few more than players: pages reconnecting).
-  if (host.emulator.sessions.size >= maxPlayers + 20) return void socket.destroy();
+  // The connections not logged in, of the server and of the address, and the address's in all
+  // (host.ts admit); the game's places are counted at the login (--max-players).
   const addr = clientAddr(req);
-  if ((perAddress.get(addr) ?? 0) >= PER_ADDRESS) return void socket.destroy();
-  perAddress.set(addr, (perAddress.get(addr) ?? 0) + 1);
-  let counted = true;
-  const uncount = () => {
-    if (!counted) return;
-    counted = false;
-    const n = (perAddress.get(addr) ?? 1) - 1;
-    if (n > 0) perAddress.set(addr, n);
-    else perAddress.delete(addr);
-  };
-  socket.once("close", uncount);
+  if (host.admit(addr)) return void socket.destroy();
   wss.handleUpgrade(req, socket, head, (ws: WebSocket) => {
     const session = host.attach(
       { remote: addr, send: (b) => ws.send(b), close: () => ws.close() },
@@ -229,10 +244,7 @@ server.on("upgrade", (req, socket, head) => {
       alive = false;
       ws.ping();
     }, PING_MS);
-    ws.on("close", () => {
-      clearInterval(ping);
-      uncount();
-    });
+    ws.on("close", () => clearInterval(ping));
     ws.on("message", (data, isBinary) => {
       const buf = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as ArrayBuffer);
       session.receive(isBinary ? new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength) : new TextEncoder().encode(buf.toString("utf8")));
@@ -247,14 +259,8 @@ server.listen(Number(a.port), a.bind, () => {
   console.log(`[aola] ${web ? `site: ${web}` : "no site: the page comes from elsewhere"}; tables: ${tables}; new names ${a.closed ? "closed" : "open"}`);
 });
 
-/** An address as the locks count it: an IPv6 one by its first four groups (its /64). */
-function addrKey(ip: string): string {
-  const v4 = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(ip);
-  if (v4) return v4[1];
-  if (!ip.includes(":")) return ip;
-  const [head, tail = ""] = ip.split("::");
-  const a = head ? head.split(":") : [];
-  const b = tail ? tail.split(":") : [];
-  const full = [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill("0"), ...b];
-  return full.slice(0, 4).map((g) => g.toLowerCase().replace(/^0+(?=.)/, "")).join(":") + "::/64";
+/** A count of the settings: a whole number 0 or more, else the default. */
+function count(v: string | undefined, dflt: number): number {
+  const n = Number(v);
+  return v != null && v !== "" && Number.isInteger(n) && n >= 0 ? n : dflt;
 }

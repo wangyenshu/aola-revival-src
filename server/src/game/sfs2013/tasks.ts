@@ -406,9 +406,14 @@ export function installTasks(world: World, deps: TaskDeps): void {
     if (r.changes.length) await deps.save(rec);
     push(ctx, r);
   });
+  // A step the client says is done. Those the server finishes itself (STEP_RULES: items had, a
+  // task 亚比 beaten) are not the client's to say; the others' conditions are the scripts' (the
+  // 2013 server's checks are lost), so the steps one after another, and not faster than a script.
+  if (typeof world.limit === "function") world.limit("TaskExtension.10-2", 10, 2);
   world.xt("TaskExtension.10-2", async (ctx) => {
     const rec = await load(ctx);
-    const r = finishStep(rec, Number(ctx.params.ti), deps.now());
+    const step = Number(ctx.params.ti);
+    const r = STEP_RULES[step] ? { changes: [] } as TaskResult : finishStep(rec, step, deps.now());
     const extra: [string, Record<string, unknown>][] = [];
     for (const t of r.finished ?? []) if (deps.onFinish) extra.push(...(await deps.onFinish(rec, t)));
     if (r.changes.length) await deps.save(rec);

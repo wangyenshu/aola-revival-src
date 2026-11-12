@@ -112,6 +112,9 @@ test("亚比融合: one formula, two forms: the 变异 one sometimes", async () 
   const { rec, call, answer } = setup([0, 0]);
   rec.pets = [pet(1, 258, 40), pet(2, 69, 20)];
   rec.items = { "2": { "90": 1 } };
+  // As 放生: not the bag's last 亚比 (here both are the bag's only ones).
+  assert.deepEqual(answer(await call("PetExtension2.54e_13", { mId: 1, sId: 2, ss: true })), { succ: false });
+  rec.pets.push(pet(3, 1, 5));
   assert.deepEqual(answer(await call("PetExtension2.54e_13", { mId: 1, sId: 2, ss: true })), { succ: true, id: EGG_OF[353] });
 });
 

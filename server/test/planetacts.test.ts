@@ -1,3 +1,4 @@
+import { recordWin } from "../src/game/sfs2013/wins.ts";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { FISH_PER_DAY,
@@ -46,11 +47,14 @@ function setup(opts: { rng?: number[]; pets?: PetRecord[] } = {}) {
     },
     rng: () => (rolls.length ? rolls.shift()! : 0.99),
   });
+  const sessionData: Record<string, unknown> = {};
+  /** A fight won just now in this session (battle.ts records it: wins.ts). */
+  const won = (id: number, scene = "") => recordWin({ data: sessionData } as never, id, scene);
   const call = async (key: string, params: Record<string, unknown> = {}, as = owner) => {
     const replies: [string | undefined, Record<string, any>][] = [];
     const ctx = {
       params,
-      session: {},
+      session: { data: sessionData },
       player: { name: as.name },
       reply: (o: Record<string, unknown>, c?: string) => replies.push([c, o]),
     } as unknown as XtContext;
@@ -62,7 +66,7 @@ function setup(opts: { rng?: number[]; pets?: PetRecord[] } = {}) {
   const answer = (r: [string | undefined, Record<string, any>][], cmd: string) => r.find(([c]) => c === cmd)![1];
   const item = (id: number) => owner.items?.["2"]?.[String(id)] ?? 0;
   const setItem = (id: number, n: number) => (((owner.items ??= {})["2"] ??= {})[String(id)] = n);
-  return { handlers, owner, friend, call, answer, clock, given, item, setItem, userVars };
+  return { won, handlers, owner, friend, call, answer, clock, given, item, setItem, userVars };
 }
 
 test("every command the panels send has a handler", () => {
@@ -113,11 +117,14 @@ test("达黑黑's 猜弹珠: the marbles go, the tenth win brings 小黑黑 once
   s.setItem(MARBLE, 30);
   for (let i = 1; i <= 10; i++) {
     const r = await s.call("PeriodicActiveExtension.91_46", { num: 2, w: true });
-    assert.equal(s.answer(r, "91_46").get, i === 10);
+    // Ten said won of ten: more than one in two and MORA_LUCK, the tenth not counted.
+    assert.equal(s.answer(r, "91_46").get, false);
     assert.ok(r.some(([c, o]) => c === "onAmountUpdated" && o.amount === `2_${MARBLE}_0_-2`));
   }
   await s.call("PeriodicActiveExtension.91_46", { num: 1, w: false });
-  assert.equal(s.item(MARBLE), 9);
+  assert.equal(s.answer(await s.call("PeriodicActiveExtension.91_46", { num: 2, w: true }), "91_46").get, true);
+  await s.call("PeriodicActiveExtension.91_46", { num: 1, w: false });
+  assert.equal(s.item(MARBLE), 30 - 20 - 1 - 2 - 1);
   assert.deepEqual(s.given, [335]);
 });
 
@@ -196,7 +203,11 @@ test("独角兽: 铠甲 parts, 先哲 treasures, 仙林 days, then the 飞天独
   assert.equal(s.item(454), 0);
   // 先哲: three treasures after the fights.
   assert.equal(s.answer(await s.call("PetExtension2.54e_1", { pid: 2, t: 1 }), "54e_1").res, 1);
-  for (const id of [1, 2, 3]) assert.equal(s.answer(await s.call("PeriodicActiveExtension.91_31", { id }), "91_31").res, true);
+  assert.equal(s.answer(await s.call("PeriodicActiveExtension.91_31", { id: 1 }), "91_31").res, false, "not without the fight won");
+  for (const id of [1, 2, 3]) {
+    s.won(10655, "unicornstar2");
+    assert.equal(s.answer(await s.call("PeriodicActiveExtension.91_31", { id }), "91_31").res, true);
+  }
   assert.equal(s.answer(await s.call("PetExtension2.54e_1", { pid: 2, t: 1 }), "54e_1").res, 0);
   assert.equal(s.owner.pets![1].race, 655);
   // 仙林: three days with a 小独角兽 following.

@@ -13,8 +13,9 @@ package mmo.user.login
    /**
     * REVIVAL. 进入奥拉星: 单机模式 (the game in this page, the saves in this browser; its 奥拉 are
     * chosen next, RolesScreen) or 联机模式 (a shared server: its address, the 奥拉's name and its
-    * password, which registers the name the first time). The page remembers what was written
-    * (web/start.js) and starts the game chosen; done(mode, name, pass) then.
+    * password; a new 奥拉 is made on 注册, RegisterScreen, not by logging in). The page remembers
+    * what was written (web/start.js: with 记住密码 a token of the server's, not the password) and
+    * starts the game chosen; done(mode, name, pass) then.
     */
    public class StartScreen extends Sprite
    {
@@ -37,7 +38,11 @@ package mmo.user.login
       private var renameLink:Sprite;
       private var renamePart:Sprite;
       private var msg:TextField;
-      private var go:Sprite;
+      /** 进入: the wide one of 单机模式, and 联机模式's beside 注册. */
+      private var goWide:Sprite;
+      private var goServer:Sprite;
+      private var regBtn:Sprite;
+      private var register:RegisterScreen;
       private var busy:Boolean;
 
       public function StartScreen(done:Function)
@@ -103,15 +108,21 @@ package mmo.user.login
          msg.x = 24;
          msg.height = 36;
          panel.addChild(msg);
-         go = RUI.button("进  入", enter, W - 120, 38, 0xFFD56A, 0xF08A12, "startGo");
-         go.x = 60;
-         panel.addChild(go);
+         goWide = RUI.button("进  入", enter, W - 120, 38, 0xFFD56A, 0xF08A12, "startGo");
+         goWide.x = 60;
+         panel.addChild(goWide);
+         regBtn = RUI.button("注  册", openRegister, 120, 38, 0x8FE3FF, 0x1E8FE0, "startRegister");
+         regBtn.x = 60;
+         panel.addChild(regBtn);
+         goServer = RUI.button("进  入", enter, 180, 38, 0xFFD56A, 0xF08A12, "startGo");
+         goServer.x = W - 60 - 180;
+         panel.addChild(goServer);
 
          // Enter: 进入 (in 新名字: 确定改名).
          addEventListener(KeyboardEvent.KEY_DOWN, function(e:KeyboardEvent):void
          {
             e.stopPropagation();
-            if (e.keyCode != Keyboard.ENTER) return;
+            if (e.keyCode != Keyboard.ENTER || register != null) return;
             if (e.target == newNameIn) renameNow();
             else enter();
          });
@@ -176,7 +187,7 @@ package mmo.user.login
          serverPart.visible = mode == "server";
          nameIn.text = String(names.server || "");
          hint.text = mode == "server"
-            ? "和别的奥拉一起玩：存档在服务器上。第一次用这个名字登录，就会用这个密码注册。"
+            ? "和别的奥拉一起玩：存档在服务器上。新的奥拉请先注册。"
             : "一个人玩：游戏在这个页面里运行，存档留在这个浏览器里。";
          say("");
          layout();
@@ -195,7 +206,9 @@ package mmo.user.login
          }
          msg.y = y;
          y += 34;
-         go.y = y;
+         goWide.visible = mode != "server";
+         regBtn.visible = goServer.visible = mode == "server";
+         goWide.y = regBtn.y = goServer.y = y;
          y += 56;
          if (bg != null) panel.removeChild(bg);
          bg = RUI.panel(W, y, "进入奥拉星", null);
@@ -216,9 +229,35 @@ package mmo.user.login
       public function again(why:String):void
       {
          busy = false;
-         go.alpha = 1;
+         goWide.alpha = goServer.alpha = 1;
          visible = true;
          say(why);
+      }
+
+      /** 注册: its own screen over this one; made, this one again with the new 奥拉 written in. */
+      private function openRegister():void
+      {
+         if (busy || register != null) return;
+         say("");
+         panel.visible = false;
+         register = new RegisterScreen(trim(serverIn.text), function(made:Object):void
+         {
+            closeRegister();
+            serverIn.text = String(made.server);
+            nameIn.text = names.server = String(made.name);
+            passIn.text = String(made.pass);
+            say("注册好了！现在可以进入了。", true);
+         }, closeRegister);
+         addChild(register);
+         register.focus();
+      }
+
+      private function closeRegister():void
+      {
+         if (register != null && register.parent != null) register.parent.removeChild(register);
+         register = null;
+         panel.visible = true;
+         if (stage != null) stage.focus = nameIn;
       }
 
       private function checkServer():void
@@ -257,7 +296,7 @@ package mmo.user.login
          if (server && !passIn.text) { say("请输入密码。"); return; }
          if (server && !name) { say("请输入奥拉的名字。"); return; }
          busy = true;
-         go.alpha = 0.6;
+         goWide.alpha = goServer.alpha = 0.6;
          say("正在进入……", true);
          StartPage.ask("begin", { mode: mode, server: trim(serverIn.text), name: name, pass: passIn.text, remember: StartPage.ticked(remember) }, function(r:Object):void
          {

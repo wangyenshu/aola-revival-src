@@ -25,6 +25,16 @@ interface Traits {
   members: string[];
 }
 
+/**
+ * What one decoded value may cost (a frame comes from anyone): references make a small frame a
+ * huge value (arrays that all point at each other, a long string named a million times), which
+ * whatever walks it later (a log line, a record written) would take minutes over. Every value
+ * counts 1, a string its length, and a reference what the value it names cost; a reference to a
+ * value still being read (a cycle) and nesting deeper than MAX_DEPTH are refused.
+ */
+export const AMF3_MAX_COST = 2_000_000;
+export const AMF3_MAX_DEPTH = 32;
+
 export class Amf3Reader {
   private readonly view: DataView;
   private readonly bytes: Uint8Array;
@@ -33,6 +43,41 @@ export class Amf3Reader {
   private readonly objects: unknown[] = [];
   private readonly traits: Traits[] = [];
   private static readonly dec = new TextDecoder("utf-8");
+  /** The cost so far, each finished array/object's own, those being read, and the depth. */
+  private cost = 0;
+  private readonly costs = new WeakMap<object, number>();
+  private readonly reading = new WeakSet<object>();
+  private depth = 0;
+
+  private spend(n: number): void {
+    this.cost += n;
+    if (this.cost > AMF3_MAX_COST) throw new RangeError("AMF3: value too large");
+  }
+
+  /** A reference to a value read before: what it cost, again; not one still being read. */
+  private ref(v: unknown): unknown {
+    if (v !== null && typeof v === "object") {
+      if (this.reading.has(v)) throw new RangeError("AMF3: cyclic reference");
+      this.spend(this.costs.get(v) ?? 1);
+    } else if (typeof v === "string") this.spend(v.length + 1);
+    else this.spend(1);
+    return v;
+  }
+
+  /** An array or object: read as one more level, its cost kept for references to it. */
+  private composite<T extends object>(v: T, fill: () => void): T {
+    if (++this.depth > AMF3_MAX_DEPTH) throw new RangeError("AMF3: nested too deep");
+    const start = this.cost;
+    this.reading.add(v);
+    try {
+      fill();
+    } finally {
+      this.reading.delete(v);
+      this.depth--;
+    }
+    this.costs.set(v, this.cost - start + 1);
+    return v;
+  }
 
   constructor(bytes: Uint8Array, pos = 0) {
     this.bytes = bytes;
@@ -57,17 +102,23 @@ export class Amf3Reader {
 
   private str(): string {
     const h = this.u29();
-    if ((h & 1) === 0) return this.strings[h >> 1];
+    if ((h & 1) === 0) {
+      const r = this.strings[h >> 1];
+      this.spend((r?.length ?? 0) + 1);
+      return r;
+    }
     const len = h >> 1;
     if (len === 0) return "";
     const s = Amf3Reader.dec.decode(this.bytes.subarray(this.pos, this.pos + len));
     this.pos += len;
+    this.spend(s.length + 1);
     this.strings.push(s);
     return s;
   }
 
   read(): unknown {
     const marker = this.u8();
+    this.spend(1);
     switch (marker) {
       case 0x00:
         return undefined;
@@ -91,15 +142,16 @@ export class Amf3Reader {
       case 0x07:
       case 0x0b: {
         const h = this.u29();
-        if ((h & 1) === 0) return this.objects[h >> 1];
+        if ((h & 1) === 0) return this.ref(this.objects[h >> 1]);
         const s = Amf3Reader.dec.decode(this.bytes.subarray(this.pos, this.pos + (h >> 1)));
         this.pos += h >> 1;
+        this.spend(s.length);
         this.objects.push(s);
         return s;
       }
       case 0x08: {
         const h = this.u29();
-        if ((h & 1) === 0) return this.objects[h >> 1];
+        if ((h & 1) === 0) return this.ref(this.objects[h >> 1]);
         const d = new Date(this.view.getFloat64(this.pos));
         this.pos += 8;
         this.objects.push(d);
@@ -111,9 +163,11 @@ export class Amf3Reader {
         return this.object();
       case 0x0c: {
         const h = this.u29();
-        if ((h & 1) === 0) return this.objects[h >> 1];
+        if ((h & 1) === 0) return this.ref(this.objects[h >> 1]);
         const b = this.bytes.slice(this.pos, this.pos + (h >> 1));
         this.pos += h >> 1;
+        this.spend(b.length);
+        this.costs.set(b, b.length + 1);
         this.objects.push(b);
         return b;
       }
@@ -124,26 +178,27 @@ export class Amf3Reader {
 
   private array(): unknown {
     const h = this.u29();
-    if ((h & 1) === 0) return this.objects[h >> 1];
+    if ((h & 1) === 0) return this.ref(this.objects[h >> 1]);
     const dense = h >> 1;
     const assoc: Record<string, unknown> = {};
     let hasAssoc = false;
     const out: unknown[] = [];
     this.objects.push(out);
-    for (;;) {
-      const key = this.str();
-      if (key === "") break;
-      assoc[key] = this.read();
-      hasAssoc = true;
-    }
-    for (let i = 0; i < dense; i++) out.push(this.read());
-    if (hasAssoc) Object.assign(out, assoc);
-    return out;
+    return this.composite(out, () => {
+      for (;;) {
+        const key = this.str();
+        if (key === "") break;
+        assoc[key] = this.read();
+        hasAssoc = true;
+      }
+      for (let i = 0; i < dense; i++) out.push(this.read());
+      if (hasAssoc) Object.assign(out, assoc);
+    });
   }
 
   private object(): unknown {
     const h = this.u29();
-    if ((h & 1) === 0) return this.objects[h >> 1];
+    if ((h & 1) === 0) return this.ref(this.objects[h >> 1]);
     let t: Traits;
     if ((h & 2) === 0) {
       t = this.traits[h >> 2];
@@ -162,15 +217,22 @@ export class Amf3Reader {
     const values: Record<string, unknown> = {};
     const result = t.className ? new Amf3TypedObject(t.className, values) : values;
     this.objects.push(result);
-    for (const m of t.members) values[m] = this.read();
-    if (t.dynamic) {
-      for (;;) {
-        const key = this.str();
-        if (key === "") break;
-        values[key] = this.read();
-      }
+    // A typed object's values are its own (references name the object, not them).
+    if (result !== values) this.reading.add(values);
+    try {
+      return this.composite(result, () => {
+        for (const m of t.members) values[m] = this.read();
+        if (t.dynamic) {
+          for (;;) {
+            const key = this.str();
+            if (key === "") break;
+            values[key] = this.read();
+          }
+        }
+      });
+    } finally {
+      if (result !== values) this.reading.delete(values);
     }
-    return result;
   }
 }
 

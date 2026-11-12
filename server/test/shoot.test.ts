@@ -16,6 +16,7 @@ function setup() {
   const session = { tag: "target" };
   const world = {
     xt: (k: string, h: XtHandler) => (handlers.set(k, h), world),
+    limit: () => world,
     rooms: new Map([["starland", { members: new Set([session]) }]]),
     player: (s: unknown) => (s === session ? target : undefined),
     setUserVars: (_s: unknown, v: Record<string, unknown>) => vars.push(v),

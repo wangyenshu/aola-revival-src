@@ -111,7 +111,10 @@ server's `/__api/`). Ruffle's sockets go to one address, which `boot.js` routes
 when the login connects: to the in-page game, or to the chosen server. 单机模式's game (and its
 one-tab lock) starts on 选择奥拉's 进入; before that 选择奥拉 works on the page's saves without it
 (`AolaEmulator.openSaves`, the same game without its sockets), so 返回 leaves the page as it was
-and 联机模式 can be chosen next.
+and 联机模式 can be chosen next. In 联机模式 a new 奥拉 is made on 注册 (`login/RegisterScreen`:
+the address, the name, the password twice; `web/start.js` `register`, the server's
+`/__api/register`), never by a login; 记住密码 keeps a token of the server's
+(`/__api/remember`) in place of the password, and `?pass=` is not read.
 
 ### The service worker
 
@@ -139,7 +142,10 @@ esbuild into `dist/emulator.js`) and in Node (`npm start`).
 | `core/emulator.ts` | sessions, transports, the request queue (one player's requests run one after another) |
 | `core/framing.ts`, `codec.ts` | message framing and decoding |
 | `core/amf3.ts` | AMF3 encoder and decoder for extension calls |
-| `core/clock.ts` | the game clock |
+| `core/clock.ts` | the game clock (see "The game clock" below) |
+| `core/locks.ts` | work on named things one after another (an account's name, a record everyone writes) |
+| `core/addr.ts` | a client's address as the limits count it (an IPv6 one by its /64) |
+| `core/plain.ts` | a bounded plain copy of what a client sent, and bounded text of it for logs |
 | `core/store.ts` | key-value store interface (IndexedDB in the page, JSON files in Node) |
 | `core/recorder.ts` | logs of the traffic for debugging |
 | `browser/entry.ts`, `idbStore.ts`, `shim.ts` | the in-page start, IndexedDB store, the socket proxy for Ruffle |
@@ -160,7 +166,14 @@ are AMF3 objects with a `_cmd` field.
 demand by name (one per scene; the 沙盒 uses one room per player), user
 variables echoed to the room (`avatar`, `p` for the following 亚比, `r` for
 the HELLO, `mtype` for 蓝宝石), and dispatch of extension calls by
-extension name and command (`PetExtension.54_16`).
+extension name and command (`PetExtension.54_16`). The variables the server
+keeps (`avatar`, `c`, `nn`, `mtype`, `p`, `r`, `hs`, `shoot_effect`, `ms`) are
+set only by the server: a client's setUvars of them is dropped. A session's
+requests are limited (`RATES`: all of them, extension requests, setUvars, room
+joins, and the commands a module bounds with `world.limit`); what is over is
+dropped, and a session that keeps on is closed. AMF3 values are bounded in
+size and depth (`AMF3_MAX_COST`, `AMF3_MAX_DEPTH`; a reference that would
+repeat a value counts as the value).
 
 ### Game modules
 
@@ -184,7 +197,8 @@ extension name and command (`PetExtension.54_16`).
 | `superevo.ts` | 亚比超进化 (the 超进化机, `PetExtension2.54e_1` after the 小独角兽's and the union 亚比's): the nine 超进化 of early 2013 and what each takes |
 | `sandbox.ts`, `mods.ts` | the 沙盒's fights; mods' saved data, 亚比, gifts and parties (their own 亚比 and 道具) |
 | `petcards.ts`, `petitems.ts`, `giftbags.ts` | 战术卡, 亚比道具, what each 礼包 holds |
-| `host.ts`, `accounts.ts`, `api.ts`, `saves.ts` | the game for any host; names and passwords (the lock on wrong ones); the shared server's small API; 存档 files, and the page's own 奥拉 |
+| `host.ts`, `accounts.ts`, `api.ts`, `saves.ts` | the game for any host (the connections it takes: `admit`); names and passwords (the lock on wrong ones, 注册 and its limits, the tokens of 记住密码); the shared server's small API; 存档 files, and the page's own 奥拉 |
+| `wins.ts`, `fighting.ts`, `money.ts` | the fights a session has won lately (for the requests that follow a win); who is in a fight now; the bounds of money |
 | `social.ts`, `duel.ts` | 好友, 组队, where a friend is; 亚比对战 between players |
 
 Each player is one record: name, outfit, 晶币, 星币, 晶豆, items by type,
@@ -192,6 +206,50 @@ Each player is one record: name, outfit, 晶币, 星币, 晶豆, items by type,
 beaten, daily counters. In the page the records are JSON values in the
 IndexedDB database `aola-revival`, store `kv`; the Node server writes JSON
 files under `work/`.
+
+### The game clock
+
+`core/clock.ts` starts at its anchor (`--date`, default 2012-08-15 10:00 China
+time) whenever the game starts, and runs at normal speed: the page's game at
+each page load, a shared server at each start. The records keep game time
+(the day of a daily limit, when an egg hatches, when a 财富小管家 box was put
+in, when a 亚比 was let go), so a start goes back in their time:
+
+- The day starts again at the anchor's: in 单机模式 nearly every visit is
+  "2012-08-15", so a "once a day" (a chest, 3 rents, 10 gatherings, the mini
+  games' 1000 晶币, 15 minutes of 冲浪) used up once stays used up till one
+  session runs past the game's midnight (most handlers count the day in UTC:
+  22 hours after the 10:00 start); a shared server's day
+  goes back at each restart.
+- A timer set late in a session ends only when a later session's clock gets
+  there (a 24-hour egg put in after an hour of play hatches once a session has
+  run 25 hours); a time between two stamps can come out below zero (a
+  财富小管家 box's interest is kept at 0 or more for that).
+- The weeks of 极限轰炸's 晶豆 cap, and anything else counted in game time,
+  alike. (Times that are not the game's, the password lock and the tokens of
+  记住密码, use the real clock.)
+
+Ways out, from the least change:
+
+1. Keep the clock going: write the real time of the first start to the store
+   (`meta/clock`), and count the game's time from then, not from this start.
+   Days and timers then run as real days, across reloads and restarts; the
+   game's date moves on past the anchor as real time does (date-gated events
+   open and close as they did that year), and in time past the era's content.
+2. The real calendar on the era's year: the game's date is today's month,
+   day and time in the year of the era (August–December 2012, January–July
+   2013), so the seasons' events open in their season every year. A record
+   needs one monotonic correction at the turn of the era's year (its stamps
+   would otherwise go back a year once a year): keep a count of turns in the
+   store and add a year a turn.
+3. Keep the anchor but never go back: write the latest game time seen and
+   start from it (the clock stops while nobody plays). Timers stay whole, but
+   days pass only while someone plays: worse for 单机模式.
+
+Either of the first two is a few lines in `clock.ts` and the hosts (the
+store is there at the start), with the anchor still the first day of a new
+store; the second keeps the client's date in the era, which its content
+expects.
 
 ### Reconstructed rules
 

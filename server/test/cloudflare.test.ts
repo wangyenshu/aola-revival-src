@@ -35,7 +35,7 @@ test("the Worker: the site from the assets, the game and its API from the Durabl
   } as unknown as Env;
   assert.equal(await (await worker.fetch(new Request("https://aola.example/index.html"), env)).text(), "page");
   const status = await worker.fetch(new Request("https://aola.example/__api/status"), env);
-  assert.deepEqual(await status.json(), { ok: true, online: 0, name: "aola-revival", imports: true });
+  assert.deepEqual(await status.json(), { ok: true, online: 0, name: "aola-revival", imports: true, register: true });
   const rename = await worker.fetch(new Request("https://aola.example/__api/rename", { method: "POST", body: JSON.stringify({ name: "没有", pass: "x", to: "新名字" }) }), env);
   assert.equal(rename.status, 400);
   // An import carries a save file: more than the other requests may (4 KB), within its own limit.

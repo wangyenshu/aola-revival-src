@@ -1,6 +1,10 @@
 // The small JSON API of a shared server (Node: src/node/multi.ts, Cloudflare:
 // src/cloudflare/worker.ts), for the page's start screen:
-//   GET  /__api/status                       -> {ok, online, name, imports}
+//   GET  /__api/status                       -> {ok, online, name, imports, register}
+//   POST /__api/register {name, pass}        -> {ok} or {ok: false, error}   (注册)
+//   POST /__api/remember {name, pass}        -> {ok, token} or {ok: false, error}   (记住密码: the
+//                                              page keeps the token, not the password)
+//   POST /__api/forget {name, token}         -> {ok}                         (记住密码 taken off)
 //   POST /__api/rename {name, pass, to, now?} -> {ok} or {ok: false, error}   (改名字; now: in the
 //                                              game, which ends: the page logs in again)
 //   POST /__api/password {name, pass, to}    -> {ok} or {ok: false, error}   (改密码, in the game)
@@ -8,8 +12,10 @@
 //   POST /__api/save/export {name, pass}     -> {ok, save} or {ok: false, error}
 //   POST /__api/save/import {name, pass, save, from?}  -> {ok} or {ok: false, error, names?}
 //                                              (names: the 奥拉 of a file of several, to choose from)
-// A wrong password is answered a second later (and counts towards the name's lock, accounts.ts).
+// A wrong password, or a name the server does not have (the same answer: accounts.ts WRONG), is
+// answered a second later (and counts towards the name's lock).
 
+import { WRONG } from "./accounts.ts";
 import type { GameHost } from "./host.ts";
 import { SAVE_BODY_MAX } from "./saves.ts";
 
@@ -26,14 +32,15 @@ export const apiBodyMax = (pathname: string) => (pathname === "/__api/save/impor
 
 /** A wrong password's answer waits this long (one after another, guessing is slow). */
 export const WRONG_PASS_DELAY_MS = 1000;
-const wrongPass = (error: string | undefined) => error === "密码不对哦。";
+const wrongPass = (error: string | undefined) => error === WRONG;
+const ROUTES = ["/__api/register", "/__api/remember", "/__api/forget", "/__api/rename", "/__api/password", "/__api/save/export", "/__api/save/import"];
 const later = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 
 /** addr: the client's address, as its game connection gives it ("ws <ip>": the password lock's). */
 export async function handleApi(host: GameHost, pathname: string, method: string, body: string, addr = ""): Promise<ApiResult> {
   if (method === "OPTIONS") return { status: 204, body: {} };
-  if (pathname === "/__api/status") return { status: 200, body: { ok: true, online: host.online(), name: "aola-revival", imports: host.imports } };
-  if (method !== "POST" || !["/__api/rename", "/__api/password", "/__api/save/export", "/__api/save/import"].includes(pathname)) {
+  if (pathname === "/__api/status") return { status: 200, body: { ok: true, online: host.online(), name: "aola-revival", imports: host.imports, register: host.registers } };
+  if (method !== "POST" || !ROUTES.includes(pathname)) {
     return { status: 404, body: { ok: false, error: "not found" } };
   }
   let p: { name?: unknown; pass?: unknown; to?: unknown; save?: unknown; from?: unknown; now?: unknown };
@@ -48,6 +55,18 @@ export async function handleApi(host: GameHost, pathname: string, method: string
     if (wrongPass(error)) await later(WRONG_PASS_DELAY_MS);
     return { status: 400, body: { ok: false, error, ...extra } };
   };
+  if (pathname === "/__api/register") {
+    const error = await host.register(name, pass, addr);
+    return error ? refused(error) : { status: 200, body: { ok: true } };
+  }
+  if (pathname === "/__api/remember") {
+    const r = await host.remember(name, pass, addr);
+    return r.error || !r.token ? refused(r.error ?? WRONG) : { status: 200, body: { ok: true, token: r.token } };
+  }
+  if (pathname === "/__api/forget") {
+    await host.forget(name, String((p as { token?: unknown }).token ?? ""));
+    return { status: 200, body: { ok: true } };
+  }
   if (pathname === "/__api/rename") {
     const error = await host.rename(name, String(p.to ?? ""), pass, addr, p.now === true);
     return error ? refused(error) : { status: 200, body: { ok: true } };

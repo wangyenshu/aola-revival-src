@@ -15,6 +15,8 @@
 // Kinds: 0 clothes, 2 items, 4 射击卡, 5 亚比蛋 (id = race), 8 战术卡, 12 zoo animals (baby: 10000 +
 // race, zoo.ts), 13 zoo 饲料 (zoo.ts uses one of the bag's before it asks 晶币).
 
+import { MONEY_MAX } from "./money.ts";
+
 /** [name, material type, id, how many]. */
 export type Gift = [name: string, type: number, id: number, n: number];
 
@@ -163,7 +165,7 @@ export function openGiftBag(o: GiftOwner, id: number, count = 1, cap?: (type: st
   if (!seen.includes(id)) seen.push(id);
   for (const g of bag.got) give(g, count);
   if (bag.score) {
-    o.score = Math.min(9_999_999, (o.score ?? 0) + bag.score * count);
+    o.score = Math.min(MONEY_MAX, (o.score ?? 0) + bag.score * count);
     out.score = true;
     out.got.push(`晶币×${bag.score * count}`);
   }

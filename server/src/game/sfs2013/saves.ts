@@ -30,7 +30,7 @@ export interface SaveFile {
 }
 
 /** The fields of a record that are the server's, never a file's. */
-const SERVER_FIELDS = ["id", "name", "pass", "friends", "friendAsks"] as const;
+const SERVER_FIELDS = ["id", "name", "pass", "tokens", "friends", "friendAsks"] as const;
 
 /** The kinds the game's code expects of a record's fields (game.ts UserRecord and the others). */
 const KINDS: Record<string, "array" | "object" | "number" | "string" | "boolean"> = {
@@ -176,6 +176,7 @@ export function rolesOf(file: SaveFile): Map<string, Record<string, unknown>> {
 export function playerFile(rec: { id: number; name: string } & Record<string, unknown>, key: string, saved: string): SaveFile {
   const copy = structuredClone(rec) as Record<string, unknown>;
   delete copy.pass;
+  delete copy.tokens;
   delete copy.friends;
   delete copy.friendAsks;
   return {

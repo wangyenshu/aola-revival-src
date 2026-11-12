@@ -991,7 +991,8 @@ run pays 晶豆, as its end panel says.
   them played from the 工具箱.
 - The HELLO walking behind the player; its menu's skills with the 2012
   icons of the HELLO's own panels.
-- Gathering in the 27 rooms with gathering points.
+- Gathering in the 40 rooms with gathering points (each gives only its own
+  points' things).
 - 射击 with 射击卡 and their effects.
 - The 奥拉周刊 of every week from July 2010 (126 issues) and the 亚比手册 in the
   图书馆.
@@ -1002,7 +1003,17 @@ run pays 晶豆, as its end panel says.
 - The 生态园 games 动物保卫战, 天空保卫战 and 海底保卫战, with their progress.
 - 战斗星域's rooms (试炼平台, 挑战平台, 亚比精英赛场, 时空隧道, 堡垒外沿).
 
+- 联机模式's 进入奥拉星 screen with 注册 beside 进入: its own screen (服务器地址, 名字,
+  密码 twice, 返回) makes a new 奥拉; 进入 with a name the server does not have is
+  refused; 记住密码 keeps a token of the server's, not the password.
+
 ## Known gaps
+
+- The game clock starts again at its anchor (15 August 2012) whenever the game
+  starts (each page load in 单机模式, each start of a shared server): the
+  game's day hardly moves on between visits, so "once a day" things used up
+  stay used up, and timers set late in a long session end late
+  (docs/IMPLEMENTATION.md, "The game clock", for the ways out).
 
 - With other players (联机模式, docs/MULTIPLAYER.md): 好友, 组队, visiting
   homes, chat, 射击, 亚比对战 and mods together work; team battles (several

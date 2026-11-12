@@ -142,11 +142,18 @@
       if (inPage()) return { error: "单机模式的奥拉没有密码。" };
       const r = await api("/__api/password", { name, pass: a.pass, to: a.to });
       if (!r.ok) return { error: r.error || "没有改成。" };
-      // A remembered password (记住密码) is the new one now.
+      // 记住密码: the new password ended the server's tokens; a page that kept one asks for a new
+      // one (a page of before kept the password itself: it goes).
       try {
         const k = "aolaRevivalStart";
         const o = JSON.parse(localStorage.getItem(k) || "{}") || {};
-        if (o.pass) o.pass = a.to;
+        const had = !!(o.token || o.pass);
+        delete o.pass;
+        delete o.token;
+        if (had) {
+          const t = await api("/__api/remember", { name, pass: a.to });
+          if (t.ok && t.token) o.token = t.token;
+        }
         localStorage.setItem(k, JSON.stringify(o));
       } catch (e) {}
       return { ok: true };

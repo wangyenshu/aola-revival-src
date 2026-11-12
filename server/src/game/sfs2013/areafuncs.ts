@@ -66,6 +66,7 @@
 //   s_s_2 {c}                -> {res}            put c 糖果 (item 513, won from the 布布兔) in; true when the
 //                                                bottle is full: a 小白吐 (846, Lv 1) — one a day ("每天只能获得1只小白吐")
 
+import { serial } from "../../core/locks.ts";
 import type { World, XtContext } from "./server.ts";
 import { detailOf, followVar, newPet, type PetRecord, type PetTables } from "./pets.ts";
 import { gainExp } from "./battle.ts";
@@ -220,6 +221,8 @@ export interface AreaDeps {
   /** Shared state (the emulator store). */
   get: <T>(key: string) => Promise<T | undefined>;
   set: (key: string, value: unknown) => Promise<void>;
+  /** Shared state read, changed and written one change at a time (game.ts updateShared). */
+  update?: <T>(key: string, f: (v: T | undefined) => T) => Promise<unknown>;
   /** The pet tables (a 亚比 given). */
   pets?: () => Promise<PetTables>;
 }
@@ -314,6 +317,16 @@ export function installAreaFuncs(world: World, deps: AreaDeps): void {
   // ------------------------------------------------------------ 星愿气球
   const BW = "BalloonExtension";
   const balloons = async () => (await deps.get<BalloonStore>("area/balloon")) ?? { wishes: [], moods: [] };
+  // The wishes and moods of everyone, one change at a time (two at once would lose one).
+  const balloonTurn = serial();
+  const updateBalloons = (f: (s: BalloonStore) => void) => {
+    const change = (v: BalloonStore | undefined) => {
+      const s = v ?? { wishes: [], moods: [] };
+      f(s);
+      return s;
+    };
+    return deps.update ? deps.update<BalloonStore>("area/balloon", change) : balloonTurn(async () => deps.set("area/balloon", change(await deps.get<BalloonStore>("area/balloon"))));
+  };
   const pickOther = <T extends { dd: string }>(list: T[], me: string) => {
     const others = list.filter((x) => x.dd !== me);
     return others.length ? others[Math.floor(Math.random() * others.length)] : undefined;
@@ -329,10 +342,11 @@ export function installAreaFuncs(world: World, deps: AreaDeps): void {
     if (area(rec).wish?.day === deps.today()) return;
     area(rec).wish = { day: deps.today(), wi };
     await deps.save(rec);
-    const s = await balloons();
-    s.wishes.push({ dd: rec.name, nn: rec.name, wi, day: deps.today() });
-    s.wishes = s.wishes.slice(-BALLOON_KEEP);
-    await deps.set("area/balloon", s);
+    const day = deps.today();
+    await updateBalloons((s) => {
+      s.wishes.push({ dd: rec.name, nn: rec.name, wi, day });
+      s.wishes = s.wishes.slice(-BALLOON_KEEP);
+    });
   });
   world.xt(`${BW}.88_10`, async (ctx) => {
     const rec = await deps.load(ctx);
@@ -341,10 +355,11 @@ export function installAreaFuncs(world: World, deps: AreaDeps): void {
     rec.score = (rec.score ?? 0) - MOOD_PRICE;
     ctx.reply({ score: rec.score }, "onScoreUpdated");
     await deps.save(rec);
-    const s = await balloons();
-    s.moods.push({ uid: rec.id, dd: rec.name, nn: rec.name, date: String(deps.now()), faceId: Number(ctx.params.faceId) | 0, content });
-    s.moods = s.moods.slice(-BALLOON_KEEP);
-    await deps.set("area/balloon", s);
+    const mood = { uid: rec.id, dd: rec.name, nn: rec.name, date: String(deps.now()), faceId: Number(ctx.params.faceId) | 0, content };
+    await updateBalloons((s) => {
+      s.moods.push(mood);
+      s.moods = s.moods.slice(-BALLOON_KEEP);
+    });
   });
   world.xt(`${BW}.88_4`, async (ctx) => {
     const w = pickOther((await balloons()).wishes, ctx.player.name);

@@ -18,6 +18,7 @@ import type { Store } from "../core/store.ts";
 import { NullRecorder } from "../core/recorder.ts";
 import { apiBodyMax, handleApi } from "../game/sfs2013/api.ts";
 import { createGameHost, type GameHost } from "../game/sfs2013/host.ts";
+import { addrKey } from "../core/addr.ts";
 
 // ---------------------------------------------------------------- the runtime, as used here
 
@@ -62,6 +63,8 @@ export interface Env {
   AOLA_DATE?: string;
   /** At most this many in the game at once (default 200). */
   AOLA_MAX_PLAYERS?: string;
+  /** New 奥拉 one address may 注册 a day (default 5; "0": no limit). */
+  AOLA_SIGNUPS_PER_DAY?: string;
   /** "1": a save without a password takes the password of its first login. */
   AOLA_ADOPT?: string;
   /** "0": the 工具箱, mods' gifts and 导入存档 closed to the players (open by default). */
@@ -146,9 +149,10 @@ export class AolaGame {
         return res?.ok ? res.json() : undefined;
       },
       date: env.AOLA_DATE || "2012-08-15",
-      accounts: { required: true, register: env.AOLA_CLOSED !== "1", adopt: env.AOLA_ADOPT === "1" },
+      accounts: { required: true, register: env.AOLA_CLOSED !== "1", adopt: env.AOLA_ADOPT === "1", signupsPerDay: count(env.AOLA_SIGNUPS_PER_DAY, 5) },
       recorder: new NullRecorder(),
       toolbox: env.AOLA_TOOLBOX !== "0",
+      maxPlayers: this.maxPlayers,
     });
   }
 
@@ -162,7 +166,7 @@ export class AolaGame {
       if (bytes == null) {
         return new Response(JSON.stringify({ ok: false, error: "这个存档太大了。" }), { status: 413, headers: JSON_HEADERS });
       }
-      const addr = `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`;
+      const addr = clientAddr(req);
       try {
         const out = await handleApi(this.host, url.pathname, req.method, new TextDecoder().decode(bytes), addr);
         return new Response(out.status === 204 ? null : JSON.stringify(out.body), { status: out.status, headers: JSON_HEADERS });
@@ -173,12 +177,12 @@ export class AolaGame {
     }
     const m = /^\/__socket\/(\d+)/.exec(url.pathname);
     if (!m || req.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response("not found\n", { status: 404 });
-    // Every connection counts, logged in or not; and one address holds only so many.
-    if (this.host.emulator.sessions.size >= this.maxPlayers + 20) return new Response("the server is full\n", { status: 503 });
-    const remote = `ws ${req.headers.get("CF-Connecting-IP") ?? "?"}`;
-    let mine = 0;
-    for (const s of this.host.emulator.sessions) if (s.link.remote === remote) mine++;
-    if (mine >= PER_ADDRESS) return new Response("too many connections\n", { status: 429 });
+    // The connections not logged in, of the server and of the address, and the address's in all
+    // (host.ts admit); the game's places are counted at the login (AOLA_MAX_PLAYERS).
+    const remote = clientAddr(req);
+    const no = this.host.admit(remote);
+    if (no === "full") return new Response("the server is full\n", { status: 503 });
+    if (no) return new Response("too many connections\n", { status: 429 });
     const pair = new WebSocketPair();
     const [client, ws] = [pair[0], pair[1]];
     ws.accept();
@@ -199,8 +203,8 @@ export class AolaGame {
   }
 }
 
-/** Connections one address may hold at once (a family behind one router, a few tabs each). */
-const PER_ADDRESS = 12;
+/** The client's address as the limits count it (Cloudflare's header: an IPv6 one by its /64). */
+const clientAddr = (req: Request) => `ws ${addrKey(req.headers.get("CF-Connecting-IP") ?? "?")}`;
 
 /** A request's body, or null when it is longer than max (read no further than that). */
 async function readCapped(req: Request, max: number): Promise<Uint8Array | null> {
@@ -227,4 +231,10 @@ async function readCapped(req: Request, max: number): Promise<Uint8Array | null>
     at += p.length;
   }
   return out;
+}
+
+/** A count of the settings: a whole number 0 or more, else the default. */
+function count(v: string | undefined, dflt: number): number {
+  const n = Number(v);
+  return v != null && v !== "" && Number.isInteger(n) && n >= 0 ? n : dflt;
 }

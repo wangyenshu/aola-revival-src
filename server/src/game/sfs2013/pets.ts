@@ -332,6 +332,8 @@ const EXT = "PocketMonsterExtension";
 /** A mod's party out (mods.ts): the 亚比 that must stay in the bag, and healing all refused. */
 const partyRules = (o: object) => (o as { modParty?: { keep?: number; noHeal?: string } }).modParty;
 /** A mod's 亚比 that must stay in the bag: the words when it is asked to leave it. */
+/** A 亚比 moved, let go or fused while a fight is on. */
+export const IN_FIGHT = "战斗还没有结束，现在不能这样做。";
 const KEEP_IN_BAG = (name: string) => `${name}必须留在亚比背包里！`;
 
 export const NO_FOLLOW = "0#0#0";
@@ -431,6 +433,8 @@ export function installPets(world: World, deps: PetDeps): void {
     const store = (o.storage ??= []);
     const gone = (o.released ??= []);
     const answer = (result: number) => ctx.reply({ result, id, loc }, "2224");
+    // The 亚比 of a fight are the bag's as it began: none moves till it is over.
+    if (inFight(world, o.id)) return ctx.reply({ result: -4, id, loc, msg: IN_FIGHT }, "2224");
     const back = gone.findIndex((p) => p.id === id);
     if (back >= 0) {
       if (loc === 0 && bag.length >= 6) return answer(-2);
@@ -477,6 +481,7 @@ export function installPets(world: World, deps: PetDeps): void {
     const inBag = bag.findIndex((p) => p.id === id);
     const inStore = store.findIndex((p) => p.id === id);
     if (inBag < 0 && inStore < 0) return answer(-1);
+    if (inFight(world, o.id)) return ctx.reply({ result: -4, id, msg: IN_FIGHT }, "revival_release");
     if (inBag >= 0 && bag.length <= 1) return answer(-3);
     if (partyRules(o)?.keep === id) return ctx.reply({ result: -4, id, msg: KEEP_IN_BAG(bag[inBag].nick || nameOf(await deps.tables(), bag[inBag].race)) }, "revival_release");
     const [p] = inBag >= 0 ? bag.splice(inBag, 1) : store.splice(inStore, 1);

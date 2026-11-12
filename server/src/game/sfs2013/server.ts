@@ -4,6 +4,7 @@
 // variable updates and chat are echoed to everyone in the room, sender included.
 
 import type { Codec, Message } from "../../core/codec.ts";
+import { brief } from "../../core/plain.ts";
 import type { Emulator, Session } from "../../core/emulator.ts";
 import type { FramingSpec } from "../../core/framing.ts";
 import {
@@ -41,6 +42,8 @@ export const sfs2013Codec: Codec = {
 
 /** What an older page of the same 奥拉 is told when a new login takes over. */
 export const REPLACED_TEXT = "你的奥拉在别的地方登录了，这里的连接已经断开。";
+/** A login refused because as many as the server takes are in the game. */
+export const FULL_TEXT = "服务器的奥拉满了，请过一会儿再来。";
 
 export interface PlayerState {
   id: number;
@@ -93,8 +96,10 @@ export interface WorldOptions {
   login?: (zone: string, user: string, pass: string, session: Session) => Promise<LoginResult> | LoginResult;
   /** A refused login is answered this much later (a shared server: guessing passwords is slow). */
   refuseDelayMs?: number;
-  /** A connection that has not logged in this long after it came is closed (0: never). */
+  /** A connection that has not logged in this long after it came (or logged out) is closed (0: never). */
   loginWaitMs?: number;
+  /** At most this many logged in at once (none: no limit); a login of one already in takes his place. */
+  maxPlayers?: number;
   /** Called after a player joins a room. */
   onJoin?: (session: Session, player: PlayerState, room: Room) => void;
   /** Check client packet numbers (default true: mismatches are logged, not fatal). */
@@ -115,6 +120,30 @@ export const RVAR_MAX = 256;
 /** A player's user variables: at most this many, their names and values together at most UVAR_BYTES. */
 export const UVARS_MAX = 64;
 export const UVAR_BYTES = 8192;
+/**
+ * What one connection may send: a burst, then so many a second (more is dropped). The 2013 client
+ * stays well inside these; a flood (requests that each load and write a record, variables or room
+ * joins told to a whole room) does not. A connection dropped DROPS_TO_CLOSE times within a minute
+ * is closed.
+ */
+export const RATES: Record<"any" | "xt" | "setUvars" | "joinRoom", [burst: number, perSecond: number]> = {
+  any: [120, 60],
+  xt: [60, 30],
+  setUvars: [20, 8],
+  joinRoom: [8, 1],
+};
+export const DROPS_TO_CLOSE = 300;
+/**
+ * User variables only the server sets (clothes, name, VIP badge, the following 亚比, robot, home
+ * state, shoot effect, way of moving): a client's own would show others what it does not have.
+ */
+export const SERVER_VARS = new Set(["avatar", "c", "nn", "mtype", "p", "r", "hs", "shoot_effect", "ms"]);
+const RATE = "sfs2013.rate";
+interface Bucket {
+  t: number;
+  n: number;
+}
+
 /** Rooms that go when their last member leaves: homes, 沙盒 rooms, a player's 副本 rooms. */
 const TEMP_ROOM = /_Home$|^sandboxroom[_|]|@/;
 
@@ -139,22 +168,35 @@ export class World {
     this.opts = opts;
     emu.onConnect((s) => {
       s.sendBytes(S.policy(), "sfs2013: policy (client discards it)");
-      // A connection that never logs in holds a place of the server's (and of its address's).
-      if (this.opts.loginWaitMs) {
-        const t = setTimeout(() => {
-          if (!s.closed && !this.player(s)) {
-            s.note("sfs2013: no login in time, closed");
-            s.close();
-          }
-        }, this.opts.loginWaitMs);
-        (t as { unref?: () => void }).unref?.();
-      }
+      this.waitForLogin(s);
     });
     emu.onClose((s) => {
       if (this.player(s)) for (const h of this.leaveHooks) h(s);
       this.leave(s, true);
     });
     emu.onUnhandled((s, m) => this.handle(s, m.body as ClientMsg, m.seq ?? 0));
+  }
+
+  /**
+   * A connection not logged in (come, or logged out) holds a place of the server's and of its
+   * address's: closed if it has not logged in within loginWaitMs.
+   */
+  private waitForLogin(s: Session): void {
+    if (!this.opts.loginWaitMs) return;
+    const t = setTimeout(() => {
+      if (!s.closed && !this.player(s) && !this.loggingIn.has(s)) {
+        s.note("sfs2013: no login in time, closed");
+        s.close();
+      }
+    }, this.opts.loginWaitMs);
+    (t as { unref?: () => void }).unref?.();
+  }
+
+  /** How many are logged in now. */
+  playing(): number {
+    let n = 0;
+    for (const s of this.emu.sessions) if (this.player(s)) n++;
+    return n;
   }
 
   private readonly leaveHooks: ((s: Session) => void)[] = [];
@@ -175,6 +217,48 @@ export class World {
   xt(key: string, handler: XtHandler): this {
     this.handlers.set(key, handler);
     return this;
+  }
+
+  private readonly cmdLimits = new Map<string, [number, number]>();
+
+  /** A tighter rate for one extension request ("ShootExtension.64_1"): a burst, then so many a second. */
+  limit(key: string, burst: number, perSecond: number): this {
+    this.cmdLimits.set(key, [burst, perSecond]);
+    return this;
+  }
+
+  /**
+   * Whether this connection may send one more of this kind now (a token bucket each kind). A
+   * flood is dropped quietly (one note in ten seconds), and a connection that keeps at it closed.
+   */
+  private allow(s: Session, key: string, [burst, perSecond]: [number, number]): boolean {
+    const all = (s.data[RATE] ??= { buckets: new Map<string, Bucket>(), drops: 0, since: 0, noted: 0 }) as {
+      buckets: Map<string, Bucket>;
+      drops: number;
+      since: number;
+      noted: number;
+    };
+    const now = Date.now();
+    let b = all.buckets.get(key);
+    if (!b) all.buckets.set(key, (b = { t: now, n: burst }));
+    b.n = Math.min(burst, b.n + ((now - b.t) / 1000) * perSecond);
+    b.t = now;
+    if (b.n >= 1) {
+      b.n -= 1;
+      return true;
+    }
+    if (now - all.since > 60_000) {
+      all.since = now;
+      all.drops = 0;
+    }
+    if (++all.drops >= DROPS_TO_CLOSE) {
+      s.note(`sfs2013: flooding (${key}), closed`);
+      s.close();
+    } else if (now - all.noted > 10_000) {
+      all.noted = now;
+      s.note(`sfs2013: too many ${key}, dropped`);
+    }
+    return false;
   }
 
   player(s: Session): PlayerState | undefined {
@@ -246,6 +330,7 @@ export class World {
   }
 
   private async handle(s: Session, msg: ClientMsg, packetNum: number): Promise<void> {
+    if (!this.allow(s, "any", RATES.any)) return;
     const p = this.player(s);
     if (p && this.opts.checkPacketNumbers !== false) {
       const want = nextPacketNum(p.lastPacket);
@@ -256,6 +341,7 @@ export class World {
       case "login":
         return this.login(s, msg.zone, msg.user, msg.pass, packetNum);
       case "joinRoom":
+        if (!this.allow(s, "joinRoom", RATES.joinRoom)) return;
         return this.join(s, msg.room, msg.isTemp);
       case "leaveRoom":
         this.leave(s);
@@ -266,6 +352,8 @@ export class World {
         this.leave(s);
         s.sendBytes(S.logout());
         s.data[PLAYER] = undefined;
+        // Logged out, the connection is one that has not logged in again.
+        this.waitForLogin(s);
         return;
       case "hit":
         return;
@@ -280,9 +368,12 @@ export class World {
       }
       case "setUvars": {
         // Bounded: each player's variables reach everyone who enters his room (joinOK).
-        if (!p || msg.vars.length > UVARS_MAX) return;
+        if (!p || msg.vars.length > UVARS_MAX || !this.allow(s, "setUvars", RATES.setUvars)) return;
+        // Those the server keeps (clothes, VIP badge, 亚比, way of moving) are not the client's.
+        const vars = msg.vars.filter((v) => !SERVER_VARS.has(v.name));
+        if (!vars.length) return;
         const next = new Map(p.vars);
-        for (const v of msg.vars) {
+        for (const v of vars) {
           if (v.type === "x") next.delete(v.name);
           else next.set(v.name, v);
         }
@@ -291,7 +382,7 @@ export class World {
           return;
         }
         p.vars = next;
-        if (p.room) this.sendRoom(p.room, S.userVarsUpdate(p.room.id, p.id, msg.vars));
+        if (p.room) this.sendRoom(p.room, S.userVarsUpdate(p.room.id, p.id, vars));
         return;
       }
       case "setRvars": {
@@ -306,8 +397,12 @@ export class World {
         if (vars.length) this.sendRoom(p.room, S.roomVarsUpdate(p.room.id, vars));
         return;
       }
-      case "xt":
+      case "xt": {
+        if (!this.allow(s, "xt", RATES.xt)) return;
+        const lim = this.cmdLimits.get(`${msg.ext}.${msg.cmd}`);
+        if (lim && !this.allow(s, `${msg.ext}.${msg.cmd}`, lim)) return;
         return this.dispatchXt(s, msg.ext, msg.cmd, msg.params);
+      }
       default:
         s.note(`sfs2013: unhandled ${msg.kind}`);
     }
@@ -332,6 +427,11 @@ export class World {
       throw err;
     }
     if (s.closed) return void this.loggingIn.delete(s);
+    // The server full: only one already in (another tab of his) may come in, in his place.
+    const max = this.opts.maxPlayers;
+    if (!r.error && max && this.playing() >= max && ![...this.emu.sessions].some((o) => o !== s && this.player(o)?.name === r.name)) {
+      r = { ...r, error: FULL_TEXT };
+    }
     if (r.error) {
       s.note(`sfs2013: login of "${user}" refused: ${r.error}`);
       // A wrong password: the answer a second later, and no other try on this connection till
@@ -435,7 +535,7 @@ export class World {
     const p = this.player(s);
     const h = this.handlers.get(`${ext}.${cmd}`) ?? this.handlers.get(`${ext}.*`) ?? this.handlers.get("*");
     if (!p || !h) {
-      s.note(`sfs2013: unhandled xt ${ext}.${cmd} ${JSON.stringify(params)?.slice(0, 300)}`);
+      s.note(`sfs2013: unhandled xt ${ext}.${cmd} ${brief(params)}`);
       return;
     }
     const ctx: XtContext = {

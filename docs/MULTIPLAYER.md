@@ -9,12 +9,14 @@ keeps what it remembers):
   run. Write its address (for example `aola.example.com:8080` or
   `https://aola.example.workers.dev`), the 奥拉's name and a password.
   **检查服务器** asks the server whether it is there and how many are on.
-  The first login of a new name signs it up with that password (unless the
-  server is closed to new names); **改名字** changes the name of an 奥拉 (with
-  its password, while it is not in the game).
+  A new 奥拉 is made on **注册** (beside 进入): its own screen asks for the
+  address, the name and the password twice, and 返回 goes back. 登录 with a
+  name the server does not have is refused (it does not sign the name up).
+  **改名字** changes the name of an 奥拉 (with its password, while it is not
+  in the game).
 
-`?mode=server&server=<address>&name=<name>&pass=<password>` in the page's
-address picks 联机模式 at once (the start screen is skipped).
+`?mode=server&server=<address>&name=<name>` in the page's address writes them
+into the start screen (a password is never taken from an address).
 
 The game files are private. Run a shared server for yourself and the friends
 you play with, not for the public.
@@ -29,8 +31,9 @@ node server/src/node/multi.ts --port 8080 --data work/server
 ```
 
 The same port serves the page (dist/), the game (`/__socket/9339`, a
-WebSocket) and the small API (`/__api/status`, `rename`, `password`,
-`save/export`, `save/import`: `server/src/game/sfs2013/api.ts`). Open
+WebSocket) and the small API (`/__api/status`, `register`, `remember`,
+`forget`, `rename`, `password`, `save/export`, `save/import`:
+`server/src/game/sfs2013/api.ts`). Open
 `http://<that computer>:8080/`, choose 联机模式 and give it the same address.
 
 | Option | |
@@ -41,25 +44,31 @@ WebSocket) and the small API (`/__api/status`, `rename`, `password`,
 | `--web DIR` | the site to serve too (default `dist`; `--web ""` serves only the game, the page then comes from elsewhere) |
 | `--tables DIR` | where `www.9aola.com/revival/*.json` are (default `<web>/files`, or `build/rebuilt` with `--web ""`) |
 | `--date DAY` | the game clock's day, China time (default 2012-08-15) |
-| `--closed` | no new names: only 奥拉 already signed up may log in |
-| `--max-players N` | at most N in the game at once (default 200) |
-| `--no-toolbox` | close the 工具箱 (晶币, 亚比 … for nothing), mods' gifts of 亚比 and 导入存档 to the players, for a fair server; open by default, as in 单机模式 (`--toolbox` opens it whatever `AOLA_TOOLBOX` says) |
+| `--closed` | no 注册: only 奥拉 already signed up may log in |
+| `--max-players N` | at most N in the game at once (default 200); a login past it is told the server is full, but the player's own second page comes in |
+| `--signups-per-day N` | new 奥拉 one address may 注册 a day (default 5; 0: no limit) |
+| `--no-toolbox` | close the 工具箱 (晶币, 亚比 … for nothing), mods' gifts of 亚比 and their own species, 酷跑's free 金币 and 星星能量 shop and 导入存档 to the players, for a fair server, where the levels a client asks for a fight are also at most 5 over his strongest 亚比; open by default, as in 单机模式 (`--toolbox` opens it whatever `AOLA_TOOLBOX` says) |
 | `--adopt` | a save with no password in it (copied in from elsewhere) takes the password of its first login; off by default |
-| `--trust-proxy` | behind a reverse proxy or tunnel: the client's address (the password lock and the connections an address may hold are per address) is the last of `X-Forwarded-For`, the one the proxy added; off by default, when anyone could set that header |
+| `--trust-proxy` | behind a reverse proxy or tunnel: the client's address (the password lock, the connections and the 注册 of an address are per address) is the last of `X-Forwarded-For`, the one the proxy added; off by default, when anyone could set that header. Without it, a server that sees the header from a local address says once in its log that every player counts as the proxy |
 
 A record that cannot be written (the disk full, a record over 1.5 MB) is
 logged and let go: the game goes on from what was last saved, so memory and
 storage never disagree.
 
-A connection that has not logged in within 30 seconds is closed, one address
-(an IPv6 one by its /64) holds at most 12 connections, and a connection that
-does not answer the server's ping (every 30 seconds) is ended. The same 奥拉
+A connection that has not logged in within 30 seconds (or has logged out and
+not in again) is closed. Connections not logged in are few: 40 on the server
+and 4 an address at once; one address (an IPv6 one by its /64, on Node and on
+Cloudflare alike) holds at most 12 connections in all; the game's places
+(`--max-players`) are counted at the login. A connection that does not answer
+the server's ping (every 30 seconds) is ended. A client that sends too much
+(extension requests, user variables, room joins, a few commands of their own)
+has the rest dropped, and one that keeps on is closed. The same 奥拉
 logged in again elsewhere takes over: the older page is told so in a dialog of
 the game and its connection is closed.
 
 Each option has an environment variable too: `PORT`, `BIND`, `AOLA_DATA`,
 `AOLA_WEB`, `AOLA_TABLES`, `AOLA_DATE`, `AOLA_CLOSED`, `AOLA_TOOLBOX` ("0"
-closes), `AOLA_ADOPT`, `AOLA_MAX_PLAYERS`, `AOLA_TRUST_PROXY` ("1" for on).
+closes), `AOLA_ADOPT`, `AOLA_MAX_PLAYERS`, `AOLA_SIGNUPS_PER_DAY`, `AOLA_TRUST_PROXY` ("1" for on).
 
 Saves copied in from elsewhere (a `user/<name>.json` with no password in it)
 cannot be logged in to, unless the server runs with `--adopt`: then the first
@@ -156,17 +165,29 @@ The Durable Object must be SQLite-backed (`new_sqlite_classes`, as in the
 example): a player's save can be larger than the 128 KB a value of the older
 storage may be. `AOLA_CLOSED`, `AOLA_DATE`, `AOLA_MAX_PLAYERS` and `AOLA_ADOPT` under
 `[vars]` are the Node server's `--closed`, `--date`, `--max-players` and
-`--adopt` ("1" for on); `AOLA_TOOLBOX` "0" is `--no-toolbox`.
+`--adopt` ("1" for on); `AOLA_TOOLBOX` "0" is `--no-toolbox`,
+`AOLA_SIGNUPS_PER_DAY` is `--signups-per-day`. The Worker counts an address by
+`CF-Connecting-IP` (an IPv6 one by its /64).
 A Cloudflare Access policy in front of the Worker keeps it to the people you
 invite.
 
 ## Accounts, saves and passwords
 
-- **No sign-up form**: the first login of a name nobody has signs it up with
-  that password (not with `--closed`). Then only that password opens it, and
-  one game a name: a second login ends the first. The start screen's
-  联机模式 fields start empty (the browser remembers what was written there,
-  the password only with 记住密码).
+- **注册** makes an 奥拉 (not with `--closed`): a name of 1 to 12 characters
+  without spaces or symbols, a password of 6 to 32 (改密码's rule too). One
+  address signs up `--signups-per-day` 奥拉 a day and tries 注册 ten times in
+  ten minutes at most (a name taken counts). Then only that password opens
+  it, and one game a name: a second login ends the first.
+- **登录** of a name the server does not have is answered as a wrong password
+  is ("名字或密码不对哦。", as late, the same work done), so the names on a
+  server are not found by trying them at the login, 改名字 or 存档; only
+  注册 says that a name is taken, a few times a minute at most.
+- **记住密码**: the page keeps a token the server gives (`/__api/remember`),
+  not the password. The token logs in and does what the password does on the
+  start screen and in the 存档 panels; 改密码 asks the password itself and
+  ends every token (the page then asks for a new one). A token lasts 30 days,
+  an 奥拉 has 5 at most, and taking 记住密码 off makes the server forget it.
+  A page that kept a password before drops it at its next 进入.
 - **Saving** is the server's, as one plays: each change is written at once
   (Node: one JSON file a key in `--data`, `user/<name>.json` an 奥拉;
   Cloudflare: the Durable Object's storage). Back up `--data`.
@@ -185,11 +206,25 @@ invite.
   one address lock the name there for a minute, whichever way they are tried
   (login, 改名字, 存档); the player from his own address is not locked out.
   There is no 忘记密码: an 奥拉 is a name and a password, nothing else.
+  The accounts' work goes a name at a time (a login, 注册, rename or import
+  of one name waits only for others of that name), so an import ending a game
+  holds up nobody else's login. A rename writes the new name, then the id's,
+  then takes the old away, and moves the 排行榜 rows; a record a stopped rename
+  left behind is taken away at its next login.
   Over `http://` the password crosses the network as it is: put a server
   reached over a network you do not trust behind HTTPS. Whoever runs a
   server can read its saves: use a password of your own for it.
 - **Nothing else is lost** against 单机模式: the same game runs on the server
   (the 工具箱 too, unless `--no-toolbox`).
+- **What the server checks itself**, whatever a client says: gathering gives
+  only what the room's gather points give (`game.ts GATHER_POINTS`); a seal of
+  the 念之塔, a floor of the 黑星堡垒 and 先哲's treasure need a fight won just
+  now there by that connection (`wins.ts`); 动物捕捉's odds are the server's;
+  a quest step the server finishes itself (items had, a task 亚比 beaten) is
+  not the client's to finish; 猜弹珠 counts wins only as far as the games
+  played allow; 斑比向前冲's 晶币 count to the mini games' 1000 a day; a 亚比
+  in a fight is not moved, let go or fused; 酷跑 runs a role neither owned nor
+  rented as the first one; money stays within 0 … 9,999,999 (`money.ts`).
 
 ## What works together
 
@@ -256,8 +291,15 @@ mods), 战队 and 兵团, trading.
 - `server/src/game/sfs2013/host.ts`: the game for any host (a Store, the
   tables, the connections). `src/node/multi.ts` and `src/cloudflare/worker.ts`
   only carry bytes and files to it.
-- `accounts.ts`: names and passwords (PBKDF2-SHA256, salted). One game a
-  name: a second login of the same 奥拉 ends the first.
+- `accounts.ts`: names and passwords (PBKDF2-SHA256, salted), 注册's limits
+  (`SignupGuard`), the tokens of 记住密码. One game a name: a second login of
+  the same 奥拉 ends the first. `core/locks.ts`: the accounts' work a name at
+  a time, and the records everyone writes (the 排行榜, the 气球's wishes) a
+  change at a time (`game.ts updateShared`). `core/addr.ts`: an address as the
+  limits count it.
+- The login screen: `rebuild/src/login/mmo/user/login/StartScreen.as` (注册
+  and 进入 side by side in 联机模式) and `RegisterScreen.as`; `web/start.js`'s
+  `register` and the token of 记住密码.
 - `social.ts`: 好友 (kept by player id, so a new name keeps its friends) and
   组队 (in memory), under the extensions the 2013 client numbers
   (`BuddyManagerExtension`, `TeamExtension`, `revival_*` commands).
@@ -270,4 +312,6 @@ mods), 战队 and 兵团, trading.
   without being asked, going where someone is), `FriendPanel.as`,
   `TeamPanel.as`; `ModRun.as` / `ModGame.as` for mods in a team.
 - Tests: `server/test/multiplayer.test.ts` (two players over the real
-  protocol), `cloudflare.test.ts`.
+  protocol), `register.test.ts` (注册, 记住密码, the places), `claims.test.ts`
+  (what a client says and the server checks), `hardening.test.ts`,
+  `cloudflare.test.ts`.

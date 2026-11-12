@@ -18,10 +18,22 @@
 // egg is given only once 念 has been beaten (98_1 type 21) and only to one who has neither it
 // nor a 亚比 of its line.
 
+import { takeWin } from "./wins.ts";
 import type { World, XtContext } from "./server.ts";
 
 export const SEAL_TYPES = [17, 18, 19, 20];
 export const NIAN_TYPE = 21;
+/**
+ * Where each seal's guardian is fought (the scenes' FightInteract: fightWithTaskPet), and 念 in
+ * 念之大厅: 98_1 counts only after a win of the session's there (wins.ts).
+ */
+export const SEAL_SCENES: Record<number, RegExp> = {
+  17: /^thinktowerofwater/,
+  18: /^thinktoweroffire/,
+  19: /^thinktowerofice/,
+  20: /^thinktowerofthunder/,
+  21: /^thinktowerof(nian|think)/,
+};
 /** 念's line (小念, 幻念, 念). */
 export const NIAN_LINE = [602, 603, 604];
 /** A seal's chest: 晶币 and the HELLO's 经验 (RECONSTRUCTED). */
@@ -70,6 +82,9 @@ export function installThinkTower(world: World, deps: TowerDeps): void {
     const o = await deps.me(ctx);
     const type = Number(ctx.params.type) | 0;
     const t = (o.tower ??= {});
+    // Opened by a fight won there just now (one win, one seal), not by the client's word.
+    const where = SEAL_SCENES[type];
+    if (!where || !takeWin(ctx.session, (w) => where.test(w.scene))) return ctx.reply({ result: 0 }, "98_1");
     if (SEAL_TYPES.includes(type)) t.sealed = [...new Set([...(t.sealed ?? []), type])].sort((a, b) => a - b);
     else if (type === NIAN_TYPE) t.nian = true;
     else return ctx.reply({ result: 0 }, "98_1");

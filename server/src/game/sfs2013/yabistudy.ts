@@ -31,8 +31,10 @@
 //   not full, at random); the minutes counted online are those since the panel was first asked
 //   for in this session.
 
+import { serial } from "../../core/locks.ts";
 import type { PlayerState, World, XtContext } from "./server.ts";
 import { isModRace } from "./mods.ts";
+import { inFight } from "./fighting.ts";
 import { MAX_IV } from "./pmdata.ts";
 import { NO_FOLLOW, newPet, type PetRecord, type PetTables } from "./pets.ts";
 
@@ -110,6 +112,8 @@ export interface LabDeps<R extends LabRec> {
   tables: () => Promise<PetTables>;
   get: <T>(key: string) => Promise<T | undefined>;
   set: (key: string, value: unknown) => Promise<void>;
+  /** Shared state read, changed and written one change at a time (game.ts updateShared). */
+  update?: <T>(key: string, f: (v: T | undefined) => T) => Promise<unknown>;
   /** The random source (tests). */
   random?: () => number;
 }
@@ -153,6 +157,8 @@ export function fuseCollect(rec: LabRec, id: number): boolean {
 }
 
 export function installYabiStudy<R extends LabRec>(world: World, deps: LabDeps<R>): void {
+  // 天才榜, everyone's: one change at a time.
+  const topTurn = serial();
   const rnd = deps.random ?? Math.random;
   const pick = <T>(xs: T[]) => xs[Math.floor(rnd() * xs.length)];
   const between = ([lo, hi]: [number, number]) => lo + Math.floor(rnd() * (hi - lo + 1));
@@ -174,6 +180,11 @@ export function installYabiStudy<R extends LabRec>(world: World, deps: LabDeps<R
     const f = a && b && mId !== sId ? formulaFor(a.race, b.race) : undefined;
     const items = bag(rec);
     if (!a || !b || !f || a.level < f.lva || b.level < f.lvb || (items[f.item] ?? 0) < 1) return ctx.reply({ succ: false });
+    // As 放生's (pets.ts): not in a fight, not the bag's last 亚比, not one a mod's party keeps.
+    const inBag = (id: number) => (rec.pets ?? []).some((p) => p.id === id);
+    const bagLeft = (rec.pets ?? []).length - (inBag(mId) ? 1 : 0) - (inBag(sId) ? 1 : 0);
+    const kept = (rec as { modParty?: { keep?: number } }).modParty?.keep;
+    if (inFight(world, rec.id) || bagLeft < 1 || kept === mId || kept === sId) return ctx.reply({ succ: false });
     const race = f.makes.length > 1 && Math.floor(rnd() * VARIATION) === 0 ? f.makes[1] : f.makes[0];
     const egg = EGG_OF[race];
     items[f.item] -= 1;
@@ -186,6 +197,8 @@ export function installYabiStudy<R extends LabRec>(world: World, deps: LabDeps<R
       delete rec.followPet;
       world.setUserVars(ctx.session, { p: NO_FOLLOW });
     }
+    const shown = rec as { showPet?: number };
+    if (shown.showPet === mId || shown.showPet === sId) shown.showPet = 0;
     await deps.save(rec);
     ctx.reply({ amount: `2_${f.item}_0_-1` }, "onAmountUpdated");
     ctx.reply({ amount: `2_${egg}_0_1` }, "onAmountUpdated");
@@ -231,9 +244,10 @@ export function installYabiStudy<R extends LabRec>(world: World, deps: LabDeps<R
     const diff = Math.min(MAX_IV - iv[index], between(amount));
     iv[index] += diff;
     if (before < STARS_WANGZHE && geniusStars(iv) >= STARS_WANGZHE && !isModRace(p.race)) {
-      const top = (await deps.get<string[]>("area/geniusTop")) ?? [];
-      top.push(`${rec.name}:${rec.name}:${p.race}`);
-      await deps.set("area/geniusTop", top.slice(-GENIUS_TOP_KEEP));
+      const line = `${rec.name}:${rec.name}:${p.race}`;
+      const change = (top: string[] | undefined) => [...(top ?? []), line].slice(-GENIUS_TOP_KEEP);
+      if (deps.update) await deps.update<string[]>("area/geniusTop", change);
+      else await topTurn(async () => deps.set("area/geniusTop", change(await deps.get<string[]>("area/geniusTop"))));
     }
     return { index, diff };
   };

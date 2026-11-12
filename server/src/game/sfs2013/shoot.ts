@@ -17,6 +17,7 @@
 // the others (射击卡 bought in the 道具店, maxQuantity 9999) one per shot.
 
 import type { Session } from "../../core/emulator.ts";
+import { plainCopy } from "../../core/plain.ts";
 import type { World, XtContext } from "./server.ts";
 
 export const SHOOT_EXT = "ShootExtension";
@@ -66,6 +67,8 @@ export function installShoot(world: World, deps: ShootDeps): void {
 
   world.xt(`${SHOOT_EXT}.64_3`, () => {});
 
+  // A shot reaches everyone in the room: a few a second at most.
+  world.limit(`${SHOOT_EXT}.64_1`, 10, 4);
   world.xt(`${SHOOT_EXT}.64_1`, async (ctx) => {
     const p = ctx.params;
     const cardId = Number(p.cardId) | 0;
@@ -91,7 +94,9 @@ export function installShoot(world: World, deps: ShootDeps): void {
       x: Number(p.x) | 0,
       y: Number(p.y) | 0,
       roomId: ctx.player.room?.id ?? 0,
-      mine: p.mine ?? null,
+      // What the client said (a gathering shot's, truthy): small and plain, never its object
+      // as sent (this goes to everyone in the room).
+      mine: p.mine == null ? null : (plainCopy(p.mine, 200, 3) ?? true),
     };
     ctx.broadcast({ info, hit: true }, "64_2");
     if (targetType !== TARGET_PLAYER || effect <= 0 || seconds <= 0) return;

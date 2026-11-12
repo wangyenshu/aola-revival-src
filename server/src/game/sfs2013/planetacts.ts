@@ -63,6 +63,7 @@
 // won fight: 弹珠 from the 海豆 of 海枯之山, 大力锤 from 石苗龟, 扭蛋币 from 火刺球, 铠甲碎片 from the 小玩具马
 // line of 皇宫外城 and 皇宫地牢; where is the panels' own word, how many is not).
 
+import { takeWin } from "./wins.ts";
 import type { World, XtContext } from "./server.ts";
 import { followVar, type PetRecord, type PetTables } from "./pets.ts";
 import { gainExp } from "./battle.ts";
@@ -73,7 +74,8 @@ export interface ActsRec {
   /** 巨锁石灵的机关: locks opened, when the next may be (ms). */
   lock?: { c: number; next: number };
   /** 达黑黑's 猜弹珠: games won, 小黑黑 given. */
-  mora?: { w: number; got?: boolean };
+  /** 猜弹珠: wins towards the egg (w), and of all games played (n) the wins counted (wins). */
+  mora?: { w: number; got?: boolean; n?: number; wins?: number };
   /** 白京京之心: times said, last (ms). */
   heart?: { c: number; last: number };
   /** 粗心的卡索: words found (bits), reward given. */
@@ -123,6 +125,8 @@ export const LOCK_WAIT_MS = 10 * 60 * 1000;
 export const HEART_WAIT_MS = 10 * 60 * 1000;
 export const HEART_TIMES = 4;
 export const MORA_WINS = 10;
+/** 猜弹珠: wins counted above one in two of the games played, at most (a lucky run). */
+export const MORA_LUCK = 4;
 export const MARBLE = 476;
 export const HAMMER = 590;
 export const AMO_COIN = 597;
@@ -131,6 +135,8 @@ export const ARMOR_FRAG = 461;
 /** 57_8's 铠甲 parts: exchange id -> item. */
 export const ARMOR_PARTS: Record<number, number> = { 186: 454, 187: 455, 188: 456, 189: 457 };
 export const SAGE_TREASURES = [458, 459, 460];
+/** 先哲独角兽的灵魂, the task 亚比 whose defeat brings a treasure. */
+export const SAGE_SOUL = 10655;
 export const SKY_LOVE = 15;
 export const SKY_PLAYS_PER_DAY = 3;
 /** The 亚比 the rewards bring (RECONSTRUCTED: the 亚比 at Lv1, see above). */
@@ -274,8 +280,16 @@ export function installPlanetActs(world: World, deps: PlanetActsDeps): void {
     const num = Math.max(1, Math.min(4, Number(ctx.params.num) | 0));
     if (countOf(o, MARBLE) < num) return ctx.reply({ get: false }, "91_46");
     const msgs = addItem(o, MARBLE, -num);
-    const won = ctx.params.w === true || ctx.params.w === "true" || ctx.params.w === 1;
-    if (won) mora.w++;
+    // The game rolls its guess on the client (GuessBallGameScene: one in two); its word is taken
+    // only as far as the games played allow (MORA_LUCK wins above one in two), so saying "won"
+    // every time gains little.
+    mora.n = (mora.n ?? 0) + 1;
+    const said = ctx.params.w === true || ctx.params.w === "true" || ctx.params.w === 1;
+    const won = said && (mora.wins ?? 0) < Math.ceil(mora.n / 2) + MORA_LUCK;
+    if (won) {
+      mora.w++;
+      mora.wins = (mora.wins ?? 0) + 1;
+    }
     let get = false;
     if (won && mora.w >= MORA_WINS && !mora.got) {
       mora.got = true;
@@ -441,7 +455,8 @@ export function installPlanetActs(world: World, deps: PlanetActsDeps): void {
   world.xt("PeriodicActiveExtension.91_31", async (ctx) => {
     const o = await deps.load(ctx);
     const item = SAGE_TREASURES[(Number(ctx.params.id) | 0) - 1];
-    if (!item || countOf(o, item) > 0) return ctx.reply({ res: false }, "91_31");
+    // After the fight with 先哲's soul (UnicornService.onFightEnd: 10655), won just now.
+    if (!item || countOf(o, item) > 0 || !takeWin(ctx.session, (w) => w.id === SAGE_SOUL || w.id === SAGE_SOUL % 10000)) return ctx.reply({ res: false }, "91_31");
     const msgs = addItem(o, item, 1);
     await deps.save(o);
     send(ctx, msgs);

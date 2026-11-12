@@ -29,6 +29,8 @@
 // from the skill descriptions, catching, experience) are RECONSTRUCTED on the
 // columns of the client's tables (pmdata.ts).
 
+import { MONEY_MAX } from "./money.ts";
+import { recordWin } from "./wins.ts";
 import { stepsByPetWin, type TaskOwner } from "./tasks.ts";
 import { wildDrop, type ActsOwner } from "./planetacts.ts";
 import { FB_TIMES, betterGrade, ensureFbSpecies, fbBossBeaten, fbByName, fbGrade, fbOfRoom, fbPay, fbRoomPets, fbSpecies, FBS, type FbRec } from "./fb.ts";
@@ -1865,6 +1867,8 @@ export interface WildEntry {
 
 export interface BattleDeps {
   load: (ctx: XtContext) => Promise<PetOwner & { items?: Record<string, Record<string, number>> }>;
+  /** A fair server (the 工具箱 closed): the levels a client asks are bounded (FAIR_ABOVE). */
+  fair?: boolean;
   /** Another player's record (亚比对战). */
   find?: (name: string) => Promise<(PetOwner & { items?: Record<string, Record<string, number>> }) | undefined>;
   save: (owner: PetOwner) => Promise<void>;
@@ -2037,6 +2041,9 @@ export function eggOfLine(t: { species: Record<string, { next?: number }> }, rac
   for (let i = 0; i < 6 && !EGG_IDS.has(r) && prev.has(r); i++) r = prev.get(r)!;
   return EGG_IDS.has(r) ? r : 0;
 }
+
+/** A fair server: the levels a client asks for a fight, at most this over his strongest 亚比. */
+export const FAIR_ABOVE = 5;
 
 /** PetFightTypes.FIGHT_IN_MEMBER_ARENA: the bosses of 黑星堡垒. */
 export const FIGHT_IN_MEMBER_ARENA = 12;
@@ -2221,10 +2228,17 @@ export function installBattles(world: World, deps: BattleDeps): void {
     const id = Number(ctx.params.raceId);
     const onWin: Battle["onWin"] = (o) =>
       stepsByPetWin(o as TaskOwner, id, deps.now?.() ?? Date.now()).changes.map((c): Msg => ["10-1", { t: c.t, ty: c.ty }]);
+    // A fair server (the 工具箱 closed): a level a client asks is at most FAIR_ABOVE over his
+    // strongest 亚比 (any species at Lv100 would be experience for nothing).
+    const fairCap = async (level: number) => {
+      if (!deps.fair) return level;
+      const o = await deps.load(ctx);
+      return Math.min(level, Math.max(5, ...(o.pets ?? []).map((p) => p.level)) + FAIR_ABOVE);
+    };
     if (id >= 10000 || TASK_PET_RACES.has(id)) {
       const o = await deps.load(ctx);
       const top = Math.max(5, ...(o.pets ?? []).map((p) => p.level));
-      const level = TASK_PET_LEVELS[id] ?? (asked > 0 ? asked : top + 2 * (Math.floor(id / 10000) - 1));
+      const level = TASK_PET_LEVELS[id] ?? (asked > 0 ? await fairCap(asked) : top + 2 * (Math.floor(id / 10000) - 1));
       return void (await begin(ctx, id % 10000, Math.max(1, Math.min(100, level)), false, onWin, id));
     }
     // A wild 亚比 of this room: at the room's levels (the client's level is not taken), and
@@ -2233,7 +2247,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
     // Lv1 and catch it.
     const entry = ((await deps.wild())[sceneOfRoom(ctx.player.room)] ?? []).find((w) => w.raceId === id);
     const rng = deps.rng ?? Math.random;
-    const level = entry ? entry.min + Math.floor(rng() * (entry.max - entry.min + 1)) : asked > 0 ? asked : 5;
+    const level = entry ? entry.min + Math.floor(rng() * (entry.max - entry.min + 1)) : asked > 0 ? await fairCap(asked) : 5;
     // The items some rooms' wild 亚比 drop for the planets' activities (planetacts.ts WILD_DROPS).
     const room = sceneOfRoom(ctx.player.room);
     await begin(ctx, id, Math.max(1, Math.min(100, level)), !!entry, (o) => [...onWin(o), ...(entry ? wildDrop(o as ActsOwner, room, id) : [])]);
@@ -2886,12 +2900,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
         if (used.includes("radar")) {
           const rec = o as PetOwner & { score?: number };
           const coins = 50 + 5 * b.wild.pet.level;
-          rec.score = Math.min(9_999_999, (rec.score ?? 0) + coins);
+          rec.score = Math.min(MONEY_MAX, (rec.score ?? 0) + coins);
           out.push(["onScoreUpdated", { score: rec.score }]);
           radarCoins = coins;
         }
       }
       if (r.evolvedTo && o.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
+      // The session's win, for the claims that follow it (wins.ts: 98_1, 84_4, 91_31).
+      recordWin(ctx.session, b.asked ?? b.wild.pet.race, sceneOfRoom(ctx.player?.room));
       // A win's own messages; NOTE ones are words for the end of the battle, not sent.
       const won = b.onWin ? b.onWin(o) : [];
       const notes = won.filter(([c]) => c === NOTE).map(([, m]) => String(m.text));

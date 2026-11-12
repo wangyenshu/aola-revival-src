@@ -6,13 +6,16 @@
 // game, so 我的家, the 信息卡 and the other players show it.
 //
 // Remembered in this browser (localStorage): mode, server, 联机模式's name, the 单机 奥拉 played
-// last; the password only with 记住密码. Chosen without the screens (preset): ?bare=1 (the
-// automated walk-throughs: 单机, the remembered name), ?mode=inpage, ?mode=server&server=…&name=…&pass=…
-// (tests), and a resume (an 奥拉 renamed or imported in the game) once, after its reload.
+// last; with 记住密码 a token the server gives for it (/__api/remember), never the password
+// (a password a page of before this kept is dropped at its next 进入). Chosen without the
+// screens (preset): ?bare=1 (the automated walk-throughs: 单机, the remembered name),
+// ?mode=inpage, and a resume (an 奥拉 renamed or imported in the game) once, after its reload.
+// ?mode=server&server=…&name=… only fills in the start screen (a password is never in an address).
 //
 // The login calls aolaStartPage(op, args, id), answered in its revivalStart(id, result):
 //   saved                    -> what the start screen fills in, at once
 //   check {server}           -> {online}: the server answers
+//   register {server, name, pass}     注册: a new 联机 奥拉 (RegisterScreen)
 //   rename {server, name, pass, to}   a 联机 奥拉's new name, from the start screen
 //   begin {mode, server, name, pass, remember}   联机模式: the game starts (boot.js AolaBoot.begin);
 //                               单机模式: only remembered (its game starts on 选择奥拉's 进入)
@@ -79,8 +82,6 @@
     if (solo) return { mode: "inpage", name: String(solo.player || "小奥拉"), pass: "" };
     const back = takeResume();
     if (back) return { mode: back.mode, server: back.server || "", name: back.name, pass: back.pass || "" };
-    if (q.get("mode") === "server" && q.get("server") && q.get("name"))
-      return { mode: "server", server: q.get("server"), name: q.get("name"), pass: q.get("pass") || "" };
     if (q.get("bare") === "1" || q.get("mode") === "inpage") return { mode: "inpage", name: q.get("name") || load().name || "小奥拉", pass: "" };
     return null;
   }
@@ -126,11 +127,22 @@
         return { error: "连不上这个服务器。" };
       }
     }
+    if (op === "register") {
+      const base = httpBase(a.server);
+      if (!base) return { error: "请先填写服务器地址。" };
+      try {
+        const j = await postJson(base + "/__api/register", { name: String(a.name || "").trim(), pass: String(a.pass || "") });
+        return j.ok ? { ok: true } : { error: j.error || "没有注册成。" };
+      } catch (e) {
+        return { error: "连不上这个服务器。" };
+      }
+    }
     if (op === "rename") {
       const base = httpBase(a.server);
       if (!base) return { error: "请先填写服务器地址。" };
       try {
         const j = await postJson(base + "/__api/rename", { name: a.name, pass: a.pass, to: a.to });
+        if (j.ok && load().serverName === String(a.name || "").trim()) remember({ serverName: String(a.to || "").trim() });
         return j.ok ? { ok: true } : { error: j.error || "没有改成。" };
       } catch (e) {
         return { error: "连不上这个服务器。" };
@@ -145,11 +157,34 @@
         remember({ mode: "inpage" });
         return { ok: true };
       }
-      const r = await window.AolaBoot.begin({ mode: server ? "server" : "inpage", server: String(a.server || "").trim(), name: server ? String(a.name || "").trim() : "" });
+      const address = String(a.server || "").trim(), name = String(a.name || "").trim(), pass = String(a.pass || "");
+      // 记住密码: a token of the server's for this 奥拉 (it logs in as the password does), kept
+      // instead of the password; the one kept already when the field still holds it. Taken off:
+      // the server forgets it too.
+      const s = load();
+      let token = "";
+      if (a.remember) {
+        // The token is the 奥拉's (it goes with a rename): the field still holding it keeps it.
+        if (s.token && pass === s.token) token = s.token;
+        else {
+          let j = null;
+          try {
+            j = await postJson(httpBase(address) + "/__api/remember", { name, pass });
+          } catch (e) {
+            return { error: "连不上这个服务器。" };
+          }
+          if (!j.ok || !j.token) return { error: j.error || "没有记住密码。" };
+          token = j.token;
+        }
+      }
+      if (s.token && s.token !== token) {
+        postJson(httpBase(s.server || address) + "/__api/forget", { name: s.serverName || name, token: s.token }).catch(() => {});
+      }
+      const r = await window.AolaBoot.begin({ mode: "server", server: address, name });
       if (r.error) return r;
-      const fields = { mode: server ? "server" : "inpage" };
-      if (server) Object.assign(fields, { server: String(a.server || "").trim(), serverName: String(a.name || "").trim(), pass: a.remember ? a.pass : "" });
-      remember(fields);
+      const o = Object.assign(load(), { mode: "server", server: address, serverName: name, token });
+      delete o.pass;
+      store(o);
       return { ok: true };
     }
     // 单机模式's 奥拉 (the page's game: server/src/game/sfs2013/game.ts listUsers, createUser,
@@ -211,6 +246,9 @@
   /** What the start screen fills in: each mode's 奥拉, the address, the password if remembered. */
   function saved(cfg) {
     const s = load();
+    // ?mode=server&server=…&name=…: that server and name written in (no password).
+    const q = new URLSearchParams(location.search);
+    if (q.get("mode") === "server") return { mode: "server", server: q.get("server") || s.server || cfg.server || "", serverName: q.get("name") || "", pass: "" };
     return {
       mode: s.mode === "server" ? "server" : "inpage",
       // The address last written, else the site's own (config.js server: a site made for one
@@ -218,7 +256,8 @@
       server: s.server || cfg.server || "",
       // Older pages kept one name for both modes.
       serverName: s.serverName ?? (s.mode === "server" ? s.name || "" : ""),
-      pass: s.pass || "",
+      // 记住密码's token (a page of before kept the password: it is used once, then a token).
+      pass: s.token || s.pass || "",
     };
   }
 

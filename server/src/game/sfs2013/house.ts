@@ -19,6 +19,7 @@
 // as friends are (names may change). What the era counted and showed is RECONSTRUCTED.
 
 import { plantsBackToStorage, type PlantOwner } from "./plants.ts";
+import { plainCopy } from "../../core/plain.ts";
 import type { World, XtContext } from "./server.ts";
 
 export interface Placement {
@@ -98,12 +99,8 @@ export const HOME_ROOM = /^(.+)_(-?\d+)_Home$/;
  */
 function plainExd(v: unknown): unknown {
   if (v == null) return undefined;
-  try {
-    const text = JSON.stringify(v);
-    return text && text.length <= 2000 ? JSON.parse(text) : undefined;
-  } catch {
-    return undefined;
-  }
+  // Walked with a budget: never stringified whole (a small frame can name a huge value).
+  return plainCopy(v, 2000, 8);
 }
 
 export function installHouse(world: World, deps: HouseDeps): void {

@@ -49,6 +49,8 @@ export const MOD_DATA_TOTAL = 1048576;
 export const MOD_LEVEL_MAX = 100;
 /** Mods' species a server keeps at once (in memory until it restarts), at most. */
 export const MOD_SPECIES_MAX = 2000;
+/** One mod's own species, at most (the server's room for them is everyone's). */
+export const MOD_SPECIES_PER_MOD = 100;
 /** The bag holds six (the 仓库 the rest). */
 export const BAG_MAX = 6;
 
@@ -237,11 +239,15 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
     if (op === "species") {
       const t = await deps.tables();
       if (!isModId(mod)) return reply({ res: 0, msg: "模组的编号不对" });
+      // The species are the server's, everyone's (their fights, the 图鉴): where the 工具箱 is closed
+      // a client does not add them (its stats would be anyone's to fight and win experience from).
+      if (deps.gifts === false) return reply({ res: 0, msg: "这个服务器上，模组不能加自己的亚比。" });
       const sp = parseModSpecies(p.def, t);
       if (typeof sp === "string") return reply({ res: 0, msg: sp });
       const owner = ownersOf(t).get(sp.id);
       if (owner !== undefined && owner !== mod) return reply({ res: 0, msg: `编号${sp.id}已被模组${owner}使用` });
       if (owner === undefined && ownersOf(t).size >= MOD_SPECIES_MAX) return reply({ res: 0, msg: "这个服务器上模组的亚比已经太多了。" });
+      if (owner === undefined && [...ownersOf(t).values()].filter((m) => m === mod).length >= MOD_SPECIES_PER_MOD) return reply({ res: 0, msg: "这个模组的亚比已经太多了。" });
       ownersOf(t).set(sp.id, mod);
       t.pm.species[String(sp.id)] = {
         n: sp.name,

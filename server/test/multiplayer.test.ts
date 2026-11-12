@@ -11,6 +11,7 @@ import { concat } from "../src/core/bytes.ts";
 import { FrameSplitter } from "../src/core/framing.ts";
 import { LiveRecordStore, MemoryStore } from "../src/core/store.ts";
 import { createGameHost } from "../src/game/sfs2013/host.ts";
+import { recordWin } from "../src/game/sfs2013/wins.ts";
 import { Down, EXT_NAMES, Reader, Up, clientPayload, encodeClientFrame, nextPacketNum } from "../src/game/sfs2013/protocol.ts";
 
 const EXT_NUMBER = (name: string) => Number(Object.entries(EXT_NAMES).find(([, n]) => n === name)![0]);
@@ -27,6 +28,7 @@ const tables = async (p: string) => {
   }
 };
 const tick = (ms = 15) => new Promise((r) => setTimeout(r, ms));
+let signups = 0;
 
 function server(withTables = false) {
   const store = new MemoryStore();
@@ -75,11 +77,15 @@ function server(withTables = false) {
         await tick(10);
       }
     };
-    const login = (name: string, pass: string) => send(clientPayload(0, Up.Login, -1).utf("aola").utf(name).utf(pass).body());
+    // 注册 first (a name taken: no matter), each from an address of its own; then the login.
+    const login = (name: string, pass: string) =>
+      void host.register(name, pass, `ws reg-${++signups}`).then(() => send(clientPayload(0, Up.Login, -1).utf("aola").utf(name).utf(pass).body()));
+    /** The login alone. */
+    const loginOnly = (name: string, pass: string) => send(clientPayload(0, Up.Login, -1).utf("aola").utf(name).utf(pass).body());
     const join = (room: string) => send(clientPayload(0, Up.JoinRoom, -1).utf(room).u8(49).i32(-1).u8(48).utf("").body());
     const xt = (ext: keyof typeof EXT, cmd: string, params: Record<string, unknown> = {}) =>
       send(clientPayload(1, Up.XtReq, 1).i16(EXT[ext]).utf(cmd).raw(amf3Encode(params)).body());
-    return { s, login, join, xt, xts, wait, frames, send, closed: () => closed };
+    return { s, login, loginOnly, join, xt, xts, wait, frames, send, closed: () => closed };
   };
   return { host, store, connect };
 }
@@ -278,7 +284,12 @@ test("念之塔: the seals opened, a chest a day, 小念's egg once 念 is beate
   const { a } = await twoPlayers(true);
   a.xt("MentalHallExtension", "98_2");
   assert.equal((await a.wait("98_2"))?.result, "0,0,0,0");
+  // Not without its guardian beaten there (wins.ts: the session's fights).
+  a.xt("MentalHallExtension", "98_1", { type: 17 });
+  assert.equal((await a.wait("98_1"))?.result, 0);
+  const scenes: Record<number, string> = { 17: "thinktowerofwater", 18: "thinktoweroffire", 19: "thinktowerofice", 20: "thinktowerofthunder" };
   for (const type of [17, 18, 19, 20]) {
+    recordWin(a.s, 10000 + type, scenes[type]);
     a.xt("MentalHallExtension", "98_1", { type });
     assert.equal((await a.wait("98_1"))?.result, 1);
   }
@@ -292,6 +303,7 @@ test("念之塔: the seals opened, a chest a day, 小念's egg once 念 is beate
   // 小念: not before 念 is beaten, then once.
   a.xt("SundriesExtension", "70_45", { race: 602 });
   assert.equal((await a.wait("70_45"))?.suc, false);
+  recordWin(a.s, 20605, "thinktowerofnian");
   a.xt("MentalHallExtension", "98_1", { type: 21 });
   await a.wait("98_1");
   a.xt("SundriesExtension", "70_46", { race: 602 });
@@ -589,7 +601,7 @@ test("存档 on a shared server: export one 奥拉, import a page's file of seve
   assert.equal(rec.friends, undefined);
   assert.equal(file.data[`uid/${rec.id}`], "奥拉A");
   assert.equal(file.data["meta/nextUserId"], rec.id);
-  assert.equal((await host.exportSave("奥拉A", "wrong")).error, "密码不对哦。");
+  assert.equal((await host.exportSave("奥拉A", "wrong")).error, "名字或密码不对哦。");
   // A page's file (单机模式): two 奥拉 and the page's boards.
   const page = {
     format: "aola-revival-save",
@@ -636,12 +648,13 @@ test("存档: imports closed with the 工具箱; a name locked after wrong passw
       s.receive(encodeClientFrame(pn, payload));
     };
   })();
+  assert.equal(await host.register("奥拉C", "pass-c"), null);
   c(clientPayload(0, Up.Login, -1).utf("aola").utf("奥拉C").utf("pass-c").body());
   for (let i = 0; i < 50 && !(await store.get(`user/${encodeURIComponent("奥拉C")}`)); i++) await tick(10);
   const file = (await host.exportSave("奥拉C", "pass-c")).save!;
   assert.ok(file, "export stays open");
   assert.match(String((await host.importSave("奥拉C", "pass-c", file)).error), /没有打开导入存档/);
-  for (let i = 0; i < 5; i++) assert.equal((await host.exportSave("奥拉C", "nope")).error, "密码不对哦。");
+  for (let i = 0; i < 5; i++) assert.equal((await host.exportSave("奥拉C", "nope")).error, "名字或密码不对哦。");
   assert.equal((await host.exportSave("奥拉C", "pass-c")).error, "密码错了太多次，请过一分钟再试。", "locked, the right one too");
 });
 
@@ -674,15 +687,17 @@ test("存档: an imported 亚比 is rebuilt from its known fields; the lock is a
 
 test("review: made-up rooms go when empty; chat is bounded; a client cannot catch any species or get one by addPM", async () => {
   const { a, b, host } = await twoPlayers(true);
-  // 5000 rooms one client names, one after another: each goes when he leaves it, so the table
-  // does not fill, and the other player's joins go on.
-  for (let i = 0; i < 300; i++) a.join(`junk${i}`);
+  // Rooms one client names, one after another: each goes when he leaves it, so the table does
+  // not fill; past a few at once his joins are dropped (RATES.joinRoom), and the other player's go on.
+  for (let i = 0; i < 200; i++) a.join(`junk${i}`);
   await tick(50);
   assert.ok(host.world.rooms.size < 20, `rooms standing: ${host.world.rooms.size}`);
+  assert.ok([...host.world.rooms.keys()].filter((n) => n.startsWith("junk")).length <= 1);
   b.join("maintown2");
   await tick();
   assert.equal(b.xts().some((o) => o._cmd === `sys:${Down.joinKO}`), false, "others still join");
-  // Chat: a line too long, or two at once, is not sent on.
+  // Chat: a line too long, or two at once, is not sent on (his next join once a second has passed).
+  await tick(1100);
   a.join("maintown2");
   await tick();
   a.frames();
@@ -704,8 +719,9 @@ test("review: made-up rooms go when empty; chat is bounded; a client cannot catc
     let pn = -1;
     return { send: (payload: Uint8Array) => (pn = nextPacketNum(pn), s.receive(encodeClientFrame(pn, payload))) };
   })();
+  assert.equal(await closed.register("奥拉Z", "pass-z"), null);
   c.send(clientPayload(0, Up.Login, -1).utf("aola").utf("奥拉Z").utf("pass-z").body());
-  for (let i = 0; i < 50 && !(await srv.store.get(`user/${encodeURIComponent("奥拉Z")}`)); i++) await tick(10);
+  for (let i = 0; i < 100 && !closed.world.online("奥拉Z"); i++) await tick(10);
   c.send(clientPayload(0, Up.JoinRoom, -1).utf("maintown1").u8(49).i32(-1).u8(48).utf("").body());
   const xt = (ext: number, cmd: string, params: Record<string, unknown>) => c.send(clientPayload(1, Up.XtReq, 1).i16(ext).utf(cmd).raw(amf3Encode(params)).body());
   xt(13, "1201", { raceId: 1101, level: 100 });
@@ -789,4 +805,32 @@ test("亚比对战: a 亚比 with no PP left does nothing that turn (no 挣扎);
   b.xt("PocketMonsterExtension", "1404");
   assert.ok(await a.wait("2403"), "over");
   assert.equal(told.length, 2);
+});
+
+test("hardening: a client cannot set the variables the server keeps; floods are dropped, then closed", async () => {
+  const { a, b, host } = await twoPlayers(true);
+  a.join("maintown2");
+  b.join("maintown2");
+  await tick(100);
+  a.frames();
+  b.frames();
+  // avatar (clothes) and mtype (VIP badge) are the server's; x is the client's own.
+  const setVars = (vars: [string, string][]) => {
+    let w = clientPayload(0, Up.SetUvars, 1).i16(vars.length);
+    for (const [n, v] of vars) w = w.utf(n).char("s").utf(v);
+    a.send(w.body());
+  };
+  setVars([["avatar", "1;2;3"], ["mtype", "4"], ["x", "100"]]);
+  await tick(100);
+  const me = host.world.players().find((p) => p.player.name === "奥拉A")!.player;
+  assert.notEqual(String(me.vars.get("avatar")?.value), "1;2;3");
+  assert.notEqual(String(me.vars.get("mtype")?.value), "4");
+  assert.equal(String(me.vars.get("x")?.value), "100");
+  // A flood of extension requests: a burst goes through, the rest is dropped, and a client that
+  // keeps at it is closed.
+  for (let i = 0; i < 2000; i++) a.xt("SundriesExtension", "nothing_here", {});
+  await tick(200);
+  const sessions = [...host.emulator.sessions].map((s) => host.world.player(s)?.name);
+  assert.ok(!sessions.includes("奥拉A"), "the flooding client is closed");
+  assert.ok(sessions.includes("奥拉B"), "the other plays on");
 });

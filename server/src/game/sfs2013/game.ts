@@ -2,12 +2,32 @@
 // Grows command by command as rebuilt and original modules ask for them;
 // every unhandled extension call is logged with its parameters.
 
+import { takeWin } from "./wins.ts";
+import { keepMoney, MONEY_MAX } from "./money.ts";
 import type { Emulator } from "../../core/emulator.ts";
 import { installPets, maxHpOf, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
 import { installBattles, gainExp, type WildEntry } from "./battle.ts";
 import { installPetDic } from "./petdic.ts";
 import { installPetItems, type Boosts } from "./petitems.ts";
-import { checkPass, hashPass, nameProblem, LOCKED, PassGuard, type AccountOptions, type PassRec } from "./accounts.ts";
+import {
+  checkPass,
+  hashPass,
+  liveTokens,
+  nameProblem,
+  newToken,
+  passwordProblem,
+  tokenHash,
+  tokenMatches,
+  LOCKED,
+  PassGuard,
+  SignupGuard,
+  TOKENS_MAX,
+  WRONG,
+  type AccountOptions,
+  type PassRec,
+  type TokenRec,
+} from "./accounts.ts";
+import { KeyedLocks } from "../../core/locks.ts";
 import { adoptRecord, fileProblem, jsonBytes, playerFile, rolesOf, SAVE_RECORD_MAX, type SaveFile } from "./saves.ts";
 import { installSocial } from "./social.ts";
 import { installTasks, isQuestItem, registerTaskTables, robotVar, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
@@ -25,7 +45,7 @@ import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { installSuperEvo } from "./superevo.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
 import { endModParty, installMods, stashModPets, type ModRec } from "./mods.ts";
-import { World, type XtContext } from "./server.ts";
+import { sceneOfRoom, World, type XtContext } from "./server.ts";
 import { installHonour } from "./honour.ts";
 import { installGarden, type Board } from "./garden.ts";
 import { installThinkTower, type TowerRec } from "./thinktower.ts";
@@ -100,8 +120,9 @@ export interface UserRecord {
   /** Friends and asks to be friends (social.ts), by player id. */
   friends?: number[];
   friendAsks?: number[];
-  /** A shared server's password (accounts.ts). */
+  /** A shared server's password (accounts.ts), and the tokens of 记住密码 (their hashes). */
   pass?: PassRec;
+  tokens?: TokenRec[];
   /** Mini games that open their levels one by one: game name -> the last level finished. */
   gameLevels?: Record<string, number>;
   /** 大战TT兔's 积分 (game/chocolaterabbit) and whether 糖糖 was taken for them. */
@@ -193,6 +214,8 @@ export interface Sfs2013Options {
    * into the game's rooms.
    */
   standalone?: boolean;
+  /** At most this many in the game at once (a shared server; none: no limit). */
+  maxPlayers?: number;
 }
 
 /**
@@ -212,7 +235,7 @@ export const HOT_SPRING_EXP = 20;
 
 const userKey = (name: string) => `user/${encodeURIComponent(name)}`;
 
-const queues = new WeakMap<Emulator, Promise<unknown>>();
+const locks = new WeakMap<Emulator, KeyedLocks>();
 /** After an import ends an 奥拉's game: a moment for its requests still running to finish. */
 export const IMPORT_SETTLE_MS = 300;
 /** On a shared server, a connection that has not logged in within this is closed. */
@@ -226,38 +249,100 @@ const guardOf = (emu: Emulator) => {
   if (!g) guards.set(emu, (g = new PassGuard()));
   return g;
 };
+/** 注册 per address (accounts.ts SignupGuard). */
+const signups = new WeakMap<Emulator, SignupGuard>();
+const signupsOf = (emu: Emulator) => {
+  let g = signups.get(emu);
+  if (!g) signups.set(emu, (g = new SignupGuard()));
+  return g;
+};
+/** The hash a name the server does not have is checked against (as long as a real one takes). */
+let madeUp: Promise<PassRec> | undefined;
+
 /**
- * The password of an 奥拉 of a shared server, tried from the client address addr: null if right,
- * else what to say. Wrong ones count towards the lock of that name from that address
- * (PassGuard), right ones clear it.
+ * The password of an 奥拉 of a shared server (or, where tokens, a token of its 记住密码), tried
+ * from the client address addr: null if right, else what to say. A name the server does not
+ * have (rec undefined) is answered as a wrong password, after as long. Wrong ones count towards
+ * the lock of that name from that address (PassGuard), right ones clear it.
  */
-async function passProblem(emu: Emulator, rec: UserRecord, pass: string | undefined, addr = ""): Promise<string | null> {
+async function passProblem(
+  emu: Emulator,
+  name: string,
+  rec: UserRecord | undefined,
+  pass: string | undefined,
+  addr = "",
+  tokens = true,
+): Promise<string | null> {
   const g = guardOf(emu);
-  const key = `${rec.name}\u0000${addr}`;
+  const key = `${name}\u0000${addr}`;
   if (g.locked(key)) return LOCKED;
-  if (!rec.pass || !pass || !(await checkPass(pass, rec.pass))) {
+  let ok = false;
+  if (rec?.pass && pass) {
+    // The tokens' days are real days (the game clock starts again at its anchor: core/clock.ts).
+    const now = Date.now();
+    ok = (tokens && (await tokenMatches(pass, liveTokens(rec.tokens, now)))) || (await checkPass(pass, rec.pass));
+  } else if (pass) {
+    await checkPass(pass, await (madeUp ??= hashPass("", "made-up")));
+  }
+  if (!ok) {
     g.failed(key);
-    return "密码不对哦。";
+    return WRONG;
   }
   g.passed(key);
   return null;
 }
 
 /**
- * Logins and renames of one server one after another: two at once could take one new player
- * id, sign one name up twice, or rename an 奥拉 as it logs in.
+ * The accounts' work, a name at a time (core/locks.ts): one name's login, 注册, rename, import …
+ * one after another (two at once could sign one name up twice, or rename an 奥拉 as it logs
+ * in); other names' alongside, so a slow one holds up only its own. A rename takes both names.
  */
-function oneAtATime<T>(emu: Emulator, f: () => Promise<T>): Promise<T> {
-  const r = (queues.get(emu) ?? Promise.resolve()).then(f, f);
-  queues.set(emu, r.catch(() => {}));
-  return r;
+function locked<T>(emu: Emulator, names: string[], f: () => Promise<T>): Promise<T> {
+  let l = locks.get(emu);
+  if (!l) locks.set(emu, (l = new KeyedLocks()));
+  return l.run(names, f);
 }
 
-/** A new 奥拉 (the first login of a name, a new local 奥拉): the next id, the defaults; not saved yet. */
+/**
+ * A record everyone writes (a 排行榜, the wishes of the 气球, a home's 足迹): read, changed and
+ * written one change at a time (two at once would lose one).
+ */
+export function updateShared<T>(emu: Emulator, key: string, f: (v: T | undefined) => T | Promise<T>): Promise<T> {
+  return locked(emu, [`@${key}`], async () => {
+    const v = await f(await emu.store.get<T>(key));
+    await emu.store.set(key, v);
+    return v;
+  });
+}
+
+/** A new 奥拉 (注册, a new local 奥拉): the next id, the defaults; not saved yet. */
 async function newUser(emu: Emulator, name: string): Promise<UserRecord> {
-  const next = ((await emu.store.get<number>("meta/nextUserId")) ?? 10000) + 1;
-  await emu.store.set("meta/nextUserId", next);
+  // The ids one at a time, whatever names are being worked on.
+  const next = await locked(emu, ["#id"], async () => {
+    const n = ((await emu.store.get<number>("meta/nextUserId")) ?? 10000) + 1;
+    await emu.store.set("meta/nextUserId", n);
+    return n;
+  });
   return normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
+}
+
+/**
+ * An 奥拉's record for the accounts' work: undefined for none, and for one a rename left
+ * behind (a rename writes the new name, then the id's, then takes the old away: stopped between,
+ * the old one is the id's no longer, and goes now).
+ */
+async function accountRecord(emu: Emulator, name: string): Promise<UserRecord | undefined> {
+  const rec = await userRecord(emu, name);
+  if (!rec) return undefined;
+  const owner = await emu.store.get<string>(`uid/${rec.id}`);
+  if (owner && owner !== rec.name && owner !== name) {
+    const other = await emu.store.get<UserRecord>(userKey(owner));
+    if (other && other.id === rec.id) {
+      await emu.store.delete(userKey(name));
+      return undefined;
+    }
+  }
+  return rec;
 }
 
 async function userRecord(emu: Emulator, name: string): Promise<UserRecord | undefined> {
@@ -290,12 +375,62 @@ function normalise(rec: UserRecord): UserRecord {
 export function fortuneInterest(a: { sc: number; sd: number; d: number }, now: number): number {
   const day = 24 * 3600 * 1000;
   if (now >= a.sd + a.d * day) return Math.floor((a.sc * a.d) / 35);
-  return Math.floor(a.sc * Math.floor((now - a.sd) / day) * 0.001);
+  // Not below nothing: a box put in late in a game whose clock then started again at its anchor
+  // (core/clock.ts) would be taken out "before" it was put in.
+  return Math.max(0, Math.floor(a.sc * Math.floor((now - a.sd) / day) * 0.001));
 }
 /** The 星币 machine's rates (fortunemanager/starcoin's StarCoinConfig). */
 export const AO_TO_COIN = 10;
 export const PIECES_TO_COIN = 188;
 export const PIECES_TO_COIN_VIP = 94;
+
+/**
+ * The gather points of the scenes (GatherService's fruit, ore and soil: each scene's own points
+ * and their ItemId, read from the scene SWFs of game/; feier4's three of its activity,
+ * Feier4.ACT_GATHER_MATERIAL_IDS): what 14_11 gives in which room.
+ */
+export const GATHER_POINTS: Record<string, number[]> = {
+  aixiscene1: [38, 83],
+  aixiscene2: [38, 83],
+  aixiscene3: [38],
+  aixiscene4: [86],
+  aquarium: [200],
+  bite1: [122, 123, 124],
+  bite2: [122, 123],
+  bite4: [122],
+  feier1: [40],
+  feier2: [40, 92],
+  feier3: [40, 92],
+  feier4: [93, 5394, 5395, 5396],
+  haiwen1: [131, 132],
+  haiwen2: [131],
+  haiwen3: [132],
+  haiwen4: [131],
+  haiwen5: [133],
+  inventisland1: [211, 212],
+  inventisland2: [211],
+  inventisland4: [211, 212],
+  inventisland5: [213],
+  leiming1: [165],
+  leiming2: [165, 166],
+  leiming3: [165, 166],
+  leiming4: [167],
+  siwude1: [42, 85],
+  siwude2: [42, 85],
+  siwude3: [42, 88],
+  suolide1: [41],
+  suolide2: [41, 84],
+  suolide3: [41, 84],
+  suolide4: [87],
+  temple7: [379],
+  woerte1: [39, 90],
+  woerte2: [39],
+  woerte3: [39, 90, 91],
+  yishuzhidu1: [198, 199],
+  yishuzhidu2: [198],
+  yishuzhidu3: [198, 199],
+  yishuzhidu4: [200],
+};
 
 /** Mini game rates (RECONSTRUCTED): points per 晶币, 晶币 a game at most, 晶币 a day at most. */
 export const GAME_SCORE_PER_COIN = 10;
@@ -377,32 +512,35 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   const wild = siteTable<Record<string, WildEntry[]>>(() => site("revival/wildpets.json"), {});
 
   const world = new World(emu, {
-    login: (zone, user, pass, s) => oneAtATime(emu, () => login(zone, user, pass, s.link.remote)),
+    login: (zone, user, pass, s) => {
+      const name = opts.accounts?.required ? String(user ?? "").trim() : (user || "小奥拉").trim();
+      return locked(emu, [name], () => login(zone, name, pass, s.link.remote));
+    },
     refuseDelayMs: opts.accounts?.required ? 1000 : 0,
     loginWaitMs: opts.accounts?.required ? LOGIN_WAIT_MS : 0,
+    maxPlayers: opts.maxPlayers,
   });
-  async function login(_zone: string, user: string, pass: string, addr: string) {
-    const name = (user || "小奥拉").trim();
-    let rec = await userRecord(emu, name);
-    // A shared server (accounts.ts): the name must be a fit one, and its password the one it
-    // signed up with (the first login of a new name signs it up, when the server lets it).
+  async function login(_zone: string, name: string, pass: string, addr: string) {
+    // A shared server (accounts.ts): a name signed up (注册: registerUser) and its password
+    // (or a token of its 记住密码); a name it does not have is refused as a wrong password is.
     const acc = opts.accounts;
+    let rec: UserRecord | undefined;
     if (acc?.required) {
       const bad = nameProblem(name);
       if (bad) return { id: 0, name, error: bad };
-      if (!rec && !acc.register) return { id: 0, name, error: "没有这个奥拉，请先注册。" };
       if (!pass) return { id: 0, name, error: "请输入密码。" };
-      if (rec?.pass) {
-        const wrong = await passProblem(emu, rec, pass, addr);
-        if (wrong) return { id: 0, name, error: wrong };
-      } else if (rec) {
+      rec = await accountRecord(emu, name);
+      if (rec && !rec.pass) {
+        // A save copied in without a password: it takes the first one, where the server lets it.
         if (!acc.adopt) return { id: 0, name, error: "这个奥拉还没有密码，请服务器的主人打开 --adopt 后再登录一次。" };
         rec.pass = await hashPass(pass);
+      } else {
+        const wrong = await passProblem(emu, name, rec, pass, addr);
+        if (wrong || !rec) return { id: 0, name, error: wrong ?? WRONG };
       }
-    }
-    if (!rec) {
-      rec = await newUser(emu, name);
-      if (acc?.required && pass) rec.pass = await hashPass(pass);
+    } else {
+      // 单机模式 (and a server without accounts): the first login of a name makes it.
+      rec = (await userRecord(emu, name)) ?? (await newUser(emu, name));
     }
     // A mod's own 亚比 and 道具 out when the last session ended (mods.ts party): the player's own
     // back; the mod takes its own out again when it is started.
@@ -431,6 +569,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     if (s && pet && id === pet.id && race !== pet.race) world.setUserVarOnce(s, "p", followVar(pet));
   };
   const save = async (rec: UserRecord) => {
+    // The money within its bounds, whatever a handler added (money.ts).
+    keepMoney(rec as unknown as Record<string, unknown>);
     await emu.store.set(userKey(rec.name), rec);
     syncFollow(rec);
   };
@@ -513,7 +653,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
         rec.fortune![i] = null;
       }
     });
-    if (back) rec.score = Math.min(9_999_999, (rec.score ?? 0) + back);
+    if (back) rec.score = Math.min(MONEY_MAX, (rec.score ?? 0) + back);
     return back;
   };
   world.xt("ScoreManager.getAccount", async (ctx) => {
@@ -547,7 +687,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const now = emu.clock.now().getTime();
     const interest = fortuneInterest(a, now);
     rec.fortune![ai] = null;
-    rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + a.sc + interest);
+    rec.jingdou = Math.min(MONEY_MAX, (rec.jingdou ?? 0) + a.sc + interest);
     await save(rec);
     ctx.reply({ res: interest, jingdou: rec.jingdou });
   });
@@ -568,7 +708,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const n = Math.max(0, Number(ctx.params.aobi) | 0);
     if (n <= 0 || (rec.aobi ?? 0) < n) return ctx.reply({ res: 3 }, "14_20");
     rec.aobi = (rec.aobi ?? 0) - n;
-    rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + n * AO_TO_COIN);
+    rec.xingbi = Math.min(MONEY_MAX, (rec.xingbi ?? 0) + n * AO_TO_COIN);
     await save(rec);
     ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
     ctx.reply({ res: 1 }, "14_20");
@@ -580,7 +720,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const bag = ((rec.items ??= {})["2"] ??= {});
     if (n <= 0 || (bag["162"] ?? 0) < need) return ctx.reply({ result: 6 }, "14_19");
     bag["162"] -= need;
-    rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + n);
+    rec.xingbi = Math.min(MONEY_MAX, (rec.xingbi ?? 0) + n);
     await save(rec);
     ctx.reply({ amount: `2_162_0_-${need}` }, "onAmountUpdated");
     ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
@@ -660,7 +800,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     // Never more than it costs in the shop (a few rows of the 2013 data buy back for more).
     const each = row[0] > 0 ? Math.min(row[1], row[0]) : row[1];
     const got = each * qt;
-    rec.score = Math.min(9_999_999, (rec.score ?? 0) + got);
+    rec.score = Math.min(MONEY_MAX, (rec.score ?? 0) + got);
     await save(rec);
     ctx.reply({ amount: `${tp}_${mi}_0_-${qt}` }, "onAmountUpdated");
     ctx.reply({ score: rec.score }, "onScoreUpdated");
@@ -779,6 +919,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //   14_11 {ItemId, iw}  -> {result: 1, itemId, qt}, and the item arrives through onAmountUpdated
   // The 2013 limits are lost: RECONSTRUCTED as GATHER_PER_DAY times per item a day, up to the item's maxQ.
   const GATHER_PER_DAY = 10;
+  // 14_11 takes only what a gather point of the player's room gives (GATHER_POINTS), not any 道具.
   const gatherState = (rec: UserRecord) => {
     const day = emu.clock.now().toISOString().slice(0, 10);
     if (rec.gathered?.day !== day) rec.gathered = { day, n: {} };
@@ -798,8 +939,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   world.xt("MaterialExtension.14_11", async (ctx) => {
     const mi = String(Number(ctx.params.ItemId));
     const rec = await me(ctx);
-    // A 礼包 grows at no gather point (and would open itself on the next load).
-    if (isGiftBag(2, mi) || (await gatherCheck(rec, mi)) !== 0) return ctx.reply({ result: 2, itemId: Number(mi), qt: 0 });
+    // Only what this room's gather points give (a 礼包 grows at none: it would open itself on the next load).
+    const here = GATHER_POINTS[sceneOfRoom(ctx.player.room)] ?? [];
+    if (!here.includes(Number(mi)) || isGiftBag(2, mi) || (await gatherCheck(rec, mi)) !== 0) return ctx.reply({ result: 2, itemId: Number(mi), qt: 0 });
     const qt = 1;
     const st = gatherState(rec);
     st.n[mi] = (st.n[mi] ?? 0) + 1;
@@ -861,15 +1003,15 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       return ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, aobi: rec.aobi ?? 0, vip: !!rec.vip, msg: "这个服务器关闭了工具箱。" }, "revival_toolbox");
     }
     const t = await tables();
-    const add = (v: unknown) => Math.max(0, Math.min(9_999_999, Number(v) | 0));
+    const add = (v: unknown) => Math.max(0, Math.min(MONEY_MAX, Number(v) | 0));
     const said: string[] = [];
     if (add(p.score)) {
-      rec.score = Math.min(9_999_999, (rec.score ?? 0) + add(p.score));
+      rec.score = Math.min(MONEY_MAX, (rec.score ?? 0) + add(p.score));
       ctx.reply({ score: rec.score }, "onScoreUpdated");
       said.push(`晶币 +${add(p.score)}`);
     }
     if (add(p.xingbi)) {
-      rec.xingbi = Math.min(9_999_999, (rec.xingbi ?? 0) + add(p.xingbi));
+      rec.xingbi = Math.min(MONEY_MAX, (rec.xingbi ?? 0) + add(p.xingbi));
       ctx.reply({ xingbi: rec.xingbi }, "onXingBiUpdate");
       said.push(`星币 +${add(p.xingbi)}`);
     }
@@ -880,11 +1022,11 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       said.push(rec.vip ? "你成为了蓝宝石！" : "你不再是蓝宝石了");
     }
     if (add(p.jingdou)) {
-      rec.jingdou = Math.min(9_999_999, (rec.jingdou ?? 0) + add(p.jingdou));
+      rec.jingdou = Math.min(MONEY_MAX, (rec.jingdou ?? 0) + add(p.jingdou));
       said.push(`晶豆 +${add(p.jingdou)}`);
     }
     if (add(p.aobi)) {
-      rec.aobi = Math.min(9_999_999, (rec.aobi ?? 0) + add(p.aobi));
+      rec.aobi = Math.min(MONEY_MAX, (rec.aobi ?? 0) + add(p.aobi));
       said.push(`奥币 +${add(p.aobi)}`);
     }
     if (add(p.exp)) {
@@ -931,6 +1073,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   installPetDic(world, { load: me, save: (o) => save(o as UserRecord), tables });
   installBattles(world, {
     load: me,
+    fair: !toolbox,
     save: (o) => save(o as UserRecord),
     tables,
     wild,
@@ -1194,6 +1337,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     tables,
     get: (k) => emu.store.get(k),
     set: (k, v) => emu.store.set(k, v),
+    update: (k, f) => updateShared(emu, k, f),
   };
   installYabiStudy(world, labDeps);
 
@@ -1230,12 +1374,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // list of the best runs is kept for everyone under parkour/board.
   installParkour(world, {
     load: me,
+    free: toolbox,
     save: (o) => save(o as UserRecord),
     today,
     now: () => emu.clock.now().getTime(),
     board: {
       get: async () => (await emu.store.get<ParkourRankRow[]>("parkour/board")) ?? [],
       set: (rows) => emu.store.set("parkour/board", rows),
+      update: (f) => updateShared<ParkourRankRow[]>(emu, "parkour/board", (rows) => f(rows ?? [])),
     },
   });
 
@@ -1249,6 +1395,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     board: {
       get: async () => (await emu.store.get<LimitBombRow[]>("limitbomb/board")) ?? [],
       set: (rows) => emu.store.set("limitbomb/board", rows),
+      update: (f) => updateShared<LimitBombRow[]>(emu, "limitbomb/board", (rows) => f(rows ?? [])),
     },
   });
   // The activities of the 2012 story planets (摩么卡, 亚伦, 巨锁石灵, 达黑黑, 白京京, 卡索, 阿莫, 波波嘟, 独角兽): planetacts.ts.
@@ -1269,6 +1416,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     now: () => emu.clock.now().getTime(),
     get: (k) => emu.store.get(k),
     set: (k, v) => emu.store.set(k, v),
+    update: (k, f) => updateShared(emu, k, f),
     pets: tables,
   });
   // 亚比超进化 (the 超进化机, pet/superevolution): the same 54e_1, for the 亚比 that have a fourth form.
@@ -1300,7 +1448,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const rec = await me(ctx);
     const fl = Number(ctx.params.fl) | 0;
     const v = (rec.vipTower ??= { fl: 0, ps: false });
-    if (fl === v.fl && !v.ps) {
+    // Passed by its boss (54_22 type 12: 70000 + species) beaten just now in the 堡垒.
+    if (fl === v.fl && !v.ps && takeWin(ctx.session, (w) => w.id >= 70000 && w.id < 80000 && /^viparena/.test(w.scene))) {
       v.ps = true;
       await save(rec);
     }
@@ -1643,7 +1792,7 @@ export async function renameUser(
   to: string,
   opts: RenameOptions = {},
 ): Promise<string | null> {
-  return oneAtATime(emu, () => rename(emu, from, to, opts));
+  return locked(emu, [from.trim(), to.trim()], () => rename(emu, from, to, opts));
 }
 
 export interface RenameOptions {
@@ -1665,21 +1814,111 @@ async function rename(
   const bad = nameProblem(b);
   if (bad) return bad;
   if (a === b) return null;
-  const rec = await userRecord(emu, a);
-  if (!rec) return "没有这个奥拉。";
+  const rec = await accountRecord(emu, a);
   if (opts.accounts?.required) {
-    const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
+    const wrong = await passProblem(emu, a, rec, opts.pass, opts.addr);
     if (wrong) return wrong;
   }
-  if (await userRecord(emu, b)) return "这个名字已经有奥拉用了，换一个吧。";
+  if (!rec) return opts.accounts?.required ? WRONG : "没有这个奥拉。";
+  if (await accountRecord(emu, b)) return "这个名字已经有奥拉用了，换一个吧。";
   if (opts.end) {
     if (opts.end(a)) await new Promise((ok) => setTimeout(ok, IMPORT_SETTLE_MS));
   } else if (opts.online?.(a)) return "请先退出游戏，再改名字。";
+  // In this order, so that stopped anywhere between, one record is the id's (accountRecord):
+  // the new name's, then the id's name, then the old name goes.
   rec.name = b;
-  await emu.store.set(userKey(b), rec);
+  try {
+    await emu.store.set(userKey(b), rec);
+    await emu.store.set(`uid/${rec.id}`, b);
+  } catch {
+    rec.name = a;
+    await emu.store.delete(userKey(b)).catch(() => {});
+    await emu.store.set(`uid/${rec.id}`, a).catch(() => {});
+    return "名字没有改好，请再试一次。";
+  }
   await emu.store.delete(userKey(a));
-  await emu.store.set(`uid/${rec.id}`, b);
+  // The 排行榜 keep names: the new one there too.
+  for (const key of RANKED) {
+    await updateShared<{ dd?: string; nn?: string }[]>(emu, key, (rows) =>
+      (rows ?? []).map((r) => (r && r.dd === a ? { ...r, dd: b, nn: r.nn === a ? b : r.nn } : r)),
+    );
+  }
   return null;
+}
+
+/** The records everyone reads that keep players by name (the 排行榜 of the mini games). */
+const RANKED = ["parkour/board", "limitbomb/board"];
+
+/**
+ * 注册 (the start screen of 联机模式): a new 奥拉 of a shared server, its name and password.
+ * Only where the server takes new names (accounts.register), and an address signs up so many a
+ * day (accounts.ts SignupGuard). null if done, else why not.
+ */
+export async function registerUser(
+  emu: Emulator,
+  name: string,
+  pass: string,
+  opts: { addr?: string; accounts?: AccountOptions },
+): Promise<string | null> {
+  const acc = opts.accounts;
+  if (!acc?.required) return "单机模式不用注册，在选择奥拉里新建一个就好。";
+  if (!acc.register) return "这个服务器现在不收新的奥拉。";
+  const n = name.trim();
+  const bad = nameProblem(n) ?? passwordProblem(pass);
+  if (bad) return bad;
+  const addr = opts.addr ?? "";
+  const guard = signupsOf(emu);
+  const busy = guard.tryNow(addr, acc.signupsPerDay);
+  if (busy) return busy;
+  // The hash before the name's turn (it takes a while; the turn is the name's alone).
+  const hash = await hashPass(pass);
+  return locked(emu, [n], async () => {
+    if (await accountRecord(emu, n)) return "这个名字已经有奥拉用了，换一个吧。";
+    const rec = await newUser(emu, n);
+    rec.pass = hash;
+    await emu.store.set(userKey(n), rec);
+    await emu.store.set(`uid/${rec.id}`, n);
+    guard.made(addr);
+    return null;
+  });
+}
+
+/**
+ * 记住密码: a token for the page to keep instead of the password (accounts.ts), the password
+ * itself asked (not a token: a token does not make more). { token } if done, else { error }.
+ */
+export async function rememberUser(
+  emu: Emulator,
+  name: string,
+  pass: string,
+  opts: { addr?: string; accounts?: AccountOptions },
+): Promise<{ token?: string; error?: string }> {
+  if (!opts.accounts?.required) return { error: "单机模式没有密码。" };
+  const n = name.trim();
+  return locked(emu, [n], async () => {
+    const rec = await accountRecord(emu, n);
+    const wrong = await passProblem(emu, n, rec, pass, opts.addr, false);
+    if (wrong || !rec) return { error: wrong ?? WRONG };
+    const token = newToken();
+    const now = Date.now();
+    rec.tokens = [...liveTokens(rec.tokens, now), { h: await tokenHash(token), made: now }].slice(-TOKENS_MAX);
+    await emu.store.set(userKey(rec.name), rec);
+    return { token };
+  });
+}
+
+/** 记住密码 taken off: that token is the 奥拉's no longer. */
+export async function forgetToken(emu: Emulator, name: string, token: string): Promise<void> {
+  const n = name.trim();
+  await locked(emu, [n], async () => {
+    const rec = await accountRecord(emu, n);
+    if (!rec?.tokens?.length) return;
+    const h = await tokenHash(String(token));
+    const left = rec.tokens.filter((t) => t.h !== h);
+    if (left.length === rec.tokens.length) return;
+    rec.tokens = left;
+    await emu.store.set(userKey(rec.name), rec);
+  });
 }
 
 /**
@@ -1691,13 +1930,14 @@ export async function exportSave(
   name: string,
   opts: { pass?: string; addr?: string; accounts?: AccountOptions },
 ): Promise<{ save?: SaveFile; error?: string }> {
-  return oneAtATime(emu, async () => {
-    const rec = await userRecord(emu, name.trim());
-    if (!rec) return { error: "没有这个奥拉。" };
+  const n = name.trim();
+  return locked(emu, [n], async () => {
+    const rec = await accountRecord(emu, n);
     if (opts.accounts?.required) {
-      const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
+      const wrong = await passProblem(emu, n, rec, opts.pass, opts.addr);
       if (wrong) return { error: wrong };
     }
+    if (!rec) return { error: opts.accounts?.required ? WRONG : "没有这个奥拉。" };
     return { save: playerFile(rec as UserRecord & Record<string, unknown>, userKey(rec.name), emu.clock.now().toISOString()) };
   });
 }
@@ -1723,13 +1963,14 @@ export async function importSave(
   const from = opts.from ? roles.get(opts.from) : roles.size === 1 ? [...roles.values()][0] : undefined;
   if (!from) return { error: opts.from ? `存档里没有${opts.from}。` : "存档里有好几个奥拉，请选一个。", names: [...roles.keys()] };
   if (jsonBytes(from) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
-  return oneAtATime(emu, async () => {
-    const rec = await userRecord(emu, name.trim());
-    if (!rec) return { error: "没有这个奥拉。" };
+  const n = name.trim();
+  return locked(emu, [n], async () => {
+    const rec = await accountRecord(emu, n);
     if (opts.accounts?.required) {
-      const wrong = await passProblem(emu, rec, opts.pass, opts.addr);
+      const wrong = await passProblem(emu, n, rec, opts.pass, opts.addr);
       if (wrong) return { error: wrong };
     }
+    if (!rec) return { error: opts.accounts?.required ? WRONG : "没有这个奥拉。" };
     return replaceGame(emu, rec, from, opts.end);
   });
 }
@@ -1784,26 +2025,25 @@ export async function changePassword(
   opts: { addr?: string; accounts?: AccountOptions },
 ): Promise<string | null> {
   if (!opts.accounts?.required) return "单机模式没有密码。";
-  const bad = passwordProblem(to);
+  const bad = to ? passwordProblem(to) : "请输入新密码。";
   if (bad) return bad;
-  return oneAtATime(emu, async () => {
-    const rec = await userRecord(emu, name.trim());
-    if (!rec) return "没有这个奥拉。";
-    const wrong = await passProblem(emu, rec, pass, opts.addr);
-    if (wrong) return wrong;
-    // The live record: a game that is on saves it with the new password too.
+  const n = name.trim();
+  return locked(emu, [n], async () => {
+    const rec = await accountRecord(emu, n);
+    // The password itself (not a token of 记住密码).
+    const wrong = await passProblem(emu, n, rec, pass, opts.addr, false);
+    if (wrong || !rec) return wrong ?? WRONG;
+    // The live record: a game that is on saves it with the new password too. The tokens of
+    // 记住密码 end (a page that kept one asks for a new one: saves.js).
     rec.pass = await hashPass(to);
+    delete rec.tokens;
     await emu.store.set(userKey(rec.name), rec);
     return null;
   });
 }
 
-/** Whether a password may be one: 1 to 32 characters. null if fine. */
-export function passwordProblem(pass: string): string | null {
-  if (!pass) return "请输入新密码。";
-  if ([...pass].length > 32) return "密码最多32个字。";
-  return null;
-}
+/** Whether a password may be one (accounts.ts): PASS_MIN to PASS_MAX characters. null if fine. */
+export { passwordProblem };
 
 // ---------------------------------------------------------------- the page's own 奥拉 (单机模式)
 
@@ -1847,7 +2087,7 @@ export async function createUser(emu: Emulator, name: string, max = LOCAL_ROLES_
   const n = name.trim();
   const bad = nameProblem(n);
   if (bad) return bad;
-  return oneAtATime(emu, async () => {
+  return locked(emu, [n, "#roles"], async () => {
     if (await userRecord(emu, n)) return `已经有一个叫${n}的奥拉了。`;
     if ((await emu.store.keys("user/")).length >= max) return `最多${max}个奥拉，先删除一个吧。`;
     const rec = await newUser(emu, n);
@@ -1859,7 +2099,7 @@ export async function createUser(emu: Emulator, name: string, max = LOCAL_ROLES_
 
 /** An 奥拉 of this page goes, with its 足迹 (its game ends first if it is on). null if done. */
 export async function deleteUser(emu: Emulator, name: string, end?: (name: string) => boolean): Promise<string | null> {
-  return oneAtATime(emu, async () => {
+  return locked(emu, [name.trim(), "#roles"], async () => {
     const rec = await userRecord(emu, name.trim());
     if (!rec) return "没有这个奥拉。";
     end?.(rec.name);
@@ -1892,7 +2132,7 @@ export async function addUserFromFile(
   const as = (opts.as ?? fromName).trim();
   const badName = nameProblem(as);
   if (badName) return { error: badName, conflict: as };
-  return oneAtATime(emu, async () => {
+  return locked(emu, [as, "#roles"], async () => {
     const here = await userRecord(emu, as);
     if (here) {
       if (!opts.replace) return { conflict: as };

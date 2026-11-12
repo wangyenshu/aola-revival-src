@@ -9,7 +9,9 @@ game contains is listed in [FEATURES.md](FEATURES.md).
 Open the site. The page starts a service worker and the game shows the
 original start page; click 开始游戏, then choose 单机模式 or 联机模式 and 进入
 (the revival's 进入奥拉星 screen) and, in 单机模式, make an 奥拉 on the
-选择奥拉 screen (新建奥拉). You arrive in 奥拉广场, where the newbie quest begins: the HELLO sends
+选择奥拉 screen (新建奥拉); in 联机模式 a new 奥拉 is made on 注册 (beside 进入:
+the server's address, a name and a password of 6 to 32 characters twice; 返回
+goes back), then 进入 with that name and password. You arrive in 奥拉广场, where the newbie quest begins: the HELLO sends
 you to 司令官麦哲伦 in the 指挥中心, you choose your first 亚比 (滴滴, 吉拉 or
 兔小子), fight, buy 亚比球, catch a 朵朵兔 and receive the HELLO. After the
 quest the task panel (任务, top right) lists the story quests under 可接, and
