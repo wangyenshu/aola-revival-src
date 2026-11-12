@@ -28,6 +28,7 @@
 // are left out. The 晶豆 rates are lost: RECONSTRUCTED as one 晶豆 per LB_POINTS_PER_BEAN points, at
 // most LB_BEANS_PER_RUN a run and LB_BEANS_PER_WEEK a week; a run's points count up to LB_RUN_MAX.
 
+import { CHINA_MS, chinaDay } from "../../core/clock.ts";
 import { MONEY_MAX } from "./money.ts";
 import { serial } from "../../core/locks.ts";
 import { gainExp } from "./battle.ts";
@@ -106,7 +107,8 @@ export function lbLevel(points: number): number {
   return i < 0 ? LB_LEVELS.length + 1 : i + 1;
 }
 
-const weekOf = (ms: number) => Math.floor((ms / 86_400_000 - 4) / 7);
+/** The week (from Monday, China time) of a time. */
+const weekOf = (ms: number) => Math.floor(((ms + CHINA_MS) / 86_400_000 - 4) / 7);
 
 export function installMiniGames(world: World, deps: MiniGameDeps): void {
   // The 排行榜 one change at a time (two games ending at once would lose one).
@@ -119,7 +121,7 @@ export function installMiniGames(world: World, deps: MiniGameDeps): void {
   world.xt("UserGameExtension.89_bb2", async (ctx) => {
     const rec = await deps.load(ctx);
     const score = Math.max(0, Number(ctx.params.score) | 0);
-    const day = new Date(deps.now ? deps.now() : Date.now()).toISOString().slice(0, 10);
+    const day = chinaDay(deps.now ? deps.now() : Date.now());
     if (rec.gameCoins?.day !== day) rec.gameCoins = { day, n: 0 };
     const pay = Math.min(NINJA_PAY_CAP, Math.max(0, Number(ctx.params.money) | 0), Math.max(0, NINJA_PAY_DAY - rec.gameCoins.n));
     if (pay > 0) {

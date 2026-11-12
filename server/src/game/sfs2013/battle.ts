@@ -1869,6 +1869,8 @@ export interface BattleDeps {
   load: (ctx: XtContext) => Promise<PetOwner & { items?: Record<string, Record<string, number>> }>;
   /** A fair server (the 工具箱 closed): the levels a client asks are bounded (FAIR_ABOVE). */
   fair?: boolean;
+  /** The automated walk-throughs' test commands (?dev=1). Never on for players. */
+  dev?: boolean;
   /** Another player's record (亚比对战). */
   find?: (name: string) => Promise<(PetOwner & { items?: Record<string, Record<string, number>> }) | undefined>;
   save: (owner: PetOwner) => Promise<void>;
@@ -2402,7 +2404,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // numbered 70000 + species (70536 震天石魔 in viparena2). Its level by the room's floor,
       // not to be caught (RECONSTRUCTED: the 2013 server's bosses are lost).
       const mi = Number(ctx.params.mi) | 0;
-      const level = MEMBER_ARENA_LEVELS[String(ctx.params.rm ?? "")] ?? 60;
+      const rm = String(ctx.params.rm ?? "");
+      const level = Object.hasOwn(MEMBER_ARENA_LEVELS, rm) ? MEMBER_ARENA_LEVELS[rm] : 60;
       return void (await begin(ctx, mi % 10000, level, false, undefined, mi));
     }
     const type = Number(ctx.params.type);
@@ -2562,13 +2565,14 @@ export function installBattles(world: World, deps: BattleDeps): void {
       }, undefined, () => [[`56_10${sfx}`, {}]]);
     });
     world.xt(`${ext}.56_10${sfx}`, async (ctx) => ctx.reply({}, `56_10${sfx}`));
-    // For testing (the probes): the 亚比 of the next floor made, "393,111".
-    world.xt(`${ext}.revival_tower${sfx}`, async (ctx) => {
-      const o = await deps.load(ctx);
-      (towerOf(o) as { force?: string[] }).force = String(ctx.params.en ?? "").split(",").filter(Boolean);
-      await deps.save(o);
-      ctx.reply({ ok: true }, `revival_tower${sfx}`);
-    });
+    // For testing (the probes, ?dev=1 only): the 亚比 of the next floor made, "393,111".
+    if (deps.dev)
+      world.xt(`${ext}.revival_tower${sfx}`, async (ctx) => {
+        const o = await deps.load(ctx);
+        (towerOf(o) as { force?: string[] }).force = String(ctx.params.en ?? "").split(",").filter((x) => /^\d{1,6}$/.test(x)).slice(0, 5);
+        await deps.save(o);
+        ctx.reply({ ok: true }, `revival_tower${sfx}`);
+      });
     world.xt(`${ext}.56_11${sfx}`, async (ctx) => {
       const rec = towerOf(await deps.load(ctx));
       ctx.reply({ res: isBossFloor(rec.cf) && !rec.alive.some(Boolean) && !rec.chest ? 1 : 0 }, `56_11${sfx}`);

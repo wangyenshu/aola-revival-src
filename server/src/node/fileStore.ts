@@ -32,9 +32,12 @@ export class JsonFileStore implements Store {
   private readonly writing = new Map<string, Promise<void>>();
 
   set<T>(key: string, value: T): Promise<void> {
-    const f = this.file(key);
     // The value as it is now: it may change before its turn comes.
-    const text = JSON.stringify(value, null, 1);
+    return this.setText(key, JSON.stringify(value, null, 1));
+  }
+
+  setText(key: string, text: string): Promise<void> {
+    const f = this.file(key);
     const write = async () => {
       await fs.mkdir(path.dirname(f), { recursive: true });
       const tmp = f + ".tmp";

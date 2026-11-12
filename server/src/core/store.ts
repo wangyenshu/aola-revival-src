@@ -4,6 +4,8 @@
 export interface Store {
   get<T>(key: string): Promise<T | undefined>;
   set<T>(key: string, value: T): Promise<void>;
+  /** A value already made JSON (LiveRecordStore measures a record by it): written as it is. */
+  setText?(key: string, json: string): Promise<void>;
   delete(key: string): Promise<void>;
   keys(prefix?: string): Promise<string[]>;
 }
@@ -18,6 +20,10 @@ export class MemoryStore implements Store {
 
   async set<T>(key: string, value: T): Promise<void> {
     this.map.set(key, JSON.stringify(value));
+  }
+
+  async setText(key: string, json: string): Promise<void> {
+    this.map.set(key, json);
   }
 
   async delete(key: string): Promise<void> {
@@ -105,12 +111,15 @@ export class LiveRecordStore implements Store {
     // the live copy out, so the next get reads what storage last kept: memory and storage agree
     // (the change since the last good write is lost, and logged), rather than a game going on
     // from a record that is never saved.
+    // Made JSON once: measured, and written as that text where the store takes it.
     let err: unknown;
-    if (this.maxBytes && new TextEncoder().encode(JSON.stringify(value)).length > this.maxBytes) err = new Error(`record over ${this.maxBytes} bytes`);
+    const json = this.maxBytes ? JSON.stringify(value) : undefined;
+    if (json !== undefined && utf8Length(json) > this.maxBytes) err = new Error(`record over ${this.maxBytes} bytes`);
     else {
       for (let tries = 0; tries < 3; tries++) {
         try {
-          await this.inner.set(key, value);
+          if (json !== undefined && this.inner.setText) await this.inner.setText(key, json);
+          else await this.inner.set(key, value);
           return;
         } catch (e) {
           err = e;
@@ -135,4 +144,19 @@ export class LiveRecordStore implements Store {
   keys(prefix = ""): Promise<string[]> {
     return this.inner.keys(prefix);
   }
+}
+
+/** The UTF-8 bytes of a string, counted (no copy made). */
+export function utf8Length(s: string): number {
+  let n = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x80) n += 1;
+    else if (c < 0x800) n += 2;
+    else if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) {
+      n += 4;
+      i++;
+    } else n += 3;
+  }
+  return n;
 }

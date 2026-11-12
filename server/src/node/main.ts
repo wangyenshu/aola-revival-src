@@ -32,7 +32,7 @@ const { values: a } = parseArgs({
     http: { type: "string", default: "8080" },
     game: { type: "string", default: "" },
     policy: { type: "string", default: "0" },
-    date: { type: "string", default: "2012-08-15" },
+    date: { type: "string", default: "" },
     framing: { type: "string", default: "raw" },
     demo: { type: "boolean", default: false },
     quiet: { type: "boolean", default: false },
@@ -50,7 +50,7 @@ if (a.help) {
   --http PORT      HTTP + WebSocket bridge (default 8080; 80 for hosts-file mode)
   --game PORTS     raw TCP game ports, comma separated (e.g. 8001,8002)
   --policy PORT    Flash socket policy server, usually 843 (default off)
-  --date DAY       anchor date for the game clock, China time (default 2012-08-15)
+  --date DAY       the game clock starts at this day (China time) at each start; default: the real time
   --framing F      ${Object.keys(FRAMING_PRESETS).join(" | ")} | JSON spec (default raw)
   --demo           WebSocket-handshake demo handlers (pipeline test only)
   --quiet          no per-frame console output`);
@@ -65,7 +65,7 @@ const log = (s: string) => {
 const recorder = new TeeRecorder(new JsonlRecorder(path.join(work, "frames.jsonl")), ...(a.quiet ? [] : [new ConsoleRecorder()]));
 const emu = new Emulator({
   framing: parseFraming(a.framing),
-  clock: new GameClock(a.date),
+  clock: new GameClock(a.date || undefined),
   store: new JsonFileStore(path.join(work, "saves")),
   recorder,
 });
@@ -92,5 +92,5 @@ if (Number(a.policy)) {
   await listenPolicy(Number(a.policy), a.bind, (s) => log(`[policy] ${s}`));
   console.log(`[policy] port ${a.policy}`);
 }
-console.log(`[clock] game time starts at ${emu.clock.now().toISOString()} (anchor ${a.date}, UTC+8)`);
+console.log(`[clock] game time ${emu.clock.now().toISOString()} (${a.date ? `anchor ${a.date}, UTC+8` : "the real time"})`);
 console.log(`[log]  frames -> ${path.join(work, "frames.jsonl")}; HTTP misses -> ${missLog}`);

@@ -424,6 +424,7 @@ export class World {
       r = this.opts.login ? await this.opts.login(zone, user, pass, s) : { id: this.nextUserId++, name: user || `aola${this.nextUserId}` };
     } catch (err) {
       this.loggingIn.delete(s);
+      this.waitForLogin(s);
       throw err;
     }
     if (s.closed) return void this.loggingIn.delete(s);
@@ -439,6 +440,9 @@ export class World {
       if (this.opts.refuseDelayMs) await new Promise((ok) => setTimeout(ok, this.opts.refuseDelayMs));
       this.loggingIn.delete(s);
       s.sendBytes(S.logKO(r.error), "logKO");
+      // Refused, it is a connection not logged in again: its wait starts over (a login refused
+      // just before the wait ended must not keep it open for ever).
+      this.waitForLogin(s);
       return;
     }
     this.loggingIn.delete(s);

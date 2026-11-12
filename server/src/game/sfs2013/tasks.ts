@@ -16,6 +16,7 @@
 // scripts survive come from revival/tasks.json (tools/gen_tasks.py, the
 // later client's tables), added with registerTaskTables().
 
+import { chinaDay } from "../../core/clock.ts";
 import type { World, XtContext } from "./server.ts";
 
 export interface UserTaskRec {
@@ -473,7 +474,7 @@ export function installTasks(world: World, deps: TaskDeps): void {
     const f = skillBits(rec);
     return r ? { has: 1, n: r.name, a: r.avatar ?? "", b: r.born ?? "2012-08-15", e: r.energy ?? 100, f, t: 0, exp: r.exp, fl: r.follow ? 1 : 0 } : { has: 0, f };
   };
-  const today = () => new Date(deps.now()).toISOString().slice(0, 10);
+  const today = () => chinaDay(deps.now());
   world.xt("RobotExtension.2-11", async (ctx) => {
     const rec = await deps.load(ctx);
     if (!rec.robot) {

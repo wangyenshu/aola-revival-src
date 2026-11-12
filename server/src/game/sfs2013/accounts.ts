@@ -40,8 +40,19 @@ export function nameProblem(name: string): string | null {
   if (!n) return "请输入奥拉的名字。";
   if ([...n].length > 12) return "名字最多12个字。";
   if (/[\s#;,|<>&"'\\/%_:=]/.test(n) || /[\u0000-\u001f]/.test(n)) return "名字里不能有空格和符号。";
+  // Format, private-use and unassigned characters (a zero-width joiner, a mark of no letter) look
+  // like nothing, and make a name look like another's.
+  if (/[\p{Cf}\p{Co}\p{Cn}\p{Zl}\p{Zp}]/u.test(n)) return "名字里不能有看不见的字。";
   return null;
 }
+
+/**
+ * A name as the server keeps it: NFKC (a full-width ＡＢＣ as ABC, a ligature as its letters,
+ * a letter and its mark as one) and trimmed, so one name is written one way.
+ */
+export const normName = (s: unknown): string => String(s ?? "").normalize("NFKC").trim();
+/** Names alike to the eye count as one at 注册 and 改名字: their NFKC forms, letters in one case. */
+export const nameFold = (s: unknown): string => normName(s).toLowerCase();
 
 /**
  * A refused password, and a name the server does not have, alike: the answer says neither which

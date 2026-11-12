@@ -33,7 +33,7 @@ const { values: a } = parseArgs({
     data: { type: "string", default: process.env.AOLA_DATA ?? path.join(root, "work/server") },
     web: { type: "string", default: process.env.AOLA_WEB ?? path.join(root, "dist") },
     tables: { type: "string", default: process.env.AOLA_TABLES ?? "" },
-    date: { type: "string", default: process.env.AOLA_DATE ?? "2012-08-15" },
+    date: { type: "string", default: process.env.AOLA_DATE ?? "" },
     closed: { type: "boolean", default: process.env.AOLA_CLOSED === "1" },
     // The 工具箱 is open unless closed (--no-toolbox, or AOLA_TOOLBOX=0); --toolbox opens it
     // whatever AOLA_TOOLBOX says.
@@ -55,7 +55,8 @@ if (a.help) {
   --data DIR        saves (default work/server, or $AOLA_DATA)
   --web DIR         the static site to serve too (default dist; "" for none)
   --tables DIR      where www.9aola.com/revival/*.json are (default <web>/files)
-  --date DAY        anchor of the game clock, China time (default 2012-08-15)
+  --date DAY        the game clock starts at this day (China time) at each start: for trying a
+                    day of the era, not for playing; default: the real time
   --closed          no 注册: only 奥拉 the server already has may log in
   --no-toolbox      close the 工具箱 (晶币, 亚比 … for nothing), mods' gifts of 亚比 and 导入存档
                     to the players (a fair server); open by default, as in 单机模式
@@ -106,7 +107,7 @@ const host = createGameHost({
       return undefined;
     }
   },
-  date: a.date,
+  date: a.date || undefined,
   accounts: { required: true, register: !a.closed, adopt: a.adopt, signupsPerDay: count(a["signups-per-day"], 5) },
   recorder: new NullRecorder(),
   toolbox: a.toolbox === true ? true : !a["no-toolbox"],
@@ -152,6 +153,20 @@ async function serveStatic(req: http.IncomingMessage, res: http.ServerResponse, 
 // A last net: an error no request catches (a timer's, a hook's) is logged, and the game goes on
 // for everyone else instead of the process ending.
 process.on("unhandledRejection", (e) => console.error(`[aola] unhandled: ${(e as Error)?.stack ?? String(e)}`));
+// A throw nothing caught (in a timer, a socket's event): logged, and the server goes on for
+// everyone else, as one player's failed request does. A fault that keeps throwing (more than
+// UNCAUGHT_MAX a minute) ends the process instead, for whatever started it to start it again.
+const UNCAUGHT_MAX = 50;
+let uncaught: number[] = [];
+process.on("uncaughtException", (e) => {
+  console.error(`[aola] uncaught: ${(e as Error)?.stack ?? String(e)}`);
+  const t = Date.now();
+  uncaught = [...uncaught.filter((x) => t - x < 60_000), t];
+  if (uncaught.length > UNCAUGHT_MAX) {
+    console.error("[aola] too many uncaught errors in a minute: stopping");
+    process.exit(1);
+  }
+});
 
 const API_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" };
 /**

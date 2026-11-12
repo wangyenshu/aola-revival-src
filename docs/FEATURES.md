@@ -1009,11 +1009,6 @@ run pays 晶豆, as its end panel says.
 
 ## Known gaps
 
-- The game clock starts again at its anchor (15 August 2012) whenever the game
-  starts (each page load in 单机模式, each start of a shared server): the
-  game's day hardly moves on between visits, so "once a day" things used up
-  stay used up, and timers set late in a long session end late
-  (docs/IMPLEMENTATION.md, "The game clock", for the ways out).
 
 - With other players (联机模式, docs/MULTIPLAYER.md): 好友, 组队, visiting
   homes, chat, 射击, 亚比对战 and mods together work; team battles (several

@@ -24,7 +24,8 @@ new_sqlite_classes = ["AolaGame"]
 [vars]
 # "1": no new names (only the 奥拉 already signed up may log in).
 AOLA_CLOSED = "0"
-AOLA_DATE = "2012-08-15"
+# The game clock is the real time; a day here ("2012-08-15") starts it at that day at each start instead.
+AOLA_DATE = ""
 AOLA_MAX_PLAYERS = "200"
 # "0": the 工具箱, mods' gifts of 亚比 and 导入存档 closed to the players (open by default).
 AOLA_TOOLBOX = "1"

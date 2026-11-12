@@ -51,6 +51,8 @@ export const MOD_LEVEL_MAX = 100;
 export const MOD_SPECIES_MAX = 2000;
 /** One mod's own species, at most (the server's room for them is everyone's). */
 export const MOD_SPECIES_PER_MOD = 100;
+/** The mod species one player makes known, at most, all his mods together. */
+export const MOD_SPECIES_PER_PLAYER = 100;
 /** The bag holds six (the 仓库 the rest). */
 export const BAG_MAX = 6;
 
@@ -64,6 +66,13 @@ const owners = new WeakMap<PetTables, Map<number, string>>();
 const ownersOf = (t: PetTables) => {
   let m = owners.get(t);
   if (!m) owners.set(t, (m = new Map()));
+  return m;
+};
+/** Which player made each mod species known first (race -> name): a player's are counted together, whatever mod ids he gives. */
+const makers = new WeakMap<PetTables, Map<number, string>>();
+const makersOf = (t: PetTables) => {
+  let m = makers.get(t);
+  if (!m) makers.set(t, (m = new Map()));
   return m;
 };
 
@@ -248,6 +257,9 @@ export function installMods<R extends ModRec>(world: World, deps: ModDeps<R>): v
       if (owner !== undefined && owner !== mod) return reply({ res: 0, msg: `编号${sp.id}已被模组${owner}使用` });
       if (owner === undefined && ownersOf(t).size >= MOD_SPECIES_MAX) return reply({ res: 0, msg: "这个服务器上模组的亚比已经太多了。" });
       if (owner === undefined && [...ownersOf(t).values()].filter((m) => m === mod).length >= MOD_SPECIES_PER_MOD) return reply({ res: 0, msg: "这个模组的亚比已经太多了。" });
+      // One player's, whatever mod ids he gives (else twenty made-up ids would fill the server's).
+      if (owner === undefined && [...makersOf(t).values()].filter((n) => n === ctx.player.name).length >= MOD_SPECIES_PER_PLAYER) return reply({ res: 0, msg: "你加的模组亚比已经太多了。" });
+      if (owner === undefined) makersOf(t).set(sp.id, ctx.player.name);
       ownersOf(t).set(sp.id, mod);
       t.pm.species[String(sp.id)] = {
         n: sp.name,

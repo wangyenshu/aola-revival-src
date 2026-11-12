@@ -29,6 +29,9 @@ export interface SaveFile {
   data: Record<string, unknown>;
 }
 
+/** The 放生仓库's 亚比 a file brings, at most (the latest). */
+export const RELEASED_KEPT = 100;
+
 /** The fields of a record that are the server's, never a file's. */
 const SERVER_FIELDS = ["id", "name", "pass", "tokens", "friends", "friendAsks"] as const;
 
@@ -36,6 +39,7 @@ const SERVER_FIELDS = ["id", "name", "pass", "tokens", "friends", "friendAsks"] 
 const KINDS: Record<string, "array" | "object" | "number" | "string" | "boolean"> = {
   pets: "array",
   storage: "array",
+  released: "array",
   training: "array",
   plants: "array",
   items: "object",
@@ -130,6 +134,10 @@ export function fitPet(v: unknown): Record<string, unknown> | null {
     out.buff = { i: int(v.buff.i, 0, 5), add: num(v.buff.add, -1e6, 1e6) };
   }
   if (Array.isArray(v.cards)) out.cards = v.cards.slice(0, 3).map((x) => int(x, 0, 1e7) ?? 0);
+  if (typeof v.elite === "boolean") out.elite = v.elite;
+  // When it was let go (the 放生仓库, pets.ts): a time, no more.
+  const relAt = num(v.relAt, 0, 1e15);
+  if (relAt !== undefined) out.relAt = relAt;
   return out;
 }
 
@@ -232,8 +240,10 @@ export function adoptRecord(from: Record<string, unknown>, here: Record<string, 
     }
   }
   // Rebuilt, and each id once in the bag and the 仓库 (an id twice would be one 亚比 to the game).
+  // The 放生仓库's too (pets.ts released: back into the bag or the 仓库 on 1224), at most so many.
   const seen = new Set<unknown>();
-  for (const k of ["pets", "storage"] as const) {
+  if (Array.isArray(out.released)) out.released = (out.released as unknown[]).slice(-RELEASED_KEPT);
+  for (const k of ["pets", "storage", "released"] as const) {
     if (!Array.isArray(out[k])) continue;
     out[k] = (out[k] as unknown[]).flatMap((p) => {
       const f = fitPet(p);
@@ -250,7 +260,7 @@ export function adoptRecord(from: Record<string, unknown>, here: Record<string, 
   if (out.items !== undefined) out.items = fitItems(out.items);
   // The 亚比 id counter (the last id given, pets.ts) at least the highest id there: a file whose
   // counter is behind would give an id twice.
-  const ids = [...((out.pets as { id: number }[]) ?? []), ...((out.storage as { id: number }[]) ?? [])].map((p) => p.id).concat(partyIds.map(Number).filter(Number.isFinite));
+  const ids = [...((out.pets as { id: number }[]) ?? []), ...((out.storage as { id: number }[]) ?? []), ...((out.released as { id: number }[]) ?? [])].map((p) => p.id).concat(partyIds.map(Number).filter(Number.isFinite));
   if (ids.length) out.nextPetId = Math.max(Number(out.nextPetId) || 0, ...ids);
   for (const k of SERVER_FIELDS) if (here[k] !== undefined) out[k] = structuredClone(here[k]);
   if (out.createdAt === undefined && here.createdAt !== undefined) out.createdAt = here.createdAt;

@@ -17,7 +17,7 @@ export interface GameHostOptions {
   store: Store;
   /** A JSON table next to the game files (www.9aola.com/<path>: revival/materials.json …). */
   loadJson: (path: string) => Promise<unknown>;
-  /** Anchor of the game clock (China time). */
+  /** A day the game clock starts at at each start (China time; core/clock.ts); none: the real time. */
   date?: string;
   /** A shared server: passwords and sign-up (accounts.ts). */
   accounts?: AccountOptions;
@@ -37,13 +37,18 @@ export interface GameHostOptions {
 }
 
 /**
- * Connections a shared server takes that have not logged in (yet): all of them, and of one
- * address; and the connections of one address in all (a family behind one router, a few tabs
- * each). A connection not logged in is closed after LOGIN_WAIT_MS (game.ts), so a page that
- * opens many and never logs in holds few places, and those briefly; the game's places
- * (maxPlayers) are counted at the login.
+ * Connections a shared server takes that have not logged in (yet): all of them (PENDING_MAX, or
+ * half the game's places if more), and of one address; and the connections of one address in all
+ * (a family behind one router, a few tabs each). A connection not logged in is closed after
+ * LOGIN_WAIT_MS (game.ts; again after a login refused), so a page that opens many and never logs
+ * in holds few places, and those briefly; the game's places (maxPlayers) are counted at the login.
+ * The 2013 client connects on 进入 and logs in at once, so a connection is one not logged in for
+ * a moment only; one refused here is back on its start screen within 20 seconds (the rebuilt
+ * login gives up a login not answered: login/Main.as), and 进入 tries again (the client does not
+ * reconnect by itself, so a restart brings no storm of them).
  */
 export const PENDING_MAX = 40;
+export const pendingMax = (maxPlayers?: number) => Math.max(PENDING_MAX, Math.ceil((maxPlayers ?? 0) / 2));
 export const PENDING_PER_ADDRESS = 4;
 export const PER_ADDRESS = 12;
 
@@ -92,7 +97,7 @@ export function createGameHost(o: GameHostOptions): GameHost {
   const emulator = new Emulator({
     framing: SFS2013_FRAMING,
     codec: sfs2013Codec,
-    clock: new GameClock(o.date ?? "2012-08-15"),
+    clock: new GameClock(o.date || undefined),
     // The players' records live: one object a player, whoever's handler changes it (store.ts).
     store: new LiveRecordStore(o.store, ["user/"], 1000, (key) => {
       // A player in the game keeps his record live.
@@ -147,7 +152,8 @@ export function createGameHost(o: GameHostOptions): GameHost {
         if (!inGame) minePending++;
       }
       if (mine >= PER_ADDRESS || minePending >= PENDING_PER_ADDRESS) return "address";
-      if (pending >= PENDING_MAX || emulator.sessions.size >= (o.maxPlayers ?? Infinity) + PENDING_MAX) return "full";
+      const most = pendingMax(o.maxPlayers);
+      if (pending >= most || emulator.sessions.size >= (o.maxPlayers ?? Infinity) + most) return "full";
       return null;
     },
     imports,

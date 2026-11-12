@@ -13,8 +13,10 @@ import {
   checkPass,
   hashPass,
   liveTokens,
+  nameFold,
   nameProblem,
   newToken,
+  normName,
   passwordProblem,
   tokenHash,
   tokenMatches,
@@ -28,6 +30,7 @@ import {
   type TokenRec,
 } from "./accounts.ts";
 import { KeyedLocks } from "../../core/locks.ts";
+import { ANCHORED_BEFORE } from "../../core/clock.ts";
 import { adoptRecord, fileProblem, jsonBytes, playerFile, rolesOf, SAVE_RECORD_MAX, type SaveFile } from "./saves.ts";
 import { installSocial } from "./social.ts";
 import { installTasks, isQuestItem, registerTaskTables, robotVar, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
@@ -120,6 +123,8 @@ export interface UserRecord {
   /** Friends and asks to be friends (social.ts), by player id. */
   friends?: number[];
   friendAsks?: number[];
+  /** Its times are the real clock's (toRealClock: once moved from the anchored clock's). */
+  realClock?: boolean;
   /** A shared server's password (accounts.ts), and the tokens of 记住密码 (their hashes). */
   pass?: PassRec;
   tokens?: TokenRec[];
@@ -323,32 +328,110 @@ async function newUser(emu: Emulator, name: string): Promise<UserRecord> {
     await emu.store.set("meta/nextUserId", n);
     return n;
   });
-  return normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString() });
+  return normalise({ id: next, name, avatar: DEFAULT_AVATAR, createdAt: emu.clock.now().toISOString(), ...(emu.clock.real ? { realClock: true } : {}) });
+}
+
+/** A rename being written (rename): its id's, till the old record is gone. */
+const renamingKey = (id: number) => `meta/renaming/${id}`;
+
+/**
+ * A rename stopped between its writes (the process ended): finished if the id's name had moved
+ * to the new one (the old record goes), else undone (the new record goes). Nothing else is ever
+ * deleted here: a record is taken away only when its own rename's marker says it was one.
+ */
+async function settleRename(emu: Emulator, id: number): Promise<void> {
+  const m = await emu.store.get<{ from: string; to: string }>(renamingKey(id));
+  if (!m) return;
+  const owner = await emu.store.get<string>(`uid/${id}`);
+  if (owner === m.to) await emu.store.delete(userKey(m.from));
+  else {
+    await emu.store.delete(userKey(m.to));
+    await emu.store.set(`uid/${id}`, m.from);
+  }
+  await emu.store.delete(renamingKey(id));
 }
 
 /**
- * An 奥拉's record for the accounts' work: undefined for none, and for one a rename left
- * behind (a rename writes the new name, then the id's, then takes the old away: stopped between,
- * the old one is the id's no longer, and goes now).
+ * An 奥拉's record for the accounts' work (undefined for none), its id made its own first:
+ *  - a rename stopped between its writes is finished or undone (settleRename);
+ *  - a record whose id another 奥拉 here has (a save copied in for --adopt: every server's ids
+ *    start at 10001) takes a new id, the next of the server's, and keeps everything else;
+ *  - the server's counter of ids is kept past every id it meets.
  */
 async function accountRecord(emu: Emulator, name: string): Promise<UserRecord | undefined> {
-  const rec = await userRecord(emu, name);
+  let rec = await userRecord(emu, name);
   if (!rec) return undefined;
-  const owner = await emu.store.get<string>(`uid/${rec.id}`);
-  if (owner && owner !== rec.name && owner !== name) {
-    const other = await emu.store.get<UserRecord>(userKey(owner));
-    if (other && other.id === rec.id) {
-      await emu.store.delete(userKey(name));
-      return undefined;
-    }
+  if (await emu.store.get(renamingKey(rec.id))) {
+    await settleRename(emu, rec.id);
+    rec = await userRecord(emu, name);
+    if (!rec) return undefined;
   }
+  const owner = await emu.store.get<string>(`uid/${rec.id}`);
+  if (owner && owner !== rec.name) {
+    const other = await emu.store.get<UserRecord>(userKey(owner));
+    if (other && other.id === rec.id && other.name === owner) {
+      // Another 奥拉's id: this one (not the id's) takes a new one.
+      const id = await locked(emu, ["#id"], async () => {
+        const n = Math.max((await emu.store.get<number>("meta/nextUserId")) ?? 10000, rec!.id) + 1;
+        await emu.store.set("meta/nextUserId", n);
+        return n;
+      });
+      rec.id = id;
+      await emu.store.set(userKey(rec.name), rec);
+    }
+    await emu.store.set(`uid/${rec.id}`, rec.name);
+  }
+  // Ids copied in from elsewhere: the next new 奥拉 takes one past them.
+  await locked(emu, ["#id"], async () => {
+    const n = (await emu.store.get<number>("meta/nextUserId")) ?? 10000;
+    if (rec!.id > n) await emu.store.set("meta/nextUserId", rec!.id);
+  });
   return rec;
+}
+
+/** An account by its name as kept (NFKC), else as written (a name kept before names were). */
+async function findAccount(emu: Emulator, name: string, raw: string): Promise<UserRecord | undefined> {
+  return (await accountRecord(emu, name)) ?? (raw && raw !== name ? await accountRecord(emu, raw) : undefined);
+}
+
+/** A name an 奥拉 here has, or one alike to the eye (nameFold), but `except`'s own. */
+async function nameTaken(emu: Emulator, name: string, except = ""): Promise<boolean> {
+  if (name !== except && (await accountRecord(emu, name))) return true;
+  const want = nameFold(name);
+  for (const k of await emu.store.keys("user/")) {
+    let other: string;
+    try {
+      other = decodeURIComponent(k.slice("user/".length));
+    } catch {
+      continue;
+    }
+    if (other !== except && nameFold(other) === want) return true;
+  }
+  return false;
 }
 
 async function userRecord(emu: Emulator, name: string): Promise<UserRecord | undefined> {
   const rec = await emu.store.get<UserRecord>(userKey(name));
-  if (rec) normalise(rec);
+  if (rec) {
+    normalise(rec);
+    if (emu.clock.real && !rec.realClock) toRealClock(rec, emu.clock.now().getTime());
+  }
   return rec;
+}
+
+/**
+ * A record saved while the game clock was the anchored one (2012 times, core/clock.ts), the
+ * first time the real clock reads it: the times that would lose something 14 years on are now
+ * (a 亚比 let go keeps its days in the 放生仓库, a 财富小管家 box starts its term, a timed quest
+ * being done its time). What only gets ready (eggs, plants, the zoo) is left: it is ready.
+ * Once a record (realClock), and changed in the live record: the next save keeps it.
+ */
+export function toRealClock(rec: UserRecord, now: number): void {
+  const old = (t: unknown) => typeof t === "number" && t > 0 && t < ANCHORED_BEFORE;
+  for (const p of (rec as { released?: { relAt?: number }[] }).released ?? []) if (old(p.relAt)) p.relAt = now;
+  for (const box of rec.fortune ?? []) if (box && old(box.sd)) box.sd = now;
+  for (const t of Object.values(rec.tasks ?? {})) if (t && t.st === 0 && old(t.ad)) t.ad = now;
+  rec.realClock = true;
 }
 
 /** Older saves predate money and inventory: give them the defaults. */
@@ -436,6 +519,9 @@ export const GATHER_POINTS: Record<string, number[]> = {
 export const GAME_SCORE_PER_COIN = 10;
 export const GAME_COINS_PER_GAME = 200;
 export const GAME_COINS_PER_DAY = 1000;
+/** A mini game's name as the record keeps its level (gameMyCat …), and how many names at most. */
+export const GAME_NAME = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
+export const GAME_NAMES_KEPT = 200;
 
 /**
  * The inverse of the 2013 client's Encrypt.encryptCode (a 7-digit score
@@ -513,14 +599,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
 
   const world = new World(emu, {
     login: (zone, user, pass, s) => {
-      const name = opts.accounts?.required ? String(user ?? "").trim() : (user || "小奥拉").trim();
-      return locked(emu, [name], () => login(zone, name, pass, s.link.remote));
+      const name = opts.accounts?.required ? normName(user) : (user || "小奥拉").trim();
+      return locked(emu, [name], () => login(zone, name, pass, s.link.remote, String(user ?? "").trim()));
     },
     refuseDelayMs: opts.accounts?.required ? 1000 : 0,
     loginWaitMs: opts.accounts?.required ? LOGIN_WAIT_MS : 0,
     maxPlayers: opts.maxPlayers,
   });
-  async function login(_zone: string, name: string, pass: string, addr: string) {
+  async function login(_zone: string, name: string, pass: string, addr: string, raw = name) {
     // A shared server (accounts.ts): a name signed up (注册: registerUser) and its password
     // (or a token of its 记住密码); a name it does not have is refused as a wrong password is.
     const acc = opts.accounts;
@@ -529,7 +615,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
       const bad = nameProblem(name);
       if (bad) return { id: 0, name, error: bad };
       if (!pass) return { id: 0, name, error: "请输入密码。" };
-      rec = await accountRecord(emu, name);
+      rec = await findAccount(emu, name, raw);
       if (rec && !rec.pass) {
         // A save copied in without a password: it takes the first one, where the server lets it.
         if (!acc.adopt) return { id: 0, name, error: "这个奥拉还没有密码，请服务器的主人打开 --adopt 后再登录一次。" };
@@ -548,7 +634,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     // A mod's 亚比 the game does not know now (their mod not started yet in this page): aside.
     const known = await tables();
     stashModPets(rec as UserRecord & ModRec, (race) => !!speciesOf(known, race));
-    await emu.store.set(userKey(name), rec);
+    await emu.store.set(userKey(rec.name), rec);
     // id -> name, for the records that keep other players by id (social.ts friends).
     await emu.store.set(`uid/${rec.id}`, rec.name);
     // The 2013 client reads the worn clothes as "avatar" (SocketClient) and "c" (ClothesService).
@@ -604,8 +690,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   world.xt("MaterialExtension.updateMyWearingClothes", async (ctx) => {
     const rec = await me(ctx);
     const worn = new Set(rec.avatar!.split(";").filter(Boolean));
-    for (const id of String(ctx.params.cid ?? "").split(",").filter(Boolean)) {
-      if (!rec.items!["0"]?.[id] || BASE_CLOTHES.includes(id)) continue;
+    for (const id of String(ctx.params.cid ?? "").split(",").filter(Boolean).slice(0, 60)) {
+      const mine = rec.items!["0"] ?? {};
+      if (!/^\d{1,9}$/.test(id) || !Object.hasOwn(mine, id) || !mine[id] || BASE_CLOTHES.includes(id)) continue;
       if (worn.has(id)) worn.delete(id);
       else worn.add(id);
     }
@@ -733,7 +820,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // GAME_SCORE_PER_COIN points, at most GAME_COINS_PER_GAME a game and GAME_COINS_PER_DAY a day (then state -1).
   /** A game's points made 晶币 (the day's cap kept): the 晶币 given and the state (1, or -1 at the cap). */
   const payGame = (rec: UserRecord, points: number) => {
-    const day = emu.clock.now().toISOString().slice(0, 10);
+    const day = emu.clock.today();
     if (rec.gameCoins?.day !== day) rec.gameCoins = { day, n: 0 };
     let coins = Math.min(GAME_COINS_PER_GAME, Math.floor(points / GAME_SCORE_PER_COIN));
     let state = 1;
@@ -751,9 +838,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     const { coins, state } = payGame(rec, points);
     // The level a game ended (or was finished) at, for the games that open their levels one by
     // one (极速3D赛车 gameMyCat: endGame(score, the level finished) when won, 0 when lost; 89_5).
-    const game = String(ctx.params.gameName ?? "");
+    // A game's name (the record keeps its level by it): the games' own, letters and digits.
+    const named = String(ctx.params.gameName ?? "");
+    const game = GAME_NAME.test(named) ? named : "";
     const lv = Number(ctx.params.level) | 0;
-    if (game && lv > 0) (rec.gameLevels ??= {})[game] = Math.max(rec.gameLevels[game] ?? 0, lv);
+    const levels = (rec.gameLevels ??= {});
+    if (game && lv > 0 && (Object.hasOwn(levels, game) || Object.keys(levels).length < GAME_NAMES_KEPT)) levels[game] = Math.max(levels[game] ?? 0, lv);
     // 大战TT兔: 积分 for the 关 passed, as its end panel counts them (1 + 2 + … + the last 关 passed).
     const jifen = game === TT_RABBIT_GAME && lv > 0 ? (lv * (lv + 1)) / 2 : 0;
     if (jifen) (rec.ttRabbit ??= { jifen: 0 }).jifen += jifen;
@@ -815,10 +905,12 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // A 礼包 is opened at once (giftbags.ts): what it held comes through onAmountUpdated and the
   // reply's got ("三倍经验器×2、…") says it.
   world.xt("MaterialExtension.buyMaterial", async (ctx) => {
-    const tp = String(ctx.params.tp ?? "0");
-    const mi = String(ctx.params.mi ?? "0");
+    // Numbers only, and rows the table has of its own (a "__proto__" is no material type).
+    const tp = String(Math.max(0, Number(ctx.params.tp ?? 0) | 0));
+    const mi = String(Math.max(0, Number(ctx.params.mi ?? 0) | 0));
     const qt = Math.max(1, Number(ctx.params.qt ?? 1) | 0);
-    const row = (await table())[tp]?.[mi];
+    const tab = await table();
+    const row = Object.hasOwn(tab, tp) && Object.hasOwn(tab[tp], mi) ? tab[tp][mi] : undefined;
     const rec = await me(ctx);
     // The 2015 欢乐弹珠机's buy panel (and 召唤奇灵王's of February 2013) reads result where the 2013 panels read res.
     const fail = (res: number) => ctx.reply({ res, result: res, tp: Number(tp), mi: Number(mi), qt });
@@ -836,7 +928,6 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     // The 魂石 of 魔龙之战 (godbosses.ts): "星币获取", a price the 2013 table does not have.
     const rmb = rmb0 || (tp === "2" && ABYSS.stones.includes(Number(mi)) ? SOUL_STONE_PRICE : 0);
     const unit = price > 0 ? price : buyback * 2;
-    const tab = await table();
     // The bought thing into the bag (a 礼包: what it holds); the onAmountUpdated parts, what a bag gave.
     const deliver = (): { amount: string; got?: string; score?: boolean } => {
       if (!isGiftBag(tp, mi)) {
@@ -921,7 +1012,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   const GATHER_PER_DAY = 10;
   // 14_11 takes only what a gather point of the player's room gives (GATHER_POINTS), not any 道具.
   const gatherState = (rec: UserRecord) => {
-    const day = emu.clock.now().toISOString().slice(0, 10);
+    const day = emu.clock.today();
     if (rec.gathered?.day !== day) rec.gathered = { day, n: {} };
     return rec.gathered;
   };
@@ -1068,12 +1159,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
 
   // ---------------------------------------------------------------- pets
 
-  const today = () => emu.clock.now().toISOString().slice(0, 10);
+  const today = () => emu.clock.today();
   installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today, anyPet: toolbox || !!opts.dev, now: () => emu.clock.now().getTime() });
   installPetDic(world, { load: me, save: (o) => save(o as UserRecord), tables });
   installBattles(world, {
     load: me,
     fair: !toolbox,
+    dev: opts.dev,
     save: (o) => save(o as UserRecord),
     tables,
     wild,
@@ -1731,7 +1823,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   // {level}, the last of its three tracks open (0 the first; a track finished opens the next).
   world.xt("UserGameExtension.89_5", async (ctx) => {
     const rec = await me(ctx);
-    const done = rec.gameLevels?.[String(ctx.params.name ?? "")] ?? 0;
+    const asked = String(ctx.params.name ?? "");
+    const done = rec.gameLevels && Object.hasOwn(rec.gameLevels, asked) ? Number(rec.gameLevels[asked]) || 0 : 0;
     ctx.reply({ level: Math.min(2, done), name: String(ctx.params.name ?? "") }, "89_5");
   });
   world.xt("UserGameExtension.89_1", async (ctx) => {
@@ -1747,7 +1840,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     // The slot reached is the game's word (its play is not followed here): the top prize (a
     // 亚比蛋, 天赋重组药剂 …) at most once a day, the second one otherwise.
     let lvl = used > 0 ? Number(ctx.params.lvl) | 0 : -1;
-    const day = emu.clock.now().toISOString().slice(0, 10);
+    const day = emu.clock.today();
     if (lvl === 1) {
       if (rec.pinballTop === day) lvl = 2;
       else rec.pinballTop = day;
@@ -1792,7 +1885,7 @@ export async function renameUser(
   to: string,
   opts: RenameOptions = {},
 ): Promise<string | null> {
-  return locked(emu, [from.trim(), to.trim()], () => rename(emu, from, to, opts));
+  return locked(emu, [normName(from), normName(to)], () => rename(emu, from, to, opts));
 }
 
 export interface RenameOptions {
@@ -1810,33 +1903,38 @@ async function rename(
   to: string,
   opts: RenameOptions,
 ): Promise<string | null> {
-  const a = from.trim(), b = to.trim();
+  const b = normName(to);
   const bad = nameProblem(b);
   if (bad) return bad;
+  const rec = await findAccount(emu, normName(from), from.trim());
+  const a = rec?.name ?? normName(from);
   if (a === b) return null;
-  const rec = await accountRecord(emu, a);
   if (opts.accounts?.required) {
     const wrong = await passProblem(emu, a, rec, opts.pass, opts.addr);
     if (wrong) return wrong;
   }
   if (!rec) return opts.accounts?.required ? WRONG : "没有这个奥拉。";
-  if (await accountRecord(emu, b)) return "这个名字已经有奥拉用了，换一个吧。";
+  if (await nameTaken(emu, b, a)) return "这个名字已经有奥拉用了，换一个吧。";
   if (opts.end) {
     if (opts.end(a)) await new Promise((ok) => setTimeout(ok, IMPORT_SETTLE_MS));
   } else if (opts.online?.(a)) return "请先退出游戏，再改名字。";
-  // In this order, so that stopped anywhere between, one record is the id's (accountRecord):
-  // the new name's, then the id's name, then the old name goes.
+  // A marker first, then the new name's record, the id's name, the old record gone, the marker
+  // gone: stopped anywhere between, the next look at either name finishes or undoes it
+  // (settleRename), and no other record is touched.
   rec.name = b;
   try {
+    await emu.store.set(renamingKey(rec.id), { from: a, to: b });
     await emu.store.set(userKey(b), rec);
     await emu.store.set(`uid/${rec.id}`, b);
   } catch {
     rec.name = a;
     await emu.store.delete(userKey(b)).catch(() => {});
     await emu.store.set(`uid/${rec.id}`, a).catch(() => {});
+    await emu.store.delete(renamingKey(rec.id)).catch(() => {});
     return "名字没有改好，请再试一次。";
   }
   await emu.store.delete(userKey(a));
+  await emu.store.delete(renamingKey(rec.id));
   // The 排行榜 keep names: the new one there too.
   for (const key of RANKED) {
     await updateShared<{ dd?: string; nn?: string }[]>(emu, key, (rows) =>
@@ -1863,7 +1961,7 @@ export async function registerUser(
   const acc = opts.accounts;
   if (!acc?.required) return "单机模式不用注册，在选择奥拉里新建一个就好。";
   if (!acc.register) return "这个服务器现在不收新的奥拉。";
-  const n = name.trim();
+  const n = normName(name);
   const bad = nameProblem(n) ?? passwordProblem(pass);
   if (bad) return bad;
   const addr = opts.addr ?? "";
@@ -1873,7 +1971,7 @@ export async function registerUser(
   // The hash before the name's turn (it takes a while; the turn is the name's alone).
   const hash = await hashPass(pass);
   return locked(emu, [n], async () => {
-    if (await accountRecord(emu, n)) return "这个名字已经有奥拉用了，换一个吧。";
+    if (await nameTaken(emu, n)) return "这个名字已经有奥拉用了，换一个吧。";
     const rec = await newUser(emu, n);
     rec.pass = hash;
     await emu.store.set(userKey(n), rec);
@@ -1894,9 +1992,9 @@ export async function rememberUser(
   opts: { addr?: string; accounts?: AccountOptions },
 ): Promise<{ token?: string; error?: string }> {
   if (!opts.accounts?.required) return { error: "单机模式没有密码。" };
-  const n = name.trim();
+  const n = normName(name);
   return locked(emu, [n], async () => {
-    const rec = await accountRecord(emu, n);
+    const rec = await findAccount(emu, n, name.trim());
     const wrong = await passProblem(emu, n, rec, pass, opts.addr, false);
     if (wrong || !rec) return { error: wrong ?? WRONG };
     const token = newToken();
@@ -1909,9 +2007,9 @@ export async function rememberUser(
 
 /** 记住密码 taken off: that token is the 奥拉's no longer. */
 export async function forgetToken(emu: Emulator, name: string, token: string): Promise<void> {
-  const n = name.trim();
+  const n = normName(name);
   await locked(emu, [n], async () => {
-    const rec = await accountRecord(emu, n);
+    const rec = await findAccount(emu, n, name.trim());
     if (!rec?.tokens?.length) return;
     const h = await tokenHash(String(token));
     const left = rec.tokens.filter((t) => t.h !== h);
@@ -1930,9 +2028,9 @@ export async function exportSave(
   name: string,
   opts: { pass?: string; addr?: string; accounts?: AccountOptions },
 ): Promise<{ save?: SaveFile; error?: string }> {
-  const n = name.trim();
+  const n = normName(name);
   return locked(emu, [n], async () => {
-    const rec = await accountRecord(emu, n);
+    const rec = await findAccount(emu, n, name.trim());
     if (opts.accounts?.required) {
       const wrong = await passProblem(emu, n, rec, opts.pass, opts.addr);
       if (wrong) return { error: wrong };
@@ -1963,9 +2061,9 @@ export async function importSave(
   const from = opts.from ? roles.get(opts.from) : roles.size === 1 ? [...roles.values()][0] : undefined;
   if (!from) return { error: opts.from ? `存档里没有${opts.from}。` : "存档里有好几个奥拉，请选一个。", names: [...roles.keys()] };
   if (jsonBytes(from) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
-  const n = name.trim();
+  const n = normName(name);
   return locked(emu, [n], async () => {
-    const rec = await accountRecord(emu, n);
+    const rec = await findAccount(emu, n, name.trim());
     if (opts.accounts?.required) {
       const wrong = await passProblem(emu, n, rec, opts.pass, opts.addr);
       if (wrong) return { error: wrong };
@@ -2027,9 +2125,9 @@ export async function changePassword(
   if (!opts.accounts?.required) return "单机模式没有密码。";
   const bad = to ? passwordProblem(to) : "请输入新密码。";
   if (bad) return bad;
-  const n = name.trim();
+  const n = normName(name);
   return locked(emu, [n], async () => {
-    const rec = await accountRecord(emu, n);
+    const rec = await findAccount(emu, n, name.trim());
     // The password itself (not a token of 记住密码).
     const wrong = await passProblem(emu, n, rec, pass, opts.addr, false);
     if (wrong || !rec) return wrong ?? WRONG;
@@ -2084,7 +2182,7 @@ export async function listUsers(emu: Emulator): Promise<LocalRole[]> {
 
 /** A new 奥拉 of this page: a fit name nobody here has, while there are fewer than max. null if done. */
 export async function createUser(emu: Emulator, name: string, max = LOCAL_ROLES_MAX): Promise<string | null> {
-  const n = name.trim();
+  const n = normName(name);
   const bad = nameProblem(n);
   if (bad) return bad;
   return locked(emu, [n, "#roles"], async () => {
@@ -2129,7 +2227,7 @@ export async function addUserFromFile(
   const from = fromName === undefined ? undefined : roles.get(fromName);
   if (!from || fromName === undefined) return { error: opts.from ? `存档里没有${opts.from}。` : "存档里有好几个奥拉，请选一个。", names: [...roles.keys()] };
   if (jsonBytes(from) > SAVE_RECORD_MAX) return { error: "这个存档太大了。" };
-  const as = (opts.as ?? fromName).trim();
+  const as = normName(opts.as ?? fromName);
   const badName = nameProblem(as);
   if (badName) return { error: badName, conflict: as };
   return locked(emu, [as, "#roles"], async () => {

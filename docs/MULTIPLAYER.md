@@ -43,7 +43,7 @@ WebSocket) and the small API (`/__api/status`, `register`, `remember`,
 | `--data DIR` | the saves: one JSON file a key (default `work/server`, or `$AOLA_DATA`) |
 | `--web DIR` | the site to serve too (default `dist`; `--web ""` serves only the game, the page then comes from elsewhere) |
 | `--tables DIR` | where `www.9aola.com/revival/*.json` are (default `<web>/files`, or `build/rebuilt` with `--web ""`) |
-| `--date DAY` | the game clock's day, China time (default 2012-08-15) |
+| `--date DAY` | the game clock starts at this day (China time) at each start, for trying a day of the era; by default it is the real time (docs/IMPLEMENTATION.md, "The game clock") |
 | `--closed` | no 注册: only 奥拉 already signed up may log in |
 | `--max-players N` | at most N in the game at once (default 200); a login past it is told the server is full, but the player's own second page comes in |
 | `--signups-per-day N` | new 奥拉 one address may 注册 a day (default 5; 0: no limit) |
@@ -53,11 +53,19 @@ WebSocket) and the small API (`/__api/status`, `register`, `remember`,
 
 A record that cannot be written (the disk full, a record over 1.5 MB) is
 logged and let go: the game goes on from what was last saved, so memory and
-storage never disagree.
+storage never disagree. A throw nothing caught is logged and the server goes
+on; more than 50 in a minute end the process, for whatever started it to
+start it again.
 
-A connection that has not logged in within 30 seconds (or has logged out and
-not in again) is closed. Connections not logged in are few: 40 on the server
-and 4 an address at once; one address (an IPv6 one by its /64, on Node and on
+A connection that has not logged in within 30 seconds (or has logged out, or
+had a login refused, and not logged in since) is closed. Connections not
+logged in are few: 40 on the server (or half `--max-players`, if more) and 4
+an address at once; the client connects on 进入 and logs in at once, so a
+connection is one of them for a moment only. One refused (or a server not
+there) is back on the start screen within 20 seconds with 连接服务器失败, where
+进入 tries again (the socket under the client does not always say a connection
+failed, so the login gives up on a login not answered: `login/Main.as`); pages
+do not reconnect by themselves, so a restart brings no storm of them; one address (an IPv6 one by its /64, on Node and on
 Cloudflare alike) holds at most 12 connections in all; the game's places
 (`--max-players`) are counted at the login. A connection that does not answer
 the server's ping (every 30 seconds) is ended. A client that sends too much
@@ -72,7 +80,9 @@ closes), `AOLA_ADOPT`, `AOLA_MAX_PLAYERS`, `AOLA_SIGNUPS_PER_DAY`, `AOLA_TRUST_P
 
 Saves copied in from elsewhere (a `user/<name>.json` with no password in it)
 cannot be logged in to, unless the server runs with `--adopt`: then the first
-login gives it its password. Copy in only your own. (Players can bring in a
+login gives it its password. A copied-in save whose id another 奥拉 here has
+(every server's ids start at 10001) takes the next id of this server at its
+first login, and keeps all else; the other 奥拉 is not touched. Copy in only your own. (Players can bring in a
 save themselves: 存档 below.)
 
 The `--data` folder must not be inside the `--web` folder (the site's files
@@ -174,7 +184,9 @@ invite.
 ## Accounts, saves and passwords
 
 - **注册** makes an 奥拉 (not with `--closed`): a name of 1 to 12 characters
-  without spaces or symbols, a password of 6 to 32 (改密码's rule too). One
+  without spaces, symbols or invisible characters, kept as its NFKC form (a
+  full-width ＡＢＣ is ABC), and not alike to another's (the same letters in
+  another case count as alike), and a password of 6 to 32 (改密码's rule too). One
   address signs up `--signups-per-day` 奥拉 a day and tries 注册 ten times in
   ten minutes at most (a name taken counts). Then only that password opens
   it, and one game a name: a second login ends the first.
@@ -208,9 +220,10 @@ invite.
   There is no 忘记密码: an 奥拉 is a name and a password, nothing else.
   The accounts' work goes a name at a time (a login, 注册, rename or import
   of one name waits only for others of that name), so an import ending a game
-  holds up nobody else's login. A rename writes the new name, then the id's,
-  then takes the old away, and moves the 排行榜 rows; a record a stopped rename
-  left behind is taken away at its next login.
+  holds up nobody else's login. A rename writes a marker, the new name, the
+  id's name, takes the old away and the marker last, and moves the 排行榜 rows;
+  a rename stopped between (the process ended) is finished or undone at the
+  next look at either name, by its marker (no other record is ever deleted).
   Over `http://` the password crosses the network as it is: put a server
   reached over a network you do not trust behind HTTPS. Whoever runs a
   server can read its saves: use a password of your own for it.
@@ -221,7 +234,8 @@ invite.
   the 念之塔, a floor of the 黑星堡垒 and 先哲's treasure need a fight won just
   now there by that connection (`wins.ts`); 动物捕捉's odds are the server's;
   a quest step the server finishes itself (items had, a task 亚比 beaten) is
-  not the client's to finish; 猜弹珠 counts wins only as far as the games
+  not the client's to finish (动物捕捉's sure first catch of a game, 6 a day
+  however often a game is started); 猜弹珠 counts wins only as far as the games
   played allow; 斑比向前冲's 晶币 count to the mini games' 1000 a day; a 亚比
   in a fight is not moved, let go or fused; 酷跑 runs a role neither owned nor
   rented as the first one; money stays within 0 … 9,999,999 (`money.ts`).

@@ -49,8 +49,13 @@ window.AOLA_CONFIG = {
     return m ? { mod: m[1], player: "小奥拉" } : null;
   })(),
 
-  // Game clock anchor (China time) and stream framing, as in the Node server.
-  date: "2012-08-15",
+  // The game clock is the real time; ?date=2012-08-15 (or 2012-08-15T13:00, China time) starts it
+  // at that day at each page load instead, for trying a day of the era. Stream framing as in
+  // the Node server.
+  date: (function () {
+    var m = /[?&]date=(\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2})?)(&|$)/.exec(location.search);
+    return m ? m[1] : "";
+  })(),
   framing: "raw",
   // Every socket frame and the engine's log in the console: with ?verbose=1 (or ?dev=1, the
   // walk-throughs); else warnings only.

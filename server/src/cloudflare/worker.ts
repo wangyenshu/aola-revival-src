@@ -59,7 +59,7 @@ export interface Env {
   AOLA_TABLES_URL?: string;
   /** "1": no new names, only 奥拉 the server has may log in. */
   AOLA_CLOSED?: string;
-  /** The game clock's anchor, China time (default 2012-08-15). */
+  /** The game clock starts at this day (China time) at each start, for trying a day of the era; default: the real time. */
   AOLA_DATE?: string;
   /** At most this many in the game at once (default 200). */
   AOLA_MAX_PLAYERS?: string;
@@ -109,6 +109,9 @@ export class DurableStore implements Store {
   async set<T>(key: string, value: T): Promise<void> {
     await this.storage.put(key, JSON.stringify(value));
   }
+  async setText(key: string, json: string): Promise<void> {
+    await this.storage.put(key, json);
+  }
   async delete(key: string): Promise<void> {
     await this.storage.delete(key);
   }
@@ -148,7 +151,7 @@ export class AolaGame {
             : undefined;
         return res?.ok ? res.json() : undefined;
       },
-      date: env.AOLA_DATE || "2012-08-15",
+      date: env.AOLA_DATE || undefined,
       accounts: { required: true, register: env.AOLA_CLOSED !== "1", adopt: env.AOLA_ADOPT === "1", signupsPerDay: count(env.AOLA_SIGNUPS_PER_DAY, 5) },
       recorder: new NullRecorder(),
       toolbox: env.AOLA_TOOLBOX !== "0",

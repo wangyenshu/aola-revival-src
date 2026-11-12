@@ -33,7 +33,11 @@ export class IdbStore implements Store {
   }
 
   async set<T>(key: string, value: T): Promise<void> {
-    await this.tx("readwrite", (s) => s.put(JSON.stringify(value), key));
+    await this.setText(key, JSON.stringify(value));
+  }
+
+  async setText(key: string, json: string): Promise<void> {
+    await this.tx("readwrite", (s) => s.put(json, key));
   }
 
   async delete(key: string): Promise<void> {

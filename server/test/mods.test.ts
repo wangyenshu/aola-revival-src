@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BAG_MAX, MOD_DATA_MAX, MOD_DATA_TOTAL, installMods, parseModSpecies, stashModPets, type ModRec } from "../src/game/sfs2013/mods.ts";
+import { BAG_MAX, MOD_DATA_MAX, MOD_DATA_TOTAL, MOD_SPECIES_PER_PLAYER, installMods, parseModSpecies, stashModPets, type ModRec } from "../src/game/sfs2013/mods.ts";
 import type { PetRecord, PetTables } from "../src/game/sfs2013/pets.ts";
 import { EMPTY_PMDATA } from "../src/game/sfs2013/pmdata.ts";
 import type { World, XtContext, XtHandler } from "../src/game/sfs2013/server.ts";
@@ -110,4 +110,18 @@ test("mods: gifts go to the 仓库 when the bag is full", async () => {
   assert.equal(rec.pets!.length, BAG_MAX);
   assert.equal(rec.storage![0].race, 1);
   assert.equal(rec.storage![0].level, 3);
+});
+
+test("mods: one player's species counted together, whatever mod ids he gives", async () => {
+  const rec: ModRec = { id: 1, name: "小奥拉" };
+  const { call } = setup(rec);
+  let made = 0;
+  for (let i = 0; i < MOD_SPECIES_PER_PLAYER + 5; i++) {
+    const def = JSON.stringify({ id: 900200 + i, name: `蛙${i}`, attr: [10, 10], stats: [70, 60, 65, 80, 70, 75], skills: [[0, 1016]], exp: "2" });
+    // A new made-up mod id every few species: still his.
+    const r = await call({ op: "species", mod: `squat${Math.floor(i / 7)}`, def });
+    if (r.res === 1) made++;
+    else assert.match(String(r.msg), /你加的模组亚比已经太多了/);
+  }
+  assert.equal(made, MOD_SPECIES_PER_PLAYER);
 });

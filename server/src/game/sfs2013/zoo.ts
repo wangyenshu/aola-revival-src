@@ -50,6 +50,7 @@
 // the server (rate -1) are RECONSTRUCTED. 动物捕捉's things (items 424–430) are bought
 // (its panel's 购买道具: MaterialExtension buyMaterial, type 2).
 
+import { chinaDay } from "../../core/clock.ts";
 import type { World, XtContext } from "./server.ts";
 
 export const ZOO_EXT = "ZooExtension";
@@ -68,6 +69,11 @@ export const TD_ENDLESS_MAX = 300;
  */
 export const CATCH_RATE = 40;
 export const CATCH_RATES_FIRST = [100, 50];
+/**
+ * Catches at the first odds a day, at most: a client can start a game (97_100) before every
+ * throw, so the first odds of a game are not a game's own; past this many a day, CATCH_RATE.
+ */
+export const CATCH_SURE_PER_DAY = 6;
 /** The count of a 动物捕捉 game, the session's. */
 const CAUGHT = "zoo.caught";
 const gameOf = (ctx: XtContext) => ((ctx.session as { data?: Record<string, unknown> } | undefined)?.data ?? {});
@@ -113,6 +119,8 @@ export interface ZooOwner {
   td?: Record<string, string[]>;
   /** 晶币 the 保卫战 paid today (TD_DAY_MAX a day). */
   tdPaid?: { day: string; n: number };
+  /** 动物捕捉's catches at the first odds of a game (CATCH_RATES_FIRST) today. */
+  zooSure?: { day: string; n: number };
 }
 
 export interface ZooDeps<O extends ZooOwner> {
@@ -254,7 +262,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
   const items = (o: O) => ((o.items ??= {})["2"] ??= {});
   /** What of add the day's cap leaves to pay. */
   const tdPay = (o: O, add: number): number => {
-    const day = new Date(deps.now ? deps.now() : Date.now()).toISOString().slice(0, 10);
+    const day = chinaDay(deps.now ? deps.now() : Date.now());
     if (o.tdPaid?.day !== day) o.tdPaid = { day, n: 0 };
     const pay = Math.max(0, Math.min(add, TD_DAY_MAX - o.tdPaid.n));
     o.tdPaid.n += pay;
@@ -370,7 +378,10 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const race = Number(ctx.params.raceId) | 0;
     const tool = String(Number(ctx.params.itemId) | 0);
     const n = Number(gameOf(ctx)[CAUGHT]) || 0;
-    const odds = CATCH_RATES_FIRST[n] ?? CATCH_RATE;
+    const day = chinaDay((deps.now ?? Date.now)());
+    if (o.zooSure?.day !== day) o.zooSure = { day, n: 0 };
+    const sure = o.zooSure.n < CATCH_SURE_PER_DAY ? CATCH_RATES_FIRST[n] : undefined;
+    const odds = sure ?? CATCH_RATE;
     const mine = items(o);
     // A catch takes its tool, and is of an animal of the zoo (a baby one: its race, not its key).
     if (!((mine[tool] ?? 0) > 0) || !ANIMAL.has(race)) return ctx.reply({ res: 0, raceId: race }, "97_103");
@@ -380,6 +391,7 @@ export function installZoo<O extends ZooOwner>(world: World, deps: ZooDeps<O>): 
     const caught = rnd() * 100 < odds;
     if (caught) {
       gameOf(ctx)[CAUGHT] = n + 1;
+      if (sure !== undefined) o.zooSure.n++;
       const zoo = animalsOwned(o);
       const key = String(BABY_BASE + race);
       zoo[key] = (zoo[key] ?? 0) + 1;

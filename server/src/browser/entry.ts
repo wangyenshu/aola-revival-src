@@ -97,7 +97,7 @@ export function startInPage(cfg: InPageConfig) {
   const emu = new Emulator({
     framing: sfs ? SFS2013_FRAMING : parseFraming(cfg.framing ?? "raw"),
     codec: sfs ? sfs2013Codec : undefined,
-    clock: new GameClock(cfg.date ?? "2012-08-15"),
+    clock: new GameClock(cfg.date || undefined),
     store: new IdbStore(),
     recorder: cfg.verbose ? new TeeRecorder(memory, new ConsoleRecorder()) : memory,
     answerPolicy: false,

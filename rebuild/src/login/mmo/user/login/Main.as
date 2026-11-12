@@ -6,6 +6,8 @@ package mmo.user.login
    import flash.display.Sprite;
    import flash.geom.Rectangle;
    import flash.events.Event;
+   import flash.events.TimerEvent;
+   import flash.utils.Timer;
    import flash.external.ExternalInterface;
    import flash.net.SharedObject;
    import flash.text.TextField;
@@ -37,6 +39,13 @@ package mmo.user.login
       private var status:TextField;
       private var start:StartScreen;
       private var roles:RolesScreen;
+      /**
+       * A login not answered in this long is given up: a connection the server refused (too many
+       * at once, an address it does not serve) or that never came is not always told to the
+       * client by the socket under it, which would otherwise wait for ever.
+       */
+      private static const LOGIN_WAIT_MS:int = 20000;
+      private var waiting:Timer;
 
       public function Main()
       {
@@ -97,6 +106,15 @@ package mmo.user.login
          {
             say("正在连接奥拉星……");
             ServerClient.instance.addEventListener(SSLEvent.onLogin, onLogin);
+            stopWaiting();
+            waiting = new Timer(LOGIN_WAIT_MS, 1);
+            waiting.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void
+            {
+               ServerClient.instance.removeEventListener(SSLEvent.onLogin, onLogin);
+               RLog.log("login: no answer in " + LOGIN_WAIT_MS + " ms");
+               refused("连接服务器失败，请检查服务器地址，稍后再试。");
+            });
+            waiting.start();
             ServerClient.instance.login(SERVER_HOST, SERVER_PORT, ZONE, name, pass);
          }
          catch (err:Error)
@@ -154,8 +172,16 @@ package mmo.user.login
          return name;
       }
 
+      private function stopWaiting():void
+      {
+         if (waiting == null) return;
+         waiting.stop();
+         waiting = null;
+      }
+
       private function onLogin(e:SSLEvent):void
       {
+         stopWaiting();
          try
          {
             enter(e.params);

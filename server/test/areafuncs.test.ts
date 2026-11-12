@@ -69,12 +69,12 @@ test("神奇摇摇树: six 摇摇果实 a day, again from 6:00", async () => {
   assert.equal(me.items!["2"][TREE_ITEM], TREE_FRUIT);
   assert.equal(answer(await call("SundriesExtension.70_34"))!.num, 0);
   assert.equal(answer(await call("SundriesExtension.70_35"))!.res, false);
-  // 5:00 the next day is still the same tree day; 6:00 is a new one.
-  clock.now = Date.UTC(2013, 0, 26, 5, 0, 0);
+  // 5:00 the next day (China time) is still the same tree day; 6:00 is a new one.
+  clock.now = Date.UTC(2013, 0, 26, 5 - 8, 0, 0);
   assert.equal(answer(await call("SundriesExtension.70_34"))!.num, 0);
-  clock.now = Date.UTC(2013, 0, 26, 6, 0, 0);
+  clock.now = Date.UTC(2013, 0, 26, 6 - 8, 0, 0);
   assert.equal(answer(await call("SundriesExtension.70_34"))!.num, TREE_FRUIT);
-  assert.equal(treeDay(Date.UTC(2013, 0, 26, 5, 59)), "2013-01-25");
+  assert.equal(treeDay(Date.UTC(2013, 0, 26, 5 - 8, 59)), "2013-01-25");
 });
 
 test("骑士王座: daily cards, 占卜 and the 星币 choice turn the 小骑兵 into a 骑士", async () => {

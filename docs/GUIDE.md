@@ -17,8 +17,11 @@ you to 司令官麦哲伦 in the 指挥中心, you choose your first 亚比 (滴
 quest the task panel (任务, top right) lists the story quests under 可接, and
 its 前往 button takes you to where each one begins.
 
-The game runs at its original size of 960 × 560. Its clock starts on
-15 August 2012 each time the page is opened and then runs at normal speed.
+The game runs at its original size of 960 × 560. Its clock is the real time
+(China time: days start again at midnight China time, and the activities that
+open at certain hours open at China's hours). `?date=2012-08-15` in the address
+starts it at that day instead, each time the page is opened, to try a day of
+the era.
 
 ## Saves
 

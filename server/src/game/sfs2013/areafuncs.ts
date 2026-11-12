@@ -66,6 +66,7 @@
 //   s_s_2 {c}                -> {res}            put c 糖果 (item 513, won from the 布布兔) in; true when the
 //                                                bottle is full: a 小白吐 (846, Lv 1) — one a day ("每天只能获得1只小白吐")
 
+import { chinaDay } from "../../core/clock.ts";
 import { serial } from "../../core/locks.ts";
 import type { World, XtContext } from "./server.ts";
 import { detailOf, followVar, newPet, type PetRecord, type PetTables } from "./pets.ts";
@@ -237,9 +238,9 @@ function give(ctx: XtContext, rec: AreaRec, id: number, n: number, type = "2"): 
   ctx.reply({ amount: `${type}_${id}_0_${n}` }, "onAmountUpdated");
 }
 
-/** The tree's day: from 6:00 to 6:00 (of the emulator clock, as the day of today() is). */
+/** The tree's day: from 6:00 to 6:00, China time (as the day of today() is). */
 export function treeDay(ms: number): string {
-  return new Date(ms - TREE_HOUR * 3600 * 1000).toISOString().slice(0, 10);
+  return chinaDay(ms - TREE_HOUR * 3600 * 1000);
 }
 
 export function installAreaFuncs(world: World, deps: AreaDeps): void {

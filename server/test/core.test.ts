@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { concat, utf8, fromUtf8 } from "../src/core/bytes.ts";
-import { GameClock, parseAnchor } from "../src/core/clock.ts";
+import { chinaDay, GameClock, parseAnchor } from "../src/core/clock.ts";
 import { Emulator } from "../src/core/emulator.ts";
 import { FRAMING_PRESETS, FrameSplitter, FramingError } from "../src/core/framing.ts";
 import { urlToRelpath, normalizeUrl } from "../src/core/mirrorPath.ts";
@@ -61,7 +61,19 @@ test("a big frame sent a byte at a time: whole once, in time proportional to its
   assert.equal(sp.push(frame.subarray(10)).length, 1);
 });
 
-test("game clock starts at the 2012 anchor in China time and keeps running", () => {
+test("game clock: the real time by default; its days are China days", () => {
+  let now = Date.UTC(2026, 10, 11, 15, 59, 0); // 23:59 China time
+  const clock = new GameClock(undefined, () => now);
+  assert.equal(clock.real, true);
+  assert.equal(clock.now().getTime(), now);
+  assert.equal(clock.today(), "2026-11-11");
+  now += 60_000; // midnight in China, 16:00 UTC
+  assert.equal(clock.today(), "2026-11-12");
+  assert.equal(chinaDay(Date.UTC(2026, 10, 11, 16, 0)), "2026-11-12");
+  assert.equal(new GameClock("", () => now).real, true);
+});
+
+test("game clock starts at a given anchor in China time and keeps running", () => {
   let now = 1_800_000_000_000;
   const clock = new GameClock("2012-08-15T10:00", () => now);
   assert.equal(clock.now().toISOString(), "2012-08-15T02:00:00.000Z");

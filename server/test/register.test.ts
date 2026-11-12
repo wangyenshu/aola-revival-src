@@ -136,12 +136,69 @@ test("a rename moves the 排行榜 rows; a record a stopped rename left behind i
   assert.deepEqual((await store.get<{ dd: string }[]>("parkour/board"))!.map((r) => r.dd), ["飞者", "别人"]);
   assert.equal((await store.get<{ nn: string }[]>("limitbomb/board"))![0].nn, "飞者");
   assert.equal(await store.get(key("跑者")), undefined);
-  // Stopped after the new name and the id were written: the old record is the id's no longer.
+  // Stopped after the new name and the id were written (its marker still there): the old record
+  // is the rename's leftover, and goes at the next look at it.
   const rec = (await store.get<Record<string, unknown>>(key("飞者")))!;
   await store.set(key("跑者"), { ...rec, name: "跑者" });
+  await store.set(`meta/renaming/${rec.id}`, { from: "跑者", to: "飞者" });
   assert.equal((await login("跑者", "secret-1")).ok, false);
   assert.equal(await store.get(key("跑者")), undefined, "taken away");
+  assert.equal(await store.get(`meta/renaming/${rec.id}`), undefined);
   assert.equal(await host.register("跑者", "secret-9"), null, "the name is free again");
+  // Stopped before the id's name moved: undone, the new record goes, the old one stays.
+  const r2 = (await store.get<Record<string, unknown>>(key("飞者")))!;
+  await store.set(key("新跑者"), { ...r2, name: "新跑者" });
+  await store.set(`meta/renaming/${r2.id}`, { from: "飞者", to: "新跑者" });
+  assert.equal((await login("飞者", "secret-1")).ok, true);
+  assert.equal(await store.get(key("新跑者")), undefined);
+});
+
+test("a save copied in whose id another 奥拉 has takes a new id; nothing of the other is touched", async () => {
+  const store = new MemoryStore();
+  const host = createGameHost({ store, loadJson: async () => undefined, accounts: { required: true, register: true, adopt: true } });
+  assert.equal(await host.register("原主", "secret-1"), null);
+  const mine = (await store.get<{ id: number }>(key("原主")))!;
+  // From another server: ids start at 10001 everywhere.
+  await store.set(key("外来"), { id: mine.id, name: "外来", avatar: "", score: 777 });
+  const out: Uint8Array[] = [];
+  const s = host.attach({ remote: "ws x", send: (b) => out.push(b), close: () => {} });
+  s.receive(encodeClientFrame(nextPacketNum(-1), clientPayload(0, Up.Login, -1).utf("aola").utf("外来").utf("secret-2").body()));
+  for (let i = 0; i < 300 && !host.world.online("外来"); i++) await tick(10);
+  assert.ok(host.world.online("外来"), "adopted: logged in");
+  const came = (await store.get<{ id: number; score: number; pass?: unknown }>(key("外来")))!;
+  assert.notEqual(came.id, mine.id);
+  assert.equal(came.score, 777, "its game kept");
+  assert.ok(came.pass);
+  assert.equal((await store.get<{ id: number }>(key("原主")))!.id, mine.id, "the other untouched");
+  assert.equal(await store.get(`uid/${mine.id}`), "原主");
+  assert.equal(await store.get(`uid/${came.id}`), "外来");
+  assert.ok(((await store.get<number>("meta/nextUserId")) ?? 0) >= came.id);
+});
+
+test("names: kept as NFKC; one alike to the eye is taken; invisible characters refused", async () => {
+  const { store, host, login } = shared();
+  assert.equal(await host.register("ＡＢＣ奥拉", "secret-1"), null);
+  assert.ok(await store.get(key("ABC奥拉")), "full-width letters kept as plain ones");
+  assert.match(String(await host.register("abc奥拉", "secret-1")), /已经有奥拉用了/, "letters in another case: alike");
+  assert.match(String(await host.register("奥\u200d拉", "secret-1")), /看不见/);
+  assert.equal((await login("ＡＢＣ奥拉", "secret-1")).ok, true, "logs in written either way");
+  // A rename to a look-alike of someone else's: taken; of one's own name in another case: fine.
+  assert.equal(await host.register("小草", "secret-1"), null);
+  assert.equal(await host.rename("小草", "abc奥拉", "secret-1"), "这个名字已经有奥拉用了，换一个吧。");
+});
+
+test("a login refused starts the connection's wait for a login again", async () => {
+  const emu = new Emulator({ framing: SFS2013_FRAMING, codec: sfs2013Codec, recorder: new MemoryRecorder(), answerPolicy: false });
+  new World(emu, { loginWaitMs: 80, login: async (_z, user) => ({ id: 0, name: user, error: "不对" }) });
+  let closed = false;
+  const s = emu.attach({ remote: "t", send: () => {}, close: () => (closed = true) }, 9339);
+  let pn = -1;
+  const send = (p: Uint8Array) => s.receive(encodeClientFrame((pn = nextPacketNum(pn)), p));
+  // A bad login just before the wait ends, then nothing.
+  await tick(70);
+  send(clientPayload(0, Up.Login, -1).utf("aola").utf("某某").utf("x").body());
+  await tick(200);
+  assert.equal(closed || s.closed, true, "closed after its new wait");
 });
 
 test("the accounts' work a name at a time: a slow one holds up only its own name", async () => {
@@ -197,4 +254,37 @@ test("addresses: IPv6 by its /64, IPv4 as it is", () => {
   assert.equal(addrKey("::ffff:10.0.0.7"), "10.0.0.7");
   assert.equal(addrKey("203.0.113.5"), "203.0.113.5");
   assert.equal(addrKey("[fe80::1%eth0]"), "fe80:0:0:0::/64");
+});
+
+test("a record of the anchored clock, read by the real one: what would be lost 14 years on is now", async () => {
+  const run = async (date?: string) => {
+    const store = new MemoryStore();
+    const host = createGameHost({ store, loadJson: async () => undefined, accounts: { required: true, register: true }, date });
+    assert.equal(await host.register("老存档", "secret-1"), null);
+    // The live record (host.emulator.store keeps it: what the login reads).
+    const live = host.emulator.store;
+    const rec = (await live.get<Record<string, any>>(key("老存档")))!;
+    const t2012 = Date.UTC(2012, 7, 16, 3, 0);
+    rec.released = [{ id: 7, race: 1, level: 5, hp: 10, skills: [], relAt: t2012 }];
+    rec.fortune = [{ sc: 100, sd: t2012, d: 7, jd: true }, null];
+    rec.tasks = { "1666": { st: 0, ex: 0, ad: t2012, fd: 0 }, "1": { st: 1, ex: 0, ad: t2012, fd: t2012 } };
+    delete rec.realClock;
+    await live.set(key("老存档"), rec);
+    const out: Uint8Array[] = [];
+    const s = host.attach({ remote: "ws r", send: (b) => out.push(b), close: () => {} });
+    s.receive(encodeClientFrame(nextPacketNum(-1), clientPayload(0, Up.Login, -1).utf("aola").utf("老存档").utf("secret-1").body()));
+    for (let i = 0; i < 300 && !host.world.online("老存档"); i++) await tick(10);
+    return (await store.get<Record<string, any>>(key("老存档")))!;
+  };
+  const t0 = Date.now();
+  const real = await run();
+  assert.equal(real.realClock, true);
+  assert.ok(real.released[0].relAt >= t0, "its days in the 放生仓库 start now");
+  assert.ok(real.fortune[0].sd >= t0, "the box's term starts now");
+  assert.ok(real.tasks["1666"].ad >= t0, "a quest being done: its time now");
+  assert.equal(real.tasks["1"].ad, Date.UTC(2012, 7, 16, 3, 0), "a quest done keeps its times");
+  // With an anchor (--date), nothing is moved.
+  const anchored = await run("2012-08-15");
+  assert.equal(anchored.realClock, undefined);
+  assert.equal(anchored.released[0].relAt, Date.UTC(2012, 7, 16, 3, 0));
 });

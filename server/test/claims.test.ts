@@ -158,3 +158,51 @@ test("money stays within 0 … 9,999,999 whatever a handler adds", () => {
   keepMoney(rec);
   assert.deepEqual(rec, { score: MONEY_MAX, xingbi: 0, jingdou: 5, name: "x" });
 });
+
+test("动物捕捉: the first odds of a game a few times a day, however often a game is started", async () => {
+  const p = await fairPlayer();
+  const r = await p.rec();
+  (r.items["2"] ??= {})["425"] = 20;
+  await p.store.set(key(p.name), r);
+  // The live record: what the handlers hold.
+  const live = (await p.host.emulator.store.get<Record<string, any>>(key(p.name)))!;
+  (live.items["2"] ??= {})["425"] = 20;
+  for (let i = 0; i < 12; i++) {
+    p.xt("ZooExtension", "97_100");
+    await p.wait("97_100");
+    p.xt("ZooExtension", "97_103", { raceId: 2, itemId: 425, rate: 100 });
+    await p.wait("97_103");
+  }
+  assert.equal((await p.host.emulator.store.get<Record<string, any>>(key(p.name)))!.zooSure.n, 6);
+});
+
+test("a client's names for keys: a game's name, a material type", async () => {
+  const p = await fairPlayer();
+  p.xt("ScoreManager", "increaseScore", { score: 0, gameName: "__proto__", level: 3 });
+  await p.wait("increaseScore");
+  p.xt("ScoreManager", "increaseScore", { score: 0, gameName: "gameMyCat", level: 2 });
+  await p.wait("increaseScore");
+  const levels = (await p.rec()).gameLevels;
+  assert.deepEqual(Object.keys(levels), ["gameMyCat"]);
+  p.xt("MaterialExtension", "buyMaterial", { tp: "__proto__", mi: "constructor", qt: 1 });
+  assert.equal((await p.wait("buyMaterial"))?.res, -1);
+  assert.equal(Object.keys(Object.prototype).length, 0, "nothing put on every object");
+});
+
+test("an imported 放生仓库 is rebuilt as the bag's 亚比 are", async () => {
+  const store = new MemoryStore();
+  const host = createGameHost({ store, loadJson: async () => undefined, accounts: { required: true, register: true } });
+  assert.equal(await host.register("导入者", "secret-1"), null);
+  const file = {
+    format: "aola-revival-save",
+    version: 1,
+    data: {
+      [key("某人")]: { name: "某人", pets: [{ id: 1, race: 7, level: 5 }], released: [{ id: "x" }, { id: 9, race: 1, level: 300, relAt: 123, evil: { a: 1 } }, "junk"] },
+    },
+  };
+  assert.deepEqual(await host.importSave("导入者", "secret-1", file), {});
+  const rec = (await store.get<Record<string, any>>(key("导入者")))!;
+  assert.equal(rec.released.length, 1);
+  assert.deepEqual([rec.released[0].id, rec.released[0].level, rec.released[0].relAt, rec.released[0].evil], [9, 100, 123, undefined]);
+  assert.ok(rec.nextPetId >= 9);
+});

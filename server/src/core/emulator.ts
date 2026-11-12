@@ -120,7 +120,7 @@ export class Emulator {
   constructor(opts: EmulatorOptions = {}) {
     this.framing = opts.framing ?? null;
     this.codec = opts.codec ?? rawCodec;
-    this.clock = opts.clock ?? new GameClock("2012-08-15");
+    this.clock = opts.clock ?? new GameClock();
     this.store = opts.store ?? new MemoryStore();
     this.recorder = opts.recorder ?? new MemoryRecorder();
     this.answerPolicy = opts.answerPolicy ?? true;

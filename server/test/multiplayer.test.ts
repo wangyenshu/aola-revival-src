@@ -349,6 +349,14 @@ test("the live records: a write that fails leaves the last saved state, not a re
       }
       return inner.set(k, v);
     },
+    // A record already made JSON (LiveRecordStore measures it so): the same disk.
+    setText: async (k: string, json: string) => {
+      if (fail > 0) {
+        fail--;
+        throw new Error("disk full");
+      }
+      return inner.setText(k, json);
+    },
   });
   const logs: string[] = [];
   const live = new LiveRecordStore(flaky, ["user/"], 10, () => true, 200, (m) => logs.push(m));
