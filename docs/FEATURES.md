@@ -351,6 +351,7 @@ The 功能 the 2012 world map lists for each place:
 | 上古神殿 | 龙族力量、小雪球成长记、赤羽修行者修炼台 | 不可用 (their panels are lost) |
 | 大地迷城 | 挑战友人契约书 | 可用 |
 | 糖果星 | 小白吐获得、守护者超T兔 | 可用 |
+| 时钟之域 | 泽时进化 (时钟大殿) | 可用 (each of the three 钟 calls a 通灵巫师, Lv30, 45, 60; once all are mended a 泽秒 first in the bag becomes 泽时 at Lv1, and the 钟 can be mended again) |
 | 糖果星 | 糖糖获得 | 可用 (大战TT兔: each game gives 1 + 2 + … 积分 for the 关 passed; 20 积分 for 糖糖, once) |
 | 骑士王国 | 骑士王座 | 可用 |
 | M7星云 | 传说斗士、万龙之王 | 不可用 (唤醒传说斗士 of December 2012 was a button of 古代遗迹, whose surviving file is of August 2013; 万龙之王 was a 2012 充值活动) |
@@ -422,6 +423,16 @@ own original script (`taskext/task<id>`), with its films, comics and panels.
 The newbie quest, 1214 and 1219 are played from start to end by the
 automated tests; for the other quests the tests open the first step. Quests whose script needs a service the
 revival does not have may stop partway; see [Known gaps](#known-gaps).
+
+A finished quest gives the 任务奖励 its end panel shows: most 5000 experience for the first
+亚比, 3000 晶币 and 80 流星碎片; some less, four 100 晶豆 instead of 晶币 (大地迷城's and 海洋幻境's
+徽章 are not in the 2013 items). The five quests whose end panel is lost give nothing.
+
+The fights of a quest are its script's: task 亚比 (达达, the 通灵巫师 …), and in 30 quests a
+character and its team (念, 月魔, 哈鲁达's SR战士, 凯撒, 邪恶超T兔, 夜王狄米特, 黑•拉诺斯, 黑炎龙 …).
+Who is in each team is RECONSTRUCTED from the scripts (the 2013 server's teams are lost); both
+fight at the level of the player's strongest 亚比, a quest's last foe two more. A mini game of a
+quest (冰之迷阵 of 艾希区) carries the quest on when the player comes back from it.
 
 1411, 1416 and 1652 (the 蓝宝骑士 quests of 修普森曼 and 艾尔利克) were
 withdrawn in November 2011 and so were not in the 2013 client; the revival
@@ -702,7 +713,7 @@ hatches 猎小空.
 | 黑星堡垒 | 震天石魔, 扭扭暗黑王, SR战士, 强袭SR, 电击八爪鱼, 黑暗守卫 on three floors (Lv50, 65, 80) |
 | 时空隧道 | 100 floors of up to four 亚比 each, a BOSS厅 every tenth floor |
 | 四大副本 | see below |
-| Quests | the opponents of each quest's own script (达斯特's generals, task 亚比) |
+| Quests | task 亚比 and the characters' teams of each quest's script (RECONSTRUCTED teams; see [Quests](#quests)) |
 
 ## 四大副本
 
@@ -903,7 +914,9 @@ run pays 晶豆, as its end panel says.
   added (飞天ET, 狼王迪洛斯, 赤翼魔龙王, 噬月武神, 黑炎龙, 圣龙战车, 星际旋风, 苍炎战神, 风暴流星),
   for 蓝宝骑士: the rider sits on it, which walks and stands with its own movements, as
   others see it too.
-- The 亚比孵化器 in the 家园: 亚比蛋 from bosses and from the 收费亚比蛋商品册.
+- The 亚比孵化器 in the 家园: 亚比蛋 from bosses and from the 收费亚比蛋商品册. The eggs of the
+  activities of September 2012 to February 2013 (修罗亚比蛋, 赵云亚比蛋, 波塞冬亚比蛋 …), in no egg
+  table that survives, are named after the boss each grows into, as their panels name them.
 - 亚比融合 (贝鲁特 in 亚比研究中心): two 亚比 and a material make a 元生体, which
   hatches in the 孵化器 of its place (艾夕区奇迹冰殿, 索里德区新世界, 巨人山顶,
   奇迹谷底, 生命之树, 水下广场, 烈焰洞穴) in 24 or 72 hours.

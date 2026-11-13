@@ -71,6 +71,7 @@ const KINDS: Record<string, "array" | "object" | "number" | "string" | "boolean"
   nextPetId: "number",
   followPet: "number",
   catchExp: "number",
+  clockFix: "number",
   nextPlantId: "number",
   avatar: "string",
   createdAt: "string",

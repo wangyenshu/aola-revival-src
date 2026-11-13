@@ -33,7 +33,7 @@ import { KeyedLocks } from "../../core/locks.ts";
 import { ANCHORED_BEFORE } from "../../core/clock.ts";
 import { adoptRecord, fileProblem, jsonBytes, playerFile, rolesOf, SAVE_RECORD_MAX, type SaveFile } from "./saves.ts";
 import { installSocial } from "./social.ts";
-import { installTasks, isQuestItem, registerTaskTables, robotVar, stepsByItems, QUEST_REWARDS, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
+import { installTasks, isQuestItem, questReward, registerTaskTables, robotVar, settleTasks, type RobotRecord, type TaskTables, type UserTaskRec } from "./tasks.ts";
 import { EMPTY_PMDATA, type PmData } from "./pmdata.ts";
 import { installPetCards } from "./petcards.ts";
 import { installHouse, houseOf, usedUp, type HouseRecord, type Visits } from "./house.ts";
@@ -46,6 +46,7 @@ import { installMiniGames, type LimitBombRec, type LimitBombRow } from "./miniga
 import { installPlanetActs } from "./planetacts.ts";
 import { installAreaFuncs, type AreaRec } from "./areafuncs.ts";
 import { installSuperEvo } from "./superevo.ts";
+import { installClockStar } from "./clockstar.ts";
 import { fuseCollect, fuseState, installYabiStudy, type LabDeps, type LabRec } from "./yabistudy.ts";
 import { endModParty, installMods, stashModPets, type ModRec } from "./mods.ts";
 import { sceneOfRoom, World, type XtContext } from "./server.ts";
@@ -56,6 +57,7 @@ import { installSevenStar, type SevenStarRec } from "./sevenstar.ts";
 import { installKingBosses, type KingRec } from "./kingbosses.ts";
 import { installFightKing, type WushenRec } from "./fightking.ts";
 import { installGodBosses, SOUL_STONE_PRICE, ABYSS, type GodRec } from "./godbosses.ts";
+import { installQuestFights } from "./questfights.ts";
 import { installWnKing, WNK_ITEM_ROWS, type WnkRec } from "./wnking.ts";
 import { isGiftBag, openGiftBag, openHeldGiftBags } from "./giftbags.ts";
 
@@ -1111,20 +1113,20 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     if (sign > 0 && !isQuestItem(Number(mi))) return;
     const rec = await me(ctx);
     const items = (rec.items!["2"] ??= {});
-    if (once && (items[mi] ?? 0) > 0) return;
     const row = (await table())["2"]?.[mi];
     const maxQ = row ? Math.max(1, row[3]) : 999;
     const before = items[mi] ?? 0;
-    const after = sign > 0 ? Math.min(maxQ, before + qt) : Math.max(0, before - qt);
-    if (after === before) return;
-    if (after > 0) items[mi] = after;
-    else delete items[mi];
-    ctx.reply({ amount: `2_${mi}_0_${after - before}` }, "onAmountUpdated");
-    const r = stepsByItems(rec, emu.clock.now().getTime());
-    for (const [ii, n] of r.taken) ctx.reply({ amount: `2_${ii}_0_${-n}` }, "onAmountUpdated");
-    for (const c of r.changes) ctx.reply({ t: c.t, ty: c.ty }, "10-1");
-    if (r.score !== undefined) ctx.reply({ score: r.score }, "onScoreUpdated");
-    await save(rec);
+    const after = once && before > 0 ? before : sign > 0 ? Math.min(maxQ, before + qt) : Math.max(0, before - qt);
+    if (after !== before) {
+      if (after > 0) items[mi] = after;
+      else delete items[mi];
+      ctx.reply({ amount: `2_${mi}_0_${after - before}` }, "onAmountUpdated");
+    }
+    // Also when the hand-out changes nothing (the item kept from an attempt dropped, at its most):
+    // the step waiting for it finishes all the same.
+    const out = settleTasks(world, rec, { changes: [] }, emu.clock.now().getTime());
+    for (const [cmd, body] of out) ctx.reply(body, cmd);
+    if (after !== before || out.length) await save(rec);
   };
   world.xt("MaterialExtension.14_8", (ctx) => questItem(ctx, false, 1));
   world.xt("MaterialExtension.14_6", (ctx) => questItem(ctx, true, 1));
@@ -1296,16 +1298,24 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     ready: taskTables,
     dev: opts.dev,
     standalone: opts.standalone,
-    onFinish: async (o, task) => {
-      const rw = QUEST_REWARDS[task];
+    // A quest finished, however (a step the client names, an item had, a task 亚比 beaten): its
+    // 任务奖励 (tasks.ts questReward). The 亚比 tables are in by then (petTables: a quest's steps
+    // come after the bag is shown).
+    onFinish: (o, task) => {
+      const rw = questReward(task);
       if (!rw) return [];
       const rec = o as UserRecord;
+      const t = petTables;
       const out: [string, Record<string, unknown>][] = [];
       if (rw.score) {
-        rec.score = (rec.score ?? 0) + rw.score;
+        rec.score = Math.min(MONEY_MAX, (rec.score ?? 0) + rw.score);
         out.push(["onScoreUpdated", { score: rec.score }]);
       }
-      if (rw.petExp && rec.pets?.[0]) gainExp(await tables(), rec.pets[0], rw.petExp);
+      if (rw.jingdou) rec.jingdou = Math.min(MONEY_MAX, (rec.jingdou ?? 0) + rw.jingdou);
+      const first = rec.pets?.[0];
+      if (rw.petExp && first && speciesOf(t, first.race)) {
+        out.push(...(gainExp(t, first, rw.petExp).msgs as [string, Record<string, unknown>][]));
+      }
       for (const [type, ids] of Object.entries(rw.items ?? {})) {
         const bag = ((rec.items ??= {})[type] ??= {});
         for (const [id, n] of Object.entries(ids)) {
@@ -1313,7 +1323,13 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
           out.push(["onAmountUpdated", { amount: `${type}_${id}_0_${n}` }]);
         }
       }
-      if (rw.vipPet && rec.vip) out.push(...(await givePetTo(rec, rw.vipPet, 1)));
+      if (rw.vipPet && rec.vip && speciesOf(t, rw.vipPet)) {
+        const pet = newPet(rec, t, rw.vipPet, 1, today());
+        if ((rec.pets ??= []).length < 6) {
+          rec.pets.push(pet);
+          out.push(["2201", { pm: detailOf(pet, rec, t) }]);
+        } else (rec.storage ??= []).push(pet);
+      }
       return out;
     },
   });
@@ -1417,6 +1433,9 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     today,
     now: () => emu.clock.now().getTime(),
   });
+
+  // The story quests' fights with a character's team (54_22 types 17, 48 and 21): questfights.ts.
+  installQuestFights(world);
 
   // 天空之神, 施瓦辛格, 波塞冬 and 魔龙之战: godbosses.ts.
   installGodBosses(world, {
@@ -1568,6 +1587,8 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   });
   // 亚比超进化 (the 超进化机, pet/superevolution): the same 54e_1, for the 亚比 that have a fourth form.
   installSuperEvo(world, { load: me, save: (o) => save(o as UserRecord), tables });
+  // 时钟大殿's three clocks and 泽秒's 进化 into 泽时: clockstar.ts.
+  installClockStar(world, { load: me, save: (o) => save(o as UserRecord), tables });
 
   // 黑星堡垒 (viparena, VipArenaClient, VipTowerExtension): the floors one has reached and passed
   // (VipArenaLevelManager). Floor n is reached on entering its first room (viparena1, 4, 7) and

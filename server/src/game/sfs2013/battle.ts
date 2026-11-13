@@ -31,7 +31,7 @@
 
 import { MONEY_MAX } from "./money.ts";
 import { recordWin } from "./wins.ts";
-import { stepsByPetWin, type TaskOwner } from "./tasks.ts";
+import { settleTasks, stepsByPetWin, type TaskOwner } from "./tasks.ts";
 import { wildDrop, type ActsOwner } from "./planetacts.ts";
 import { FB_TIMES, betterGrade, ensureFbSpecies, fbBossBeaten, fbByName, fbGrade, fbOfRoom, fbPay, fbRoomPets, fbSpecies, FBS, type FbRec } from "./fb.ts";
 import {
@@ -2280,8 +2280,10 @@ export function installBattles(world: World, deps: BattleDeps): void {
   world.xt("PetExtension.54_2", async (ctx) => {
     const asked = Number(ctx.params.level);
     const id = Number(ctx.params.raceId);
-    const onWin: Battle["onWin"] = (o) =>
-      stepsByPetWin(o as TaskOwner, id, deps.now?.() ?? Date.now()).changes.map((c): Msg => ["10-1", { t: c.t, ty: c.ty }]);
+    const onWin: Battle["onWin"] = (o) => {
+      const now = deps.now?.() ?? Date.now();
+      return settleTasks(world, o as TaskOwner, stepsByPetWin(o as TaskOwner, id, now), now);
+    };
     // A fair server (the 工具箱 closed): a level a client asks is at most FAIR_ABOVE over his
     // strongest 亚比 (any species at Lv100 would be experience for nothing).
     const fairCap = async (level: number) => {

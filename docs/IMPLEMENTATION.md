@@ -184,6 +184,8 @@ repeat a value counts as the value).
 | `pets.ts`, `pmdata.ts` | 亚比: creation, stats, skills, experience, evolution, the bag and the 仓库 |
 | `battle.ts` | battles: wild 亚比, task 亚比, bosses, NPC challenges, 黑星堡垒, 时空隧道, 副本 fights, the 沙盒 |
 | `tasks.ts` | quest progress, steps the server finishes itself, rewards |
+| `questfights.ts` | the quests' fights with a character's team (54_22 types 17, 48, 21) |
+| `clockstar.ts` | 时钟大殿's three clocks and 泽时进化 |
 | `house.ts`, `plants.ts`, `zoo.ts`, `eggs.ts` | the 小屋, the 植树盆, the 动物园 and 生态园 games, the 亚比孵化器 |
 | `shoot.ts` | 射击 cards and effects |
 | `minigames.ts`, `parkour.ts` | mini game scores, 斑比向前冲, 极限轰炸, 酷跑星世界 |
@@ -469,7 +471,19 @@ conversation for them. Names and greetings come from the later
 until the scene is left. The conversations come from the later client
 (`TaskTalkData`), because the 2013 tables are lost. The server finishes two
 kinds of steps itself, as the scripts expect: a step that needs items (once
-the player has them) and a step that needs a task 亚比 beaten.
+the player has them) and a step that needs a task 亚比 beaten. After any change
+to the steps (`settleTasks`) the item steps being done are looked at again, so
+one whose items the player already has finishes when it starts (a quest
+dropped and taken up again), and a finished quest gives its reward however it
+finished (`questReward`: the 任务奖励 read from the 177 end panels, `taskpanel/
+tp<id>`). The fights with a character's team that 30 scripts start (54_22
+type 17 {npc}, 1 to 42) are `questfights.ts`: the teams are lost, so each is
+RECONSTRUCTED from its script, and fought only while its quest is being done.
+
+`task/taskextmanager` holds a task action said while the scene's scripts are
+not running yet and says it again once they are: a quest's mini game says how
+it went when the scene comes back (`game/brickgame`), and the scene and its
+scripts are entered again here rather than kept under the game.
 
 The newbie quest's scripts (135, 140, 150) were replaced on the CDN by later
 versions and are rebuilt after the official walkthrough of December 2011.

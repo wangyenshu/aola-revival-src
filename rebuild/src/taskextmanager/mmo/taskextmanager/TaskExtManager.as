@@ -2,6 +2,7 @@ package mmo.taskextmanager
 {
    import flash.events.EventDispatcher;
    import flash.utils.getDefinitionByName;
+   import flash.utils.getTimer;
    import mmo.interfaces.InitServiceEvent;
    import mmo.interfaces.ServiceContainer;
    import mmo.interfaces.task.ITaskService;
@@ -30,11 +31,22 @@ package mmo.taskextmanager
     * every scene while their task is being done and look at the scene
     * themselves. A task that starts in the middle of a scene gets its script
     * at once.
+    *
+    * A task action said while the scene's scripts are not there yet (between a
+    * scene going and its scripts running) is held and said again once they run:
+    * a task's mini game says how it went when the scene it came from is back
+    * (冰之迷阵, game/brickgame: "Task26_Game_Win" on SCENE_INITED), while the
+    * scene's scripts are still loading (the 2013 engine kept the scene and its
+    * scripts under the game; here it is entered again).
     */
    public class TaskExtManager extends EventDispatcher implements ITaskExtManager
    {
       private var running:Object = {};
       private var sceneReady:Boolean;
+      /** Task actions said before the scene's scripts ran: {params, at}. */
+      private var held:Array = [];
+      private var replaying:Boolean;
+      private static const HELD_MS:int = 20000;
 
       public function TaskExtManager()
       {
@@ -50,6 +62,7 @@ package mmo.taskextmanager
          TaskEventDispatcher.instance.addEventListener(TaskEvent.ON_TASK_ACTION, function(e:TaskEvent):void
          {
             RLog.log("taskext: action " + (e.params ? e.params.action : ""));
+            if ((!sceneReady || loading()) && !replaying && e.params != null) held.push({params: e.params, at: getTimer()});
          });
          SceneManager.getInstance().addEventListener(SceneManagerEvent.UNLOAD_SCENE, onUnload);
          sceneReady = SceneManager.getInstance().loadedSceneInfo != null && !SceneManager.getInstance().isLoading;
@@ -133,15 +146,47 @@ package mmo.taskextmanager
             var leader:int = int(String(e.file).replace(/\D/g, ""));
             load({file: e.file, cls: e.cls, task: leader, scene: true});
          }
+         sayHeld();
+      }
+
+      /** A script of the scene still loading. */
+      private function loading():Boolean
+      {
+         for (var k:String in running) if (!running[k].done) return true;
+         return false;
+      }
+
+      /** The actions held, said again once every script of the scene runs (or could not load). */
+      private function sayHeld():void
+      {
+         if (held.length == 0 || !sceneReady) return;
+         for (var k:String in running) if (!running[k].done) return;
+         var list:Array = held;
+         held = [];
+         replaying = true;
+         try
+         {
+            for each (var h:Object in list)
+            {
+               if (getTimer() - int(h.at) > HELD_MS) continue;
+               RLog.log("taskext: action said again " + h.params.action);
+               TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_TASK_ACTION, h.params));
+            }
+         }
+         finally
+         {
+            replaying = false;
+         }
       }
 
       private function load(x:Object):void
       {
-         running[x.file] = {task: x.task, scene: x.scene == true, svc: null};
+         running[x.file] = {task: x.task, scene: x.scene == true, svc: null, done: false};
          var sceneAtStart:Object = SceneManager.getInstance().loadedSceneInfo;
          ResScheduler.getResource(x.file, function(o:*):void
          {
             if (running[x.file] == null || SceneManager.getInstance().loadedSceneInfo != sceneAtStart) return;
+            running[x.file].done = true;
             try
             {
                var C:Class = getDefinitionByName(x.cls) as Class;
@@ -158,7 +203,13 @@ package mmo.taskextmanager
             {
                RLog.error("taskext " + x.file, err);
             }
-         }, "", function(e:* = null):void { RLog.log("taskext: cannot load " + x.file); });
+            sayHeld();
+         }, "", function(e:* = null):void
+         {
+            RLog.log("taskext: cannot load " + x.file);
+            if (running[x.file] != null) running[x.file].done = true;
+            sayHeld();
+         });
       }
 
       public function clearTask():void

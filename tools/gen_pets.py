@@ -102,7 +102,7 @@ def main(argv=None) -> None:
         m = re.match(r"(\d+)级", evo)
         s = search.get(i, [])
         attr = int(s[2]) if len(s) > 2 and str(s[2]).isdigit() else 0
-        skills = s[6] if len(s) > 6 and isinstance(s[6], list) else []
+        skills = [str(x).strip() for x in s[6]] if len(s) > 6 and isinstance(s[6], list) else []  # 封魔秘诀 has a space after it
         nxt = 0
         if m and (i + 1) in names:
             nxt = i + 1  # the dictionary lists each line's next form right after it

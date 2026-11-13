@@ -97,6 +97,11 @@ def main(argv=None) -> None:
                 m = re.match(r"(\d+)-(\d+)$", part)
                 if m:
                     learn.append([int(m.group(1)), int(m.group(2))])
+            # A level whose first digit the table lost (月鸟's line: …, 20, 4, 28 …; 宝宝星's: 16, 0,
+            # 24 …): the one between its neighbours, else that skill came at Lv4 / at once.
+            for i in range(1, len(learn) - 1):
+                if learn[i][0] < learn[i - 1][0] and learn[i - 1][0] < learn[i + 1][0]:
+                    learn[i][0] = (learn[i - 1][0] + learn[i + 1][0]) // 2
             if key in battle:
                 learn = []
                 for f in (str(10000 + int(key)), str(20000 + int(key)), str(30000 + int(key))):

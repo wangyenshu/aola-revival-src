@@ -130,6 +130,39 @@ export function stepsByItems(rec: ItemOwner, now: number): TaskResult & { taken:
   return out;
 }
 
+export type TaskReply = [cmd: string, body: Record<string, unknown>];
+const REWARDERS = new WeakMap<World, NonNullable<TaskDeps["onFinish"]>>();
+
+/**
+ * After a change to the steps (a step started or finished by the client, a hand-out, a win): the
+ * item steps being done whose items the player has finish too (by the time a step starts he may
+ * have them already: what a quest hands out once and does not take back stays from an attempt
+ * dropped, and handing it out again changes nothing), and every task finished, however, gives its
+ * reward (questReward, by the deps' onFinish). The replies in order: items taken back, task
+ * updates, 晶币, the rewards.
+ */
+export function settleTasks(world: World | undefined, rec: TaskOwner, r: TaskResult, now: number): TaskReply[] {
+  const changes = [...r.changes];
+  const taken: [number, number][] = [];
+  const finished = [...(r.finished ?? [])];
+  let score = r.score;
+  for (let i = 0; i < 8; i++) {
+    const more = stepsByItems(rec as ItemOwner, now);
+    if (!more.changes.length) break;
+    changes.push(...more.changes);
+    taken.push(...more.taken);
+    finished.push(...(more.finished ?? []));
+    if (more.score !== undefined) score = more.score;
+  }
+  const out: TaskReply[] = [];
+  for (const [ii, n] of taken) out.push(["onAmountUpdated", { amount: `2_${ii}_0_${-n}` }]);
+  for (const c of changes) out.push(["10-1", { t: c.t, ty: c.ty }]);
+  if (score !== undefined) out.push(["onScoreUpdated", { score }]);
+  const give = world ? REWARDERS.get(world) : undefined;
+  if (give) for (const t of finished) out.push(...give(rec, t));
+  return out;
+}
+
 /** A task 亚比 beaten: the steps that ask for it count the win, and finish when there are enough. */
 export function stepsByPetWin(rec: TaskOwner, pet: number, now: number): TaskResult {
   const out: TaskResult = { changes: [] };
@@ -202,17 +235,56 @@ export interface TaskResult {
   finished?: number[];
 }
 
+export interface QuestReward {
+  /** 晶币. */
+  score?: number;
+  /** Experience for the first 亚比 of the bag. */
+  petExp?: number;
+  /** 晶豆. */
+  jingdou?: number;
+  items?: Record<string, Record<string, number>>;
+  /** A 亚比 for a 蓝宝骑士. */
+  vipPet?: number;
+}
+
+/** 流星碎片, the third thing of every 任务奖励. */
+const METEOR = 162;
+const reward = (petExp: number, score: number, meteor: number, jingdou = 0): QuestReward => ({
+  petExp,
+  ...(jingdou ? { jingdou } : { score }),
+  items: { "2": { [METEOR]: meteor } },
+});
+
 /**
- * Rewards of the quests restored from the 2011 supplement (tools/data/task-supplement-2011.json),
- * as their task panels show them (RECONSTRUCTED reading): 赤火斗士的意志 and 纯白之翼的信念 1500
- * experience for the first 亚比, 500 晶币 and 30 流星碎片 (item 162); 赤火剑的力量 艾尔 (228) for a
- * 蓝宝骑士 (the 2013 egg data has no 艾尔 egg). 纯白之翼's 修普 (190) is SundriesExtension 70_52.
+ * What a story quest gives when finished: its end panel's 任务奖励 (taskpanel/tp<id>, the class
+ * TaskData.panels names fincn: 亚比 experience, 晶币 and 流星碎片), read from the 177 panels there
+ * are. Most show 5000, 3000 and 80 (STORY_REWARD); these show others: 1068 and the three after it
+ * 晶豆 (the orange bean) instead of 晶币; 赤火剑的力量 艾尔利克的亚比蛋, given as 艾尔 (228) for a
+ * 蓝宝骑士 (the 2013 egg data has no 艾尔 egg; 纯白之翼's 修普, 190, is SundriesExtension 70_52).
+ * 大地迷城 (3148) and 海洋幻境 (3252) show a 徽章 too, which the 2013 items lack.
  */
-export const QUEST_REWARDS: Record<number, { score?: number; petExp?: number; items?: Record<string, Record<string, number>>; vipPet?: number }> = {
-  1411: { score: 500, petExp: 1500, items: { "2": { "162": 30 } } },
+export const QUEST_REWARDS: Record<number, QuestReward> = {
+  160: reward(6000, 500, 40),
+  166: reward(6000, 500, 50),
+  1411: reward(1500, 500, 30),
+  1652: reward(1500, 500, 30),
   1416: { vipPet: 228 },
-  1652: { score: 500, petExp: 1500, items: { "2": { "162": 30 } } },
+  ...Object.fromEntries([1068, 1434, 1446, 1477].map((q) => [q, reward(10000, 0, 50, 100)])),
+  ...Object.fromEntries([1986, 3022, 3049, 3062, 3079, 3091].map((q) => [q, reward(2500, 1500, 40)])),
+  ...Object.fromEntries([3108, 3121, 3132, 3148, 3174].map((q) => [q, reward(3000, 2000, 50)])),
+  ...Object.fromEntries([3191, 3208, 3232, 3252].map((q) => [q, reward(5000, 3000, 50)])),
 };
+/** The 任务奖励 of the other story quests' end panels. */
+export const STORY_REWARD = reward(5000, 3000, 80);
+/** Story quests without an end panel (it is lost): nothing shown, nothing given. */
+const NO_END_PANEL = new Set([1321, 3330, 3332, 3336, 3338]);
+
+/** What finishing quest `task` gives (the newbie quest's is its bonus, TASK_DEFS). */
+export function questReward(task: number): QuestReward | undefined {
+  if (QUEST_REWARDS[task]) return QUEST_REWARDS[task];
+  if (!TASK_DEFS[task] || TASK_DEFS[task].bonus || [NEWBIE_TASK, 140, 150].includes(task) || NO_END_PANEL.has(task)) return undefined;
+  return STORY_REWARD;
+}
 
 const parentOf = (step: number): number | undefined => {
   for (const [id, d] of Object.entries(TASK_DEFS)) if (d.steps.includes(step)) return Number(id);
@@ -333,8 +405,8 @@ export interface TaskDeps {
   dev?: boolean;
   /** New players have the newbie quest done (a mod played as a game of its own: game.ts). */
   standalone?: boolean;
-  /** A task finished: rewards beside the score (QUEST_REWARDS), as replies [cmd, body]. */
-  onFinish?: (rec: TaskOwner, task: number) => Promise<[string, Record<string, unknown>][]>;
+  /** A task finished: what it gives (questReward) given, as replies [cmd, body]; however it finished. */
+  onFinish?: (rec: TaskOwner, task: number) => TaskReply[];
   /** Another player's record by user name (their HELLO's card, RobotClient.getOtherRobot). */
   byName?: (name: string) => Promise<TaskOwner | undefined>;
 }
@@ -383,6 +455,7 @@ export function skipTo(rec: TaskOwner, step: number, now: number): TaskResult {
 }
 
 export function installTasks(world: World, deps: TaskDeps): void {
+  if (deps.onFinish) REWARDERS.set(world, deps.onFinish);
   const load = async (ctx: XtContext) => {
     await (typeof deps.ready === "function" ? deps.ready() : deps.ready)?.catch(() => undefined);
     return deps.load(ctx);
@@ -404,8 +477,9 @@ export function installTasks(world: World, deps: TaskDeps): void {
   world.xt("TaskExtension.10-3", async (ctx) => {
     const rec = await load(ctx);
     const r = startTask(rec, Number(ctx.params.ti), deps.now());
-    if (r.changes.length) await deps.save(rec);
-    push(ctx, r);
+    const out = settleTasks(world, rec, r, deps.now());
+    if (out.length) await deps.save(rec);
+    for (const [cmd, body] of out) ctx.reply(body, cmd);
   });
   // A step the client says is done. Those the server finishes itself (STEP_RULES: items had, a
   // task 亚比 beaten) are not the client's to say; the others' conditions are the scripts' (the
@@ -414,15 +488,15 @@ export function installTasks(world: World, deps: TaskDeps): void {
   world.xt("TaskExtension.10-2", async (ctx) => {
     const rec = await load(ctx);
     const step = Number(ctx.params.ti);
+    const doing = isDoing(rec, step);
     const r = STEP_RULES[step] ? { changes: [] } as TaskResult : finishStep(rec, step, deps.now());
-    const extra: [string, Record<string, unknown>][] = [];
-    for (const t of r.finished ?? []) if (deps.onFinish) extra.push(...(await deps.onFinish(rec, t)));
-    if (r.changes.length) await deps.save(rec);
-    push(ctx, r);
-    for (const [cmd, body] of extra) ctx.reply(body, cmd);
+    // An item step the client names finishes here too when the player has its items.
+    const out = settleTasks(world, rec, r, deps.now());
+    if (out.length) await deps.save(rec);
+    for (const [cmd, body] of out) ctx.reply(body, cmd);
     // Later scripts send it through ActClientSender.sendMessage, which waits (behind a loading
     // spinner) for a reply of the same command.
-    ctx.reply({ ti: Number(ctx.params.ti), res: r.changes.length ? 1 : 0 }, "10-2");
+    ctx.reply({ ti: step, res: r.changes.length || (doing && isFinished(rec, step)) ? 1 : 0 }, "10-2");
   });
   world.xt("TaskExtension.10-4", async (ctx) => {
     const rec = await load(ctx);

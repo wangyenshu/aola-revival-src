@@ -706,7 +706,19 @@ package mmo.control
                      SocketClient.instance.sendXtMessage("TaskExtension", "revival_task", {ti: int(arg)});
                      return "ok";
                   case "action":
-                     // A task action, as a conversation choice or a mini game sends it (tests/e2e).
+                     // A task action, as a conversation choice or a mini game sends it (tests/e2e);
+                     // "@inited:<action>" at the next scene start, as a mini game left says it.
+                     if (String(arg).indexOf("@inited:") == 0)
+                     {
+                        var later:String = String(arg).substr(8);
+                        var onInited:Function = function(se:SceneManagerEvent):void
+                        {
+                           SceneManager.getInstance().removeEventListener(SceneManagerEvent.SCENE_INITED, onInited);
+                           TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_TASK_ACTION, {action: later}));
+                        };
+                        SceneManager.getInstance().addEventListener(SceneManagerEvent.SCENE_INITED, onInited);
+                        return "later";
+                     }
                      TaskEventDispatcher.instance.dispatchEvent(new TaskEvent(TaskEvent.ON_TASK_ACTION, {action: arg}));
                      return "ok";
                   case "where":
