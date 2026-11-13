@@ -129,8 +129,8 @@ package mmo.pet.petskillmessage
       /**
        * An attribute's icon in a box of 20, the size of the later icons (the panels place, space
        * and scale the box at once, before the icon is loaded): petattribute/attribute<n>.swf,
-       * mmo.pet.attribute<n> (the 2011 icons, 0 to 21); for the others (王, the 超系) the name on
-       * a badge.
+       * mmo.pet.attribute<n> (the 2011 icons, 0 to 21; 王 22 of December 2013 and the 超系 23 to 34
+       * and 999 of December 2014); for any other the name on a badge.
        */
       private static function attributeBox(attr:int):Sprite
       {
@@ -151,7 +151,7 @@ package mmo.pet.petskillmessage
             d.y = 10 - (b.top + b.height / 2) * k;
             box.addChild(d);
          };
-         if (attr >= 0 && attr <= 21)
+         if ((attr >= 0 && attr <= 34) || attr == 999)
          {
             if (RDef.has(cls)) put();
             else ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});

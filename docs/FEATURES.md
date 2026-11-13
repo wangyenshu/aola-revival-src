@@ -23,7 +23,7 @@ were reconstructed; [IMPLEMENTATION.md](IMPLEMENTATION.md) explains how.
 | Bosses | 42 entries of 守护者 and event bosses, 11 NPC challenges, the 道馆 masters, 黑星堡垒, 时空隧道, the 四大副本 bosses |
 | 四大副本 | 幻影冰宫, 倒立金字塔, 蚁族王朝, 恐龙博物馆, three modes each |
 | Mini games | 85 of the 87 game rooms of the 2013 config |
-| 亚比 | 1,604 species in the 图鉴 (1–1651); battles, catching, skills, evolution, eggs, following, riding |
+| 亚比 | 2,437 species in the 图鉴 (1–2395, the 73 超系 forms of those and the 98 that only fight: 究极 forms, 图腾, 星石, bosses' forms); battles, catching, skills, evolution, eggs, following, riding |
 | Added by the revival | the 工具箱 and the 沙盒 with its mods ([GUIDE.md](GUIDE.md)); a mod played or exported as a game of its own ([MODDING.md](MODDING.md)) |
 
 ## Places and NPCs
@@ -887,7 +887,37 @@ run pays 晶豆, as its end panel says.
   then, 金银童子 among them), task 亚比, bosses and NPCs: skills,
   attributes, statuses, items, switching, escaping, the boss films.
   Every skill plays its 亚比's move (special and status skills too) and its
-  animation (all but 5 skills, which have none anywhere).
+  animation (those with none of their own the later generic one for their 属性; status
+  skills without one show only the 亚比's move), the blow landing at the animation's att frame; the 135 that fill the
+  screen (刷屏: 修罗战神诀, 魔·碎神, 月影无踪 …) play over the whole battle screen.
+- 究极亚比 (2014): the 49 究极 lines (神照修罗王 … 虎烈张飞) change in battle with the
+  究极变身 button above the skills (the later client's: 聚能中, 究极变身, 剩余回合 N) into
+  their 究极 form at its top 等级 (三阶, the two 战骑 二阶: no 究极进化仪
+  needed), with the form's own skills and the row's points (体力, 攻击 …) for its 究极回合数
+  (6 at 三阶), once a battle; the later client's change effect plays.
+- 超奥义: the 63 亚比 to 2395 with one (most of them 超系) have the 超奥义 button above the
+  skills (its tip: name, kind, 威力, used or not, what it does), a fifth skill used once a
+  battle, after its own movie over the screen (pet/aoyitakeeffectmovie). All 59 of them work in
+  battle, the later mechanics they name included (states such as 风暴 and 狂战, the marks the
+  亚比's other skills give, 诅咒, 元素, 电能 …); a 战界奥义 changes the battle background
+  while its 亚比 is out (23 backgrounds of the later game).
+- 异常状态 as the later game's icons in a row below each 亚比's name, both sides (睡眠, 中毒,
+  害怕, 诅咒, 麻痹, 混乱, 冰冻, 寄生, 烧伤, 束缚, 衰弱), the rounds left on them; the mouse
+  over one shows its name, what it does and 剩余持续回合数.
+- Skills that change the background: 夜之域 (a starry night, for its 3 rounds) and 星神之域
+  (a star cloud, 4 rounds) besides the 战界奥义 and the 圣域.
+- 圣域 (2014): a field at a time. 41 亚比 of 2014 bring one by their 特性 when they come out
+  (阳炎 and 月华 again every 5 rounds), skills 召唤X圣域; each acts by the later table's rows
+  (阳炎's burns, 幻灵家族's resistance, 万王's floor for 王系 …), its background and icon
+  on the battle screen. The 圣域技能 a 亚比 learns at Lv60 tries at the start of each round
+  in its field (幻雷碎天, 圣武霸体, 狮王之怒 … 31 of them).
+- The skills of 2013–14 by their own words: 若对方已X则 / 若暴击 / 若先出手 or 后手 /
+  伤害超过N / X圣域中 clauses that hold only then, effects on each blow taken or given
+  for some rounds, each round's stage changes, heals and statuses, the next turn's sure hit
+  and drain, 对方每次受到X伤害则… (each time a status hurts the foe), 提升自己…或削弱对方…,
+  吸取对方N点体力值 or 属性等级, 技能威力N%, 概率免疫伤害, 回合末 heals, 护盾, 斩杀, marks with layers,
+  skills set off by name, states, 诅咒, points of values (提升全数值N点); 2,417 of the 3,120
+  skills of the 亚比 to 2395 are read to the last word, every 超奥义 among them.
   A turn has 30 seconds (counted at the top of the battle screen); when they
   run out the screen uses the first skill with uses left, or waits if none
   has (the next 亚比 when a fallen one is to be replaced). The battle screen's
@@ -913,7 +943,9 @@ run pays 晶豆, as its end panel says.
 - Following: the 亚比 walks behind its owner (as its walking figure, or its
   picture where none exists).
 - Riding (坐骑): one of the 34 亚比 of the 2013 ride list, or of the 9 the later client
-  added (飞天ET, 狼王迪洛斯, 赤翼魔龙王, 噬月武神, 黑炎龙, 圣龙战车, 星际旋风, 苍炎战神, 风暴流星),
+  added up to 1651 (飞天ET, 狼王迪洛斯, 赤翼魔龙王, 噬月武神, 黑炎龙, 圣龙战车, 星际旋风, 苍炎战神,
+  风暴流星), or of the 28 it added up to 2395 and the 超系 forms (凌月战神, 格里芬, 光速黑蝠,
+  帝皇真龙, 上古星龙, 烈阳火凤 …),
   for 蓝宝骑士: the rider sits on it, which walks and stands with its own movements, as
   others see it too.
 - The 亚比孵化器 in the 家园: 亚比蛋 from bosses and from the 收费亚比蛋商品册. The eggs of the
@@ -934,8 +966,9 @@ run pays 晶豆, as its end panel says.
   许愿图腾 of 蓝宝石要塞, which is lost.
 - The 亚比图鉴 (the 图鉴 button under 任务, its 2012 icon: the garden's, from the
   January 2012 tutorial picture): the later game's panel (2017) on
-  the 2013 files, with the 亚比 up to 1651 (those after January 2013 from the
-  later game's files, for the 工具箱). A 亚比 is 发现 once fought and 收集 once
+  the 2013 files, with the 亚比 up to 2395 and the 超系 forms of those (those
+  after January 2013 from the later game's files, for the 工具箱); the 属性 of
+  王 and the 超系 have their own icons (petattribute/attribute22–34, 999). A 亚比 is 发现 once fought and 收集 once
   owned ("亚比图鉴有了新的记录" over the player after the fight); 最新发现 shows
   the 亚比 of the 24 January 2013 update. Its 收集 rewards (a 2017 event) are
   not there.

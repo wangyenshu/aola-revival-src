@@ -6,6 +6,7 @@ package mmo.petfightnew
    import com.greensock.TweenLite;
    import flash.display.BlendMode;
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
    import flash.display.FrameLabel;
    import flash.display.GradientType;
    import flash.display.Graphics;
@@ -16,8 +17,11 @@ package mmo.petfightnew
    import flash.events.KeyboardEvent;
    import flash.events.MouseEvent;
    import flash.events.TimerEvent;
+   import flash.filters.ColorMatrixFilter;
    import flash.filters.GlowFilter;
    import flash.geom.Matrix;
+   import flash.geom.Point;
+   import flash.geom.Rectangle;
    import flash.media.Sound;
    import flash.system.ApplicationDomain;
    import flash.text.TextField;
@@ -119,6 +123,13 @@ package mmo.petfightnew
       private var vsName:TextField;
       private var vsIcon:Sprite = new Sprite();
       private var portraitRace:int;
+      /** 究极 (battleView.jj): its button; a form change playing (the views' race not followed meanwhile). */
+      private var bigBtn:BigSkillButton;
+      private var formSwapping:Boolean;
+      /** 圣域 out (battleView.sy): its id, background and icon. */
+      private var fieldId:String = "";
+      private var fieldBack:DisplayObject;
+      private var fieldIcon:Sprite;
 
       private var wheel:Object = {};
       private var current:String = "fight";
@@ -133,6 +144,11 @@ package mmo.petfightnew
       private var unread:Boolean;
       private var catchTip:Sprite;
       private var tooltip:Sprite;
+      /** The tip up is a 异常状态 icon's (it stays when the panel's pages are redrawn). */
+      private var statusTipUp:Boolean = false;
+      /** Each side's 异常状态 icons, in a row below its name (StatusIcons). */
+      private var myStatus:StatusIcons;
+      private var vsStatus:StatusIcons;
 
       private var queue:Array = [];
       private var busy:Boolean = true;
@@ -382,6 +398,11 @@ package mmo.petfightnew
          myName = FightSkin.label("", 12, 0x1D4F7A, 0xFFFFFFFF, true, TextFormatAlign.CENTER);
          myName.y = 21;
          ui.addChild(myName);
+         myStatus = new StatusIcons(statusTip, hideTooltip);
+         myStatus.name = "myStatus";
+         // Below the name, in a row of their own.
+         myStatus.y = 41;
+         ui.addChild(myStatus);
          var ring:Shape = new Shape();
          g = ring.graphics;
          g.lineStyle(2, 0x1E6FA8);
@@ -632,7 +653,9 @@ package mmo.petfightnew
       {
          vsTag.x = FAR[0];
          vsTag.y = FAR[1] + 12;
-         vsTag.mouseEnabled = vsTag.mouseChildren = false;
+         // Only its 异常状态 icons take the mouse (their tips).
+         vsTag.mouseEnabled = false;
+         vsIcon.mouseEnabled = vsIcon.mouseChildren = false;
          vsBar.x = -42;
          vsTag.addChild(vsBar);
          vsIcon.x = -50;
@@ -642,6 +665,10 @@ package mmo.petfightnew
          vsName.x = -40;
          vsName.y = 11;
          vsTag.addChild(vsName);
+         vsStatus = new StatusIcons(statusTip, hideTooltip);
+         vsStatus.name = "vsStatus";
+         vsStatus.y = 30;
+         vsTag.addChild(vsStatus);
          ui.addChild(vsTag);
       }
 
@@ -735,9 +762,389 @@ package mmo.petfightnew
 
       private function refresh(animate:Boolean):void
       {
+         followForm(0);
+         followForm(1);
          refreshSide(0, animate);
          refreshSide(1, animate);
          if (current == "fight") showPage("fight");
+         showBig();
+         showField();
+      }
+
+      // ---------------------------------------------------------------- 究极 and 圣域 (the later battle's, 2014)
+
+      /** battleView.jj of my side: {can, left, used, to}, or null for a 亚比 with no 究极. */
+      private function jiuji():Object
+      {
+         try { return me.battleView.jj || null; } catch (e:Error) {}
+         return null;
+      }
+
+      /** battleView.ao of my side: {id, n, t, p, d, used}, or null for a 亚比 with no 超奥义. */
+      private function aoyi():Object
+      {
+         try { return me.battleView.ao || null; } catch (e:Error) {}
+         return null;
+      }
+
+      private static const AOYI_NAMES:Array = ["强袭奥义", "潜能奥义", "战界奥义", "神化奥义", "BOSS克星"];
+
+      /** The big-skill button's kind for my 亚比: "jj" (究极), "ao" (超奥义) or "". */
+      private function bigKind():String
+      {
+         return jiuji() != null ? "jj" : (aoyi() != null ? "ao" : "");
+      }
+
+      /**
+       * The big-skill button over the four skills, as the later skill panel has it (its BigSkillMC
+       * above the skill buttons): 究极 (BigSkillMCHandler_ChangeView: 聚能中 while it gathers,
+       * 究极变身 when it can, 剩余回合 N while changed) or 超奥义 (BigSkillMCHandler_AoYi: grey once
+       * used). The skills move down under it; nothing else moves.
+       */
+      private function putBig():void
+      {
+         if (bigKind() == "") return;
+         if (bigBtn == null)
+         {
+            bigBtn = new BigSkillButton();
+            bigBtn.name = "bigSkillButton";
+            bigBtn.mouseChildren = false;
+            bigBtn.scaleX = bigBtn.scaleY = BIG_SCALE;
+            bigBtn.addEventListener(MouseEvent.CLICK, onBig);
+            bigBtn.addEventListener(MouseEvent.ROLL_OVER, onBigOver);
+            bigBtn.addEventListener(MouseEvent.ROLL_OUT, hideTooltip);
+            // Centred over the panel by the 究极变身 plate.
+            bigBtn.show(2);
+            var r:Rectangle = bigBtn.getBounds(bigBtn);
+            bigBtn.x = PANEL_X + 71 - (r.x + r.width / 2) * BIG_SCALE;
+            bigBtn.y = PANEL_Y + 34 - (r.y + r.height / 2) * BIG_SCALE;
+         }
+         page.addChild(bigBtn);
+         showBig();
+      }
+
+      private static const BIG_SCALE:Number = 0.8;
+      /** How far the skills move down under the button, and the attribute row under them. */
+      private static const BIG_ROOM:int = 40;
+      private static const BIG_ROOM_MATCHUP:int = 34;
+
+      private function bigUsable():Boolean
+      {
+         var on:Boolean = commandsOn && !forcedSwitch && forcedSkill() <= 0;
+         var j:Object = jiuji();
+         if (j != null) return on && j.can == true;
+         var a:Object = aoyi();
+         return on && a != null && a.used != true;
+      }
+
+      private function showBig():void
+      {
+         if (bigBtn == null || bigBtn.parent == null) return;
+         var j:Object = jiuji();
+         var a:Object = aoyi();
+         var grey:Boolean = false;
+         if (j != null)
+         {
+            if (int(j.left) > 0) bigBtn.show(3, int(j.left));
+            else if (int(j.wait) > 0) bigBtn.show(1);
+            else
+            {
+               bigBtn.show(2);
+               grey = j.used == true;
+            }
+         }
+         else if (a != null)
+         {
+            bigBtn.show(int(a.t) == 4 ? 8 : 7);
+            grey = a.used == true;
+         }
+         else
+         {
+            bigBtn.visible = false;
+            return;
+         }
+         bigBtn.visible = true;
+         bigBtn.filters = grey ? [new ColorMatrixFilter([0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0, 0, 0, 1, 0])] : [];
+         bigBtn.buttonMode = bigBtn.useHandCursor = bigUsable();
+      }
+
+      private function onBig(e:MouseEvent):void
+      {
+         if (jiuji() != null) onJiuji(e);
+         else onAoyi(e);
+      }
+
+      /** 超奥义's tip (the later BigSkillMCHandler_AoYi's words). */
+      private function onBigOver(e:MouseEvent):void
+      {
+         var a:Object = aoyi();
+         if (a == null || jiuji() != null) return;
+         var title:String = String(a.n) + "（" + (AOYI_NAMES[int(a.t)] || "") + "）";
+         var body:String = int(a.t) == 4 ? String(a.d) : "威力：" + (int(a.p) < 0 ? "-" : String(int(a.p))) + (a.used == true ? "\t已使用\n" : "\t未使用\n") + String(a.d) + "\n每场战斗超奥义仅可使用一次";
+         showTooltip(title, body, bigBtn.x - 196, PANEL_Y + 20);
+      }
+
+      /** 超奥义: its skill, as a skill of the four (once a battle). */
+      private function onAoyi(e:MouseEvent):void
+      {
+         e.stopPropagation();
+         var a:Object = aoyi();
+         if (closed || a == null || !bigUsable()) return;
+         hideTooltip();
+         setCommands(false);
+         PetClient.instance.useSkill(int(a.id), 1);
+      }
+
+      /**
+       * The 超奥义's movie before its blow (the later AoYiMovieHelper: pet/aoyitakeeffectmovie/
+       * aoyitakeeffectmoviebase, its mc holding aoyitakeeffectmovie<race>, over the whole screen).
+       */
+      private function playAoyiMovie(race:int, then:Function):void
+      {
+         var done:Boolean = false;
+         var base:MovieClip;
+         var guard:Timer = new Timer(15000, 1);
+         var end:Function = function(... a):void
+         {
+            if (done) return;
+            done = true;
+            guard.stop();
+            if (base)
+            {
+               base.stop();
+               if (base.parent) base.parent.removeChild(base);
+            }
+            then();
+         };
+         guard.addEventListener(TimerEvent.TIMER_COMPLETE, end);
+         guard.start();
+         var id:int = race % 10000;
+         var baseCls:String = "mmo.petfightnew.TakeEffectMovieBase";
+         var raceCls:String = "mmo.petfightnew.TakeEffectMovie" + id;
+         var play:Function = function(... a):void
+         {
+            if (done || closed) { end(); return; }
+            if (!ApplicationDomain.currentDomain.hasDefinition(baseCls) || !ApplicationDomain.currentDomain.hasDefinition(raceCls)) { end(); return; }
+            base = new (getDefinitionByName(baseCls) as Class)() as MovieClip;
+            var pic:DisplayObject = new (getDefinitionByName(raceCls) as Class)() as DisplayObject;
+            var holder:DisplayObjectContainer = base ? base.getChildByName("mc") as DisplayObjectContainer : null;
+            if (base == null || pic == null || holder == null || base.totalFrames < 2) { end(); return; }
+            holder.addChild(pic);
+            base.x = base.y = 0;
+            popupLayer.addChild(base);
+            base.addFrameScript(base.totalFrames - 1, end);
+            base.gotoAndPlay(1);
+         };
+         var getRace:Function = function(... a):void
+         {
+            if (ApplicationDomain.currentDomain.hasDefinition(raceCls)) play();
+            else ResScheduler.getResource("pet/aoyitakeeffectmovie/aoyitakeeffectmovie" + id, play, raceCls, function(e:* = null):void { end(); });
+         };
+         if (ApplicationDomain.currentDomain.hasDefinition(baseCls)) getRace();
+         else ResScheduler.getResource("pet/aoyitakeeffectmovie/aoyitakeeffectmoviebase", getRace, baseCls, function(e:* = null):void { end(); });
+      }
+
+      private function onJiuji(e:MouseEvent):void
+      {
+         e.stopPropagation();
+         var j:Object = jiuji();
+         if (closed || !commandsOn || j == null || j.can != true || forcedSwitch) return;
+         hideTooltip();
+         setCommands(false);
+         addLog("你选择了究极进化！");
+         SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1407", {reqPSId: 0, turn: turn});
+      }
+
+      /**
+       * 2417: my 亚比 changes into its 究极 form: the later ChangeViewEffectUp over it, the form
+       * in its place, ChangeViewEffectDown (petfightres/changeviewres), then the round goes on.
+       */
+      private function changeForm(p:Object):void
+      {
+         addLines(p.desc);
+         if (p.refused)
+         {
+            setCommands(true);
+            later(0);
+            return;
+         }
+         takeViews(p.pmmList as Array);
+         formSwapping = true;
+         var at:Array = holder(true);
+         var swap:Function = function():void
+         {
+            var old:FightPetView = myView;
+            myView = makePetView(true, function():void
+            {
+               if (old) old.dispose();
+               formSwapping = false;
+               refresh(true);
+               sound("x7005");
+            });
+         };
+         var play:Function = function(cls:String, then:Function):void
+         {
+            if (closed || !ApplicationDomain.currentDomain.hasDefinition(cls)) { then(); return; }
+            var C:Class = getDefinitionByName(cls) as Class;
+            var mc:MovieClip = new C() as MovieClip;
+            if (mc == null || mc.totalFrames < 2) { then(); return; }
+            mc.x = at[0];
+            mc.y = at[1];
+            fxLayer.addChild(mc);
+            mc.addFrameScript(mc.totalFrames - 1, function():void
+            {
+               mc.stop();
+               if (mc.parent) mc.parent.removeChild(mc);
+               then();
+            });
+            mc.gotoAndPlay(1);
+         };
+         var go:Function = function(... a):void
+         {
+            play("mmo.petfightnew.common.ChangeViewEffectUp", function():void
+            {
+               swap();
+               play("mmo.petfightnew.common.ChangeViewEffectDown", function():void { later(0.3); });
+            });
+         };
+         if (ApplicationDomain.currentDomain.hasDefinition("mmo.petfightnew.common.ChangeViewEffectUp")) go();
+         else ResScheduler.getResource("petfightres/changeviewres", go, "mmo.petfightnew.common.ChangeViewEffectUp", function(e:* = null):void
+         {
+            swap();
+            later(0.3);
+         });
+      }
+
+      /** A side's 亚比 shown in another form than its view (究极 over): the view follows. */
+      private function followForm(slot:int):void
+      {
+         var v:FightPetView = petViewOf(slot);
+         if (formSwapping || v == null || int(view(sideView(slot)).r) == v.race || int(view(sideView(slot)).r) <= 0) return;
+         var mine:Boolean = slot == 0;
+         var nv:FightPetView = makePetView(mine, function():void { v.dispose(); });
+         if (mine) myView = nv;
+         else vsView = nv;
+         nv.alpha = 0;
+         TweenLite.to(nv, 0.4, {alpha: 1});
+      }
+
+      /** battleView.sy of either side: {id, n, d}, or null. */
+      private function fieldOut():Object
+      {
+         for each (var v:Object in [me, vs])
+         {
+            try { if (v.battleView.sy) return v.battleView.sy; } catch (e:Error) {}
+         }
+         return null;
+      }
+
+      /** The background out: a skill's (battleView.bg of either side: 夜之域, 星神之域, a 战界奥义), else the 圣域's. */
+      private function backOut():String
+      {
+         for each (var v:Object in [me, vs])
+         {
+            try { if (v.battleView.bg) return String(v.battleView.bg); } catch (e:Error) {}
+         }
+         var f:Object = fieldOut();
+         return f ? "306_" + String(f.id) : "";
+      }
+
+      /**
+       * 圣域: its icon at the top with its name and words (petfightbsicon/icon_306_<id>), as the
+       * later BackGroundViewHandler showed it; the background is showBack's.
+       */
+      private function showField():void
+      {
+         showBack();
+         var f:Object = fieldOut();
+         var id:String = f ? String(f.id) : "";
+         if (id == fieldId) return;
+         fieldId = id;
+         if (fieldIcon && fieldIcon.parent) fieldIcon.parent.removeChild(fieldIcon);
+         fieldIcon = null;
+         if (id == "") return;
+         var key:String = "306_" + id;
+         var title:String = String(f.n) + "圣域";
+         var words:String = String(f.d || "");
+         fieldIcon = new Sprite();
+         fieldIcon.name = "fieldIcon";
+         fieldIcon.x = 480;
+         fieldIcon.y = 78;
+         fieldIcon.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void { showTooltip(title, words, 380, 110); });
+         fieldIcon.addEventListener(MouseEvent.ROLL_OUT, hideTooltip);
+         ui.addChild(fieldIcon);
+         var icon:Sprite = fieldIcon;
+         var cls:String = "mmo.petfightnew.BSIcon_" + key;
+         ResScheduler.getResource("petfightbsicon/icon_" + key, function(... a):void
+         {
+            if (closed || !ApplicationDomain.currentDomain.hasDefinition(cls)) return;
+            var C:Class = getDefinitionByName(cls) as Class;
+            var d:DisplayObject = new C() as DisplayObject;
+            if (d == null) return;
+            d.x = -0.5 * d.width;
+            d.y = -0.6 * d.height;
+            icon.addChild(d);
+         }, cls, function(e:* = null):void {});
+      }
+
+      /** The key of the background shown ("" the room's). */
+      private var backKey:String = "";
+
+      /**
+       * A skill's or a 圣域's background over the room's, as the later BackGroundViewHandler
+       * changed it: skillbackground/skillbackground_<key>, its BackGroundAppearMovie<key> played
+       * once, then BackGroundMovie<key> stays; when it goes, BackGroundDisappearMovie<key> plays.
+       */
+      private function showBack():void
+      {
+         var key:String = backOut();
+         if (key == backKey) return;
+         var old:String = backKey;
+         backKey = key;
+         if (fieldBack && fieldBack.parent) fieldBack.parent.removeChild(fieldBack);
+         fieldBack = null;
+         var dis:String = "BackGroundDisappearMovie" + old;
+         if (old != "" && ApplicationDomain.currentDomain.hasDefinition(dis))
+         {
+            var D:Class = getDefinitionByName(dis) as Class;
+            var gone:MovieClip = new D() as MovieClip;
+            if (gone && gone.totalFrames > 1)
+            {
+               bgLayer.addChild(gone);
+               gone.addFrameScript(gone.totalFrames - 1, function():void
+               {
+                  gone.stop();
+                  if (gone.parent) gone.parent.removeChild(gone);
+               });
+               gone.gotoAndPlay(1);
+            }
+         }
+         if (key == "") return;
+         var put:Function = function(... a):void
+         {
+            if (closed || backKey != key) return;
+            var appear:String = "BackGroundAppearMovie" + key, still:String = "BackGroundMovie" + key;
+            var show:Function = function():void
+            {
+               if (closed || backKey != key || !ApplicationDomain.currentDomain.hasDefinition(still)) return;
+               var S:Class = getDefinitionByName(still) as Class;
+               fieldBack = new S() as DisplayObject;
+               if (fieldBack) bgLayer.addChild(fieldBack);
+            };
+            if (!ApplicationDomain.currentDomain.hasDefinition(appear)) { show(); return; }
+            var A:Class = getDefinitionByName(appear) as Class;
+            var mc:MovieClip = new A() as MovieClip;
+            if (mc == null || mc.totalFrames < 2) { show(); return; }
+            bgLayer.addChild(mc);
+            mc.addFrameScript(mc.totalFrames - 1, function():void
+            {
+               mc.stop();
+               if (mc.parent) mc.parent.removeChild(mc);
+               show();
+            });
+            mc.gotoAndPlay(1);
+         };
+         ResScheduler.getResource("skillbackground/skillbackground_" + key, put, "BackGroundMovie" + key, function(e:* = null):void { RLog.log("fight: no background " + key); });
       }
 
       private function refreshSide(slot:int, animate:Boolean):void
@@ -745,11 +1152,19 @@ package mmo.petfightnew
          var v:Object = sideView(slot);
          var s:Object = view(v);
          var hp:int = hpOf(v), max:int = maxHpOf(v);
-         var st:String = s.st ? " [" + String(s.st).split(",").join("][") + "]" : "";
+         // The 异常状态 with an icon go below the name as icons (pmSView.sts); the rest
+         // (风暴 and the other states, 护盾N) stay words in brackets after it.
+         var words:Array = [];
+         for each (var w:String in (s.st ? String(s.st).split(",") : [])) if (!StatusIcons.hasIcon(w)) words.push(w);
+         var st:String = words.length ? " [" + words.join("][") + "]" : "";
+         var icons:StatusIcons = slot == 0 ? myStatus : vsStatus;
+         icons.show(s.sts is Array ? s.sts as Array : null);
+         var iconW:Number = icons.count ? icons.count * (StatusIcons.W + 2) - 2 : 0;
          if (slot == 0)
          {
             myName.text = petName(v) + st;
             myName.x = 673 - myName.width / 2;
+            myStatus.x = Math.round(673 - iconW / 2);
             TextField(myLv.getChildByName("lv")).text = String(int(s.lv));
             TextField(myLv.getChildByName("lv")).x = -TextField(myLv.getChildByName("lv")).width / 2;
             myHpText.text = hp + "/" + max;
@@ -763,6 +1178,7 @@ package mmo.petfightnew
          else
          {
             vsName.text = "Lv" + int(s.lv) + petName(v) + st;
+            vsStatus.x = vsName.x + 2;
             FightSkin.attributeIcon(vsIcon, attrOf(v), 16);
          }
          var shown:Object = hpShown[slot];
@@ -1004,6 +1420,7 @@ package mmo.petfightnew
          WheelButton(wheel.catch).enabled = on && canCatch;
          WheelButton(wheel.pet).enabled = (on && canSwitch) || forcedSwitch;
          WheelButton(wheel.escape).enabled = on && canEscape;
+         showBig();
          for (var i:int = 0; i < page.numChildren; i++)
          {
             var c:DisplayObject = page.getChildAt(i);
@@ -1032,7 +1449,7 @@ package mmo.petfightnew
          current = n;
          for each (var key:String in ["fight", "item", "catch", "pet"]) WheelButton(wheel[key]).selected = key == n;
          while (page.numChildren) page.removeChildAt(0);
-         hideTooltip();
+         if (!statusTipUp) hideTooltip();
          if (catchTip && catchTip.parent) catchTip.parent.removeChild(catchTip);
          if (n == "fight") fightPage();
          else if (n == "catch") itemPage(true);
@@ -1046,12 +1463,13 @@ package mmo.petfightnew
       {
          var b:Object = brief(me);
          var skills:Array = b ? (b.skills as Array) || [] : [];
+         var room:Boolean = bigKind() != "";
          for (var i:int = 0; i < 4; i++)
          {
             var row:SkillRow = new SkillRow(skills[i]);
             row.name = "fightSkill" + i;
             row.x = PANEL_X + 5;
-            row.y = PANEL_Y + 20 + i * 50;
+            row.y = PANEL_Y + 20 + i * 50 + (room ? BIG_ROOM : 0);
             if (skills[i])
             {
                row.addEventListener(MouseEvent.CLICK, onSkill);
@@ -1060,8 +1478,9 @@ package mmo.petfightnew
             }
             page.addChild(row);
          }
+         putBig();
          var mult:Number = matchup();
-         var y:int = PANEL_Y + 238;
+         var y:int = PANEL_Y + 238 + (room ? BIG_ROOM_MATCHUP : 0);
          var mineIcon:Sprite = new Sprite();
          mineIcon.x = PANEL_X + 116;
          mineIcon.y = y + 12;
@@ -1118,6 +1537,7 @@ package mmo.petfightnew
       {
          hideTooltip();
          tooltip = new Sprite();
+         tooltip.name = "fightTip";
          tooltip.mouseEnabled = tooltip.mouseChildren = false;
          var t1:TextField = FightSkin.label(title, 12, 0xFFFFFF, 0xFFFFFFFF, true, TextFormatAlign.LEFT, "宋体");
          t1.x = 8;
@@ -1143,10 +1563,19 @@ package mmo.petfightnew
          popupLayer.addChild(tooltip);
       }
 
+      /** A 异常状态's tip by its icon: its name, its words, 剩余持续回合数. */
+      private function statusTip(title:String, words:String, icon:DisplayObject):void
+      {
+         var p:Point = popupLayer.globalToLocal(icon.localToGlobal(new Point(0, StatusIcons.H + 4)));
+         showTooltip(title, words, Math.max(4, Math.min(p.x, 960 - 194)), p.y);
+         statusTipUp = true;
+      }
+
       private function hideTooltip(e:MouseEvent = null):void
       {
          if (tooltip && tooltip.parent) tooltip.parent.removeChild(tooltip);
          tooltip = null;
+         statusTipUp = false;
       }
 
       /** 捕捉 (balls) and 道具 (体力糖, 活力豆): the items of IItemService in squares with their counts. */
@@ -1338,6 +1767,9 @@ package mmo.petfightnew
                break;
             case 2411:
                useSkill(p);
+               break;
+            case 2417:
+               changeForm(p);
                break;
             case 2412:
                addLines(p.desc);
@@ -1535,10 +1967,18 @@ package mmo.petfightnew
             if (srt != 2 && int(p.hpInc) < 0) tarView.hurt(step);
             else step();
          };
-         attView.attack(int(p.k), function():void
+         var blow:Function = function():void
          {
-            playEffect(int(p.id), att == 0, p.self == true, impact);
-         }, step);
+            attView.attack(int(p.k), function():void
+            {
+               // The hurt at the animation's "att" frame; the turn goes on when it is over.
+               pending++;
+               playEffect(int(p.id), att == 0, p.self == true, impact, int(p.ge), step);
+            }, step);
+         };
+         var a:Object = aoyi();
+         if (att == 0 && a != null && int(a.id) == int(p.id) && attView) playAoyiMovie(attView.race, blow);
+         else blow();
       }
 
       /**
@@ -1662,12 +2102,23 @@ package mmo.petfightnew
          tick();
       }
 
-      private function playEffect(skillId:int, mine:Boolean, selfTarget:Boolean, done:Function):void
+      /**
+       * A skill's animation: `hit` at its "att" frame (the blow lands, as the later UseSkill's
+       * onStartAttEff shows the hurt then), `after` when it is over (the turn goes on).
+       */
+      private function playEffect(skillId:int, mine:Boolean, selfTarget:Boolean, hit:Function, generic:int = 0, after:Function = null):void
       {
          var cls:String = "mmo.petfight.effect" + skillId;
          var finished:Boolean = false;
+         var landed:Boolean = false;
          var fx:MovieClip;
          var guard:Timer = new Timer(5000, 1);
+         var land:Function = function():void
+         {
+            if (landed) return;
+            landed = true;
+            hit();
+         };
          var end:Function = function(... a):void
          {
             if (finished) return;
@@ -1678,7 +2129,8 @@ package mmo.petfightnew
                fx.stop();
                if (fx.parent) fx.parent.removeChild(fx);
             }
-            done();
+            land();
+            if (after != null) after();
          };
          guard.addEventListener(TimerEvent.TIMER_COMPLETE, end);
          guard.start();
@@ -1689,12 +2141,27 @@ package mmo.petfightnew
             var C:Class = getDefinitionByName(cls) as Class;
             fx = new C() as MovieClip;
             if (fx == null || fx.totalFrames < 2) { end(); return; }
-            // Effects are drawn for the near 亚比 attacking the far one, and mirrored for the far side.
+            // A long one (the 刷屏 big skills) has its own frames' time and some to spare.
+            guard.reset();
+            guard.delay = Math.max(5000, fx.totalFrames * 1000 / 24 + 3000);
+            guard.start();
+            // Effects are drawn for the near 亚比 attacking the far one, and mirrored for the far side;
+            // in the order of the later battle module's UseSkill.setEffectMovie: on the user (its own
+            // skills, "move"), the whole screen unmirrored ("all_notflip": the 刷屏 big skills of the
+            // 究极 and 超系 亚比, 月影无踪 …), the whole screen mirrored for the far side ("all"), the target.
             var A:Array = holder(mine), T:Array = holder(!mine);
             var labels:Array = fx.currentLabels;
             var isMove:Boolean = labelFrame("move", labels) > 0;
             var isAll:Boolean = labelFrame("all", labels) > 0;
-            if (isAll)
+            var isWhole:Boolean = labelFrame("all_notflip", labels) > 0;
+            var flip:Boolean = !mine;
+            if (isWhole && !isMove && !selfTarget)
+            {
+               fx.x = 0;
+               fx.y = 0;
+               flip = false;
+            }
+            else if (isAll && !isMove && !selfTarget)
             {
                fx.x = mine ? 0 : 960;
                fx.y = 0;
@@ -1717,14 +2184,26 @@ package mmo.petfightnew
                fx.x = T[0];
                fx.y = T[1];
             }
-            if (!mine) fx.scaleX = -1;
+            if (flip) fx.scaleX = -1;
             fxLayer.addChild(fx);
+            var attAt:int = labelFrame("att", labels);
+            if (attAt > 0 && attAt < fx.totalFrames) fx.addFrameScript(attAt - 1, land);
             fx.addFrameScript(fx.totalFrames - 1, end);
             fx.gotoAndPlay(1);
          };
-         if (skillId <= 0) end();
+         // A skill with no animation of its own: the later client's generic one for its 属性 and kind
+         // of blow (fightassets/effect100xxxxx, effect2000000x for blows on a whole side).
+         var fallback:Function = function(e:* = null):void
+         {
+            if (finished || generic <= 0 || generic == skillId) { end(); return; }
+            skillId = generic;
+            cls = "mmo.petfight.effect" + generic;
+            if (ApplicationDomain.currentDomain.hasDefinition(cls)) go();
+            else ResScheduler.getResource("fightassets/effect" + generic, go, cls, function(e2:* = null):void { end(); });
+         };
+         if (skillId <= 0) fallback();
          else if (ApplicationDomain.currentDomain.hasDefinition(cls)) go();
-         else ResScheduler.getResource("fightassets/effect" + skillId, go, cls, function(e:* = null):void { end(); });
+         else ResScheduler.getResource("fightassets/effect" + skillId, go, cls, fallback);
       }
 
       private static function labelFrame(name:String, labels:Array):int

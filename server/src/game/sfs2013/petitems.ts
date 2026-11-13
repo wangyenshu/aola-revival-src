@@ -105,7 +105,8 @@ function firstForm(t: PetTables, race: number): number {
   const chain = (speciesOf(t, race)?.evo ?? "")
     .split("#")
     .map((s) => Number(s.split("-")[1]))
-    .filter((r) => r > 0);
+    // (梅卡, 冰沙斗士, 冰摩格, 菲尔 and 可兰 name earlier forms the tables do not have.)
+    .filter((r) => r > 0 && !!speciesOf(t, r));
   return chain.length && chain.includes(race) ? chain[0] : race;
 }
 

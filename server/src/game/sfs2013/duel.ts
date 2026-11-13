@@ -391,6 +391,7 @@ export function installDuels(world: World, deps: DuelDeps) {
     if (name === "1404") return giveUp(d, i);
     if (name === "1402") return me([["2412", { reqSId: 0, itemId: Number(ctx.params.itemId), res: -1, refused: true, desc: "对战中不能使用道具。", pmmList: viewsFor(d, i, e) }]]);
     if (name === "1405") return me([["2415", { reqId: s.id, tarSId: 1, itemId: Number(ctx.params.itemId), pmId: 0, lv: 0, lc: 0, refused: true, desc: "不能捕捉别人的亚比！" }]]);
+    if (name === "1407") return me([["2417", { reqSId: 0, res: 0, refused: true, desc: "对战中不能究极进化。", pmmList: viewsFor(d, i, e) }]]);
     if (name === "1403") {
       const pid = Number(ctx.params.pmId);
       const next = s.pets.find((p) => p.id === pid);

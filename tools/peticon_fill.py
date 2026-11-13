@@ -13,16 +13,26 @@ and adds a sprite placing the file's own _L, scaled to the size of a small pictu
 (about 40 by 44, feet on the origin like the others), bound to mmo.pet.peticon<id>_S.
 Where the class itself is missing, its bytecode is that of a compiled template
 (rebuild/src/peticonfill, class mmo.pet.peticon777777_S) with the name changed.
+
+With --pmdata (and the _L and _F templates) the 亚比 of the revival's tables that have no
+peticon file at all (the 无法获得 ones: 星石, 图腾, 拉贝尔幻影 …; 22 of them) get one made
+from their battle sprite: its standing move (frame 1 of fightassets/pet<id>.swf's
+mmo.petfight.pet<id>_1) scaled into _S, _L and _F. Three have no battle sprite either
+(鲁阿鲁 119, 源第一态 1929, 天启英灵 2295): the later client showed them, as every 亚比 its
+art table did not name, as 圣渊露龙 (PetAssetsMap's 2011), and so do they here, its
+battle sprite copied under their names too.
 Nothing is downloaded; the files in game/ are left as they are.
 
   tools/peticon_fill.py --game game --template out/peticonfill-template.swf \\
-      --out build/rebuilt/www.9aola.com
+      --template-l out/peticonfill-template-l.swf --template-f out/peticonfill-template-f.swf \\
+      --pmdata rebuild/static/www.9aola.com/revival/pmdata.json --out build/rebuilt/www.9aola.com
 """
 from __future__ import annotations
 
 import argparse
 import os
 import re
+import hashlib
 import struct
 import sys
 import zlib
@@ -183,10 +193,10 @@ def _w30(v: int) -> bytes:
             return bytes(out)
 
 
-def renamed_abc(doabc: bytes, race: str) -> bytes:
+def renamed_abc(doabc: bytes, race: str, old: str = TEMPLATE_ID) -> bytes:
     flags = doabc[:4]
     end = doabc.index(b"\0", 4)
-    name = doabc[4:end].decode("utf-8").replace(TEMPLATE_ID, race)
+    name = doabc[4:end].decode("utf-8").replace(old, race)
     abc = doabc[end + 1:]
     p = 4  # minor, major
     n, p = _u30(abc, p)  # ints
@@ -205,11 +215,25 @@ def renamed_abc(doabc: bytes, race: str) -> bytes:
         strings.append(abc[p:p + ln].decode("utf-8"))
         p += ln
     pool = _w30(n) + b"".join(_w30(len(s.encode("utf-8"))) + s.encode("utf-8")
-                             for s in (s.replace(TEMPLATE_ID, race) for s in strings))
+                             for s in (s.replace(old, race) for s in strings))
     return flags + name.encode("utf-8") + b"\0" + head + pool + abc[p:]
 
 
 # --- one file ----------------------------------------------------------------------
+
+# The stock rabbit drawing three 究极 forms' files (2161, 2190, 2244) carry as their small
+# picture, which the game never showed: the placements of its _S, hashed.
+STAND_IN = "8e42279a71a62ac804e7d685a7d3910a10b65500"
+
+
+def stand_in(tags, sid: int) -> bool:
+    for c, d in tags:
+        if c == 39 and struct.unpack_from("<H", d, 0)[0] == sid:
+            inner = read_tags(d, 4)
+            places = b"".join(bytes([c2]) + d2[0:3] + d2[5:] for c2, d2 in inner if c2 == 26)
+            return hashlib.sha1(places).hexdigest() == STAND_IN
+    return False
+
 
 def fill(path: Path, race: str, template_abc: bytes | None):
     version, header, tags = parse(path)
@@ -222,7 +246,7 @@ def fill(path: Path, race: str, template_abc: bytes | None):
     defs = definitions(tags)
     if large not in by_name:
         return None
-    if small in by_name and bounds(defs, by_name[small]) is not None:
+    if small in by_name and bounds(defs, by_name[small]) is not None and not stand_in(tags, by_name[small]):
         return None  # has its own small picture
     lb = bounds(defs, by_name[large])
     if lb is None:
@@ -266,16 +290,209 @@ def fill(path: Path, race: str, template_abc: bytes | None):
     return b"CWS" + bytes([version]) + struct.pack("<I", 8 + len(body)) + zlib.compress(body, 9), need_class
 
 
+# --- whole files for the 亚比 without a peticon file ---------------------------------
+
+# The art the later client fell back on for a 亚比 its PetAssetsMap did not name (圣渊露龙).
+DEFAULT_ART = "2011"
+SIZES = {"_S": (40.0, 44.0, "feet"), "_L": (120.0, 100.0, "feet-15"), "_F": (150.0, 120.0, "centre")}
+
+
+def matrix_full(a: float, b: float, c: float, d: float, tx: float, ty: float) -> bytes:
+    fa, fd, fb, fc = round(a * 65536), round(d * 65536), round(b * 65536), round(c * 65536)
+    twx, twy = round(tx * 20), round(ty * 20)
+    ns, nt = sbits(fa, fd), sbits(twx, twy)
+    fields = [(1, 1), (ns, 5), (fa, ns), (fd, ns)]
+    if fb or fc:
+        nr = sbits(fb, fc)
+        fields += [(1, 1), (nr, 5), (fb, nr), (fc, nr)]
+    else:
+        fields += [(0, 1)]
+    return write_bits(fields + [(nt, 5), (twx, nt), (twy, nt)])
+
+
+def place_info(code: int, d: bytes):
+    """(character id, matrix, instance name) of a PlaceObject2/3."""
+    if code == 26:
+        f, f2, p = d[0], 0, 3
+    elif code == 70:
+        f, f2, p = d[0], d[1], 4
+        if f2 & 8 or (f2 & 16 and f & 2):
+            p = d.index(b"\0", p) + 1
+    else:
+        return None, None, None
+    cid = None
+    if f & 2:
+        cid = struct.unpack_from("<H", d, p)[0]
+        p += 2
+    m = None
+    if f & 4:
+        bits = Bits(d, p)
+        m = read_matrix(bits)
+        p = (bits.p + 7) // 8
+    if f & 8:  # CXFORMWITHALPHA
+        bits = Bits(d, p)
+        add, mul, n = bits.u(1), bits.u(1), bits.u(4)
+        for _ in range((4 if mul else 0) + (4 if add else 0)):
+            bits.s(n)
+        p = (bits.p + 7) // 8
+    if f & 0x10:
+        p += 2
+    name = None
+    if f & 0x20:
+        e = d.index(b"\0", p)
+        name = d[p:e].decode("utf-8", "replace")
+    return cid, m, name
+
+
+def standing(tags, names: dict, art: str):
+    """(character, matrix) of the standing move: frame 1's "mc" (or first child) of pet<art>_1 (or _2)."""
+    by_name = {n: i for i, n in names.items()}
+    sid = by_name.get(f"mmo.petfight.pet{art}_1") or by_name.get(f"mmo.petfight.pet{art}_2")
+    if sid is None:
+        return None
+    for c, d in tags:
+        if c == 39 and struct.unpack_from("<H", d, 0)[0] == sid:
+            first = None
+            for code, data in read_tags(d, 4):
+                if code == T_SHOWFRAME:
+                    break
+                ch, m, nm = place_info(code, data)
+                if ch is None:
+                    continue
+                pick = (ch, m or (1, 0, 0, 1, 0, 0))
+                if nm == "mc":
+                    return pick
+                first = first or pick
+            return first
+    return None
+
+
+def from_sprite(art_path: Path, race: str, art: str, templates: dict):
+    """A peticon file for race made from art's battle sprite."""
+    version, header, tags = parse(art_path)
+    names: dict[int, str] = {}
+    for c, d in tags:
+        if c == T_SYMBOLCLASS:
+            names.update(parse_symbol_class(d))
+    st = standing(tags, names, art)
+    if st is None:
+        return None
+    ch, m = st
+    defs = definitions(tags)
+    a, b, c, d, tx, ty = m[0], m[1], m[2], m[3], m[4], m[5]
+    bb = bounds(defs, ch, (a, b, c, d, tx, ty))
+    if bb is None:
+        return None
+    ids = [struct.unpack_from("<H", dd, 0)[0] for cc, dd in tags if cc in DEFINING and len(dd) >= 2]
+    next_id = max(ids + list(names)) + 1
+    w, h = max(1.0, bb[1] - bb[0]), max(1.0, bb[3] - bb[2])
+    sprites, binds, abcs = [], {}, []
+    for suffix, (fw, fh, anchor) in SIZES.items():
+        k = min(fw / w, fh / h)
+        dx = -(bb[0] + w / 2) * k
+        if anchor == "feet":
+            dy = -bb[3] * k
+        elif anchor == "feet-15":
+            dy = -15 - bb[3] * k
+        else:
+            dy = -(bb[2] + h / 2) * k
+        mat = matrix_full(a * k, b * k, c * k, d * k, tx * k + dx, ty * k + dy)
+        place = bytes([0x06]) + struct.pack("<HH", 1, ch) + mat
+        sprites.append((39, struct.pack("<HH", next_id, 1) + write_tag(26, place) + write_tag(T_SHOWFRAME, b"") + write_tag(0, b"")))
+        binds[next_id] = f"mmo.pet.peticon{race}{suffix}"
+        abcs.append((T_DOABC, renamed_abc(templates[suffix], race)))
+        next_id += 1
+    note = (
+        '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+        '<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">'
+        f"<dc:description>REBUILT peticon{race}: _S, _L and _F made from the standing move of fightassets/pet{art}.swf (tools/peticon_fill.py)</dc:description>"
+        "</rdf:Description></rdf:RDF></x:xmpmeta>"
+    ).encode("utf-8")
+    out = []
+    for cc, dd in tags:
+        if cc in (72, T_DOABC, T_SYMBOLCLASS, 43, 56):  # its own classes, labels and exports go
+            continue
+        if cc == T_METADATA:
+            continue
+        if cc == T_SHOWFRAME:
+            out += sprites + abcs + [(T_SYMBOLCLASS, symbol_class(binds))]
+            sprites, abcs = [], []
+        out.append((cc, dd))
+    i = next((j for j, (cc, _) in enumerate(out) if cc == T_FILEATTR), -1)
+    if i >= 0:
+        out[i] = (T_FILEATTR, bytes([out[i][1][0] | 0x10]) + out[i][1][1:])
+        out.insert(i + 1, (T_METADATA, note))
+    body = header + b"".join(write_tag(cc, dd) for cc, dd in out)
+    return b"CWS" + bytes([version]) + struct.pack("<I", 8 + len(body)) + zlib.compress(body, 9)
+
+
+def alias_sprite(art_path: Path, race: str, art: str):
+    """art's battle sprite file under race's class names (mmo.petfight.pet<race>_1 and _2)."""
+    version, header, tags = parse(art_path)
+    out = []
+    for c, d in tags:
+        if c == T_SYMBOLCLASS:
+            d = symbol_class({i: n.replace(f"pet{art}_", f"pet{race}_") for i, n in parse_symbol_class(d).items()})
+        elif c == T_DOABC:
+            d = renamed_abc(d, f"pet{race}_", f"pet{art}_")
+        out.append((c, d))
+    body = header + b"".join(write_tag(c, d) for c, d in out)
+    return b"CWS" + bytes([version]) + struct.pack("<I", 8 + len(body)) + zlib.compress(body, 9)
+
+
+def first_file(folder: Path, stem: str):
+    if not folder.is_dir():
+        return None
+    hits = sorted(f for f in os.listdir(folder) if f == stem + ".swf" or f.startswith(stem + ".swf%3F"))
+    return folder / hits[0] if hits else None
+
+
+def make_missing(game: Path, out: Path, pmdata: Path, templates: dict) -> list[str]:
+    import json
+    races = sorted((r for r in json.load(open(pmdata, encoding="utf-8"))["species"] if int(r) < 10000), key=int)
+    icons, fights = game / "www.9aola.com" / "peticon", game / "www.9aola.com" / "fightassets"
+    made = []
+    for race in races:
+        if first_file(icons, f"peticon{race}"):
+            continue
+        art = race if first_file(fights, f"pet{race}") else DEFAULT_ART
+        src = first_file(fights, f"pet{art}")
+        if src is None:
+            continue
+        data = from_sprite(src, race, art, templates)
+        if data is None:
+            continue
+        (out / "peticon").mkdir(parents=True, exist_ok=True)
+        (out / "peticon" / f"peticon{race}.swf%3F1210").write_bytes(data)
+        if art != race:
+            (out / "fightassets").mkdir(parents=True, exist_ok=True)
+            (out / "fightassets" / f"pet{race}.swf%3F1210").write_bytes(alias_sprite(src, race, art))
+        made.append(race + ("" if art == race else f"({art})"))
+    return made
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--game", required=True, help="game/ (holding www.9aola.com/peticon)")
     ap.add_argument("--template", help="the compiled template SWF (class mmo.pet.peticon777777_S)")
     ap.add_argument("--out", required=True, help="where www.9aola.com/peticon/... go (e.g. build/rebuilt/www.9aola.com)")
+    ap.add_argument("--template-l", help="the compiled template SWF of mmo.pet.peticon777777_L")
+    ap.add_argument("--template-f", help="the compiled template SWF of mmo.pet.peticon777777_F")
+    ap.add_argument("--pmdata", help="revival/pmdata.json: make whole files for its 亚比 that have no peticon file")
     a = ap.parse_args(argv)
     template_abc = None
     if a.template:
         _, _, ttags = parse(Path(a.template))
         template_abc = next(d for c, d in ttags if c == T_DOABC)
+    if a.pmdata:
+        if not (template_abc and a.template_l and a.template_f):
+            raise SystemExit("--pmdata needs --template, --template-l and --template-f")
+        templates = {"_S": template_abc}
+        for k, f in (("_L", a.template_l), ("_F", a.template_f)):
+            _, _, ttags = parse(Path(f))
+            templates[k] = next(d for c, d in ttags if c == T_DOABC)
+        whole = make_missing(Path(a.game), Path(a.out), Path(a.pmdata), templates)
+        print(f"peticon_fill: {len(whole)} pictures made from battle sprites ((n) = 圣渊露龙's art): {' '.join(whole)}")
     src = Path(a.game) / "www.9aola.com" / "peticon"
     dst = Path(a.out) / "peticon"
     dst.mkdir(parents=True, exist_ok=True)

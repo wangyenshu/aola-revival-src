@@ -43,7 +43,7 @@ import argparse
 import json
 import re
 
-ROW = re.compile(r'^\s*"(\d+)":new (PM\w+)\((.*)\),?\s*$')
+ROW = re.compile(r'^\s*"(\w+)":new (PM\w+)\((.*)\),?\s*$')
 STR = re.compile(r'"((?:[^"\\]|\\.)*)"')
 
 
@@ -80,9 +80,28 @@ def main(argv=None) -> None:
                          "2681–2764) and the 黑化病毒 (998, task 1294); they cannot be caught")
     ap.add_argument("--battle-skills", default="332,334,360,361",
                     help="species whose skills are those of their battle rows (10000/20000/30000 + id)")
+    ap.add_argument("--upto", type=int, default=0,
+                    help="also keep every species of the table up to this id, the 超系 forms of those "
+                         "(pmChaoxiMap) and their 究极 forms (pmJiujiMap): the 工具箱's 亚比")
     a = ap.parse_args(argv)
     battle = {x for x in a.battle_skills.split(",") if x}
     era = set(json.load(open(a.pets, encoding="utf-8")).keys()) | {x for x in a.story.split(",") if x}
+    jiuji_rows: list[list[str]] = []
+    weather_rows: dict[str, list[str]] = {}
+    if a.upto:
+        chao_src: dict[str, set[str]] = {}
+        for section, key, cls, p in rows(a.pmdata):
+            if cls == "PMData" and section == "pmDataMap" and key.isdigit() and int(key) <= a.upto:
+                era.add(key)
+            elif cls == "PMChaoxiData":
+                chao_src.setdefault(p[0], set()).add(p[1])
+            elif cls == "PMJiujiData" and p[0].isdigit() and int(p[0]) < 10000:
+                jiuji_rows.append(p)
+            elif cls == "PMWeather":
+                weather_rows[key] = p
+        era |= {c for c, srcs in chao_src.items() if any(int(x) <= a.upto for x in srcs)}
+        # The 究极 forms of the lines kept (2395 虎烈张飞's is 2396).
+        era |= {p[1] for p in jiuji_rows if p[0] in era}
 
     species, skills, chart, exp = {}, {}, {}, {}
     forms: dict[str, str] = {}
@@ -120,8 +139,26 @@ def main(argv=None) -> None:
                 "evo": p[26],
                 "learn": learn,
             }
+            if a.upto:
+                # 特性 (column 18) that makes a 圣域 (PMWeather of type 2–4), and the 圣域技能 (column 39,
+                # "level-weather id") learnt at that level.
+                if p[18] and p[18] != "-1" and any(weather_rows.get(w, ["", "", "0"])[2] in ("2", "3", "4") for w in p[18].split("#")):
+                    species[key]["f"] = p[18]
+                if p[39] and p[39] not in ("0", "-1"):
+                    species[key]["sy"] = p[39]
+                # 超奥义 (column 40: its skill; the later AoYiConfig.getAoYiSkillId), once a battle.
+                p += [""] * (41 - len(p))
+                if p[40] and p[40] not in ("0", "-1"):
+                    species[key]["ao"] = int(p[40])
         elif cls == "PMSkill" and section in ("pmSkillMap", "pmSkillMap1"):
-            p += [""] * (30 - len(p))
+            p += [""] * (40 - len(p))
+            aoyi = {"ao": int(num(p[19]))} if p[19] not in ("", "-1") else {}
+            # The later client's generic animation for a skill with none of its own (SkillMap.
+            # getSkillAttributeEffectId): by its range, else by 属性 and kind of blow (column 39,
+            # else 12); none for a status skill.
+            kind, attr, hit = int(num(p[12])), int(num(p[11])), int(num(p[13]))
+            if kind != 2:
+                aoyi["ge"] = 20000001 if hit in (2, 6) else 20000002 if hit in (8, 9) else 10000000 + attr * 100 + int(num(p[39] or p[12]))
             skills[key] = {
                 "n": p[3] or p[2],
                 "old": p[2],
@@ -133,6 +170,8 @@ def main(argv=None) -> None:
                 "t": int(num(p[11])),
                 "k": int(num(p[12])),
                 "d": p[6] or p[5] or p[4],
+                # 超奥义 type (column 19, PMSkill.aoyiType): 0 强袭, 1 潜能, 2 战界, 3 神化, 4 BOSS克星.
+                **aoyi,
             }
         elif cls == "PMAttDef":
             row = {}
@@ -145,9 +184,42 @@ def main(argv=None) -> None:
         elif cls == "PMExp":
             exp[key] = [int(num(x)) for x in p]
 
-    used = {str(s) for sp in species.values() for _, s in sp["learn"]}
+    used = {str(s) for sp in species.values() for _, s in sp["learn"]} | {str(sp["ao"]) for sp in species.values() if "ao" in sp}
+    # The skills a kept skill sets off by name (触发技能X: 万里雪飘, 不朽圣体 …), and theirs in turn:
+    # kept too, with a name index for the battle engine.
+    by_name: dict[str, str] = {}
+    for k, v in skills.items():
+        by_name.setdefault(v["n"], k)
+    named: dict[str, int] = {}
+    todo = list(used)
+    while todo:
+        k = todo.pop()
+        for name in re.findall(r"触发(?:技能)?([^，。；、\s【】]+?)(?=[，。；、]|且|并|$)", skills.get(k, {}).get("d", "")):
+            # As the reader writes them (skilltext.ts normalise): 灵兽之域•南 is the table's 灵兽之域·南,
+            # 超·磁暴 its 超·磁爆.
+            name = name.replace("•", "·").replace("超·磁暴", "超·磁爆")
+            hit = by_name.get(name)
+            if hit and name not in named:
+                named[name] = int(hit)
+                if hit not in used:
+                    used.add(hit)
+                    todo.append(hit)
     skills = {k: v for k, v in skills.items() if k in used}
     out = {"species": species, "skills": skills, "chart": chart, "exp": exp}
+    if named:
+        out["named"] = dict(sorted(named.items()))
+    if a.upto:
+        # 究极 (PMJiujiData: from, to, name, 究极等级, 聚能回合数, 持续回合数, HP, 攻击, 防御, 特攻, 特防, 速度 up,
+        # text, …): each line at its top 等级 (三阶; the two 战骑 二阶).
+        top: dict[str, list[str]] = {}
+        for p in jiuji_rows:
+            if p[0] in species and p[1] in species and (p[0] not in top or int(num(p[3])) > int(num(top[p[0]][3]))):
+                top[p[0]] = p
+        out["jiuji"] = {k: {"to": int(p[1]), "lv": int(num(p[3])), "store": int(num(p[4])), "keep": int(num(p[5])),
+                            "up": [int(num(x)) for x in p[6:12]], "d": p[12]} for k, p in sorted(top.items(), key=lambda kv: int(kv[0]))}
+        # 圣域 (PMWeather: id, name, type 1 圣域技能 / 2 圣域 / 3 自动循环激活圣域 / 4 特性, text, BuffXML).
+        out["weather"] = {k: {"n": p[1], "k": int(num(p[2])), "d": p[4] or p[3], "b": p[5] if len(p) > 5 else ""}
+                          for k, p in weather_rows.items() if p[2] in ("1", "2", "3", "4")}
     json.dump(out, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(f"{len(species)} species, {len(skills)} skills, {len(chart)} attributes, {len(exp)} curves -> {a.out}")
 

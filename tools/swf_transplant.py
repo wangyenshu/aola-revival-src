@@ -20,6 +20,10 @@ used with a frame JPEXS exported from an unnamed sprite of an original SWF
 (ffdec -selectid N -format sprite:swf -export sprite), so one picture can be
 taken out of a module whose code is not wanted.
 
+With --add-art SWF=ID (repeatable) another frame exported from the same original SWF is added
+the same way as sprite ID; the characters both exports hold are kept once (JPEXS keeps the
+original ids), so pieces of one module can be put together.
+
 With --image-shapes every picture a timeline places directly (PlaceObject3 with
 its image flag, as later tools write) becomes a shape filled with that picture,
 at the same place, depth and name: Ruffle draws such pictures in an AS3 movie as
@@ -110,6 +114,39 @@ def wrap_root(tags: list[tuple[int, bytes]], cid: int) -> list[tuple[int, bytes]
         last = max(i for i, (c, _) in enumerate(out) if c == T_SHOWFRAME)
         out.insert(last, (T_SYMBOLCLASS, symbol_class({})))
     return out
+
+
+# Tags that define a character (its id first), and tags that only add to one already defined.
+T_DEFINES = {2, 22, 32, 83, 6, 21, 35, 90, 20, 36, 10, 48, 75, 91, 11, 33, 37, 39, 7, 34, 46, 84, 60, 14, 87}
+T_ABOUT = {73, 88, 74, 78, 13, 17, 23, 62}  # font zones / name, text settings, scaling grid, font / button info
+T_SKIP = {T_FILEATTR, T_METADATA, T_SYMBOLCLASS, T_DOABC, T_DOABC1, 9, 65, 41, 43, 58, 64, 24, 8}
+
+
+def add_art(tags: list[tuple[int, bytes]], extra: Path, cid: int) -> list[tuple[int, bytes]]:
+    """
+    Add another frame JPEXS exported from the same original SWF (whose character ids it keeps): its
+    first frame becomes sprite `cid`, and the characters it needs that `tags` lacks come before the
+    first frame of `tags` (a character both have is the same one, and is kept once).
+    """
+    _, _, more = parse(extra)
+    more = wrap_root(more, cid)
+    have = {struct.unpack_from("<H", d, 0)[0] for c, d in tags if c in T_DEFINES}
+    first = next(i for i, (c, _) in enumerate(more) if c == T_SHOWFRAME)
+    adds, added = [], set()
+    for c, d in more[:first]:
+        if c in T_SKIP or c in T_DISPLAY:
+            continue
+        ref = struct.unpack_from("<H", d, 0)[0] if len(d) >= 2 else -1
+        if c in T_DEFINES:
+            if ref in have:
+                continue
+            have.add(ref)
+            added.add(ref)
+        elif c in T_ABOUT and ref not in added:
+            continue
+        adds.append((c, d))
+    at = next(i for i, (c, _) in enumerate(tags) if c == T_SHOWFRAME)
+    return tags[:at] + adds + tags[at:]
 
 
 class Bits:
@@ -205,10 +242,12 @@ def image_shapes(tags: list[tuple[int, bytes]]) -> list[tuple[int, bytes]]:
 
 
 def transplant(art: Path, code: Path, binds: dict[int, str], note: str, drop_art_abc: bool = False, wrap: int = 0, shapes: bool = False,
-               only_binds: bool = False) -> bytes:
+               only_binds: bool = False, more: list[tuple[Path, int]] | None = None) -> bytes:
     version, header, tags = parse(art)
     if wrap:
         tags = wrap_root(tags, wrap)
+    for extra, cid in more or []:
+        tags = add_art(tags, extra, cid)
     # After the wrap: the new shapes are numbered after every character, the wrapping sprite too.
     if shapes:
         tags = image_shapes(tags)
@@ -260,9 +299,12 @@ def main(argv=None) -> None:
     p.add_argument("--wrap-root", type=int, default=0, metavar="ID", help="make the art SWF's first frame a sprite with this character ID")
     p.add_argument("--image-shapes", action="store_true", help="pictures placed directly (PlaceObject3 image flag) become shapes filled with them")
     p.add_argument("--only-binds", action="store_true", help="the SymbolClass names only the --bind classes (symbols left unused lose their art class names)")
+    p.add_argument("--add-art", action="append", default=[], metavar="SWF=ID",
+                   help="with --wrap-root: another frame JPEXS exported from the same original SWF, whose first frame becomes sprite ID")
     a = p.parse_args(argv)
     binds = {int(k): v for k, v in (b.split("=", 1) for b in a.bind)}
-    data = transplant(Path(a.art), Path(a.code), binds, a.note, a.drop_art_abc, a.wrap_root, a.image_shapes, a.only_binds)
+    more = [(Path(x.rsplit("=", 1)[0]), int(x.rsplit("=", 1)[1])) for x in a.add_art]
+    data = transplant(Path(a.art), Path(a.code), binds, a.note, a.drop_art_abc, a.wrap_root, a.image_shapes, a.only_binds, more)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_bytes(data)
     print(f"wrote {a.out} ({len(data)} bytes)")

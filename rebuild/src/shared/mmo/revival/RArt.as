@@ -11,9 +11,8 @@ package mmo.revival
    /**
     * REVIVAL. Pictures the rebuilt panels put in their boxes: a 亚比's picture
     * (peticon/peticon<id>.swf, mmo.pet.peticon<id>_S or _L) and a 属性's icon
-    * (petattribute/attribute<n>.swf, mmo.pet.attribute<n>, the 2011 icons of 0–21;
-    * the later 属性 the tools give get a round badge with their name, as the
-    * battle screen draws them).
+    * (petattribute/attribute<n>.swf, mmo.pet.attribute<n>: the 2011 icons of 0–21, 王's
+    * of 2013 and the 超系' of 2014; any other gets a round badge with its name).
     */
    public class RArt
    {
@@ -63,7 +62,7 @@ package mmo.revival
          };
          while (into.numChildren) into.removeChildAt(0);
          if (RDef.has(cls)) put();
-         else if (attr >= 0 && attr <= 21) ResScheduler.getResource("petattribute/attribute" + attr, put, "", function(e:* = null):void {});
+         else if ((attr >= 0 && attr <= 34) || attr == 999) ResScheduler.getResource("petattribute/attribute" + attr, put, "", function(e:* = null):void {});
          else badge(into, attr, box);
       }
 

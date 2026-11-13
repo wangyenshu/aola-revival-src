@@ -26,6 +26,34 @@ export interface PmSpecies {
   evo: string;
   /** Skills learnt: [level, skill id]. */
   learn: [number, number][];
+  /** 特性 that makes a 圣域 (PMWeather ids, "1001" or "235#1023"; 235 is 幻灵特性). */
+  f?: string;
+  /** 圣域技能: "level-PMWeather id", learnt at that level. */
+  sy?: string;
+  /** 超奥义: its skill (the later AoYiConfig), usable once a battle beside the four. */
+  ao?: number;
+}
+
+/** 究极 (PMJiujiData) of a line, at its top 等级: the form, its rounds and what it adds. */
+export interface PmJiuji {
+  to: number;
+  /** 究极等级: 3 (三阶), 2 for the two 战骑. */
+  lv: number;
+  /** 聚能回合数: rounds out before it can change. */
+  store: number;
+  /** 持续回合数 (究极回合数). */
+  keep: number;
+  /** Points added: 体力, 攻击, 防御, 特攻, 特防, 速度. */
+  up: number[];
+  d: string;
+}
+
+/** A PMWeather row: 1 圣域技能, 2 圣域, 3 自动循环激活圣域, 4 特性; its front text and BuffXML. */
+export interface PmWeather {
+  n: string;
+  k: number;
+  d: string;
+  b: string;
 }
 
 export interface PmSkill {
@@ -43,6 +71,10 @@ export interface PmSkill {
   k: number;
   /** Description; the effects are read from it (battle.ts). */
   d: string;
+  /** A 超奥义's type (PMSkill.aoyiType): 0 强袭, 1 潜能, 2 战界, 3 神化, 4 BOSS克星. */
+  ao?: number;
+  /** The later client's generic animation (fightassets/effect<ge>) where the skill has none of its own. */
+  ge?: number;
 }
 
 export interface PmData {
@@ -52,6 +84,12 @@ export interface PmData {
   chart: Record<string, Record<string, number>>;
   /** exp[curve][level - 1] = total experience at that level. */
   exp: Record<string, number[]>;
+  /** 究极 by the race that changes (gen_pmdata.py --upto). */
+  jiuji?: Record<string, PmJiuji>;
+  /** 圣域 rows by id (gen_pmdata.py --upto). */
+  weather?: Record<string, PmWeather>;
+  /** The skills others set off by name (触发技能X): name -> skill id. */
+  named?: Record<string, number>;
 }
 
 export const EMPTY_PMDATA: PmData = { species: {}, skills: {}, chart: {}, exp: {} };
@@ -107,11 +145,21 @@ export function expYield(sp: PmSpecies | undefined, level: number): number {
   return Math.max(1, Math.floor(((sp?.bx ?? 50) * level) / 7));
 }
 
+/**
+ * The learnset by level (a few rows of the later table are not in order: 天极鲸, 时空巨龙 …), and
+ * what is learnt by `level`. A 亚比 below its first skill's level (小龙鸟 learns at 4, 暗行罗刹
+ * at 50) knows that first skill: none is left without one.
+ */
+function learntBy(sp: PmSpecies, level: number): [number, number][] {
+  const rows = sp.learn.map((r, i) => [r, i] as const).sort((a, b) => a[0][0] - b[0][0] || a[1] - b[1]).map(([r]) => r);
+  const got = rows.filter(([lv]) => lv <= level);
+  return got.length || !rows.length ? got : [rows[0]];
+}
+
 /** The (up to) four last skills learnt by `level`, oldest first. */
 export function skillsAt(sp: PmSpecies, level: number): number[] {
   const ids: number[] = [];
-  for (const [lv, id] of sp.learn) {
-    if (lv > level) break;
+  for (const [, id] of learntBy(sp, level)) {
     const at = ids.indexOf(id);
     if (at >= 0) ids.splice(at, 1);
     ids.push(id);
@@ -122,10 +170,7 @@ export function skillsAt(sp: PmSpecies, level: number): number[] {
 /** Every skill of the learnset up to `level`, in the order learnt (what a 亚比 of that level knows). */
 export function allSkillsAt(sp: PmSpecies, level: number): number[] {
   const ids: number[] = [];
-  for (const [lv, id] of sp.learn) {
-    if (lv > level) break;
-    if (!ids.includes(id)) ids.push(id);
-  }
+  for (const [, id] of learntBy(sp, level)) if (!ids.includes(id)) ids.push(id);
   return ids;
 }
 

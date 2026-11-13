@@ -267,8 +267,18 @@ The 2013 server's rules are lost. The main reconstructions:
   priority, damage that is not the formula's (half the foe's HP, levels,
   points), draining, healing, PP, shields and counters, effects that last
   some turns, charging and multi-turn skills. Every description of the
-  图鉴's 亚比 is read to the last word; how much a "一定概率" is, or how
-  strong "越少越大" grows, is a guess. 混乱 lasts 2 or 3 of the confused one's
+  亚比 up to 1651 is read to the last word; how much a "一定概率" is, or how
+  strong "越少越大" grows, is a guess. The later 亚比's skills (to 2395) are
+  read with the later wording too: a clause under a condition (若对方已X则,
+  对已X目标, 若暴击, 若先出手 / 后手, 若未受到伤害, 伤害超过N, X圣域中) is read
+  on its own and each of its effects holds only then (`COND_HEADS`, `underCond`;
+  a lasting effect is placed only then, `placeIf`). This reading is used only
+  where the plain one leaves words, so the 2013 skills keep their own readers.
+  对方每次受到X伤害则… is an `ontick` effect on the foe while it has X, acting
+  each time X hurts it; 冰冻, which does no damage in the 2013 rules, acts at
+  each round's end (reconstructed). 提升自己…或削弱对方… lands by its chance and
+  is then one or the other, half and half. 703 of the 3,120 later skills keep
+  words with no rule (重生 …), which do nothing. A learnset is taken by level whatever the table's order (12 later rows are out of order: 天极鲸, 时空巨龙 …), and a 亚比 below its first skill's level (小龙鸟, 暗行罗刹) knows that first skill. 混乱 lasts 2 or 3 of the confused one's
   actions (or a skill's own 回合), each with a 1/3 chance that it hits itself
   instead (a 40-power blow of its own 攻击, its 攻击等级 counted) — the rule
   the later 奥拉星 states (the 2013 one is lost). A skill that attacks 全场
@@ -412,7 +422,12 @@ the 2013 libraries do not have. They are handled in these ways:
   original SWF's art, binding the art's symbols to the new classes (the art's
   own classes are renamed `…Revived` so they do not shadow the new ones).
 - **Filled pictures**: `tools/peticon_fill.py` gives `peticon` files without
-  a small picture one made from their large picture.
+  a small picture one made from their large picture, and the 亚比 with no
+  `peticon` file at all (23: 星石, 图腾, 拉贝尔幻影 …) one made from their battle
+  sprite's standing move (_S, _L and _F, the classes from compiled templates);
+  the three without any art (119, 1929, 2295) get 圣渊露龙's (2011), as the
+  later client's PetAssetsMap gave every 亚比 it did not name, its battle sprite
+  copied under their class names too.
 
 ### Build output
 
@@ -429,8 +444,10 @@ The modules and the emulator read tables generated once from the decompiled
 | --- | --- | --- |
 | `rebuild/gen/tasknpc/` | `gen_npc_data.py` | NPC placement per scene, named conversations |
 | `rebuild/gen/taskdata/`, `tasknpc/TaskTalkData.as`, `rebuild/static/…/revival/tasks.json` | `gen_tasks.py` | quest definitions, starters, steps, conversations, the scene table of quest scripts |
-| `rebuild/gen/petdict/`, `revival/pets.json` | `gen_pets.py` | the 亚比 dictionary and species data |
-| `revival/pmdata.json` | `gen_pmdata.py` | battle data: base stats, skills, learnsets, attribute chart, experience curves |
+| `rebuild/gen/petdict/`, `revival/pets.json` | `gen_pets.py` | the 亚比 dictionary and species data: the 图鉴 rows to 2395 and the 超系 forms of those (`--top 2395 --pmdata`) |
+| `rebuild/gen/petdict/`, `revival/pets.json` (after `gen_pmdata.py`) | `dict_forms.py` | the 图鉴 rows of the 98 亚比 that only fight (究极 forms, 图腾, 星石, bosses' forms): name, 身高, 体重 from the later pet table, 克制 lists of their 亚比 or of their 属性, 获得方式 由X究极变身而成。 or 无法获得。 |
+| `revival/pmdata.json` | `gen_pmdata.py` | battle data: base stats, skills, learnsets, attribute chart, experience curves; with `--upto 2395` every species of the later table to 2395, the 超系 and 究极 forms of those, the 究极 table at each line's top 等级 and the 圣域 rows (PMWeather: 圣域技能, 圣域, 特性) |
+| `rebuild/gen/petfollow/` | `gen_petclothes.py` | the walking figures (scene clothes) of the 亚比 the 2013 tables lack |
 | `rebuild/gen/wildpet/`, `revival/wildpets.json` | `gen_wildpets.py`, `map_pets.py` | wild 亚比 per room, levels, battle backgrounds |
 | `rebuild/gen/bconfig/` | `gen_bconfig.py` | the catalog books and their pages |
 | `revival/materials.json` | `gen_materials.py` | prices and buy-back prices |
@@ -517,6 +534,91 @@ took it and the battle goes on when it ends, as in the later client
 drawn in code: a flash round the 亚比, a column of light rising over it, rings
 at its feet, sparks, the 亚比 glowing; about two seconds.
 
+究极 and 圣域 (both of 2014) are in the same battle engine. 究极 (`battle.ts`
+change / unchange; the later PetClient's `1407` RQST_BATTLE_POWERUP, answered `2417`):
+the 亚比 becomes its 究极 form (the pet table's PMJiujiData of its line, at the top
+等级: 三阶, 二阶 for the two 战骑) as a battle-only copy of the record kept, with the
+form's skills and the row's points added, for its 究极回合数 after the round it changed
+in; then (or when it falls, is switched out, or the battle ends) the record kept has
+the same share of its 体力. Once a battle; not in a 亚比对战. 圣域 (`shengyu.ts`): the
+pet table's PMWeather rows, by their BuffXML (306 makes the field, 308 / 240 act at a
+round's end on the 亚比 of some 属性, 322 when one comes out, 160 / 366 power, 304 / 328
+damage taken, 375 a floor; 310 a 圣域技能: its chance, the field it needs, its rounds).
+One field at a time: a 特性 brings it when its 亚比 comes out (阳炎 and 月华, 自动循环激活,
+every 5 rounds), a skill 召唤X圣域 (一定概率: half the time, RECONSTRUCTED). The 圣域技能
+(learnt at Lv60) are lasting effects of the engine (on each blow, on each blow taken,
+immunities …). The battle screen plays `petfightres/changeviewres`, and shows the
+field's `skillbackground_306_<id>` and `petfightbsicon/icon_306_<id>` with its words.
+
+The button above the skills (`BigSkillButton`) is character 898 of the later
+`pet/petfightnew` (its BigSkillMC, put into the rebuilt battle module beside the 属性等级
+panel by `swf_transplant.py --add-art`): frame 1 聚能中, 2 究极变身, 3 剩余回合 N (its
+mcNum), 7 超奥义, 8 BOSS克星, as the later BigSkillMCHandler_ChangeView and
+BigSkillMCHandler_AoYi show them. With it the four skills (and the 属性 row) move down
+40 pixels inside the panel; the rest of the screen is as before. The 究极 rule is the
+later handler's: 聚能中 until the line's 聚能回合数 after the 亚比 came out (0 at 三阶).
+Three 究极 forms' picture files (2161, 2190, 2244) carry a stock rabbit drawing as their
+small picture, which the game never showed; `peticon_fill.py` knows it by its placements
+(`STAND_IN`) and makes their small picture from their large one, so the HUD shows the form.
+
+超奥义 (`aoyiOf`, `canAoyi`): the later pet table's column 40 (AoYiConfig.getAoYiSkillId)
+names the skill and the skill table's column 19 its kind (强袭, 潜能, 战界, 神化, BOSS克星).
+It is used as a skill of the four (`1401` with its id, the later UseBigSkillHandler's
+SkillType.AOYI_BIG), costs no PP, and once per 亚比 per battle (每场战斗超奥义仅可使用一次);
+every 亚比 of the line has it (the later isGetAoYiSkill came from an activity; RECONSTRUCTED).
+Before its blow the screen plays the later AoYiMovieHelper's movie:
+`pet/aoyitakeeffectmovie/aoyitakeeffectmoviebase` (TakeEffectMovieBase) with
+`aoyitakeeffectmovie<race>` in its `mc`, over the whole screen. Its words are read like any
+skill's, with the later rules they need: 护盾 (`makeShield`: of the most 体力, the damage, the
+体力 now or lost, n points; 护盾存在时 effects are `whileShield`; 当护盾被打破时 is `onbreak`),
+斩杀 (`execute`, growing each round out), marks with layers (`stacks`; `stackEachTurn`,
+`stackAt` at N layers, `stackHp` under N% 体力, `stackPower` per layer; a short name is the
+mark that ends with it: 古魂 for 星神古魂), 体力回复效果 (`healMult`) and the skills a skill
+sets off by name (触发技能X: the pet table's `named`, read into the skill that names it;
+灵兽之域•南 is the table's 灵兽之域·南, 超·磁暴 its 超·磁爆). All 59 read to the last word.
+The later mechanics they name are lasting effects of the engine (skilltext.ts `Timed`):
+`state` (风暴, 巨大化, 狂战: conds 若处于X状态, effects `whileState`; 狂战's `onlyAttr` makes
+属性技能 of other 属性 fail), `stateEachTurn` (每回合概率进入X), `onheal` (每次回复体力值时),
+`hurtStack` / `hurtPower` (a round it was hurt or lost 体力 in), `every` (每N回合再触发),
+`onfatal` (受到致命伤害时: keeps 1 体力), `fuse` (效果结束时引爆), `dotHeal`, `useHeal` and
+`ppTax` (邪念幻境), `healHurt` (禅), `beforeAct`, `echo` (逸仙剑法 again at the round's
+end), `stackGain` / `stackGive`, `markBreak`, `exposed`; and on blows `ifFoeMark` (the other
+carries the mark another skill of the line gives: 冰凤之印, 魂斗之印 …), `minCurFrac`,
+`dmgEven`, `chanceByMark`. 诅咒 (the later status's own words, NewStatusUtil: 每回合扣除1/4最大
+体力值; its 3 rounds RECONSTRUCTED) is a lasting `dot` from "诅咒" and shows as a status.
+
+异常状态 icons: the view (`pmSView`) carries `sts`, each status with the rounds left on it
+(睡眠 and 冰冻 counted as the next round sees them; 寄生 0: till cured), beside the `st`
+words. The battle module draws them as the later client does (NewStatusIconList,
+StatusIcon, NewStatusUtil): `pet/status/statusicon_<frame>.png` (frames 睡眠 1, 中毒 2, 害怕
+3, 诅咒 4, 麻痹 5, 混乱 6, 冰冻 7, 寄生 8, 烧伤 9, 束缚 10, 衰弱 16; the files are of 2023,
+the 2013 ones are lost) at 22×20, the rounds in white when 1 to 29, in a row below the 亚比's
+name on both sides (StatusIcons.as); the mouse over one shows its name, its tip words where
+they say what this battle does, and 剩余持续回合数. Other states stay words in brackets. Points of values (提升全数值N点, 吸取对方N点双防数值, 电能填充's per layer)
+change the battle's numbers, not 等级 (`statPts`, `perLayer`). A 潜能 or 战界奥义 that gives
+no turns lasts the battle. RECONSTRUCTED numbers where the words give none: 一定概率 30%,
+一定体力值 1/8 of the most 体力, 一定的护盾 1/10, 一定概率秒杀 10%, 攻击基础数值越高概率越高
+a tenth of that value (at most 60%), 受到攻击则叠加效果 four times at most.
+
+Backgrounds of skills (`SKILL_BACKGROUNDS`, `Battle.bg`, the view's `bg`): the later
+client's `skillbackground/skillbackground_<key>` with its appear, stay and disappear movies
+(BackGroundViewHandler): 夜之域 `65` (a starry night of 2012) for its turns, 星神之域
+`460`, and the 23 战界奥义 `s_2_<skill>` (the later NewFightBSConfig keys) while the 亚比 that
+used one is out. Which key the server sent for 夜之域 and 星神之域 is lost; these are the
+files that show them. A skill's background goes over the 圣域's; the 圣域 icon stays.
+
+A skill with no animation of its own plays the later client's generic one
+(SkillMap.getSkillAttributeEffectId: `fightassets/effect<10000000 + 属性×100 + kind>` or
+`effect2000000x` for a whole side; `ge` in the pet table's skills, sent with the skill's
+report), as the later battle did; a status skill has none, as there. The blow lands (the
+hurt, the numbers) at the animation's `att` frame, and the turn goes on when it ends, as
+the later UseSkill does.
+
+Skill effects are placed as the later UseSkill.setEffectMovie places them: on the user
+for its own skills and those labelled `move`, over the whole screen unmirrored for
+`all_notflip` (the 刷屏 big skills), over the whole screen mirrored for the far side for
+`all`, else on the target.
+
 Wild 亚比 (`pet/wildpetservice`) walk in 124 rooms; the list per room comes
 from the November 2012 world map and the later location table, and for the
 story rooms of 风暴星系 from `tools/data/wildpets-extra.json` (its sources per
@@ -528,8 +630,11 @@ ActionInfo, `RidingMovingState`), where the clothes sit higher and the ride
 clothes (`skin/a0100xx`, `SkinInfoForRidingPet`) draw the 坐骑, its stand movie
 while standing; the server shares it as the `ms` user variable (`ride;<speed>`,
 `walk`), which the 2013 SocketClient tells every client as `onMovingStateChanged`.
-The ride clothes of the 9 坐骑 the later client added (10081–10089, the later materialdata's
-parts) are added to the 2013 clothes service when `pet/petride` starts, on every client.
+The ride clothes of the 37 坐骑 the later client added up to 2395 and the 超系 forms
+(10081–10118, the later materialdata's parts: 10095–10098 on the 坐骑's head layers) are
+added to the 2013 clothes service when `pet/petride` starts, on every client. Of the
+亚比 with two looks the first is kept (the second came with a ride card), and the later
+"V2" 坐骑 for two riders (光焰疾蝠) is left out.
 
 ### Bosses
 

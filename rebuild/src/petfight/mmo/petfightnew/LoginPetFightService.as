@@ -32,7 +32,7 @@ package mmo.petfightnew
     */
    public class LoginPetFightService extends EventDispatcher implements IPetFight
    {
-      private static const COMMANDS:Array = [2401, 2402, 2403, 2411, 2412, 2413, 2414, 2415, 2421, 2422, 2241, 2242, 2234];
+      private static const COMMANDS:Array = [2401, 2402, 2403, 2411, 2412, 2413, 2414, 2415, 2417, 2421, 2422, 2241, 2242, 2234];
       private var _canFight:Boolean = true;
       private var panel:FightPanel;
 

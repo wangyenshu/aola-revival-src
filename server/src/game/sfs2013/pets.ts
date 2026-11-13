@@ -262,11 +262,19 @@ export function skillList(p: PetRecord, t: PetTables) {
   });
 }
 
-export function briefOf(p: PetRecord, owner: Pick<PetOwner, "id">, t: PetTables, extra?: { st?: string; bal?: string }) {
+export function briefOf(p: PetRecord, owner: Pick<PetOwner, "id">, t: PetTables, extra?: { st?: string; sts?: [string, number][]; bal?: string; hpAdd?: number }) {
   const v = sView(p, owner, t);
   if (extra?.st) v.st = extra.st;
+  // 究极: the 体力 its row adds (s0 "base#added", as the later PetBriefInfo reads it).
+  if (extra?.hpAdd) {
+    const base = Number(v.s0.split("#")[0]);
+    v.s0 = `${base}#${extra.hpAdd}`;
+    v.c0 = Math.min(p.hp, base + extra.hpAdd);
+  }
   // In a battle: its 属性等级 (PetBriefInfo.attributeLevelArr, "攻击#防御#特攻#特防#速度#命中#闪避#暴击").
   if (extra?.bal) (v as typeof v & { bal?: string }).bal = extra.bal;
+  // Not 2013 fields: the 异常状态 with their rounds left, for the battle screen's icons.
+  if (extra?.sts?.length) (v as typeof v & { sts?: [string, number][] }).sts = extra.sts;
   return { pmSView: v, skills: skillList(p, t), eqp: [] };
 }
 

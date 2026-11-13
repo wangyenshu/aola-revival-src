@@ -230,9 +230,17 @@ build petfight mmo/petfightnew/DocLoginPetFight.as petfight.swf ""
 unset GEN
 # The 属性等级 shown over a 亚比 (AttributeLevelPanel): the art of that panel in the later
 # battle module (character 2837 of pet/petfightnew, the 2026 copy), taken out alone.
-rm -rf "$OUT/attrlevel"
+# And the button over the skills for 究极 and 超奥义 (BigSkillButton): character 898 of the same
+# file (BigSkillMC, its mcView's frames 聚能中 / 究极变身 / 剩余回合 / 超奥义 / BOSS克星).
+rm -rf "$OUT/attrlevel" "$OUT/bigskill"
 java -jar "$FFDEC" -selectid 2837 -format sprite:swf -export sprite "$OUT/attrlevel" "$(art pet/petfightnew.swf)" > /dev/null
-python3 "$TOOLS/swf_transplant.py" --art "$(ls "$OUT"/attrlevel/DefineSprite_2837*/1.swf)" --wrap-root 2837 --image-shapes --drop-art-abc   --code "$OUT/petfight.swf" --bind 0=mmo.petfightnew.DocLoginPetFight --bind 2837=mmo.petfightnew.AttributeLevelPanel   --note "REBUILT pet/loginpetfightnew (aola-revival); its 属性等级 panel is character 2837 of the later pet/petfightnew"   --out "$W/pet/loginpetfightnew.swf%3F1210"
+java -jar "$FFDEC" -selectid 898 -format sprite:swf -export sprite "$OUT/bigskill" "$(art pet/petfightnew.swf)" > /dev/null
+python3 "$TOOLS/swf_transplant.py" --art "$(ls "$OUT"/attrlevel/DefineSprite_2837*/1.swf)" --wrap-root 2837 \
+  --add-art "$(ls "$OUT"/bigskill/DefineSprite_898*/1.swf)=898" --image-shapes --drop-art-abc \
+  --code "$OUT/petfight.swf" --bind 0=mmo.petfightnew.DocLoginPetFight --bind 2837=mmo.petfightnew.AttributeLevelPanel \
+  --bind 898=mmo.petfightnew.BigSkillButton \
+  --note "REBUILT pet/loginpetfightnew (aola-revival); its 属性等级 panel and big-skill button are characters 2837 and 898 of the later pet/petfightnew" \
+  --out "$W/pet/loginpetfightnew.swf%3F1210"
 
 # The HELLO in scenes: rebuilt init/robotmanager (its menu, the wheel of December 2012, drawn,
 # with the skills' icons of 2012 from robot/revival/helloskillicons: HelloWheel).
@@ -619,9 +627,15 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/pethatchegg.swf)" --code "$O
 
 # The small pictures (_S) the peticon files of the 亚比 one could not get in
 # 2012 and 2013 lack (missing or an empty sprite): each file's own large picture,
-# scaled; the missing classes from a compiled template (tools/peticon_fill.py).
+# scaled; the missing classes from a compiled template (tools/peticon_fill.py). And the
+# 亚比 of the tables with no peticon file at all (星石, 图腾 …): their three pictures made
+# from their battle sprite (or 圣渊露龙's, as the later client showed those without art).
 build peticonfill mmo/pet/peticon777777_S.as peticonfill-template.swf ""
-python3 "$TOOLS/peticon_fill.py" --game "$GAME" --template "$OUT/peticonfill-template.swf" --out "$W"
+build peticonfill mmo/pet/peticon777777_L.as peticonfill-template-l.swf ""
+build peticonfill mmo/pet/peticon777777_F.as peticonfill-template-f.swf ""
+python3 "$TOOLS/peticon_fill.py" --game "$GAME" --template "$OUT/peticonfill-template.swf" \
+  --template-l "$OUT/peticonfill-template-l.swf" --template-f "$OUT/peticonfill-template-f.swf" \
+  --pmdata "$HERE/../static/www.9aola.com/revival/pmdata.json" --out "$W"
 
 # 奇草树林 (云端王国's first room): the later scene's code on the 2013
 # interfaces and that copy's art, with the room's map button back (it opens

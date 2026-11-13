@@ -18,6 +18,8 @@ export const BAD_STATUSES: StatusName[] = ["麻痹", "冰冻", "睡眠", "烧伤
 export const ATTRS: Record<string, number> = {
   普通: 0, 格斗: 1, 飞行: 2, 毒: 3, 爬行: 4, 土: 5, 虫: 6, 数码: 7, 机械: 8, 火: 9, 水: 10, 木: 11, 电: 12,
   神秘: 13, 冰: 14, 上古: 15, 暗黑: 16, 光明: 18, 龙: 19, 圣灵: 20, 神兵: 21, 王: 22,
+  // The 超系 of 2014 (the later table's 23–34).
+  超数码: 23, 超木: 24, 超水: 25, 超火: 26, 超土: 27, 超电: 28, 超光: 29, 超光明: 29, 超暗: 30, 超暗黑: 30, 超龙: 31, 超上古: 32, 超圣灵: 33, 超王: 34,
 };
 
 /** 全属性: all eight 属性等级, 攻击 防御 特攻 特防 速度 命中 闪避 暴击. */
@@ -28,8 +30,12 @@ export const FIVE_STATS: StatKey[] = ["atk", "def", "satk", "sdef", "spd"];
 const STAT_WORDS: Record<string, StatKey[]> = {
   攻击: ["atk"], 普攻: ["atk"], 防御: ["def"], 普防: ["def"], 特攻: ["satk"], 特防: ["sdef"], 速度: ["spd"],
   命中: ["acc"], 闪避: ["eva"], 暴击: ["crit"], 全属性: ALL_STATS, 双攻: ["atk", "satk"], 双防: ["def", "sdef"],
+  // The later "X外全属性" (all but X).
+  闪避外全属性: ALL_STATS.filter((k) => k !== "eva"), 暴击外全属性: ALL_STATS.filter((k) => k !== "crit"),
+  命中外全属性: ALL_STATS.filter((k) => k !== "acc"), 攻击外全属性: ALL_STATS.filter((k) => k !== "atk"),
+  双防外全属性: ALL_STATS.filter((k) => k !== "def" && k !== "sdef"), 速度外全属性: ALL_STATS.filter((k) => k !== "spd"),
 };
-const STAT_RE = "(?:全属性|攻击|普攻|防御|普防|特攻|特防|速度|命中|闪避|暴击|双攻|双防)";
+const STAT_RE = "(?:闪避外全属性|暴击外全属性|命中外全属性|攻击外全属性|双防外全属性|速度外全属性|全属性|攻击|普攻|防御|普防|特攻|特防|速度|命中|闪避|暴击|双攻|双防)";
 const STAT_LIST = `${STAT_RE}(?:(?:和|、|及|与)${STAT_RE})*`;
 const ST = "(?:麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)";
 
@@ -48,8 +54,14 @@ export interface StageChange {
   cond?: Cond;
   /** Another chance when this holds (霜月流星: 80% on a frozen foe). */
   condChance?: { cond: Cond; chance: number };
+  /** Or, half the time it lands, this change instead (提升自己…或削弱对方…). */
+  or?: { self: boolean; stats: StatKey[]; delta: number };
   /** One of these groups of values (炎魔闪: 防御+特防 or 攻击+特攻). */
   groups?: StatKey[][];
+  /** This many single levels spread at random over `stats` (随机提升…任意项属性共5级). */
+  spread?: number;
+  /** Its levels double when this holds (若对方冰冻则削弱效果翻倍). */
+  doubleIf?: Cond;
 }
 
 export type Cond =
@@ -78,7 +90,22 @@ export type Cond =
   /** The user used that skill and its effect lasts (七星灯 with 卧龙觉醒). */
   | { mark: string }
   /** The foe carries that mark (陶醉). */
-  | { foeMark: string };
+  | { foeMark: string }
+  /** The blow felled the other (若击败对方 / 若击杀对方). */
+  | { killed: true }
+  /** The user moved first this turn (若比对方先出手). */
+  | { first: true }
+  /** The damage of the blow was over / under this (伤害超过N, 伤害低于N). */
+  | { dmgOver: number }
+  | { dmgUnder: number }
+  /** That 圣域 is on the field (阳炎圣域中). */
+  | { field: string }
+  /** The user is in that state (若处于风暴状态: a "state" lasting effect of that name). */
+  | { state: string }
+  /** The hits of a 连击 were from a to b (若攻击次数为7, 若命中次数为5-7). */
+  | { hitsIn: [number, number] }
+  /** The other's 速度等级 is under the user's (若对方速度等级低于我方). */
+  | { foeSpdLower: true };
 
 export interface Timed {
   who: "self" | "foe" | "both";
@@ -102,6 +129,15 @@ export interface Timed {
     | "onhit" // 给对方造成伤害时: flinch chance, or clear chance
     | "statmult" // 防御 / 速度 加倍 (stats: mult)
     | "stagesEachTurn" // 回合结束时: random stat of `stats`, delta, chance (天舞宝轮, 绝对领域)
+    | "stackEachTurn" // 每回合(末)获得N~M层X: layers of `mark` at each round's end
+    | "stackAt" // 当X达N层时(则)消耗N层…: `then` when the holder has n layers of `mark` (consume)
+    | "stackHp" // 当自身体力低于N%时则消耗1层X…: `then` when its 体力 falls under `below` with a layer left
+    | "healMult" // 体力回复效果提升N%: the holder's heals times mult
+    | "onbreak" // 当护盾被打破时: stages on the holder (selfStage) or a status on the one who broke it
+    | "noRise" // 属性不能提升: the holder's stages are not raised
+    | "under" // 免疫N点以下伤害: a blow of n or less does nothing
+    | "over" // 免疫所有N点以上伤害: a blow of more than n does nothing
+    | "ontick" // 对方每次受到X伤害则…: when the holder's `status` hurts it (stats, stealStats, clear, n/a~b PP, anyStatus), chance
     | "pphp" // 曙光: 1 PP of every skill into n HP
     | "hitHeal" // 吸收漩涡: n HP each hit
     | "extra" // 每次攻击附加 n 点伤害值
@@ -116,7 +152,36 @@ export interface Timed {
     | "mirror" // the other's raised stages are raised for the holder too (远古记忆)
     | "punish" // 回合结束时: n HP off the holder if it used no damaging skill (战争饥渴)
     | "revert" // when it ends: its stage change is undone (速战意念)
-    | "blind"; // the holder's 普通攻击 hit by phys % (封魔秘诀: 很难命中)
+    | "blind" // the holder's 普通攻击 hit by phys % (封魔秘诀: 很难命中)
+    | "double" // 有一定概率造成2倍伤害: chance (圣域技能 致命魔炎)
+    | "untouchable" // 免疫所有伤害 (圣武霸体)
+    | "soak" // 本回合受到的伤害转化回复自己体力值 (万物回春)
+    | "upsTwice" // 自己技能的属性提升效果翻2倍 (金甲风暴)
+    | "hold" // 受到攻击至少剩余1点体力 (无尽曙光)
+    // The 超奥义 and the later skills (2014):
+    | "state" // 进入N回合X状态: the holder is in state `mark` (风暴, 巨大化, 狂战 …); onlyAttr: its 属性技能 of other 属性 fail
+    | "stateEachTurn" // 每回合概率进入X: at each round's end by chance, `then` (its state for the next round)
+    | "onheal" // 每次回复体力值时: chance of stages (selfStage), a 护盾 of f of the heal, `then` (on the other: thenOther)
+    | "hurtStack" // 每次受到伤害则回合末获得N层X: n layers of `mark` at the end of a round it was hurt in
+    | "hurtPower" // 每当自身体力流失则回合末提升X技能威力N%: a lasting power boost at the end of a round it lost 体力 in
+    | "every" // 每N回合再触发1次: `then` every n rounds
+    | "onfatal" // 受到致命伤害时N%概率触发X: by chance it keeps 1 体力 and `then` comes
+    | "fuse" // 效果结束时引爆对方X: when it runs out, the other's `mark` layers go and `then` comes on it
+    | "dotHeal" // 将X燃烧伤害的N倍转化为自身体力值: the other's damage from the lasting effect `mark`, times mult, heals the holder
+    | "useHeal" // 全场使用X技能时回复N点体力值: any skill of `attr` used heals the holder n
+    | "ppTax" // 非X系技能使用时消耗PP翻倍: skills of another 属性 cost twice the PP (both sides)
+    | "healHurt" // 期间对方增加的体力会被扣除: the holder's heals hurt it instead
+    | "beforeAct" // 出手前未受到伤害则引爆X吸取…: when it acts unhurt, the other's `mark` goes for `then`
+    | "echo" // 使X的技能在回合末概率再触发1次: a skill named `mark`… used this round comes again (not its blow)
+    | "stackGain" // 使对方每次获得X翻倍: the holder's gains of `mark` times mult
+    | "stackGive" // 每次附带印记时额外多附带N层: the holder's gifts of `mark` to the other, n more
+    | "markBreak" // 当X被击破时造成对方N%已损失体力值的伤害: when the other's `mark` is broken, f of what it lost
+    | "exposed" // 必定被技能命中: blows on the holder never miss
+    | "ptsEachTurn" // 每回合提升技能固伤N点和速度N点: each round n points of `stats`, and add more fixed damage (a)
+    | "stealEachTurn" // 每回合吸取抵抗能力N%并概率吸取X1级: each round f of the other's resistance, and by chance its stages
+    | "nextUse"; // 下次使用X时…: the holder's next use of the skill named `mark` gives `bad` instead of its own statuses
+  /** nextUse: n 不良或异常状态 at random, by the chance. */
+  bad?: { n: number; chance: number };
   n?: number;
   a?: number;
   b?: number;
@@ -159,11 +224,109 @@ export interface Timed {
   flip?: boolean;
   /** The skill it came from. */
   from?: string;
+  /** stack kinds: the mark's name, its layers (a~b), how many go (consume: -1 all), what then comes. */
+  mark?: string;
+  consume?: number;
+  below?: number;
+  then?: SkillEffects;
+  /** onhurt: only a blow of more than this share of the holder's most 体力; and a layer of this mark used. */
+  minFrac?: number;
+  useMark?: string;
+  /** Only while the holder has a 护盾 (护盾存在时…). */
+  whileShield?: boolean;
+  /** ontick: the holder's stats of `stats` go to the other (吸取对方双防1级). */
+  stealStats?: boolean;
+  /** ontick: the holder's raised stages are cleared. */
+  clear?: boolean;
+  /** ontick: one of the bad statuses on the holder (附加1个负面状态). */
+  anyStatus?: boolean;
+  /** Placed only when this holds after the blow (若对方已束缚则保护自己属性…). */
+  placeIf?: Cond;
   /** nostatus: only these statuses (幻境: 睡眠和害怕). */
   only?: StatusName[];
+  /** onhit / onhurt / 圣域技能: the stage change goes up to this (1-2级: a random 1 or 2). */
+  deltaMax?: number;
+  /** onhurt: the attacker rests this many turns (下回合无法行动). */
+  rest?: number;
+  /** onhit: this many points of 体力 off the other, back to the holder (狮王之怒). */
+  steal?: number;
+  /** onhurt: the attacker is knocked out (秒杀). */
+  ko?: boolean;
+  /** onhurt: the holder gets this much 体力 back. */
+  heal?: number;
+  /** extra: the fixed damage grows as the holder's 速度等级 falls (100 - 60 × 等级, at least 100). */
+  bySpeed?: boolean;
+  // ---- the 超奥义 and the later skills (2014)
+  /** Only while the holder is in this state (在巨大化状态中…); it does not end meanwhile. */
+  whileState?: string;
+  /** Only while the holder has this status (对方已冰冻亚比): it does not end meanwhile. */
+  ifStatus?: StatusName;
+  /** Only while the holder carries this mark (拥有逆甲之印的亚比). */
+  whileMark?: string;
+  /** onhurt / onhit / dodge: only when the other 亚比 carries this mark (带有冰凤之印的目标). */
+  ifFoeMark?: string;
+  /** dodge: only blows of a 亚比 whose 双防 together are under the holder's. */
+  ifWeaker?: boolean;
+  /** onhurt: a blow of at least this share of the 体力 it had (减少大于或等于当前体力值的1/4). */
+  minCurFrac?: number;
+  /** onhurt: a blow whose damage is a multiple of 2. */
+  dmgEven?: boolean;
+  /** onhurt: only 普通 or 特殊攻击 (若受到特殊攻击则…). */
+  onlyKind?: "phys" | "spec";
+  /** onhurt: this share of the attacker's most 体力 off it (扣除对方一定体力值). */
+  hurtF?: number;
+  /** onhurt: 诅咒 on the attacker; its damage heals the holder (healOther). */
+  curse?: boolean;
+  healOther?: boolean;
+  /** onhurt: the chance is this much for each layer of ifFoeMark on the attacker (印记越多，概率越高). */
+  chanceByMark?: number;
+  /** onhurt: a layer of this mark on the holder (获得1格正电能). */
+  selfStack?: string;
+  /** onhurt: a random element of the holder's goes for a status on the attacker (元素领域). */
+  elements?: boolean;
+  /** onhurt / onheal: `then` at most this many times. */
+  cap?: number;
+  /** onhit: a 护盾 of this share of the most 体力, this share of it healed, this share of the damage healed; a layer of a mark on the other. */
+  shieldF?: number;
+  healF?: number;
+  healDmg?: number;
+  stackFoe?: string;
+  /** onheal: `then` comes on the other 亚比. */
+  thenOther?: boolean;
+  /** leech: of the 体力 it has, not its most. */
+  cur?: boolean;
+  /** stackEachTurn: one of these marks at random; on either 亚比 at random. */
+  pool?: string[];
+  eitherSide?: boolean;
+  /** stackAt: the layers counted are the other 亚比's. */
+  onOther?: boolean;
+  /** reflect: more as the holder's 体力 falls (体力值越低反弹伤害越多). */
+  byLowHp?: boolean;
+  /** stagesEachTurn: when the other's stage is at its lowest, this chance of 诅咒 instead. */
+  atMinCurse?: number;
+  /** state: its 属性技能 of other 属性 than this one fail (狂战). */
+  onlyAttr?: number;
+  /** state: the chances of this skill's effects double meanwhile (技能曙光普照效果概率翻倍). */
+  doubles?: string;
+  /** dot: its turns start over when the giver uses a skill of this 属性 (任意超火系技能均可刷新炽火令的持续回合数). */
+  refreshAttr?: number;
+  /** stagesEachTurn: 10% more chance for each layer of this mark on the holder (自身魔龙之印越多概率越高). */
+  markChance?: string;
+  /** stagesEachTurn: this many single levels spread at random over `stats` (任意项属性共5级). */
+  spread?: number;
+  /** stackEachTurn: on both 亚比 (每回合全场亚比叠加1-2层青龙之印). */
+  bothSides?: boolean;
+  /** onhurt: only a blow of more than this many points (每次受到伤害超过500则…). */
+  minLost?: number;
+  /** onhurt: this many points off the attacker (每次受到攻击有40%令对方受到150点固定反伤). */
+  hurtN?: number;
+  /** stagesEachTurn: pick at random from `pick` to this many (任意1-2项). */
+  pickMax?: number;
 }
 
 export interface SkillEffects {
+  /** 有一定概率召唤X圣域 (shengyu.ts): the field's name and the chance (一定概率: half the time). */
+  summon?: { name: string; chance: number };
   status?: StatusRoll;
   /** The statuses of the skill, each rolled apart (穿石之矛: 20%混乱, 20%束缚). */
   statuses: StatusRoll[];
@@ -188,6 +351,10 @@ export interface SkillEffects {
   recharge?: boolean;
   rechargeChance?: number;
   fixed?: number;
+  /** The fixed damage at random up to this (命中后额外随机扣除对方100-300点体力值). */
+  fixedMax?: number;
+  /** 每次使用增加N点固定伤害，最多叠加M点: n more with each use, at most max. */
+  fixedGrow?: { n: number; max: number };
   fixedChance?: number;
   fixedRange?: [number, number];
   ohko?: number;
@@ -223,7 +390,7 @@ export interface SkillEffects {
   painSplit?: boolean;
   painSplitChance?: number;
   swapHp?: boolean;
-  ohkoIf?: { chance: number; lowerLevel?: boolean; hpBelow?: number; cond?: Cond };
+  ohkoIf?: { chance: number; lowerLevel?: boolean; hpBelow?: number; cond?: Cond; byBase?: "atk" | "satk" };
   ignoreDef?: boolean;
   /** Nothing stops it: protects, dodges and shields (无法阻挡). */
   pierce?: boolean;
@@ -238,24 +405,61 @@ export interface SkillEffects {
   bothFaint?: boolean;
   /** The foe's defence values lowered (令对方防御值减半: as 2 levels). */
   // ---- PP
-  ppFoe?: { n: number | "all"; last?: boolean; chance: number; cond?: Cond };
+  /** The other's PP: n off each skill, "all" of it, or "to1": down to 1 (风起云涌). */
+  ppFoe?: { n: number | "all" | "to1"; last?: boolean; chance: number; cond?: Cond };
   ppSelf?: number;
   ppSelfAll?: boolean;
   // ---- healing and statuses of the user
   healFull?: boolean;
   healFlat?: number;
   healChance?: number;
+  /**
+   * 护盾 made by the skill: of the most 体力 (max), of the damage dealt (dmg), of the 体力 now (hp),
+   * of the 体力 lost (lost), or n points; at most cap.
+   */
+  makeShield?: { kind: "max" | "dmg" | "hp" | "lost" | "n"; f?: number; n?: number; cap?: number };
+  /** 清空全场X等级: those stages back to 0 on both sides. */
+  resetStats?: StatKey[];
+  /** 获得N层X (印记, 之印, 古魂 …): layers of a mark on the user, the other, or both. */
+  stacks?: { who: "self" | "foe" | "both"; name: string; n: number }[];
+  /** 使对方身上古魂印记翻倍: the layers of a mark doubled. */
+  stacksDouble?: { who: "self" | "foe"; name: string };
+  /** 消耗所有X，每层…: for each layer of a mark (used up), points of values and a heal. */
+  perLayer?: { name: string; stats?: StatKey[]; n?: number; healF?: number }[];
+  /** 击破X: the other's layers of the mark go (its holder's 当X被击破时… on the user's side). */
+  breakMark?: string;
+  /** 提升全数值N点 / 吸取对方N点双防数值: points of the battle values (not 等级), on the user or the other, or taken. */
+  statPts?: { who: "self" | "foe"; stats: StatKey[]; n: number; steal?: boolean }[];
+  statPtsIf?: Cond;
+  /** 清空对方身上持续性效果: the other's lasting effects go. */
+  clearFoeTimed?: boolean;
+  /** 令对方诅咒 (RECONSTRUCTED: the later status as a lasting 1/8 of the most 体力 a round, 3 rounds). */
+  curse?: { chance: number };
+  /** 消耗所有X，每层使技能威力提升N / 每个X提升技能威力N点: power per layer of the user's mark (used up). */
+  stackPower?: { name: string; per: number; consume: boolean };
+  /** 斩杀N点体力以下亚比: a foe left with n or less falls (grow more for each round it has been out). */
+  execute?: { n: number; grow?: number };
+  /** 倒置: the stages turned over (all, or only the raised / lowered ones), on each side. */
+  invert?: { self?: "all" | "up" | "down"; foe?: "all" | "up" | "down" };
+  /** 附加N种不良状态: n of the bad statuses at random, by this chance. */
+  badStatuses?: { n: number; chance: number };
+  /** PP taken from every skill of the other: a range (吸取对方全部PP值1~3点), the user's back when stolen. */
+  ppRange?: { a: number; b: number; steal?: boolean; chance: number; cond?: Cond };
+  /** A flat heal that comes only when this holds (若已受到伤害则回复300点体力值). */
+  healFlatIf?: { n: number; cond: Cond };
   cure?: boolean;
   sleepAfter?: number;
   // ---- stages beside stages[]
-  clearFoeUps?: { chance: number; stats?: StatKey[] };
+  clearFoeUps?: { chance: number; stats?: StatKey[]; cond?: Cond };
   restoreOwn?: { chance: number };
   resetFoe?: boolean;
   resetSelf?: boolean;
   swapStages?: boolean;
   copyFoeUps?: { chance: number };
   passDowns?: boolean;
-  stealStages?: { stats: StatKey[]; delta: number; minDmg?: number };
+  stealStages?: { stats: StatKey[]; delta: number; minDmg?: number; chance?: number; cond?: Cond; pick?: number; perRound?: boolean };
+  /** 吸取对方N点体力值: after the blow, n off the other and back to the user. */
+  stealHp?: { n: number; cond?: Cond };
   /** 防御与攻击，特防与特攻 swap their stages. */
   swapOwnStages?: boolean;
   // ---- lasting things
@@ -287,6 +491,9 @@ export interface SkillEffects {
   eitherStops?: number;
   trap?: [number, number];
   forceSwitch?: boolean;
+  /** forceSwitch / swapStages by this chance. */
+  forceSwitchChance?: number;
+  swapChance?: number;
   nextFullHeal?: boolean;
   reviveNext?: boolean;
   /** After a KO of the foe: heal this fraction of the most HP. */
@@ -402,6 +609,9 @@ export function normalise(desc: string): string {
     .replace(/[：]/g, ":")
     .replace(/[“”"]/g, "")
     .replace(/[３]/g, "3")
+    // The names of the skills set off (灵兽之域•南: the table's 灵兽之域·南; 超·磁暴: 超·磁爆).
+    .replace(/•/g, "·")
+    .replace(/超·磁暴/g, "超·磁爆")
     .replace(/机率/g, "概率")
     .replace(/回避/g, "闪避")
     .replace(/对手/g, "对方")
@@ -416,7 +626,86 @@ export function normalise(desc: string): string {
     .replace(/，(?:此)?技能威力(?=加倍|提升至\d)/g, "，威力")
     .replace(/(\d+)%(?=削弱|提升|令|使|降低)/g, "$1%概率")
     .replace(/次回合自己无法行动/g, "下回合自己停止行动")
-    .replace(/若暴击，(?:则)?(?=提升)/g, "暴击后");
+    .replace(/若暴击，(?:则)?(?=提升)/g, "暴击后")
+    // The words of the skills of 2013–14 for what the era's say otherwise.
+    .replace(/必中(?!技)/g, "必定命中")
+    .replace(/每次被攻击/g, "每次受到攻击")
+    .replace(/提高(?=自己|自身|对方)/g, "提升")
+    .replace(/恢复(?=\d+点|\d+%|最大体力值)/g, "回复")
+    .replace(/(?<!来)转化(?=回复)/g, "转化来")
+    .replace(/^(命中后?)?有(?=\d+%)/g, "$1")
+    .replace(/(命中后?)有(?=\d+%概率)/g, "$1")
+    .replace(/(?<=每次命中|每次攻击|每次受到攻击)有(?=\d+%)/g, "")
+    .replace(/(\d+%概率)额外(?=提升|削弱|降低)/g, "$1")
+    .replace(/(麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)，(?=(?:麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)(?:、(?:麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生))*或)/g, "$1、")
+    .replace(/伤害抗性/g, "伤害抵抗能力")
+    .replace(/每回合(?=免疫异常状态)/g, "")
+    .replace(/(?<=回复(?:自身|自己))(\d+%)的最大体力值/g, "最大体力值的$1")
+    .replace(/不会进入异常或不良状态|免疫异常状态|免疫异常和不良状态|不会陷入异常或不良状态/g, "不会陷入异常状态")
+    .replace(/保护(?:自己|自身)?属性(?:等级)?(\d+)回合(?:内)?不被削弱/g, "自己属性能力等级不能被削弱$1回合")
+    .replace(/下回合(?:的)?攻击必定命中/g, "下回合必定命中")
+    .replace(/(?:将)?(?:给对方)?(?:造成的?)?伤害(?:值)?的?(\d+%|\d+\/\d+)(?:用来|用于|转化为)回复(?:自身|自己)/g, "将伤害值的$1转化来回复自己")
+    .replace(/保护(?:自己|自身)?属性不能被(?:降低|削弱)/g, "自己属性能力等级不能被削弱")
+    .replace(/对已(麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)的?目标/g, "若对方已$1则")
+    .replace(/(\d+)%(?:概率)?秒杀已(麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)的目标/g, "若对方已$2则$1%概率秒杀对方")
+    .replace(/(?:清空|清除)对方(?:提升|增益)的?属性(?!能力)(?:等级)?/g, "清除对方提升的能力等级")
+    .replace(/并有(?=\d+%)/g, "并")
+    .replace(/保护自身并属性/g, "保护自身属性")
+    .replace(/最大体力(?!值)(\d+%)/g, "最大体力值的$1")
+    .replace(/(?<=[，、；]|^)伤害(?:的)?(\d+%)(?:用于)?回复(?:自己|自身)?(?:体力值?)?/g, "将伤害值的$1转化来回复自己")
+    .replace(/全场非超?[^，。、\s]{1,3}系(?:以外)?(?:的)?亚比/g, "对方")
+    .replace(/全场超?[^，。、\s；]{1,3}系以外(?:的)?亚比/g, "对方")
+    .replace(/(?<=自身|自己)添加(?=\d+层)/g, "获得")
+    .replace(/以外全属性/g, "外全属性")
+    .replace(/(?<=每次受到伤害)有(?=\d+%)/g, "")
+    .replace(/对面/g, "对方")
+    .replace(/该单位/g, "对方")
+    .replace(/敌方1体/g, "对方")
+    .replace(/敌方全体/g, "对方全体")
+    .replace(/护盾持续时间内/g, "护盾存在时")
+    .replace(/(?<=攻击|防御|特攻|特防|速度|命中|闪避|暴击)以外(?=任意)/g, "外")
+    .replace(/对方(\d+)回合内属性不能提升/g, "令对方属性不能提升$1回合")
+    .replace(new RegExp(`(?<=若[^，。；]{0,12}则)吸取(?=(?:${STAT_RE}))`, "g"), "吸取对方")
+    .replace(/提升自己提升(?=伤害)/g, "提升自己")
+    .replace(/(\d+%)的概率/g, "$1概率")
+    .replace(/(?<=[\u4e00-\u9fa5]{2}外)的(?=全属性)/g, "")
+    .replace(/(?:自身|自己)属性(?:等级)?无法被削弱/g, "自己属性能力等级不能被削弱")
+    .replace(/，使用次数越多，?成功率越低/g, "，一场战斗使用次数越多，成功率越低")
+    .replace(/(?<=状态，)此技能(?=威力|伤害)/g, "")
+    .replace(/命中(\d+)次则/g, "若次数为$1则")
+    .replace(/(?<![若如果])(?<=^|，|；)对方已(麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)则/g, "若对方已$1则")
+    .replace(/附加固定伤害(\d+)点/g, "附加$1点固定伤害")
+    .replace(/吸取已(麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)的?目标/g, "若对方已$1则吸取对方")
+    .replace(/高概率(?=令|使|(?:麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)对方)/g, "70%概率")
+    .replace(/(?<=\d回合)均(?=有\d+%概率免疫)/g, "")
+    .replace(/每次命中后(?=有?\d+%|提升|削弱|降低)/g, "每次命中")
+    .replace(/清空(?=对方最后使用的技能PP\d+点)/g, "扣除")
+    .replace(/(将(?:造成的)?伤害(?:值)?的?\d+%(?:转化)?来?回复)自身(?=并|，|；|$)/g, "$1自己")
+    .replace(/(?<=^|，|；)暴击则/g, "若暴击则")
+    .replace(/(?<=每次命中)概率(?=削弱|令|提升|降低)/g, "30%概率")
+    .replace(/^连续攻击对方(\d+)次/g, "攻击对方单体$1次")
+    .replace(/攻击对方全体1次，有(?=\d+%概率)/g, "攻击对方全体，")
+    .replace(/吸取对方PP(\d+)-(\d+)点/g, "吸取对方PP$1~$2点")
+    .replace(/，?对部分(?:BOSS|boss|Boss)无效/g, "")
+
+    .replace(/(?:自己|自身)属性(?:等级)?不能被降低/g, "自己属性能力等级不能被削弱")
+    .replace(/免疫负面状态|不会进入不良或异常状态/g, "不会陷入异常状态")
+    .replace(/倒置对方单体/g, "倒置对方")
+    .replace(/我方属性等级无法被削弱/g, "自己属性能力等级不能被削弱")
+    .replace(/(?<=每次攻击)对方(?=有?\d+%)/g, "")
+    .replace(/每回合威力翻倍/g, "每回合威力加倍")
+    .replace(new RegExp(`(?:令|使)对方(${STAT_LIST})(?:等级)?(?:降低|下降)(\\d+)级`, "g"), "降低对方$1等级$2级")
+    .replace(/非超?[^，。、\s]{1,3}系亚比/g, "对方")
+    .replace(/(?<!最大)生命值/g, "体力值")
+    .replace(/扣取/g, "扣除")
+    .replace(/(?<=扣除|回复|吸取)(?:自己|自身)?当前血量/g, "自己当前体力值")
+    .replace(/(?<![的点])血量/g, "体力值")
+    .replace(/(?<!一场战斗)(?<!，)使用次数越多，?成功率越低/g, "一场战斗使用次数越多，成功率越低")
+    .replace(/附带(\d+)点固定伤害/g, "附加$1点固定伤害")
+    .replace(/(?<![\d%定的高低大小])(?<!暴击|命中)概率(?=令|使|削弱|提升|降低|害怕|麻痹|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生|保护|清空|清除)/g, "一定概率")
+    .replace(/(?:并且|并)会将/g, "并将")
+    .replace(/(?<=伤害值?的(?:\d+%|\d+\/\d+))用来回复/g, "转化来回复")
+    .replace(/保护(?:自己|自身)?属性(?:等级)?(?:不被削弱)?|(?:自己|自身)?属性(?:等级)?不会被削弱/g, "自己属性能力等级不能被削弱");
   for (const [k, v] of Object.entries(FRACS)) d = d.split(k).join(v);
   d = d.replace(/([一二两三四五六七八九十])(级|回合|次|点|倍|种|个)/g, (_m, a: string, b: string) => CN[a] + b);
   d = d
@@ -468,6 +757,8 @@ const FILLER = [
   /(?:持续|在)?\d+回合(?:内|有效)?/g,
   /对方单体|对方全体|单体/g,
   /(?:对某些守护)?效果较弱|自己速度越快，成功概率越高|使用1次/g,
+  // The 战界奥义's field by name (its background shows it): 制造白皇幻境, 展开极龙斗场.
+  /(?:制造|展开)[^，。；、\s＿]{2,6}?(?:幻境|斗场|境界|领域)|使用时|无限回合/g,
   /本回合|使用后|命中后|命中则|命中|攻击|并且|并|且|但|同时|另外|则|的|，|；|。|,|;|\.|、|!|！|\s/g,
 ];
 
@@ -491,6 +782,16 @@ class Reader {
     return any;
   }
 
+  /** The words left (the read ones are ＿). */
+  get rest(): string {
+    return this.left;
+  }
+
+  /** Take n words from i. */
+  cut(i: number, n: number): void {
+    this.left = this.left.slice(0, i) + "＿".repeat(n) + this.left.slice(i + n);
+  }
+
   /** Is re in the words left? */
   has(re: RegExp): boolean {
     return re.test(this.left);
@@ -504,10 +805,136 @@ class Reader {
   }
 }
 
+/** The heads of a clause that holds only sometimes (若对方已烧伤，则…), and the condition. */
+const COND_HEADS: [RegExp, (m: RegExpMatchArray) => Cond | Cond[]][] = [
+  [new RegExp(`(?:若|如果|当)对方(?:已经?|处于|被)?(${ST}(?:(?:或|、)${ST})*)(?:状态)?(?:时|的话)?，?(?:则|就)?`, "g"), (m) => m[1].split(/或|、/).map((x) => ({ foeStatus: statusOf(x) }))],
+  [/(?:若|如果|当)对方处于(?:异常|不良)(?:或(?:异常|不良))?状态(?:时)?，?(?:则)?/g, () => ({ foeStatus: "any" })],
+  [/(?:若|每次|如果)暴击(?:时|后)?，?(?:则)?|暴击(?:则|时)，?/g, () => ({ crit: true })],
+  [/(?:若|如果)(?:自己)?(?:比对方)?先出手(?:时)?，?(?:则)?/g, () => ({ first: true })],
+  [/(?:若|如果)(?:对方比自己先出手|对方先出手|(?:自己)?后出手|后手)(?:时)?，?(?:则)?/g, () => ({ second: true })],
+  [/(?:若|如果)先手(?:时)?，?(?:则)?/g, () => ({ first: true })],
+  [/(?:若|如果)?(?:在)?([^，。、；\s＿]{2})圣域中，?(?:时)?(?:则)?/g, (m) => ({ field: m[1] })],
+  [/(?:若|如果)?(?:本回合)?(?:出手时|使用时)?(?:未|没有)受到?(?:过)?(?:伤害|攻击)(?:时)?，?(?:则)?/g, () => ({ hurt: false })],
+  [/(?:若|如果)(?:本回合)?(?:出手前|使用时)?(?:已|已经)?受到(?:过)?(?:伤害|攻击)(?:时)?，?(?:则)?/g, () => ({ hurt: true })],
+  [/(?:若|如果)(?:攻击|命中)?次数为(\d+)(?:~(\d+))?(?:次)?(?:时)?，?(?:则)?/g, (m) => ({ hitsIn: [num(m[1]), num(m[2] || m[1])] })],
+  [/(?:若|如果)对方速度等级低于我方(?:时)?，?(?:则)?/g, () => ({ foeSpdLower: true })],
+  [/(?:若|如果)(?:击败|击杀|打败)对方(?:时)?，?(?:则)?/g, () => ({ killed: true })],
+  [/(?:若|如果)?(?<!受到)(?:造成的?)?伤害(?:值)?(?:超过|高于|大于)(\d+)(?:点)?(?:时)?，?(?:则)?/g, (m) => ({ dmgOver: num(m[1]) })],
+  [/(?:若|如果)?(?<!受到)(?:造成的?)?伤害(?:值)?(?:低于|小于|不足|未超过)(\d+)(?:点)?(?:时)?，?(?:则)?/g, (m) => ({ dmgUnder: num(m[1]) })],
+  [/(?:若|如果)对方(?:剩余)?体力值?(?:低于|小于|少于)(1\/2|1\/3|1\/4|\d+%)(?:时)?，?(?:则)?/g, (m) => ({ foeHpBelow: frac(m[1]) })],
+  [/(?:若|如果)(?:自己|自身)?(?:剩余)?体力值?(?:低于|小于|少于)(1\/2|1\/3|1\/4|\d+%|一半)(?:时)?，?(?:则)?/g, (m) => ({ selfHpBelow: m[1] === "一半" ? 0.5 : frac(m[1]) })],
+  [/(?:若|如果)?(?<=^|[，；。]|若|如果)(?:自己)?(?:比对方)?先出手(?:时)?，?则/g, () => ({ first: true })],
+  [/(?<=^|[，；。])(?:自己)?体力(?:值)?(?:低于|小于|少于)(一半|1\/2|1\/3|1\/4)时，?(?:则)?/g, (m) => ({ selfHpBelow: m[1] === "一半" ? 0.5 : frac(m[1]) })],
+  [/(?<=^|[，；。])(?:本回合)?(?:击杀|击败)对方(?:则|时)，?/g, () => ({ killed: true })],
+  [/(?:若|如果)(?:自己|自身)?处于(?!异常|不良)([^，。；、\s＿]{2,4}?)状态(?:时|中)?，?(?:则)?/g, (m) => ({ state: m[1] })],
+];
+
+/** A clause's power under its condition (伤害翻倍, 发动1.5倍威力, 威力提升50%). */
+function powerOf(s: string): { mult?: number; set?: number } | undefined {
+  let m: RegExpMatchArray | null;
+  if (/^(?:则)?(?:技能)?(?:伤害|威力)(?:翻倍|加倍)$/.test(s)) return { mult: 2 };
+  if ((m = s.match(/^(?:则)?(?:发动|造成)(\d+(?:\.\d+)?)倍(?:的)?(?:威力|伤害)$/))) return { mult: Number(m[1]) };
+  if ((m = s.match(/^(?:则)?(?:技能)?(?:威力|伤害)(?:提升|增加|提高|上升)(\d+)%$/))) return { mult: 1 + num(m[1]) / 100 };
+  if ((m = s.match(/^(?:则)?(?:技能)?(?:威力|伤害)(?:提升|增加|提高)(?:为|至)?(\d+(?:\.\d+)?)倍$/))) return { mult: Number(m[1]) };
+  if ((m = s.match(/^(?:则)?(?:技能)?威力(?:提升|变)为(\d+)$/))) return { set: num(m[1]) };
+  return undefined;
+}
+
+/**
+ * What a clause read on its own gives, each part under c, into e; false (e untouched) when a
+ * part cannot hold only sometimes.
+ */
+function underCond(sub: SkillEffects, c: Cond, e: SkillEffects): boolean {
+  const after = "crit" in c || "dmgOver" in c || "dmgUnder" in c || "killed" in c || "hitsIn" in c;
+  const set = Object.entries(sub).filter(([, v]) => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== false));
+  // status and heal are what statuses and healAfter say (for the shown skill): not kept under c.
+  const can = new Set(["stages", "statuses", "timed", "boost", "drain", "healAfter", "ppFoe", "ohko", "fixed", "stealStages", "clearFoeUps", "perHit", "status", "heal", "stealHp", "healFull", "healFlat", "statPts"]);
+  if (!set.length || set.some(([k]) => !can.has(k))) return false;
+  if (sub.stages.some((x) => x.cond) || sub.statuses.some((x) => x.cond) || sub.timed.some((x) => x.placeIf)) return false;
+  if (sub.boost && (after || sub.boost.some((x) => x.cond))) return false;
+  if (sub.drain !== undefined && (sub.drainCond || after)) return false;
+  if ((sub.healAfter || sub.healFull) && (sub.healAfter?.cond || e.healAfter || (sub.healAfter && sub.healFull))) return false;
+  if (sub.ppFoe && (sub.ppFoe.cond || e.ppFoe)) return false;
+  if (sub.ohko !== undefined && (after || e.ohkoIf)) return false;
+  if (sub.fixed !== undefined && (after || sub.fixedChance !== undefined)) return false;
+  if (sub.stealStages && (sub.stealStages.cond || e.stealStages)) return false;
+  if (sub.stealHp && (sub.stealHp.cond || e.stealHp)) return false;
+  if (sub.healFlat !== undefined && (sub.healChance !== undefined || e.healFlatIf)) return false;
+  if (sub.clearFoeUps && e.clearFoeUps) return false;
+  if (sub.statPts && (sub.statPtsIf || e.statPtsIf || e.statPts)) return false;
+  if (sub.statPts) {
+    e.statPts = sub.statPts;
+    e.statPtsIf = c;
+  }
+  for (const x of sub.stages) e.stages.push({ ...x, cond: c });
+  for (const x of sub.statuses) e.statuses.push({ ...x, cond: c });
+  for (const x of sub.timed) e.timed.push({ ...x, placeIf: c });
+  for (const x of sub.boost ?? []) (e.boost ??= []).push({ ...x, cond: c });
+  if (sub.drain !== undefined) (e.powerIf ??= []).push({ cond: c, drain: sub.drain });
+  if (sub.healAfter) e.healAfter = { ...sub.healAfter, cond: c };
+  if (sub.healFull) e.healAfter = { f: 1, chance: 100, cond: c };
+  if (sub.ppFoe) e.ppFoe = { ...sub.ppFoe, cond: c };
+  if (sub.ohko !== undefined) e.ohkoIf = { chance: sub.ohko, cond: c };
+  if (sub.fixed !== undefined) (e.powerIf ??= []).push({ cond: c, add: sub.fixed });
+  if (sub.stealStages) e.stealStages = "dmgOver" in c ? { ...sub.stealStages, minDmg: c.dmgOver } : { ...sub.stealStages, cond: c };
+  if (sub.stealHp) e.stealHp = { ...sub.stealHp, cond: c };
+  if (sub.healFlat !== undefined) e.healFlatIf = { n: sub.healFlat, cond: c };
+  if (sub.clearFoeUps) e.clearFoeUps = { ...sub.clearFoeUps, cond: c };
+  if (sub.perHit) e.perHit = true;
+  return true;
+}
+
+/** The skills others set off by name (触发技能X): name -> words (the pet table's "named"). */
+let NAMED: Record<string, string> = {};
+let triggerDepth = 0;
+
+/** Make the skills that others set off by name known to the reader. */
+export function nameSkills(words: Record<string, string>): void {
+  NAMED = words;
+}
+
+/** What a skill set off by name does (not its blow): into e. */
+function mergeTriggered(sub: SkillEffects, e: SkillEffects): void {
+  e.stages.push(...sub.stages);
+  e.statuses.push(...sub.statuses);
+  e.timed.push(...sub.timed);
+  if (sub.healAfter && !e.healAfter) e.healAfter = sub.healAfter;
+  if (sub.healFull) e.healFull = true;
+  if (sub.healFlat) e.healFlat = (e.healFlat ?? 0) + sub.healFlat;
+  if (sub.resetFoe) e.resetFoe = true;
+  if (sub.resetSelf) e.resetSelf = true;
+  if (sub.clearBothUps) e.clearBothUps = true;
+  if (sub.clearFoeUps && !e.clearFoeUps) e.clearFoeUps = sub.clearFoeUps;
+  if (sub.restoreOwn && !e.restoreOwn) e.restoreOwn = sub.restoreOwn;
+  if (sub.invert) e.invert = { ...(e.invert ?? {}), ...sub.invert };
+  if (sub.cure) e.cure = true;
+  if (sub.summon && !e.summon) e.summon = sub.summon;
+  if (sub.badStatuses && !e.badStatuses) e.badStatuses = sub.badStatuses;
+  if (sub.ppRange && !e.ppRange) e.ppRange = sub.ppRange;
+  if (sub.clearFoeTimed) e.clearFoeTimed = true;
+  if (sub.curse && !e.curse) e.curse = sub.curse;
+  if (sub.statPts) e.statPts = [...(e.statPts ?? []), ...sub.statPts];
+  if (sub.stacks) e.stacks = [...(e.stacks ?? []), ...sub.stacks];
+  if (sub.absorbHit) e.absorbHit = true;
+  if (sub.makeShield && !e.makeShield) e.makeShield = sub.makeShield;
+}
+
 /** Read a description: its effects, and the words not read. */
 export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
+  const plain = readWith(desc, false);
+  // The clauses that hold only sometimes are read on their own only where the rest leaves words
+  // (the readers of the era's skills keep their words).
+  if (!plain.unread || !COND_HEADS.some(([re]) => new RegExp(re.source).test(normalise(desc)))) return plain;
+  const conds = readWith(desc, true);
+  return conds.unread.length < plain.unread.length ? conds : plain;
+}
+
+function readWith(desc: string, conds: boolean): { fx: SkillEffects; unread: string } {
   const r = new Reader(desc);
   const e: SkillEffects = { stages: [], statuses: [], timed: [] };
+  // Words that change what another reader made (read at the end): 当速度等级削至最低时…, 受到攻击则叠加效果.
+  let atMin: number | undefined;
+  let stackUp = false;
   // The whole field (not 自己以外的全场, not 对方全场): the user is hit too. The words stay for FILLER.
   if (/攻击全场|给全场亚比造成伤害/.test(desc)) e.wholeField = true;
   const cond = (s: string): Cond | undefined => {
@@ -528,7 +955,7 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
 
   const turnsOf = (s: string, dflt: number) => {
     const m = s.match(/(?:持续|在|接下来)?(\d+)回合|(\d+)回合内|持续(\d+)回合/);
-    return m ? num(m[1] ?? m[2] ?? m[3]) : dflt;
+    return m ? num(m[1] ?? m[2] ?? m[3]) : /无限回合/.test(s) ? 99 : dflt;
   };
   // 不能和“X”同时存在: X's lasting effects go when this one comes (正电极盾 and 负电极盾).
   {
@@ -536,6 +963,434 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
     if (x) e.exclusiveWith = x[1];
   }
   // ---- one skill's words, read before the general readers take a part of them
+  // 圣域 (2014): 并有一定概率召唤万王圣域 (RECONSTRUCTED 一定概率: half the time).
+  r.take(/并?有?(?:一定概率|(\d+)%概率)召唤([^，。、\s]{2})圣域/, (m) => void (e.summon = { name: m[2], chance: m[1] ? num(m[1]) : 50 }));
+
+  // ---- 若/每次 <a condition>，则 <words>: the words read on their own, each part under it.
+  if (conds)
+    for (const [re, toCond] of COND_HEADS)
+      for (const m of [...r.rest.matchAll(re)]) {
+        const at = m.index!;
+        if (r.rest.slice(at, at + m[0].length).includes("＿")) continue;
+        const body = r.rest.slice(at + m[0].length).split(/[；。＿]/)[0];
+        const parts = body.split("，");
+        for (let k = parts.length; k > 0; k--) {
+          const clause = parts.slice(0, k).join("，");
+          if (!clause) continue;
+          const cs = ([] as Cond[]).concat(toCond(m));
+          const pw = powerOf(clause);
+          let ok = false;
+          if (pw) {
+            if (!cs.some((c) => "crit" in c || "dmgOver" in c || "dmgUnder" in c)) {
+              for (const c of cs) (e.powerIf ??= []).push({ cond: c, ...pw });
+              ok = true;
+            }
+          } else {
+            const sub = readWith(clause, true);
+            // 若对方已混乱或睡眠: the same under each (a 亚比 has one status at a time).
+            ok = !sub.unread && cs.every((c) => underCond(structuredClone(sub.fx), c, structuredClone(e)));
+            if (ok) for (const c of cs) underCond(structuredClone(sub.fx), c, e);
+          }
+          if (ok) {
+            r.cut(at, m[0].length + clause.length);
+            break;
+          }
+        }
+      }
+
+  // (对方)每次受到X伤害则…: on the foe while it has X, each time X hurts it (冰冻: each round's end).
+  r.take(new RegExp(`(?:对方)?每次(?:受到)?(${ST})(?:受到)?伤害(?:则|时)?，?((?:(?:并|，)?有?(?:\\d+%)?(?:一定)?(?:概率)?(?:(?:提升|削弱|降低)(?:自己|自身|我方|对方)?${STAT_LIST}(?:等级)?各?\\d+(?:~\\d+)?级|(?:将|吸取)对方${STAT_LIST}(?:等级)?各?\\d+级(?:转化给自己)?|扣除全PP\\d+(?:~\\d+)?点|(?:清除对方提升的能力等级|清空增益属性|清除对方增益属性)|附加1个负面状态|(?:自身|自己)获得\\d+层[^，。；、\\s＿]{1,6}?(?:之印|印记|印)))+)`), (m) => {
+    const st = statusOf(m[1]);
+    const base = { who: "foe" as const, kind: "ontick" as const, turns: 99, status: st, while: st };
+    const parts = m[2].split(/(?:并|，)(?=有?(?:\d+%)?(?:一定)?(?:概率)?(?:提升|削弱|降低|将|吸取|扣除|清除|清空|附加|自身获得|自己获得))/);
+    const out: Timed[] = [];
+    for (const p of parts) {
+      const ch = p.match(/^有?(\d+)%/);
+      // 一定概率: as the era's (30%).
+      const chance = ch ? num(ch[1]) : /^有?(?:一定)?概率/.test(p) ? 30 : 100;
+      let x: RegExpMatchArray | null;
+      if ((x = p.match(new RegExp(`(提升|削弱|降低)(自己|自身|我方|对方)?(${STAT_LIST})(?:等级)?各?(\\d+)(?:~(\\d+))?级`)))) {
+        const user = x[2] ? x[2] !== "对方" : x[1] === "提升";
+        const sign = x[1] === "提升" ? 1 : -1;
+        out.push({ ...base, chance, stats: statsOf(x[3]), delta: sign * num(x[4]), ...(x[5] ? { deltaMax: sign * num(x[5]) } : {}), selfStage: !user });
+      } else if ((x = p.match(new RegExp(`(?:将|吸取)对方(${STAT_LIST})(?:等级)?各?(\\d+)级`)))) out.push({ ...base, chance, stats: statsOf(x[1]), delta: num(x[2]), stealStats: true });
+      else if ((x = p.match(/扣除全PP(\d+)(?:~(\d+))?点/))) out.push({ ...base, chance, a: num(x[1]), b: num(x[2] || x[1]) });
+      else if (/清除|清空/.test(p)) out.push({ ...base, chance, clear: true });
+      else if (/负面状态/.test(p)) out.push({ ...base, chance, anyStatus: true });
+      // 并自身添加1层朱雀之印: a layer of a mark on the one who gave the status.
+      else if ((x = p.match(/(?:自身|自己)获得(\d+)层([^，。；、\s＿]{1,6}?(?:之印|印记|印))/))) out.push({ ...base, chance, selfStack: x[2], n: num(x[1]) });
+      else return false;
+    }
+    e.timed.push(...out);
+  });
+
+  // N%概率提升自己…或削弱对方…: one roll, then one of the two.
+  r.take(new RegExp(`(?:(\\d+)%概率)?(提升|削弱|降低)(自己|自身|对方)?(${STAT_LIST})(?:等级)?各?(\\d+)级或(提升|削弱|降低)(自己|自身|对方)?(${STAT_LIST})(?:等级)?各?(\\d+)级`), (m) => {
+    const side = (verb: string, who: string | undefined) => (who ? who !== "对方" : verb === "提升");
+    const sign = (verb: string) => (verb === "提升" ? 1 : -1);
+    e.stages.push({ self: side(m[2], m[3]), stats: statsOf(m[4]), delta: sign(m[2]) * num(m[5]), chance: pct(m[1]), or: { self: side(m[6], m[7]), stats: statsOf(m[8]), delta: sign(m[6]) * num(m[9]) } });
+  });
+  // 下回合(攻击)将伤害值的N%转化来回复自己 / 下回合每次攻击N%概率令对方X: for the next turn.
+  r.take(/下回合必定命中并将(?:造成)?(?:的)?伤害值?的(\d+%|\d+\/\d+)转化来?回复自己(?:体力值?)?/, (m) => {
+    e.timed.push({ who: "self", kind: "sure", turns: 2 }, { who: "self", kind: "drain", turns: 2, f: frac(m[1]) });
+  });
+  r.take(/下回合(?:攻击)?(?:将)?(?:造成)?(?:的)?伤害值?的(\d+%|\d+\/\d+)转化来?回复自己(?:体力值?)?/, (m) => void e.timed.push({ who: "self", kind: "drain", turns: 2, f: frac(m[1]) }));
+  r.take(new RegExp(`下回合(?:每次)?攻击(?:有)?(\\d+)%概率令对方(${ST})`), (m) => void e.timed.push({ who: "self", kind: "onhit", turns: 2, chance: num(m[1]), status: statusOf(m[2]) }));
+  // 吸取对方N点体力值 / (N%概率)吸取对方X(和Y)N级 / N%概率强制对方替换 / N%概率交换双方的能力等级.
+  r.take(/(?:额外)?吸取对方(\d+)点体力值?/, (m) => void (e.stealHp = { n: num(m[1]) }));
+  r.take(new RegExp(`(?:(\\d+)%概率)?(?:额外)?吸取对方(?:单体)?(${STAT_LIST})(?:等级)?各?(\\d+)级`), (m) => void (e.stealStages = { stats: statsOf(m[2]), delta: num(m[3]), ...(m[1] ? { chance: num(m[1]) } : {}) }));
+  r.take(/(\d+)%概率(?:强制)?(?:令)?对方(?:单体)?(?:强制)?替换亚比(?:战斗)?/, (m) => {
+    e.forceSwitch = true;
+    e.forceSwitchChance = num(m[1]);
+  });
+  r.take(/(\d+)%概率交换(?:双方|敌我双方)的?(?:属性)?能力(?:的)?等级/, (m) => {
+    e.swapStages = true;
+    e.swapChance = num(m[1]);
+  });
+  // N%概率扣除自己N点体力值 (命中后).
+  r.take(/(\d+)%概率扣除自己(\d+)点体力值?/, (m) => void (e.selfCost = { n: num(m[2]), chance: num(m[1]) }));
+
+  r.take(/(\d+)%概率(?:伤害|威力)(?:翻倍|加倍)/, (m) => void (e.boost ??= []).push({ chance: num(m[1]), mult: 2 }));
+  r.take(/(\d+)%概率打出(\d+(?:\.\d+)?)倍的伤害/, (m) => void (e.boost ??= []).push({ chance: num(m[1]), mult: Number(m[2]) }));
+  r.take(new RegExp(`(\\d+)%概率(?:令对方)?(${ST})或(${ST})(?!状态)`), (m) => {
+    for (const n of [m[2], m[3]]) e.statuses.push({ name: statusOf(n), chance: num(m[1]) / 2 });
+  });
+
+  // 护盾: 获得最大体力值N%的护盾 / 与伤害等额 / 与当前体力等量 (上限N) / 2X已损失体力值 / N点体力护盾 / 消耗当前体力一半….
+  r.take(/(?:使用时)?获得(?:(?:一|1)个)?(?:相当于)?(?:自身)?最大体力值(?:的)?(一半|\d+%|\d+\/\d+)的?(?:体力)?护盾/, (m) => void (e.makeShield = { kind: "max", f: m[1] === "一半" ? 0.5 : frac(m[1]) }));
+  r.take(/制造(?:一|1)个与伤害等额的护盾/, () => void (e.makeShield = { kind: "dmg", f: 1 }));
+  r.take(/制造(?:一|1)个与当前体力(?:值)?等量的护盾(?:吸收伤害)?/, () => void (e.makeShield = { kind: "hp", f: 1 }));
+  r.take(/(?:，)?护盾值?上限(\d+)/, (m) => void (e.makeShield && (e.makeShield.cap = num(m[1]))));
+  r.take(/制造(?:一|1)个护盾值为(\d+)[X×*]已损失体力值的护盾(?:抵挡伤害)?/, (m) => void (e.makeShield = { kind: "lost", f: num(m[1]) }));
+  r.take(/(?:并)?获得(\d+)点(?:体力)?护盾/, (m) => void (e.makeShield = { kind: "n", n: num(m[1]) }));
+  r.take(/消耗(?:自己|自身)当前体力值?(?:的)?一半制造(?:一|1)个等量的护盾(?:吸收伤害)?/, () => {
+    e.selfCost = { f: 0.5, current: true };
+    e.makeShield = { kind: "hp", f: 1 };
+  });
+  // 护盾存在时(回合末)提升自身全属性1级 / 提升自身伤害抗性N%.
+  r.take(new RegExp(`护盾存在时(?:每?回合末)?提升(?:自己|自身)(${STAT_LIST})(?:等级)?(\\d+)级`), (m) => void e.timed.push({ who: "self", kind: "stagesEachTurn", turns: 99, chance: 100, stats: statsOf(m[1]), delta: num(m[2]), whileShield: true }));
+  r.take(/护盾存在时提升(?:自己|自身)(?:的)?伤害(?:抵抗能力|抗性)(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: 99, phys: 1 - num(m[1]) / 100, spec: 1 - num(m[1]) / 100, whileShield: true }));
+  // 当护盾被打破(击破)时(，打破时该回合内)提升自身全属性1级 / 对方(全体)被冰冻 / 麻痹….
+  r.take(new RegExp(`当护盾被(?:打|击)破时(?:则)?，?(?:打破时该回合内)?(?:提升(?:自己|自身)(${STAT_LIST})(?:等级)?(\\d+)级|(?:令|使)?(?:对方|全场)(?:全体|非超电系亚比)?(?:被)?(冰冻|麻痹|睡眠|烧伤|中毒|混乱|害怕))`), (m) => {
+    if (m[1]) e.timed.push({ who: "self", kind: "onbreak", turns: 99, stats: statsOf(m[1]), delta: num(m[2]), selfStage: true });
+    else e.timed.push({ who: "self", kind: "onbreak", turns: 99, status: statusOf(m[3]) });
+  });
+  // 斩杀N点体力以下亚比(，每在场1回合提升斩杀能力N点(，返回背包将重置)).
+  r.take(/斩杀(\d+)点体力(?:值)?以下(?:的)?亚比(?:，?每在场1回合提升斩杀能力(\d+)点)?(?:，?返回背包将重置)?/, (m) => void (e.execute = { n: num(m[1]), ...(m[2] ? { grow: num(m[2]) } : {}) }));
+  const battleLong0 = (dflt = 99) => { const m = r.d.match(/持续(\d+)回合/); return m ? num(m[1]) : /无限回合/.test(r.d) ? 99 : dflt; };
+  // ---- 印记 / 层: marks with layers (the later skills' 复原印记, 星神古魂, 逆火之印 …).
+  const MARK = "([^，。；、\s＿：:层个]{0,6}?(?:之印|印记|标记|古魂|之灵|印|仁王盾))";
+  const thenOf = (words: string) => {
+    if (!words) return undefined;
+    const sub = readWith(words, true);
+    return sub.unread ? undefined : sub.fx;
+  };
+  // 当(自身)X达(到)N层时(则)消耗N层(X)(，)<…>.
+  r.take(new RegExp(`当(?:自身)?(?:身上)?${MARK}(?:印记)?(?:达|达到|获得)(\\d+)层时(?:，)?(?:则)?(?:消耗(\\d+|所有)层?(?:${MARK.replace("(", "(?:")})?(?:印记)?)?，?([^；。＿]*)`), (m) => {
+    const clause = m[4].replace(/，$/, "");
+    const then = thenOf(clause);
+    if (clause && !then) return false;
+    e.timed.push({ who: "self", kind: "stackAt", turns: 99, mark: m[1], n: num(m[2]), consume: m[3] === "所有" ? -1 : m[3] ? num(m[3]) : 0, ...(then ? { then } : {}) });
+  });
+  // 当自身体力低于N%时(则)消耗1层X…
+  r.take(new RegExp(`当(?:自身|自己)体力(?:值)?低于(\\d+)%时(?:，)?(?:则)?消耗1层${MARK}，?([^；。＿]*)`), (m) => {
+    const then = thenOf(m[3]);
+    if (m[3] && !then) return false;
+    e.timed.push({ who: "self", kind: "stackHp", turns: 99, mark: m[2], below: num(m[1]) / 100, consume: 1, ...(then ? { then } : {}) });
+  });
+  // (使用后)(自身)每回合(末)获得N(~M)层X / (使用时)自身获得N层X / 令对方(全场亚比)获得(附加)N层X.
+  r.take(new RegExp(`(?:使用后，?)?(?:自身)?每回合(?:末|结束时)?(?:均)?(?:自身|自己)?获得(?:一|1)?(\\d+)?(?:~(\\d+))?层${MARK}(?:并提升(?:自身|自己)?(${STAT_LIST})(?:等级)?(\\d+)级)?`), (m) => {
+    const a = m[1] ? num(m[1]) : 1;
+    e.timed.push({ who: "self", kind: "stackEachTurn", turns: 99, mark: m[3], a, b: m[2] ? num(m[2]) : a });
+    // 每回合自身添加1层玄武之印并提升双防1级: the stages each round too.
+    if (m[4]) e.timed.push({ who: "self", kind: "stagesEachTurn", turns: 99, chance: 100, stats: statsOf(m[4]), delta: num(m[5]) });
+  });
+  r.take(new RegExp(`(?:使用时)?(?:使)?(?:自身|自己)获得(\\d+)层${MARK}`), (m) => void (e.stacks ??= []).push({ who: "self", name: m[2], n: num(m[1]) }));
+  r.take(new RegExp(`(?:令|使)?对方(?:全场)?(?:亚比)?(?:获得|附加)(\\d+)层${MARK}`), (m) => void (e.stacks ??= []).push({ who: "foe", name: m[2], n: num(m[1]) }));
+  // 消耗自身所有X，每层使技能威力提升N / 每个X提升技能威力N点.
+  r.take(new RegExp(`消耗(?:自身|自己)?所有${MARK}，?每层使技能威力提升(\\d+)`), (m) => void (e.stackPower = { name: m[1], per: num(m[2]), consume: true }));
+  r.take(new RegExp(`每(?:个|层)${MARK}提升技能威力(\\d+)点?`), (m) => void (e.stackPower = { name: m[1], per: num(m[2]), consume: false }));
+
+  // More of the 超奥义's words.
+  // 将对方单体所有PP值降为1 (风起云涌) / 下次使用“X”时100%使对手中任意一种不良或异常状态 (玩偶之家).
+  r.take(/将对方(?:单体)?所有(?:技能)?PP值?降为1点?/, () => void (e.ppFoe = { n: "to1", chance: 100 }));
+  r.take(/下次使用([^，。；、\s＿]{1,8}?)时(\d+)%概率(?:使|令)对方(?:中|处于)任意(\d+)种不良或异常状态/, (m) => {
+    e.timed.push({ who: "self", kind: "nextUse", turns: 99, mark: m[1], bad: { n: num(m[3]), chance: num(m[2]) } });
+  });
+  // 若暴击则将伤害(值)的N%(转化来)回复自己 (帝皇能量炮): the drain only on a 暴击.
+  r.take(/若暴击则将伤害(?:值)?的?(\d+%|一半)(?:转化)?来?回复自己(?:的)?(?:体力值)?(?=，|；|。|$)/, (m) => {
+    e.drain = m[1] === "一半" ? 0.5 : parseInt(m[1], 10) / 100;
+    e.drainCond = { crit: true };
+  });
+  // 使用后每回合吸取对方PP N-M点 (暗尘弥散) / N回合内N%概率X对方 (雷能禁锢).
+  r.take(/(?:使用后)?每回合吸取对方PP(\d+)~(\d+)点/, (m) => void e.timed.push({ who: "foe", kind: "ppdrain", turns: battleLong0(99), a: num(m[1]), b: num(m[2]) }));
+  r.take(new RegExp(`(\\d+)回合内(\\d+)%概率(${ST})对方`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: num(m[1]), chance: num(m[2]), status: statusOf(m[3]) }));
+  // 令自己X / 同时X自己 (魂封, 魂爆): the status on the user, before the reader of 令X takes it for the other.
+  // (Not under a chance or a round's end: the era's readers take those.)
+  r.take(new RegExp(`(?<=^|，|；)(?:令|使)(?:自己|自身)(${ST})(?=，|；|$)|同时(${ST})(?:自己|自身)`), (m) => void e.statuses.push({ name: statusOf(m[1] ?? m[2]), chance: 100, self: true }));
+  // 令双方X (磁爆漩涡): before the reader of 令X takes the status for the other alone.
+  r.take(new RegExp(`(?:并)?令双方(${ST})`), (m) => void e.statuses.push({ name: statusOf(m[1]), chance: 100 }, { name: statusOf(m[1]), chance: 100, self: true }));
+  r.take(/(?:使用后)?(?:自身|自己)的?体力回复效果提升(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "healMult", turns: battleLong0(), mult: 1 + num(m[1]) / 100 }));
+  r.take(/(?:瞬间)?爆发(\d+)[-~](\d+)次攻击/, (m) => void (e.hits = [num(m[1]), num(m[2])]));
+  r.take(new RegExp(`每回合(?:使|令)对方(?:全场)?(?:的)?(?:亚比)?进入(${ST})或(${ST})(?:状态)?`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: battleLong0(), chance: 100, status: statusOf(m[1]), statusAlt: statusOf(m[2]) }));
+  r.take(/提升(?:自己|自身)(\d+)%的?伤害(?:抗性|抵抗能力)和伤害能力/, (m) => {
+    e.timed.push({ who: "self", kind: "screen", turns: battleLong0(), phys: 1 - num(m[1]) / 100, spec: 1 - num(m[1]) / 100 }, { who: "self", kind: "power", turns: battleLong0(), mult: 1 + num(m[1]) / 100 });
+  });
+  r.take(/(?:每回合(?:末)?)回复(?:自己|自身)?一定(?:的)?体力值?/, () => void e.timed.push({ who: "self", kind: "regen", turns: battleLong0(), f: 1 / 8 }));
+  r.take(/每回合回复(?:自己|自身)最大体力值的?(\d+%|\d+\/\d+)/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: battleLong0(), f: frac(m[1]) }));
+  r.take(/每回合(?:结束时)?回复(?:自己|自身)?(\d+)~(\d+)点体力值?/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: battleLong0(), a: num(m[1]), b: num(m[2]) }));
+  r.take(/每回合回复(?:自己|自身)?(\d+)点体力值?/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: battleLong0(), n: num(m[1]) }));
+  // 清空全场双攻等级 / (自身在场时)全场双攻等级无法提升.
+  r.take(new RegExp(`清空全场(${STAT_LIST})(?:等级)?`), (m) => void (e.resetStats = statsOf(m[1])));
+  r.take(new RegExp(`(?:自身在场时)?全场(${STAT_LIST})(?:等级)?无法提升`), () => void e.timed.push({ who: "both", kind: "noRise", turns: 99 }));
+  // 当受到攻击伤害大于自身最大体力值N%时，(则)消耗1层X(，)提升….
+  r.take(new RegExp(`当受到(?:攻击)?伤害大于(?:自身|自己)最大体力值(?:的)?(\\d+)%时，?(?:则)?消耗1层([^，。；、\\s＿]{1,6}?(?:之印|印记|印))，?提升(?:自己|自身)(${STAT_LIST})(?:等级)?(\\d+)级`), (m) => {
+    e.timed.push({ who: "self", kind: "onhurt", turns: 99, chance: 100, minFrac: num(m[1]) / 100, useMark: m[2], stats: statsOf(m[3]), delta: num(m[4]), selfStage: true });
+  });
+
+  // ---- More of the 超奥义 and the later skills (2014): states, the marks the 亚比's other skills
+  // give, heals, 诅咒. RECONSTRUCTED where the words give no number: 一定概率 30%, 一定体力值 1/8
+  // of the most 体力, 一定的护盾 1/10 of it.
+  const chanceOf = (s: string | undefined) => (s ? num(s) : 30);
+  const namedFx = (n: string): SkillEffects | undefined => {
+    const w = NAMED[n];
+    if (!w || triggerDepth > 2) return undefined;
+    triggerDepth++;
+    try {
+      return readWith(w, true).fx;
+    } finally {
+      triggerDepth--;
+    }
+  };
+  const noFx = (): SkillEffects => ({ stages: [], statuses: [], timed: [] });
+  // Before the era's status readers take their chance: 每回合(末)(都)有N%概率令对方X / N回合内每次受到攻击可以抵抗N点.
+  r.take(new RegExp(`每回合(?:末)?都?有(\\d+)%概率令对方(${ST})`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: battleLong0(turnsOf(r.d, 3)), chance: num(m[1]), status: statusOf(m[2]) }));
+  r.take(/(?:使用后|命中后)?(\d+)回合内每次受到攻击(?:自己)?可以抵抗(\d+)点伤害值?/, (m) => void e.timed.push({ who: "self", kind: "absorb", turns: num(m[1]), n: num(m[2]) }));
+  r.take(new RegExp(`(?:使用后)?(\\d+)回合内每次受到攻击有(\\d+)%概率令对方((?:${ST})(?:[，、或](?:${ST}))+)`), (m) => {
+    const pool = m[3].split(/[，、或]/).map((w) => statusOf(w));
+    e.timed.push({ who: "self", kind: "onhurt", turns: num(m[1]), chance: num(m[2]), pool });
+  });
+  // The skills the 超奥义 set off: 灵兽之域·北 / 东, 焚羽新生, 不朽圣体, 天尊圣魂, 超·幻翼, 魔·啸傲, 玄王甲, 炽火令, 上古逆鳞.
+  r.take(/每回合受到攻击(?:则)?令对方受到(\d+)点伤害/, (m) => void e.timed.push({ who: "self", kind: "reflect", turns: battleLong0(), n: num(m[1]) }));
+  r.take(new RegExp(`(?<=\\d+%)受到攻击有?(\\d+)%概率令对方(${ST})`), (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: battleLong0(), chance: num(m[1]), status: statusOf(m[2]) }));
+  r.take(new RegExp(`每回合全场(?:亚比)?(?:叠加|获得)(\\d+)(?:~(\\d+))?层${MARK}`), (m) => void e.timed.push({ who: "self", kind: "stackEachTurn", turns: battleLong0(), mark: m[3], a: num(m[1]), b: m[2] ? num(m[2]) : num(m[1]), bothSides: true }));
+  r.take(/重置全场(?:亚比)?(?:的)?状态/, () => {
+    e.resetFoe = true;
+    e.resetSelf = true;
+  });
+  r.take(new RegExp(`提升全场(?:亚比)?(?:的)?(${STAT_LIST})(?:等级)?(\\d+)级`), (m) => void e.stages.push({ self: true, stats: statsOf(m[1]), delta: num(m[2]), chance: 100 }, { self: false, stats: statsOf(m[1]), delta: num(m[2]), chance: 100 }));
+  r.take(/提升(?:自身|自己)(\d+)回合(\d+)%(?:的)?伤害(?:抗性|抵抗能力)/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: num(m[1]), phys: 1 - num(m[2]) / 100, spec: 1 - num(m[2]) / 100 }));
+  r.take(/本回合受到伤害则(?:有)?(\d+)%(?:概率)?回复所有体力值?/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: 1, chance: num(m[1]), once: true, then: { ...noFx(), healFull: true } }));
+  r.take(new RegExp(`(?:并且|并)?受到攻击则(?:有)?(?:(\\d+)%|一定)?概率提升(?:自身|自己)(${STAT_LIST})(?:等级)?(\\d+)级`), (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: battleLong0(), chance: chanceOf(m[1]), stats: statsOf(m[2]), delta: num(m[3]), selfStage: true }));
+  r.take(/每回合提升(?:自身|自己)?技能固伤(\d+)点和(速度|攻击|特攻|防御|特防)(\d+)点/, (m) => void e.timed.push({ who: "self", kind: "ptsEachTurn", turns: turnsOf(r.d, 3), add: num(m[1]), stats: statsOf(m[2]), n: num(m[3]) }));
+  r.take(new RegExp(`随机提升(?:自身|自己)(${STAT_LIST})(?:中)?任意(?:项)?属性共(\\d+)级(?:，?回合末(?:有)?(?:一定)?概率(?:额外)?提升1次(?:，?(?:自身)?([^，。；、\\s＿]{1,6}?)越多，?概率越高)?)?`), (m) => {
+    e.stages.push({ self: true, stats: statsOf(m[1]), delta: 1, chance: 100, spread: num(m[2]) });
+    if (/回合末/.test(m[0])) e.timed.push({ who: "self", kind: "stagesEachTurn", turns: 1, chance: 30, stats: statsOf(m[1]), delta: 1, spread: num(m[2]), ...(m[3] ? { markChance: m[3] } : {}) });
+  });
+  r.take(new RegExp(`(?:且)?每次受到伤害(\\d+)%概率(?:削弱|降低)对方(${STAT_LIST})(?:等级)?(\\d+)级`), (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: turnsOf(r.d, 99), chance: num(m[1]), stats: statsOf(m[2]), delta: -num(m[3]) }));
+  r.take(/(?:，)?(?:自身|自己)?体力(?:值)?低于最大值(?:的)?(\d+)%(?:时)?则?触发(?:技能)?([^，。；、\s＿]+)/, (m) => {
+    const then = namedFx(m[2]);
+    if (!then) return false;
+    e.timed.push({ who: "self", kind: "onhurt", turns: 99, chance: 100, below: num(m[1]) / 100, once: true, then });
+  });
+  r.take(/(?:(\d+)回合内)?每回合燃烧对方最大体力值(?:的)?(\d+%)/, (m) => void e.timed.push({ who: "foe", kind: "dot", turns: m[1] ? num(m[1]) : turnsOf(r.d, 5), f: frac(m[2]) }));
+  r.take(/(?:，)?任意([^，。；、\s＿]{1,3}?)系技能均可刷新([^，。；、\s＿]{2,4}?)的?持续回合数/, (m) => {
+    const d = e.timed.find((x) => x.kind === "dot" && x.who === "foe");
+    if (!d || ATTRS[m[1]] === undefined) return false;
+    d.refreshAttr = ATTRS[m[1]];
+  });
+  r.take(new RegExp(`每回合吸取(?:对方)?(?:伤害)?抵抗能力(\\d+)%(?:并(?:有)?(?:一定)?概率吸取(?:对方)?(${STAT_LIST})(?:等级)?(\\d+)级)?`), (m) => {
+    e.timed.push({ who: "self", kind: "stealEachTurn", turns: battleLong0(), f: num(m[1]) / 100, ...(m[2] ? { stats: statsOf(m[2]), delta: num(m[3]), chance: 30 } : {}) });
+  });
+  // 进入N回合(的)X状态 / 进入无限回合X状态; 在X状态中….
+  r.take(/(?:并)?(?:使)?(?:自身|自己)?进入(无限|\d+)回合(?:的)?([^，。；、\s＿]{2,4}?)状态/, (m) => void e.timed.push({ who: "self", kind: "state", turns: m[1] === "无限" ? 99 : num(m[1]), mark: m[2] }));
+  r.take(/在([^，。；、\s＿]{2,4}?)状态中(?:，)?提升(?:自身|自己)(?:伤害)?抗性(\d+)%(?:但)?(必定被技能命中)?/, (m) => {
+    const turns = e.timed.find((x) => x.kind === "state" && x.mark === m[1])?.turns ?? 99;
+    e.timed.push({ who: "self", kind: "screen", turns, phys: 1 - num(m[2]) / 100, spec: 1 - num(m[2]) / 100, whileState: m[1] });
+    if (m[3]) e.timed.push({ who: "self", kind: "exposed", turns, whileState: m[1] });
+  });
+  r.take(/在([^，。；、\s＿]{2,4}?)状态中每回合(?:再)?回复(?:自身|自己)最大体力值(?:的)?(\d+%)/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: 99, f: frac(m[2]), whileState: m[1] }));
+  r.take(/(?:使用后)?每回合(?:末)?提升(?:自身|自己)任意(?:1项)?属性(\d+)级/, (m) => void e.timed.push({ who: "self", kind: "stagesEachTurn", turns: battleLong0(), chance: 100, stats: [...ALL_STATS], pick: 1, delta: num(m[1]) }));
+  // 每回合概率进入狂战，在狂战回合将无法使用X系以外的大部分属性技能 (RECONSTRUCTED: 大部分 as all).
+  r.take(/(?:使用后)?每回合(?:有)?(?:(\d+)%|一定)?概率进入([^，。；、\s＿:]{2,6}?)(?:状态)?，?在\2回合(?:将)?无法使用([^，。；、\s＿]{1,3}?)系以外的?(?:大部分)?属性技能/, (m) => {
+    e.timed.push({ who: "self", kind: "stateEachTurn", turns: 99, chance: chanceOf(m[1]), then: { ...noFx(), timed: [{ who: "self", kind: "state", turns: 2, mark: m[2], onlyAttr: ATTRS[m[3]] }] } });
+  });
+  // 概率进入希望曙光状态：至少保留1点体力值并且技能X效果概率翻倍.
+  r.take(/(?:并)?(?:每回合)?(?:有)?(?:(\d+)%|一定)?概率进入([^，。；、\s＿:]{2,6}?)状态:至少保留1点体力值?(?:并且|并)?(?:技能)?([^，。；、\s＿]{2,6}?)效果概率翻倍/, (m) => {
+    const then = { ...noFx(), timed: [{ who: "self" as const, kind: "state" as const, turns: 2, mark: m[2], doubles: m[3] }, { who: "self" as const, kind: "hold" as const, turns: 2 }] };
+    e.timed.push({ who: "self", kind: "stateEachTurn", turns: 99, chance: chanceOf(m[1]), then });
+  });
+  r.take(/(?:本回合)?完全吸收对方(?:的)?攻击伤害值?来?回复(?:自身|自己)(?:的)?体力(?:值)?/, () => void (e.absorbHit = true));
+  // 每次(自身)回复体力值时….
+  r.take(new RegExp(`(?:使用后)?每次(?:自身|自己)回复体力值?时(?:有)?(?:(\\d+)%|一定)?概率提升(?:自身|自己)(${STAT_LIST})(?:等级)?(\\d+)级`), (m) => void e.timed.push({ who: "self", kind: "onheal", turns: battleLong0(), chance: chanceOf(m[1]), stats: statsOf(m[2]), delta: num(m[3]), selfStage: true }));
+  r.take(/每次回复体力值?时将回复值的(\d+%)用于制造护盾(?:抵挡伤害)?/, (m) => void e.timed.push({ who: "self", kind: "onheal", turns: battleLong0(), chance: 100, f: frac(m[1]) }));
+  r.take(/(?:并且|并)?对方每次回复体力值?时我方(?:有)?(?:(\d+)%|一定)?概率触发(?:技能)?([^，。；、\s＿]+)/, (m) => {
+    const then = namedFx(m[2]);
+    if (!then) return false;
+    e.timed.push({ who: "foe", kind: "onheal", turns: battleLong0(), chance: chanceOf(m[1]), then, thenOther: true });
+  });
+  // The marks: 使对方每次获得X翻倍 / 使对方身上X印记翻倍并每次附带印记时额外多附带N层.
+  r.take(/使对方每次获得([^，。；、\s＿]{1,6}?)翻倍/, (m) => void e.timed.push({ who: "foe", kind: "stackGain", turns: 99, mark: m[1], mult: 2 }));
+  r.take(/使对方身上([^，。；、\s＿]{1,6}?)印记翻倍(?:并)?(?:每次附带印记时额外多附带(\d+)层)?/, (m) => {
+    e.stacksDouble = { who: "foe", name: m[1] };
+    if (m[2]) e.timed.push({ who: "self", kind: "stackGive", turns: 99, mark: m[1], n: num(m[2]) });
+  });
+  r.take(/攻击附带(\d+%)伤害转化来?回复体力效果/, (m) => void e.timed.push({ who: "self", kind: "drain", turns: 99, f: frac(m[1]) }));
+  r.take(/提升(?:自身|自己)([^，。；、\s＿]{1,3}?)系抗性(\d+)%/, (m) => {
+    if (ATTRS[m[1]] === undefined) return false;
+    e.timed.push({ who: "self", kind: "screen", turns: battleLong0(), phys: 1 - num(m[2]) / 100, spec: 1 - num(m[2]) / 100, attr: ATTRS[m[1]] });
+  });
+  // The other's marks: 每次受到带有X的目标攻击… / 每次攻击带有X的目标… / 免疫拥有X的亚比的…攻击.
+  r.take(/(?:使用后)?每次受到带有([^，。；、\s＿]{1,6}?)的目标攻击则扣除对方一定体力值/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: battleLong0(), chance: 100, ifFoeMark: m[1], hurtF: 1 / 8 }));
+  r.take(/(?:使用后)?每次攻击带有([^，。；、\s＿]{1,6}?)的目标则获得一定的?(?:[^，。；、\s＿]{0,4}?)护盾(?:并(?:有)?(?:(\d+)%|一定)?概率回复(?:自身|自己)(\d+%)最大体力值)?/, (m) => {
+    e.timed.push({ who: "self", kind: "onhit", turns: battleLong0(), chance: 100, ifFoeMark: m[1], shieldF: 0.1 });
+    if (m[3]) e.timed.push({ who: "self", kind: "onhit", turns: battleLong0(), chance: chanceOf(m[2]), ifFoeMark: m[1], healF: frac(m[3]) });
+  });
+  r.take(/每回合(?:有)?(?:(\d+)%|一定)?概率免疫拥有([^，。；、\s＿]{1,6}?)的?亚比的(普通|特殊)攻击/, (m) => {
+    const c = chanceOf(m[1]);
+    e.timed.push({ who: "self", kind: "dodge", turns: battleLong0(), ...(m[3] === "普通" ? { phys: c } : { spec: c }), ifFoeMark: m[2] });
+  });
+  r.take(/每回合(?:有)?(?:(\d+)%|一定)?概率免疫双防数值之和低于我方的?亚比(?:的)?技能/, (m) => void e.timed.push({ who: "self", kind: "dodge", turns: battleLong0(), phys: chanceOf(m[1]), spec: chanceOf(m[1]), ifWeaker: true }));
+  r.take(new RegExp(`每次受到具有([^，。；、\\s＿]{1,6}?)的亚比攻击时(?:有)?(?:一定)?概率提升(?:自身|自己)(${STAT_LIST})(?:等级)?(\\d+)级[；，]?(?:对方身上印记越多，?概率越高)?`), (m) => {
+    e.timed.push({ who: "self", kind: "onhurt", turns: battleLong0(), chance: 0, chanceByMark: 20, ifFoeMark: m[1], stats: statsOf(m[2]), delta: num(m[3]), selfStage: true });
+  });
+  // 每次受到伤害则回合末获得N层X / 每当自身体力流失则回合末提升X技能威力N%.
+  r.take(new RegExp(`每次受到伤害则?回合末获得(\\d+)层${MARK}`), (m) => void e.timed.push({ who: "self", kind: "hurtStack", turns: battleLong0(), mark: m[2], n: num(m[1]) }));
+  r.take(/(?:使用后)?每当(?:自身|自己)体力流失，?则?回合末提升(?:自身|自己)([^，。；、\s＿]{1,3}?)技能威力(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "hurtPower", turns: battleLong0(), attr: ATTRS[m[1]], mult: 1 + num(m[2]) / 100 }));
+  // 每回合使全场任一亚比获得X N层 / 当Y以外亚比身上X达N层时则令对方Z.
+  r.take(/每回合使全场任一亚比获得([^，。；、\s＿]{1,6}?)(\d+)层/, (m) => void e.timed.push({ who: "self", kind: "stackEachTurn", turns: battleLong0(), mark: m[1], a: num(m[2]), b: num(m[2]), eitherSide: true }));
+  r.take(new RegExp(`当[^，。；、\\s＿]{1,8}?以外亚比身上([^，。；、\\s＿]{1,6}?)达(\\d+)层时则?令对方(${ST})`), (m) => {
+    e.timed.push({ who: "self", kind: "stackAt", turns: battleLong0(), mark: m[1], n: num(m[2]), consume: num(m[2]), onOther: true, then: { ...noFx(), statuses: [{ name: statusOf(m[3]), chance: 100 }] } });
+  });
+  r.take(/下回合令对方作用于我方身上的?技能无效/, () => void e.timed.push({ who: "self", kind: "untouchable", turns: 2 }, { who: "self", kind: "nostatus", turns: 2 }, { who: "self", kind: "guard", turns: 2 }));
+  // 每次攻击令对方附加X且概率Y / 出手前未受到伤害则引爆X吸取对方N点Z数值.
+  r.take(new RegExp(`(?:使用后)?每次攻击令对方附加([^，。；、\\s＿]{1,6}?)且(?:有)?(?:(\\d+)%|一定)?概率(${ST})`), (m) => {
+    e.timed.push({ who: "self", kind: "onhit", turns: battleLong0(), chance: 100, stackFoe: m[1] }, { who: "self", kind: "onhit", turns: battleLong0(), chance: chanceOf(m[2]), status: statusOf(m[3]) });
+  });
+  r.take(new RegExp(`出手前未受到伤害则引爆([^，。；、\\s＿]{1,6}?)吸取对方(\\d+)点(${STAT_LIST})数值`), (m) => {
+    e.timed.push({ who: "self", kind: "beforeAct", turns: battleLong0(), mark: m[1], then: { ...noFx(), statPts: [{ who: "foe", stats: statsOf(m[3]), n: num(m[2]), steal: true }] } });
+  });
+  // 提升(自身)全数值N点 / 提升自身X数值N点: points of the values (not 等级).
+  r.take(new RegExp(`提升(?:自身|自己)?(全|${STAT_LIST})数值(\\d+)点`), (m) => void (e.statPts ??= []).push({ who: "self", stats: m[1] === "全" ? [...FIVE_STATS] : statsOf(m[1]), n: num(m[2]) }));
+  // 吸取X外任意属性N级，每在场1回合额外再吸取1次，返回背包将重置.
+  r.take(/吸取(?:对方)?([^，。；、\s＿]{1,2})外任意属性(\d+)级(?:，?每在场1回合额外再吸取1次)?(?:，?返回背包将重置)?/, (m) => {
+    const ex = STAT_WORDS[m[1]] ?? [];
+    e.stealStages = { stats: ALL_STATS.filter((k) => !ex.includes(k)), delta: num(m[2]), pick: 1, perRound: /每在场1回合/.test(m[0]) };
+  });
+  r.take(/期间对方增加的?体力(?:值)?会被扣除/, () => void e.timed.push({ who: "foe", kind: "healHurt", turns: 3 }));
+  // 诅咒: on the attacker each blow taken (its damage healing the holder); the user's heal each blow given.
+  r.take(/(?:使用后)?每次受到攻击则?(?:有)?(?:(\d+)%|一定)?概率令对方诅咒并将诅咒造成的伤害值?用于回复(?:自身|自己)/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: battleLong0(), chance: chanceOf(m[1]), curse: true, healOther: true }));
+  r.take(/每次攻击则?回复(?:自身|自己)【(\d+)%最大体力值\+(\d+)%伤害值】/, (m) => void e.timed.push({ who: "self", kind: "onhit", turns: battleLong0(), chance: 100, healF: num(m[1]) / 100, healDmg: num(m[2]) / 100 }));
+  r.take(/当速度等级削至最低时(?:则)?效果变为(\d+)%概率令对方诅咒/, (m) => void (atMin = num(m[1])));
+  r.take(/(?:并)?(?:有)?(?:(\d+)%|一定)?概率令对方诅咒|令对方诅咒/, (m) => void (e.curse = { chance: m[1] ? num(m[1]) : /概率/.test(m[0]) ? 30 : 100 }));
+  // 每回合末吸取对方已X亚比N%当前体力值和全技能PPa~b点.
+  r.take(new RegExp(`每回合末吸取对方已(${ST})的?亚比(\\d+%)当前体力值和全技能PP(\\d+)~(\\d+)点`), (m) => {
+    const st = statusOf(m[1]);
+    e.timed.push({ who: "foe", kind: "leech", turns: battleLong0(), f: frac(m[2]), cur: true, ifStatus: st }, { who: "foe", kind: "ppdrain", turns: battleLong0(), a: num(m[3]), b: num(m[4]), ifStatus: st });
+  });
+  // 将X燃烧伤害的N倍转化为自身体力值 / 效果结束时，引爆对方全场X扣除目标a~b点全技能PP值.
+  r.take(/(?:并)?将([^，。；、\s＿]{2,4}?)燃烧伤害的(\d+)倍转化为(?:转化为)?(?:自身|自己)(?:的)?体力值?/, (m) => void e.timed.push({ who: "self", kind: "dotHeal", turns: battleLong0(), mark: m[1], mult: num(m[2]) }));
+  r.take(/效果结束时，?引爆对方(?:全场)?([^，。；、\s＿]{1,6}?)扣除目标(\d+)~(\d+)点全技能PP值?/, (m) => void e.timed.push({ who: "self", kind: "fuse", turns: battleLong0(), mark: m[1], then: { ...noFx(), ppRange: { a: num(m[2]), b: num(m[3]), chance: 100 } } }));
+  // 受到致命伤害时N%概率触发技能X (before the skills set off at once).
+  r.take(/受到致命伤害时(?:有)?(\d+)%概率触发(?:技能)?([^，。；、\s＿]+)/, (m) => {
+    const then = namedFx(m[2]);
+    if (!then) return false;
+    e.timed.push({ who: "self", kind: "onfatal", turns: 99, chance: num(m[1]), then });
+  });
+  // 降低对方全场拥有X的亚比N%伤害抗性 / 当X被击破时造成对方N%已损失体力值的伤害 / 击破X.
+  r.take(/降低对方(?:全场)?拥有([^，。；、\s＿]{1,6}?)的亚比(\d+)%伤害(?:抗性|抵抗能力)/, (m) => void e.timed.push({ who: "foe", kind: "screen", turns: 99, phys: 1 + num(m[2]) / 100, spec: 1 + num(m[2]) / 100, whileMark: m[1] }));
+  r.take(/当([^，。；、\s＿]{1,6}?)被击破时造成对方(\d+)%已损失体力值的伤害/, (m) => void e.timed.push({ who: "self", kind: "markBreak", turns: 99, mark: m[1], f: num(m[2]) / 100 }));
+  r.take(/(?:并)?击破([^，。；、\s＿]{1,6}?之印)/, (m) => void (e.breakMark = m[1]));
+  // (制造神峰山脉，)当自身受到伤害则反弹伤害，自身只承受N%；当自身体力值越低反弹伤害越多.
+  r.take(/(?:制造[^，。；、\s＿]{2,4}?，)?当(?:自身|自己)受到伤害则反弹伤害，?(?:自身|自己)只承受(\d+)%[；，]?(?:当(?:自身|自己)体力值越低反弹伤害越多)?/, (m) => {
+    const take = num(m[1]) / 100;
+    e.timed.push({ who: "self", kind: "screen", turns: 99, phys: take, spec: take }, { who: "self", kind: "reflect", turns: 99, phys: (1 - take) / take, spec: (1 - take) / take, ...(/越低/.test(m[0]) ? { byLowHp: true } : {}) });
+  });
+  // 当盾被击破时则使全场获得N层X并麻痹对方.
+  r.take(new RegExp(`当(?:护)?盾被(?:打|击)破时(?:则)?，?使全场获得(\\d+)层${MARK}(?:并(?:令)?(?:对方)?(${ST})(?:对方)?)?`), (m) => {
+    e.timed.push({ who: "self", kind: "onbreak", turns: 99, then: { ...noFx(), statuses: m[3] ? [{ name: statusOf(m[3]), chance: 100 }] : [], stacks: [{ who: "both", name: m[2], n: num(m[1]) }] } });
+  });
+  // 电能: 若受到特殊(普通)攻击则获得1格正(负)电能 / 将所有电能充入体内，每1格….
+  r.take(/若受到(特殊|普通)攻击则获得1格(正电能|负电能)/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: battleLong0(), chance: 100, onlyKind: m[1] === "特殊" ? "spec" : "phys", selfStack: m[2] }));
+  r.take(new RegExp(`(?:将)?所有电能充入体内，?每1格正电能提升(?:自身|自己)(\\d+)点(${STAT_RE})数值，?每1格负电能提升(?:自身|自己)(\\d+)点(${STAT_RE})数值[；，]?(?:每格电能回复(?:自身|自己)(\\d+%)最大体力值)?`), (m) => {
+    const h = m[5] ? frac(m[5]) : undefined;
+    e.perLayer = [{ name: "正电能", stats: statsOf(m[2]), n: num(m[1]), healF: h }, { name: "负电能", stats: statsOf(m[4]), n: num(m[3]), healF: h }];
+  });
+  // 当受到的伤害为2的倍数时，消耗1层X触发技能Y并永久提升自身N%的伤害抗性.
+  r.take(/当受到的?伤害为2的倍数时，?消耗1层([^，。；、\s＿]{1,6}?)触发(?:技能)?([^，。；、\s＿]+?)并永久提升(?:自身|自己)(\d+)%的?伤害(?:抗性|抵抗能力)/, (m) => {
+    const fx = namedFx(m[2]);
+    if (!fx) return false;
+    const then = { ...fx, timed: [...fx.timed, { who: "self" as const, kind: "screen" as const, turns: 99, phys: 1 - num(m[3]) / 100, spec: 1 - num(m[3]) / 100 }] };
+    e.timed.push({ who: "self", kind: "onhurt", turns: 99, chance: 100, dmgEven: true, useMark: m[1], then });
+  });
+  // 每当自身体力值减少大于或等于当前体力值的1/N时，则概率触发技能X.
+  r.take(/每当(?:自身|自己)体力值?减少大于或等于当前体力值的(\d+\/\d+)时，?则?(?:有)?(?:(\d+)%|一定)?概率触发(?:技能)?([^，。；、\s＿]+)/, (m) => {
+    const then = namedFx(m[3]);
+    if (!then) return false;
+    e.timed.push({ who: "self", kind: "onhurt", turns: 99, chance: chanceOf(m[2]), minCurFrac: frac(m[1]), then });
+  });
+  r.take(/(?:对方全场)?每次攻击我方全场任一目标时，?(?:有)?(?:(\d+)%|一定)?概率将伤害全额用于回复目标/, (m) => void e.timed.push({ who: "self", kind: "soak", turns: 99, chance: chanceOf(m[1]) }));
+  // 全场使用X技能时则回复自身N点体力值 / 非X系技能使用时消耗PP翻倍.
+  r.take(/全场(?:每次)?使用([^，。；、\s＿]{1,3}?)(?:系)?技能(?:时)?(?:则)?回复(?:自身|自己)(\d+)点体力值?/, (m) => {
+    if (ATTRS[m[1]] === undefined) return false;
+    e.timed.push({ who: "self", kind: "useHeal", turns: 99, attr: ATTRS[m[1]], n: num(m[2]) });
+  });
+  r.take(/非([^，。；、\s＿]{1,3}?)系技能使用时消耗PP翻倍/, (m) => {
+    if (ATTRS[m[1]] === undefined) return false;
+    e.timed.push({ who: "self", kind: "ppTax", turns: 99, attr: ATTRS[m[1]] });
+  });
+  r.take(/使([^，。；、\s＿]{2,6}?)的技能在回合末(?:有)?(?:(\d+)%|一定)?概率再触发(?:1次|一次)/, (m) => void e.timed.push({ who: "self", kind: "echo", turns: 99, mark: m[1].replace(/法$/, ""), chance: chanceOf(m[2]) }));
+  // 元素领域: 每回合使自身获得水火雷三种元素中的任意一种，每次被攻击有概率消耗1个元素….
+  r.take(/每回合使(?:自身|自己)获得水火雷3种元素中的?任意1种/, () => void e.timed.push({ who: "self", kind: "stackEachTurn", turns: 99, mark: "元素", pool: ["水元素", "火元素", "雷元素"], a: 1, b: 1 }));
+  r.take(/每次受到攻击有?(?:(\d+)%|一定)?概率消耗1个元素，?令对方进入冰冻、烧伤或麻痹/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: 99, chance: chanceOf(m[1]), elements: true }));
+  r.take(/[，；]?受到攻击则叠加效果/, () => void (stackUp = true));
+  // 清空对方身上持续性效果 / 出手时若自身低于最大体力值N%则概率秒杀对方，攻击基础数值越高概率越高.
+  r.take(/清空对方身上(?:的)?持续(?:性|技能)?(?:的)?效果/, () => void (e.clearFoeTimed = true));
+  r.take(/出手时若(?:自身|自己)(?:体力值?)?低于最大体力值(?:的)?(\d+%)则(?:有)?(?:一定)?概率秒杀对方，?(攻击|特攻)基础数值越高概率越高/, (m) => void (e.ohkoIf = { chance: 0, cond: { selfHpBelow: frac(m[1]) }, byBase: m[2] === "特攻" ? "satk" : "atk" }));
+
+  r.take(/(?:使用后)?(?:(\d+)回合)?提升(?:自身|自己)?抗性(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: m[1] ? num(m[1]) : turnsOf(r.d, 99), phys: 1 - num(m[2]) / 100, spec: 1 - num(m[2]) / 100 }));
+
+  // ---- the lasting effects in the words of 2013–14 (one rule for each shape, before the
+  // stage changes of the moment would take their words)
+  const ST_ACT = `(?:提升|削弱|降低)(?:自己|自身|对方)?${STAT_LIST}(?:等级)?各?\\d+(?:~\\d+)?级`;
+  const HEAL_ACT = `回复(?:自己|自身)?\\d+点?体力值?`;
+  const STATUS_ACT = `令对方(?:麻痹|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生|害怕)`;
+  const ACT = `(?:${ST_ACT}|${HEAL_ACT}|${STATUS_ACT})`;
+  const ACTS = `${ACT}(?:(?:并|，|、|和|且)${ACT})*`;
+  const turnsIn = (s: string | undefined, dflt: number) => (s ? num(s) : (() => { const m = r.d.match(/持续(\d+)回合/); return m ? num(m[1]) : dflt; })());
+  /** The parts of an act: stage changes (on whom), a heal, a status on the other. */
+  const acts = (s: string, self: boolean) => {
+    const out: { stats?: StatKey[]; delta?: number; deltaMax?: number; selfStage?: boolean; heal?: number; status?: StatusName }[] = [];
+    for (const m of s.matchAll(new RegExp(`(提升|削弱|降低)(自己|自身|对方)?(${STAT_LIST})(?:等级)?各?(\\d+)(?:~(\\d+))?级`, "g"))) {
+      const on = m[2] ? m[2] !== "对方" : m[1] === "提升";
+      out.push({ stats: statsOf(m[3]), delta: (m[1] === "提升" ? 1 : -1) * num(m[4]), ...(m[5] ? { deltaMax: (m[1] === "提升" ? 1 : -1) * num(m[5]) } : {}), selfStage: self ? on : !on });
+    }
+    for (const m of s.matchAll(/回复(?:自己|自身)?(\d+)点?体力值?/g)) out.push({ heal: num(m[1]) });
+    for (const m of s.matchAll(/令对方(麻痹|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生|害怕)/g)) out.push({ status: statusOf(m[1]) });
+    return out;
+  };
+  // 提升自己技能威力N%(，持续N回合) / N%概率将伤害提升至N倍 / (每回合)N%概率免疫伤害(，持续N回合).
+  r.take(/(?:使用后(\d+)回合内，?)?提升(?:自己|自身)的?技能威力(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "power", turns: turnsIn(m[1], 3), mult: 1 + num(m[2]) / 100 }));
+  r.take(/(\d+)%概率将伤害提升至(\d+(?:\.\d+)?)倍/, (m) => void (e.boost ??= []).push({ chance: num(m[1]), mult: Number(m[2]) }));
+  r.take(/(?:使用后(\d+)回合内?，?)?(?:每回合)?有?(\d+)%概率免疫(?:所有)?伤害/, (m) => void e.timed.push({ who: "self", kind: "dodge", turns: turnsIn(m[1], 1), phys: num(m[2]), spec: num(m[2]) }));
+
+  // 使用后N回合内(每次)受到攻击(则)(N%概率)…: on each blow it takes (onhurt; 本回合: this round).
+  r.take(new RegExp(`(?:使用后|命中后)?(?:(\\d+)回合内?，?)?(?:命中后)?(?:本回合)?(?:每次|若)?受到攻击(?:则|都|时)?(?:(\\d+)%概率)?(${ACTS})`), (m) => {
+    for (const a of acts(m[3], true)) e.timed.push({ who: "self", kind: "onhurt", turns: turnsIn(m[1], 1), chance: pct(m[2]), ...a });
+  });
+  // (使用后N回合内)每次攻击(对方)(N%概率)提升…，持续N回合: on each blow it lands, for its turns.
+  r.take(new RegExp(`(?:使用后(\\d+)回合内，?)?每次攻击对方(?:(\\d+)%概率)?(${ACTS})`), (m) => {
+    for (const a of acts(m[3], true)) e.timed.push({ who: "self", kind: "onhit", turns: turnsIn(m[1], 3), chance: pct(m[2]), ...a });
+  });
+  // 使用后N回合内(，)每次攻击(造成)伤害的N%转化(来)回复自己: a drain for its turns.
+  r.take(/使用后(\d+)回合内，?每次攻击(?:造成)?(?:的)?伤害(?:值)?的(\d+)%转化来回复自己(?:体力值?)?/, (m) => void e.timed.push({ who: "self", kind: "drain", turns: num(m[1]), f: num(m[2]) / 100 }));
+  // (使用后N回合内，)每回合结束时 回复 / N%概率令对方… / 降低对方…: at each round's end.
+  r.take(/(?:使用后(\d+)回合内?，?)?(?:每回合结束时|每?回合末)(\d+)%概率令对方(?:进入)?(麻痹|冰冻|睡眠|烧伤|中毒|混乱|异常状态)/, (m) => {
+    const st = m[3] === "异常状态" ? undefined : statusOf(m[3]);
+    e.timed.push({ who: "foe", kind: "plague", turns: turnsIn(m[1], 3), chance: num(m[2]), ...(st ? { status: st } : { status: "麻痹", statusAlt: "混乱" }) });
+  });
+  // 攻击对方(单体)N次: N hits.
+  r.take(/(?:攻击|撞击)对方(?:单体|全体|全场)?(\d+)次(?!数)/, (m) => (Number(m[1]) > 1 ? void (e.hits ??= [num(m[1]), num(m[1])]) : false));
   r.take(/1\/3概率秒杀对方单体，2\/3自己死亡/, () => {
     e.ohkoIf = { chance: 100 / 3 };
     e.ohkoFailFaint = true;
@@ -1257,6 +2112,17 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   r.take(/持续(\d+)回合，自己属性能力等级不能被削弱(?:；若对方提升它的属性能力等级，同样也会加给自己)?/, (m) => void e.timed.push({ who: "self", kind: "guard", turns: num(m[1]) }));
   r.take(/两回合内对方属性等级无法被提升或降低/, () => undefined);
   r.take(/使用后自己不会陷入异常状态，持续(\d+)回合/, (m) => void e.timed.push({ who: "self", kind: "nostatus", turns: num(m[1]) }));
+  // 每回合(结束时) …: at each round's end for its turns (the later words; after the era's).
+  r.take(new RegExp(`(?:使用后(\\d+)回合内?，?)?(?:每回合(?:结束时|末)?|回合末)(?:(\\d+)%概率)?令对方(?:全场|全体)?(${ST})`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: turnsIn(m[1], 3), chance: pct(m[2]), status: statusOf(m[3]) }));
+  r.take(/(?:使用后(\d+)回合内?，?)?(?:每回合(?:结束时|末)?|回合末)(?:回复|恢复)(?:自己|我方全体)?(\d+)点体力值?/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: turnsIn(m[1], 3), n: num(m[2]) }));
+  r.take(/(?:使用后(\d+)回合内?，?)?(?:每回合(?:结束时|末)?|回合末)(?:回复|恢复)(?:自己|自身|我方全体)?(?:最大体力值的?)?(\d+\/\d+|\d+%)(?:的)?(?:最大)?(?:体力值?)?/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: turnsIn(m[1], 3), f: frac(m[2]) }));
+  r.take(new RegExp(`(?:使用后(\\d+)回合内?，?)?(?:每回合(?:结束时|末)?|回合末)(?:(\\d+)%概率)?提升(?:自己|自身)?(${STAT_LIST})(?:等级)?各?(\\d+)级`), (m) => void e.timed.push({ who: "self", kind: "stagesEachTurn", turns: turnsIn(m[1], 3), chance: pct(m[2]), stats: statsOf(m[3]), delta: num(m[4]) }));
+  r.take(new RegExp(`(?:使用后(\\d+)回合内?，?)?(?:每回合(?:结束时|末)?|回合末)(?:(\\d+)%概率)?(?:降低|削弱)对方(?:全体)?(${STAT_LIST})(?:等级)?各?(\\d+)(?:~(\\d+))?级`), (m) => void e.timed.push({ who: "foe", kind: "stagesEachTurn", turns: turnsIn(m[1], 3), chance: pct(m[2]), stats: statsOf(m[3]), delta: -num(m[4]), ...(m[5] ? { deltaMax: -num(m[5]) } : {}) }));
+  // The later words of the same two (保护自己属性 / 免疫异常状态, with or without 持续N回合).
+  const lastFor = (...xs: (string | undefined)[]) => { const x = xs.find((v) => v); if (x) return num(x); const m = r.d.match(/持续(\d+)回合/); return m ? num(m[1]) : 3; };
+  r.take(/(?:使用后(\d+)回合内，?)?(?:自己|自身)?属性能力等级不能被削弱(?:(\d+)回合)?(?:，持续(\d+)回合)?/, (m) => void e.timed.push({ who: "self", kind: "guard", turns: lastFor(m[1], m[2], m[3]) }));
+  r.take(/(?:使用后(\d+)回合内，?|(\d+)回合内)?(?:自己|自身)?不会陷入异常状态(?:(\d+)回合)?(?:，持续(\d+)回合)?/, (m) => void e.timed.push({ who: "self", kind: "nostatus", turns: lastFor(m[1], m[2], m[3], m[4]) }));
+
   r.take(/免疫烧伤/, () => undefined);
   // power and crit boosts of the user
   r.take(/给自己的普通攻击与特殊攻击技能附加(\d+)威力，持续(\d+)回合/, (m) => void e.timed.push({ who: "self", kind: "power", turns: num(m[2]), add: num(m[1]) }));
@@ -1388,6 +2254,10 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
     if (m[1]) e.fixedChance = num(m[1]);
   });
   r.take(/若自己速度比对方快，则必定附加(\d+)点固定伤害/, () => undefined);
+  r.take(/(?:(\d+)%概率)?附加(\d+)点固定伤害值?/, (m) => {
+    e.fixed = num(m[2]);
+    if (m[1]) e.fixedChance = num(m[1]);
+  });
   r.take(/(?:随机爆发|威力)(\d+)~(\d+)(?:的威力)?/, (m) => void (e.powerRange = [num(m[1]), num(m[2])]));
   r.take(/随机爆发1~500的威力/, () => void (e.powerRange = [1, 500]));
 
@@ -1436,7 +2306,8 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   });
   r.take(/自己承受(\d+\/\d+)的伤害/, (m) => void (e.recoil = frac(m[1])));
   r.take(/命中后扣除自己(\d+\/\d+)体力值/, (m) => void (e.selfCost = { f: frac(m[1]), current: true }));
-  r.take(/(?:先)?扣除(?:自己|自身)(?:最大体力值的)?(\d+\/\d+|一半)(?:最大体力值)?/, (m) => void (e.selfCost = { f: frac(m[1]) }));
+  r.take(/(?:先)?扣除(?:自己|自身)(?:最大体力值的?)?(\d+\/\d+|一半)(?:最大体力值)?/, (m) => void (e.selfCost = { f: frac(m[1]) }));
+  r.take(/(?:先)?扣除(?:自己|自身)当前体力值的?(\d+%)/, (m) => void (e.selfCost = { f: frac(m[1]), current: true }));
   r.take(/扣除自身当前体力值(\d+\/\d+)/, (m) => void (e.selfCost = { f: frac(m[1]), current: true }));
   r.take(/(?:先)?扣除自己(\d+)(?:点)?体力值|扣除自己体力值(\d+)点/, (m) => void (e.selfCost = { n: num(m[1] ?? m[2]) }));
   r.take(/消耗自己最大体力值的(\d+\/\d+)/, (m) => void (e.selfCost = { f: frac(m[1]) }));
@@ -1551,12 +2422,316 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
       if (p1 || p2 || some) lastChance = chance;
     });
   }
+  // ---- More words of the later skills (last: only words no reader of the era's took).
+  // 触发技能X: what the skill named does is done too (its words read; not its blow).
+  r.take(/(?:并|，)?触发(?:技能)?([^，。；、\s【】＿]+?)(?=[，。；、＿]|且|并|$)(?:且每(\d+)回合再触发1次)?/, (m) => {
+    const words = NAMED[m[1]];
+    if (!words || triggerDepth > 2) return false;
+    triggerDepth++;
+    try {
+      const fx = readWith(words, true).fx;
+      mergeTriggered(fx, e);
+      // 且每N回合再触发1次: again every n rounds.
+      if (m[2]) e.timed.push({ who: "self", kind: "every", turns: 99, n: num(m[2]), then: fx, from: m[1] });
+    } finally {
+      triggerDepth--;
+    }
+  });
+  const battleLong = (dflt = 99) => { const m = r.d.match(/持续(\d+)回合/); return m ? num(m[1]) : /无限回合/.test(r.d) ? 99 : dflt; };
+  // 伤害抵抗能力 / 伤害能力 N%: the blows it takes / gives (the whole battle unless 持续N回合).
+  r.take(/(?:提升|提高|增加)(?:自己|自身)?的?伤害抵抗(?:能力)?和伤害能力(\d+)%/, (m) => {
+    e.timed.push({ who: "self", kind: "screen", turns: battleLong(), phys: 1 - num(m[1]) / 100, spec: 1 - num(m[1]) / 100 }, { who: "self", kind: "power", turns: battleLong(), mult: 1 + num(m[1]) / 100 });
+  });
+  r.take(/(?:提升|提高|增加)(?:自己|自身)?的?技能威力和(?:自己|自身)?的?伤害抵抗(?:能力)?(\d+)%/, (m) => {
+    e.timed.push({ who: "self", kind: "power", turns: battleLong(), mult: 1 + num(m[1]) / 100 }, { who: "self", kind: "screen", turns: battleLong(), phys: 1 - num(m[1]) / 100, spec: 1 - num(m[1]) / 100 });
+  });
+  r.take(/(?:(?:提升|提高|增加)(?:自己|自身)?的?(\d+)%的?伤害抵抗(?:能力)?|(?:自己|自身)?的?伤害抵抗(?:能力)?(?:提升|提高|增加)了?(\d+)%|(?:提升|提高|增加)(?:自己|自身)?的?伤害抵抗(?:能力)?(\d+)%)(?:，?最高(?:可)?提升至(\d+)%)?/, (m) => {
+    const n = num(m[1] ?? m[2] ?? m[3]);
+    e.timed.push({ who: "self", kind: "screen", turns: battleLong(), phys: 1 - n / 100, spec: 1 - n / 100 });
+  });
+  r.take(/(?:降低|削弱)对方的?(\d+)%的?伤害抵抗(?:能力)?|对方的?伤害抵抗(?:能力)?(?:降低|削弱)(\d+)%/, (m) => {
+    const n = num(m[1] ?? m[2]);
+    e.timed.push({ who: "foe", kind: "screen", turns: battleLong(), phys: 1 + n / 100, spec: 1 + n / 100 });
+  });
+  r.take(/(?:提升|提高|增加)(?:自己|自身)?的?(\d+)%的?伤害能力|(?:自己|自身)?的?伤害能力(?:提升|提高|增加)(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "power", turns: battleLong(), mult: 1 + num(m[1] ?? m[2]) / 100 }));
+  // 下回合(使用X系技能)(的)威力/伤害翻倍 / 提升N%: the next turn's blow.
+  r.take(/下回合(?:自己)?(?:使用)?(?:([^，。、\s＿]{1,3})系)?(?:技能)?的?(?:攻击)?(?:威力|伤害)(?:翻倍|(?:提升|提高|增加|上升)(\d+)%)/, (m) => {
+    e.timed.push({ who: "self", kind: "power", turns: 2, mult: m[2] ? 1 + num(m[2]) / 100 : 2, ...(m[1] && ATTRS[m[1]] !== undefined ? { attr: ATTRS[m[1]] } : {}) });
+  });
+  // 全场 of a battle of two: 重置 / 锁定 / 倒置 / 清除增益 of both sides.
+  r.take(/重置全场(?:亚比)?的?(?:属性|能力)(?:能力)?等级/, () => {
+    e.resetFoe = true;
+    e.resetSelf = true;
+  });
+  r.take(/锁定全场(?:亚比)?的?(?:属性)?(?:能力)?(?:等级)?/, () => void e.timed.push({ who: "both", kind: "lockStages", turns: battleLong(3) }));
+  r.take(/清除全场(?:亚比)?的?增益属性(?:等级)?/, () => void (e.clearBothUps = true));
+  r.take(/倒置全场(?:亚比)?的?(增益|减益)?(?:属性|能力)?(?:能力)?等级/, (m) => {
+    const w = m[1] === "增益" ? "up" : m[1] === "减益" ? "down" : "all";
+    e.invert = { self: w, foe: w };
+  });
+  r.take(/倒置(?:自己|自身)的?(增益|减益)?(?:属性|能力)?(?:能力)?等级/, (m) => void (e.invert = { ...(e.invert ?? {}), self: m[1] === "增益" ? "up" : m[1] === "减益" ? "down" : "all" }));
+  r.take(/倒置对方的?(增益|减益)?(?:属性|能力)?(?:能力)?等级/, (m) => void (e.invert = { ...(e.invert ?? {}), foe: m[1] === "增益" ? "up" : m[1] === "减益" ? "down" : "all" }));
+  // (令)对方(全场)?(的)?属性(等级)?不能提升 / 自己以外全场亚比能力无法提升.
+  r.take(/(?:令)?(?:对方|自己以外全场亚比)的?(?:属性|能力)(?:能力)?(?:等级)?(?:不能|无法)(?:被)?提升/, () => void e.timed.push({ who: "foe", kind: "noRise", turns: battleLong(3) }));
+  // (每回合有)N%概率无法被击中 / 无法行动 / 免疫N点以下(以上)伤害 / 反弹所受伤害N% / 受到伤害降低N%.
+  r.take(/(?:每回合)?有?(\d+)%概率无法被击中/, (m) => void e.timed.push({ who: "self", kind: "dodge", turns: battleLong(1), phys: num(m[1]), spec: num(m[1]) }));
+  r.take(/(?:令对方)?(?:每回合)?有?(\d+)%概率无法行动/, (m) => void e.timed.push({ who: "foe", kind: "noact", turns: battleLong(1), chance: num(m[1]) }));
+  r.take(/(?:(\d+)回合内|本回合)?免疫(?:所有)?(\d+)点以下的?伤害/, (m) => void e.timed.push({ who: "self", kind: "under", turns: m[1] ? num(m[1]) : battleLong(1), n: num(m[2]) }));
+  r.take(/(?:(\d+)回合内|本回合)?免疫(?:所有)?(\d+)点以上的?伤害/, (m) => void e.timed.push({ who: "self", kind: "over", turns: m[1] ? num(m[1]) : battleLong(1), n: num(m[2]) }));
+  r.take(/反弹(?:所受|受到的?)伤害(?:的)?(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "reflect", turns: battleLong(1), phys: num(m[1]) / 100, spec: num(m[1]) / 100 }));
+  r.take(/受到(?:的)?伤害降低(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: battleLong(1), phys: 1 - num(m[1]) / 100, spec: 1 - num(m[1]) / 100 }));
+  // 吸取对方最大体力值N/N(N%) / N%概率扣除对方最大体力值一半 / 扣除自己N点体力.
+  r.take(/吸取对方最大体力值的?(\d+\/\d+|\d+%)/, (m) => {
+    e.dmg ??= { kind: "maxFrac", f: frac(m[1]) };
+    e.dmgHeals ??= "all";
+  });
+  r.take(/(?:(\d+)%概率)?扣除对方最大体力值的?(一半|\d+\/\d+|\d+%)/, (m) => {
+    e.dmg ??= { kind: "maxFrac", f: m[2] === "一半" ? 0.5 : frac(m[2]) };
+    if (m[1]) e.dmgChance = num(m[1]);
+  });
+  r.take(/扣除(?:自己|自身)(\d+)点?体力值?/, (m) => void (e.selfCost ??= { n: num(m[1]) }));
+  // PP: 吸取对方全部PP值N~N点 / 扣除对方全部技能PPN~N点 / 每回合吸取对方N~N点PP值.
+  r.take(/每回合(?:吸取|扣除)对方(?:全部|所有)?(?:技能)?的?(\d+)(?:~(\d+))?点PP值?/, (m) => void e.timed.push({ who: "foe", kind: "ppdrain", turns: battleLong(3), n: num(m[1]), ...(m[2] ? { a: num(m[1]), b: num(m[2]) } : {}) }));
+  r.take(/(?:(\d+)%概率)?(吸取|扣除)对方(?:全部|所有)?(?:技能)?的?PP值?(\d+)(?:~(\d+))?点|(?:(\d+)%概率)?(吸取|扣除)对方(?:全部|所有)?(?:技能)?的?(\d+)(?:~(\d+))?点PP值?/, (m) => {
+    const steal = (m[2] ?? m[6]) === "吸取";
+    const a = num(m[3] ?? m[7]);
+    const b = num(m[4] ?? m[8] ?? m[3] ?? m[7]);
+    e.ppRange = { a, b, steal, chance: pct(m[1] ?? m[5]) };
+  });
+  // 给对方附加N种(个)不良(异常)状态.
+  r.take(/(?:(\d+)%概率)?(?:给对方|令对方|使对方)附加(\d+)(?:种|个)(?:不良|异常)状态/, (m) => void (e.badStatuses = { n: num(m[2]), chance: pct(m[1]) }));
+  // 回合结束时有N%(概率)回复满自己体力值 / (N%概率)回复(自身)一定体力值 (一定: a quarter, RECONSTRUCTED).
+  r.take(/(?:每)?回合(?:结束时|末)有?(\d+)%(?:概率)?回复满(?:自己|自身)的?体力值?/, (m) => void e.timed.push({ who: "self", kind: "regen", turns: battleLong(1), f: 1, chance: num(m[1]) }));
+  r.take(/(?:(\d+)%概率)?回复(?:自己|自身)?一定(?:的)?体力值?/, (m) => {
+    e.healAfter ??= { f: 0.25, chance: pct(m[1]) };
+  });
+  // 下回合必定暴击 / 先手(先发).
+  r.take(/下回合(?:攻击)?必定暴击/, () => void e.timed.push({ who: "self", kind: "crit", turns: 2, chance: 100 }));
+  // More of the later skills' shapes.
+  // 随机提升自己X、Y…其中N项能力等级M级 / 每回合随机提升自己…任意N种属性能力等级M级.
+  r.take(new RegExp(`(每回合)?随机提升(?:自己|自身)的?(${STAT_LIST})(?:其中|中)?(?:任意)?(\\d+)(?:项|种)(?:能力|属性)?(?:能力)?(?:等级)?(\\d+)级`), (m) => {
+    const stats = statsOf(m[2]);
+    if (m[1]) e.timed.push({ who: "self", kind: "stagesEachTurn", turns: battleLong(3), chance: 100, stats, pick: num(m[3]), delta: num(m[4]) });
+    else e.stages.push({ self: true, stats, delta: num(m[4]), chance: 100, pick: [num(m[3]), num(m[3])] });
+  });
+  // (削弱|降低)双方X等级(各)N级.
+  r.take(new RegExp(`(?:削弱|降低)双方(?:的)?(${STAT_LIST})(?:的)?(?:等级)?各?(\\d+)级`), (m) => void e.stages.push({ self: true, stats: statsOf(m[1]), delta: -num(m[2]), chance: 100 }, { self: false, stats: statsOf(m[1]), delta: -num(m[2]), chance: 100 }));
+  // N%概率(提升|削弱)(自己|对方)X或Y(或Z)等级M级: one of them.
+  r.take(new RegExp(`(\\d+)%概率(提升|削弱|降低)(自己|自身|对方)?(${STAT_RE}(?:或${STAT_RE})+)(?:等级)?(\\d+)级`), (m) => {
+    const groups = m[4].split("或").map((w) => STAT_WORDS[w] ?? []).filter((g) => g.length);
+    const self = m[3] ? m[3] !== "对方" : m[2] === "提升";
+    e.stages.push({ self, stats: groups[0], delta: (m[2] === "提升" ? 1 : -1) * num(m[5]), chance: num(m[1]), groups });
+  });
+  // (自己)速度等级越高，(令对方X)(成功率|概率)越高: the status grows with the user's 速度等级.
+  r.take(/(?:，)?(?:自己)?速度(?:等级)?越高，?(?:令对方[^，。；、\s＿]{2}概率|成功率|概率)越高/, () => {
+    const st = [...e.statuses].reverse().find((x) => !x.self && x.chance < 100);
+    if (st) st.bySpeed = true;
+    else return false;
+  });
+  r.take(/一场战斗(?:中)?使用次数越多，?(?:概率|成功率)越高/, () => void (e.grow = true));
+  // (则)自己阵亡 / 回合结束时(有N%概率)消耗自己体力值到1点.
+  r.take(/(?:则|并)?自己阵亡/, () => void (e.sacrifice = true));
+  r.take(/回合结束时(?:有)?(?:(\d+)%概率)?消耗(?:自己|自身)(?:的)?体力值?到1点/, (m) => void (e.delayed = { who: "self", turns: 0, kind: "hpTo1", ...(m[1] ? { chance: num(m[1]) } : {}) }));
+  r.take(/清除(?:自己|自身)(?:身上)?的?(?:不良|异常)状态/, () => void (e.cure = true));
+  // 下回合自己技能的属性提升效果和伤害效果翻倍 / (使用后)N回合内提升属性效果翻倍.
+  r.take(/下回合(?:自己)?(?:技能)?的?属性提升效果和伤害效果翻倍/, () => void e.timed.push({ who: "self", kind: "upsTwice", turns: 2 }, { who: "self", kind: "power", turns: 2, mult: 2 }));
+  r.take(/(?:使用后)?(\d+)回合内提升属性效果翻倍/, (m) => void e.timed.push({ who: "self", kind: "upsTwice", turns: num(m[1]) }));
+  // N回合内提升自身X数值N%.
+  r.take(new RegExp(`(?:命中后)?(\\d+)回合内提升(?:自身|自己)(${STAT_RE})数值(\\d+)%`), (m) => void e.timed.push({ who: "self", kind: "statmult", turns: num(m[1]), stats: statsOf(m[2]), mult: 1 + num(m[3]) / 100 }));
+  // 每次暴击将伤害的N%转化为体力值.
+  r.take(/每次暴击将伤害的?(\d+%)转化(?:来|为)?(?:回复)?(?:自己的?)?体力值?/, (m) => void (e.powerIf ??= []).push({ cond: { crit: true }, drain: frac(m[1]) }));
+  // (使用后N回合内)每次攻击提升自己任意N项属性等级M级.
+  r.take(/(?:使用后)?(\d+)回合内每次攻击提升(?:自己|自身)任意(\d+)项属性(?:等级)?(\d+)级/, (m) => void e.timed.push({ who: "self", kind: "onhit", turns: num(m[1]), chance: 100, stats: [...ALL_STATS], pick: num(m[2]), delta: num(m[3]), selfStage: true }));
+  // 本回合每次受到攻击则返还N点伤害给对方 / N回合内N%概率令对方的攻击无效 / N%概率本回合无视对方攻击 / 无视对方攻击.
+  r.take(/本回合每次受到攻击则?返还(\d+)点伤害给对方/, (m) => void e.timed.push({ who: "self", kind: "reflect", turns: 1, n: num(m[1]) }));
+  r.take(/(?:使用后)?(?:(\d+)回合内)?(\d+)%概率令对方的?攻击无效/, (m) => void e.timed.push({ who: "self", kind: "dodge", turns: m[1] ? num(m[1]) : 1, phys: num(m[2]), spec: num(m[2]) }));
+  r.take(/(\d+)%概率本回合无视对方(?:的)?攻击/, (m) => void e.timed.push({ who: "self", kind: "dodge", turns: 1, phys: num(m[1]), spec: num(m[1]) }));
+  r.take(/(?:本回合)?无视对方(?:的)?攻击/, () => void e.timed.push({ who: "self", kind: "untouchable", turns: 1 }));
+  r.take(/(?:则)?回合末(?=＿)/, () => undefined);
+  // 若对方(已)X则(Y)概率翻倍 / 若对方体力值少于一半则必定令对方Y: the status's chance then.
+  r.take(new RegExp(`若对方(?:已|处于)?(${ST})(?:状态)?(?:则)?(?:${ST})?概率翻倍`), (m) => {
+    const st = [...e.statuses].reverse().find((x) => !x.self);
+    const cond: Cond = { foeStatus: statusOf(m[1]) };
+    if (st) st.doubleIf = cond;
+    else {
+      const chs = e.stages.filter((x) => x.chance < 100);
+      if (!chs.length) return false;
+      for (const x of chs) x.condChance = { cond, chance: Math.min(100, x.chance * 2) };
+    }
+  });
+  r.take(new RegExp(`若对方体力值?(?:少于|低于|小于)(一半|1\\/2)(?:时)?(?:则)?必定令对方(${ST})`), (m) => {
+    const st = e.statuses.find((x) => x.name === statusOf(m[2]));
+    if (!st) return false;
+    st.condChance = { cond: { foeHpBelow: 0.5 }, chance: 100 };
+  });
+  r.take(/(\d+)%概率复制对方(?:所)?提升的?(?:属性|能力)等级/, (m) => void (e.copyFoeUps = { chance: num(m[1]) }));
+  r.take(/(\d+)%概率创造分身(?:额外)?(?:攻击)?1次/, (m) => void (e.extraHits ??= []).push({ chance: num(m[1]), n: 2 }));
+  r.take(/(\d+)%概率(?:攻击对方|发动)(\d+)次(?:攻击)?/, (m) => void (e.extraHits ??= []).push({ chance: num(m[1]), n: num(m[2]) }));
+  // 每回合有N%概率清除自己不良状态 / 每回合有N%概率保护属性.
+  r.take(/每回合有?(\d+)%概率清除(?:自己|自身)(?:的)?(?:不良|异常)状态/, (m) => void e.timed.push({ who: "self", kind: "stateEachTurn", turns: battleLong(3), chance: num(m[1]), then: { stages: [], statuses: [], timed: [], cure: true } }));
+  r.take(/每回合有?(\d+)%概率自己属性能力等级不能被削弱/, (m) => void e.timed.push({ who: "self", kind: "stateEachTurn", turns: battleLong(3), chance: num(m[1]), then: { stages: [], statuses: [], timed: [{ who: "self", kind: "guard", turns: 2 }] } }));
+  r.take(/(\d+)%概率(?:提升)?效果翻倍/, (m) => void (e.stageDouble = num(m[1])));
+  r.take(/命中较低/, () => void (e.acc = 70));
+  r.take(/(?<=级[，、])伤害抵抗能力(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: battleLong(3), phys: 1 - num(m[1]) / 100, spec: 1 - num(m[1]) / 100 }));
+  r.take(/将伤害的?(\d+)%[-~](\d+)%转化来?回复自己/, (m) => void (e.drain = (num(m[1]) + num(m[2])) / 200));
+  // 一定概率秒杀对方 (RECONSTRUCTED: 10%).
+  r.take(/一定概率秒杀对方/, () => void (e.ohko = 10));
+  r.take(/(\d+)%概率伤害和回复效果翻倍/, (m) => void (e.boost ??= []).push({ chance: num(m[1]), mult: 2 }));
+  r.take(new RegExp(`(\\d+)%概率将对方的?(${STAT_LIST})(?:等级)?各?(\\d+)级转化给自己`), (m) => void (e.stealStages = { stats: statsOf(m[2]), delta: num(m[3]), chance: num(m[1]) }));
+  r.take(/随机造成(?:自己)?等级[×x*](\d+)~(\d+)的?伤害/, (m) => void (e.dmg = { kind: "level", a: num(m[1]), b: num(m[2]) }));
+  r.take(/随机爆发(\d+)~(\d+)(?:点)?威力/, (m) => void (e.powerRange = [num(m[1]), num(m[2])]));
+  // 重置双方属性 (its 令双方X is read early) / 对方全场每回合均有N%概率X.
+  r.take(/重置双方(?:的)?属性(?:能力)?(?:等级)?/, () => {
+    e.resetFoe = true;
+    e.resetSelf = true;
+  });
+  r.take(new RegExp(`对方(?:全场)?每回合均有(\\d+)%概率(${ST})`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: battleLong(3), chance: num(m[1]), status: statusOf(m[2]) }));
+  // 只要自己不死，每回合扣除对方N体力值回复自己，最多叠加N次.
+  r.take(/只要自己不死，?每回合扣除对方(\d+)(?:点)?体力值?回复自己(?:，?最多叠加(\d+)次)?/, (m) => void e.timed.push({ who: "foe", kind: "leech", turns: 99, n: num(m[1]), ...(m[2] ? { stack: num(m[2]) } : {}) }));
+  r.take(/(?:每次)?受到攻击(?:则)?提升任意属性(\d+)项(\d+)级/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: battleLong(3), chance: 100, stats: [...ALL_STATS], pick: num(m[1]), delta: num(m[2]), selfStage: true }));
+  r.take(/扣除对方(?:单体)?一半的?剩余体力值/, () => void (e.dmg = { kind: "hpFrac", f: 0.5 }));
+  // 若对方(已)X则削弱效果翻倍 / 若自己体力低于一半则效果翻倍.
+  r.take(new RegExp(`若对方(?:已)?(${ST})(?:则)?，?削弱效果翻倍`), (m) => {
+    const down = e.stages.filter((x) => !x.self && x.delta < 0);
+    if (!down.length) return false;
+    for (const x of down) x.doubleIf = { foeStatus: statusOf(m[1]) };
+  });
+  r.take(/若自己体力(?:值)?低于一半(?:则)?效果翻倍/, () => {
+    if (!e.stages.length) return false;
+    for (const x of e.stages) x.doubleIf = { selfHpBelow: 0.5 };
+  });
+  r.take(new RegExp(`若对方(?:已)?(${ST})(?:则)?(?:额外)?(?:多)?攻击(\\d+)次`), (m) => void (e.hitsIf = { cond: { foeStatus: statusOf(m[1]) }, add: num(m[2]) }));
+  r.take(/随机扣除对方(?:单体)?(\d+)~(\d+)点体力值来?(?:恢复|回复)自己/, (m) => {
+    e.dmg = { kind: "range", a: num(m[1]), b: num(m[2]) };
+    e.dmgHeals = "all";
+  });
+  r.take(/全场亚比每回合扣除最大体力值的?(\d+\/\d+)，?对([^，。；、\s＿]{1,3}?)系亚比无效/, (m) => void e.timed.push({ who: "both", kind: "dot", turns: battleLong(3), f: frac(m[1]), ...(ATTRS[m[2]] !== undefined ? { attr: ATTRS[m[2]] } : {}) }));
+  r.take(/(?:先发，)?免疫任何攻击(和异常状态)?(\d+)回合/, (m) => {
+    e.timed.push({ who: "self", kind: "untouchable", turns: num(m[2]) });
+    if (m[1]) e.timed.push({ who: "self", kind: "nostatus", turns: num(m[2]) });
+  });
+  r.take(new RegExp(`(削弱|降低|提升)(自己|自身|对方)(${STAT_RE}(?:或${STAT_RE})+)(?:等级)?各?(\\d+)级`), (m) => {
+    const groups = m[3].split("或").map((w) => STAT_WORDS[w] ?? []).filter((g) => g.length);
+    e.stages.push({ self: m[2] !== "对方", stats: groups[0], delta: (m[1] === "提升" ? 1 : -1) * num(m[4]), chance: 100, groups });
+  });
+  r.take(new RegExp(`每回合有(\\d+)%概率令对方(${ST})`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: battleLong(3), chance: num(m[1]), status: statusOf(m[2]) }));
+  r.take(/本回合免受伤害/, () => void e.timed.push({ who: "self", kind: "untouchable", turns: 1 }));
+  r.take(/降低对方(?:的)?伤害能力(\d+)%/, (m) => void e.timed.push({ who: "foe", kind: "power", turns: battleLong(3), mult: 1 - num(m[1]) / 100 }));
+  r.take(/(?:并)?有?一定概率停止行动/, () => void e.timed.push({ who: "foe", kind: "noact", turns: battleLong(1), chance: 30 }));
+  r.take(/将受到(?:的)?伤害的?(\d+\/\d+)返还给对方，?自己承受(\d+\/\d+)/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: battleLong(turnsOf(r.d, 3)), phys: frac(m[2]), spec: frac(m[2]) }, { who: "self", kind: "reflect", turns: battleLong(turnsOf(r.d, 3)), phys: frac(m[1]) / frac(m[2]), spec: frac(m[1]) / frac(m[2]) }));
+  r.take(/(?:使用后)?(\d+)回合内(?:自身|自己)使用([^，。；、\s＿]{1,3}?)系技能威力(?:上升|提升)(\d+)%/, (m) => {
+    if (ATTRS[m[2]] === undefined) return false;
+    e.timed.push({ who: "self", kind: "power", turns: num(m[1]), mult: 1 + num(m[3]) / 100, attr: ATTRS[m[2]] });
+  });
+  r.take(/(?:使用后)?(\d+)回合内每次受到攻击(?:自己)?可以抵抗(\d+)点伤害值?/, (m) => void e.timed.push({ who: "self", kind: "absorb", turns: num(m[1]), n: num(m[2]) }));
+  r.take(/(?:临时)?(?:大幅度)?提升(\d+)%暴击率/, (m) => void (e.critChance = num(m[1])));
+  r.take(new RegExp(`每次命中随机降低对方(${STAT_RE}(?:(?:、|和|或)${STAT_RE})*)(?:等级)?任意(\\d+)种属性(?:能力)?(\\d+)级`), (m) => {
+    const stats = [...new Set(m[1].split(/、|和|或/).flatMap((w) => STAT_WORDS[w] ?? []))];
+    e.stages.push({ self: false, stats, delta: -num(m[3]), chance: 100, pick: [num(m[2]), num(m[2])] });
+    e.perHit = true;
+  });
+  r.take(/清空对方(?:的)?属性(?!能力)/, () => void (e.resetFoe = true));
+  r.take(/每回合末对方扣除(\d+)~(\d+)点体力值?/, (m) => void e.timed.push({ who: "foe", kind: "dot", turns: turnsOf(r.d, 3), a: num(m[1]), b: num(m[2]) }));
+  r.take(new RegExp(`(?:使用后)?(\\d+)回合内每次受到伤害超过(\\d+)(?:点)?则?提升(?:自身|自己)(${STAT_LIST})各?(\\d+)级`), (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: num(m[1]), chance: 100, minLost: num(m[2]), stats: statsOf(m[3]), delta: num(m[4]), selfStage: true }));
+  r.take(/(?<=%)，?自己承受(\d+)%/, (m) => void e.timed.push({ who: "self", kind: "screen", turns: turnsOf(r.d, 3), phys: num(m[1]) / 100, spec: num(m[1]) / 100 }));
+  r.take(/回复(?:自己|自身)全PP(\d+)点和(\d+)点体力值?/, (m) => {
+    e.ppSelf = num(m[1]);
+    e.healFlat = num(m[2]);
+  });
+  r.take(new RegExp(`每回合提升(?:自己|自身)(${STAT_RE})或(${STAT_RE})(\\d+)级(?:并回复一定体力值?)?`), (m) => {
+    e.timed.push({ who: "self", kind: "stagesEachTurn", turns: battleLong(turnsOf(r.d, 3)), chance: 100, stats: [...statsOf(m[1]), ...statsOf(m[2])], pick: 1, delta: num(m[3]) });
+    if (/回复一定/.test(m[0])) e.timed.push({ who: "self", kind: "regen", turns: battleLong(turnsOf(r.d, 3)), f: 1 / 8 });
+  });
+  r.take(/(?:命中后)?(?:额外)?随机扣除对方(\d+)~(\d+)点体力值?(?!来)/, (m) => {
+    e.fixed = num(m[1]);
+    e.fixedMax = num(m[2]);
+  });
+  r.take(/(?:，)?效果能不叠加/, () => undefined);
+  r.take(new RegExp(`(\\d+)%概率将对方(${STAT_RE})或(${STAT_RE})(?:的)?(?:等级)?(\\d+)级转化给自己`), (m) => void (e.stealStages = { stats: [...statsOf(m[2]), ...statsOf(m[3])], delta: num(m[4]), chance: num(m[1]), pick: 1 }));
+  r.take(/(?:使用后)?(?:(\d+)回合内)?免疫伤害低于(\d+)(?:点)?的?攻击/, (m) => void e.timed.push({ who: "self", kind: "under", turns: m[1] ? num(m[1]) : turnsOf(r.d, 3), n: num(m[2]) }));
+  r.take(new RegExp(`每回合令对方有(\\d+\\/\\d+)概率(${ST})`), (m) => void e.timed.push({ who: "foe", kind: "plague", turns: battleLong(3), chance: Math.round(frac(m[1]) * 100), status: statusOf(m[2]) }));
+  r.take(/(?:使用后)?每回合吸取对方PP(\d+)~(\d+)点/, (m) => void e.timed.push({ who: "foe", kind: "ppdrain", turns: battleLong(99), a: num(m[1]), b: num(m[2]) }));
+  r.take(/再扣除对方(\d+)(?:点)?体力值?/, (m) => void (e.fixed = num(m[1])));
+  r.take(/(?:本回合)?出手时未受(?:到)?伤害则?概率翻倍/, () => {
+    if (!e.ohko) return false;
+    e.ohkoIf = { chance: Math.min(100, e.ohko * 2), cond: { hurt: false } };
+  });
+  r.take(/(?:扣除|削弱|降低)对方(\d+)项任意属性(?:等级)?(\d+)级/, (m) => void e.stages.push({ self: false, stats: [...ALL_STATS], delta: -num(m[2]), chance: 100, pick: [num(m[1]), num(m[1])] }));
+  r.take(new RegExp(`(\\d+)%概率随机提升(?:自己|自身)的?(${STAT_RE}(?:(?:、|或|和)${STAT_RE})+)(?:等级)?(\\d+)级`), (m) => {
+    const stats = [...new Set(m[2].split(/、|或|和/).flatMap((w) => STAT_WORDS[w] ?? []))];
+    e.stages.push({ self: true, stats, delta: num(m[3]), chance: num(m[1]), pick: [1, 1] });
+  });
+  // (N%概率)削弱对方X数值(的)N%: for the battle.
+  r.take(new RegExp(`(?:(\\d+)%概率)?削弱对方(${STAT_LIST})数值的?(\\d+)%`), (m) => void e.timed.push({ who: "foe", kind: "statmult", turns: 99, stats: statsOf(m[2]), mult: 1 - num(m[3]) / 100, ...(m[1] ? { chance: num(m[1]) } : {}) }));
+  r.take(new RegExp(`若对方(?:已)?(${ST})，?则?转化效果提升至(\\d+)%`), (m) => void (e.powerIf ??= []).push({ cond: { foeStatus: statusOf(m[1]) }, drain: num(m[2]) / 100 }));
+  r.take(/回复(?:自己|自身)最大体力值(?:的)?(\d+\/\d+|\d+%)/, (m) => void (e.healAfter = { f: frac(m[1]), chance: 100 }));
+  r.take(/(\d+)%概率偷取对方任意属性(?:等级)?(\d+)级/, (m) => void (e.stealStages = { stats: [...ALL_STATS], delta: num(m[2]), chance: num(m[1]), pick: 1 }));
+  r.take(/(?:使用后)?(\d+)回合(?:内)?有?(\d+)%概率将受到的?伤害转化为(?:自己)?(?:的)?体力值?/, (m) => void e.timed.push({ who: "self", kind: "soak", turns: num(m[1]), chance: num(m[2]) }));
+  r.take(/吸取对方全部PP值?(\d+)~(\d+)点/, (m) => void (e.ppRange = { a: num(m[1]), b: num(m[2]), steal: true, chance: 100 }));
+  r.take(new RegExp(`每回合削弱对方(${STAT_RE}(?:(?:、|或|和)${STAT_RE})+)任意(\\d+)(?:~(\\d+))?项(\\d+)级`), (m) => {
+    const stats = [...new Set(m[1].split(/、|或|和/).flatMap((w) => STAT_WORDS[w] ?? []))];
+    e.timed.push({ who: "foe", kind: "stagesEachTurn", turns: battleLong(3), chance: 100, stats, pick: num(m[2]), ...(m[3] ? { pickMax: num(m[3]) } : {}), delta: -num(m[4]) });
+  });
+  r.take(/(?:每次)?使用增加(\d+)点固定伤害，?最多叠加(\d+)点/, (m) => void (e.fixedGrow = { n: num(m[1]), max: num(m[2]) }));
+  r.take(/(?:每次)?受到攻击有?(\d+)%(?:概率)?令对方受到(\d+)点(?:固定)?反伤/, (m) => void e.timed.push({ who: "self", kind: "onhurt", turns: turnsOf(r.d, 3), chance: num(m[1]), hurtN: num(m[2]) }));
+  // 制造护盾吸收N点直接攻击伤害，护盾持续时间内(属性不被削弱并)免疫异常状态.
+  r.take(/制造护盾吸收(\d+)点(?:直接)?(?:攻击)?伤害(?:，?护盾持续时间内(自己属性能力等级不能被削弱并|属性不被削弱并)?(?:免疫异常状态|不会陷入异常状态))?/, (m) => {
+    e.makeShield = { kind: "n", n: num(m[1]) };
+    if (/持续时间内/.test(m[0])) e.timed.push({ who: "self", kind: "nostatus", turns: 99, whileShield: true });
+    if (m[2]) e.timed.push({ who: "self", kind: "guard", turns: 99, whileShield: true });
+  });
+  r.take(/令对方每回合扣除(\d+)点体力值?(?:，?持续(\d+)回合)?(?:，?可以叠加(\d+)次)?/, (m) => void e.timed.push({ who: "foe", kind: "dot", turns: m[2] ? num(m[2]) : turnsOf(r.d, 3), n: num(m[1]), ...(m[3] ? { stack: num(m[3]) } : {}) }));
+  r.take(/每次(?:攻击|使用)(?:增加|附带)(\d+)点(?:伤害|固伤|固定伤害)，?最多(?:可)?叠加(\d+)次/, (m) => void (e.fixedGrow = { n: num(m[1]), max: num(m[1]) * num(m[2]) }));
+  r.take(/(?:命中后)?(?:期间)?对方增加的?体力(?:值)?会被(?:翻倍)?扣除/, () => void e.timed.push({ who: "foe", kind: "healHurt", turns: turnsOf(r.d, 3) }));
+  r.take(/(?:将|造成)伤害(?:值)?的?(\d+)%[-~](\d+)%转化来?回复(?:自己|自身)(?:体力值?)?/, (m) => void (e.drain = (num(m[1]) + num(m[2])) / 200));
+  r.take(new RegExp(`令对方每回合降低(${STAT_RE})(\\d+)(?:~(\\d+))?级(?:并有(\\d+)%概率无法行动)?`), (m) => {
+    e.timed.push({ who: "foe", kind: "stagesEachTurn", turns: turnsOf(r.d, 3), chance: 100, stats: statsOf(m[1]), delta: -num(m[2]), ...(m[3] ? { deltaMax: -num(m[3]) } : {}) });
+    if (m[4]) e.timed.push({ who: "foe", kind: "noact", turns: turnsOf(r.d, 3), chance: num(m[4]) });
+  });
+  r.take(/(?<=[、，])任意(\d+)项属性(\d+)级/, (m) => void e.stages.push({ self: true, stats: [...ALL_STATS], delta: num(m[2]), chance: 100, pick: [num(m[1]), num(m[1])] }));
+  r.take(/本回合有(\d+)%概率反弹所有伤害/, (m) => void e.timed.push({ who: "self", kind: "reflect", turns: 1, phys: 1, spec: 1, chance: num(m[1]) }));
+  r.take(/倒置对方(?:的)?增益属性(?:等级)?/, () => void (e.invert = { ...(e.invert ?? {}), foe: "up" }));
+  r.take(/吸取对方全技能PP(\d+)点/, (m) => void (e.ppRange = { a: num(m[1]), b: num(m[1]), steal: true, chance: 100 }));
+  r.take(/(\d+)%概率(?:发动)?(?:威力提升至)?(双倍|\d+(?:\.\d+)?倍)(?:威力)?/, (m) => {
+    (e.boost ??= []).push({ chance: num(m[1]), mult: m[2] === "双倍" ? 2 : parseFloat(m[2]) });
+    for (let k = 0; k < 4; k++) if (!r.take(/^，?(\d+)%概率(?:发动)?(?:威力提升至)?(\d+(?:\.\d+)?)倍(?:威力)?/, (n) => void e.boost!.push({ chance: num(n[1]), mult: parseFloat(n[2]) }))) break;
+  });
+  r.take(/提升(?:自己|自身)?([^，。；、\s＿]{1,2})外任意(\d+)项属性(\d+)级/, (m) => {
+    const ex = STAT_WORDS[m[1]] ?? [];
+    e.stages.push({ self: true, stats: ALL_STATS.filter((k) => !ex.includes(k)), delta: num(m[3]), chance: 100, pick: [num(m[2]), num(m[2])] });
+  });
+  r.take(/回复伤害的?(\d+%)\+(\d+)点体力值?/, (m) => {
+    e.drain = frac(m[1]);
+    e.healFlat = num(m[2]);
+  });
+  r.take(/回复(?:自己|自身)(\d+)点体力值?和(\d+)点PP值?/, (m) => {
+    e.healFlat = num(m[1]);
+    e.ppSelf = num(m[2]);
+  });
+  r.take(new RegExp(`每次命中随机提升(?:自己|自身)?的?(${STAT_RE}(?:(?:、|和|或)${STAT_RE})+)(?:中)?任意(\\d+)种属性(?:能力)?(?:等级)?(\\d+)级`), (m) => {
+    const stats = [...new Set(m[1].split(/、|和|或/).flatMap((w) => STAT_WORDS[w] ?? []))];
+    e.stages.push({ self: true, stats, delta: num(m[3]), chance: 100, pick: [num(m[2]), num(m[2])] });
+    e.perHit = true;
+  });
+  r.take(/每回合削弱对方任意(\d+)项属性(\d+)级/, (m) => void e.timed.push({ who: "foe", kind: "stagesEachTurn", turns: battleLong(3), chance: 100, stats: [...ALL_STATS], pick: num(m[1]), delta: -num(m[2]) }));
+  r.take(/对方有(\d+)%(?:概率)?攻击失效(?:，?(\d+)%(?:概率)?攻击对方自身)?/, (m) => void e.timed.push({ who: "self", kind: "dodge", turns: turnsOf(r.d, 2), phys: num(m[1]), spec: num(m[1]) }));
   // 将其增加到自身 (归心): what the foe lost, the user gains.
   r.take(/将其增加到自身/, () => {
     const down = e.stages.find((s) => !s.self && s.delta < 0);
     if (down) e.stages.push({ self: true, stats: down.stats, delta: -down.delta, chance: down.chance });
   });
 
+  // 当速度等级削至最低时则效果变为N%概率令对方诅咒: the round's lowering, at its lowest.
+  if (atMin !== undefined) {
+    const x = e.timed.find((y) => y.kind === "stagesEachTurn" && (y.delta ?? 0) < 0);
+    if (x) x.atMinCurse = atMin;
+  }
+  // 受到攻击则叠加效果: the resistance and the heal again with each blow taken (RECONSTRUCTED: 4 at most).
+  if (stackUp) {
+    const sc = e.timed.find((x) => x.kind === "screen");
+    const then: SkillEffects = { stages: [], statuses: [], timed: sc ? [{ ...sc, placeIf: undefined }] : [], ...(e.healAfter ? { healAfter: { ...e.healAfter, cond: undefined } } : {}) };
+    e.timed.push({ who: "self", kind: "onhurt", turns: 99, chance: 100, cap: 4, then });
+  }
   e.status = e.statuses.find((s) => !s.self && !s.cond);
   return { fx: e, unread: r.unread() };
 }

@@ -1335,7 +1335,7 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   });
 
   // 坐骑 (the rebuilt pet/petride; PetClient2): 54_12 {pmId, cId} ride, 54_20 {} get off, 54_11 {pmId}
-  // train. The 34 亚比 of the 2013 PetRideInfosMap and the 9 the later one adds up to 1651
+  // train. The 34 亚比 of the 2013 PetRideInfosMap and the 37 the later one adds up to 2395
   // (race: [ride clothes, speed, level]); only a 蓝宝骑士 rides. The ride clothes join the worn
   // ones in the "avatar" user variable while riding (not saved: a new login walks), and the
   // way of moving is the "ms" user variable the 2013 SocketClient tells as onMovingStateChanged
@@ -1350,6 +1350,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
     // The later client's 坐骑 up to 1651 (the revival's 亚比 go that far: the 工具箱).
     1101: [10089, 1.5, 40], 1122: [10087, 1.5, 42], 1350: [10086, 1.5, 40], 1423: [10083, 1.3, 40], 1426: [10088, 1.5, 40],
     1430: [10081, 1.3, 40], 1448: [10082, 1.3, 40], 1461: [10084, 1.3, 40], 1599: [10085, 1.3, 40],
+    // And those of the 亚比 to 2395 and their 超系 forms (the later PetRideInfosMap; the first form of
+    // 天极鲸, 苍翼弑龙 and 帝皇真龙, whose second came with a ride card).
+    1746: [10090, 1.5, 40], 1777: [10091, 1.5, 40], 1788: [10092, 1.5, 40], 1805: [10093, 1.5, 40], 1824: [10094, 1.5, 20],
+    1825: [10094, 1.5, 40], 1860: [10095, 1.5, 40], 1872: [10096, 1.5, 20], 1873: [10096, 1.5, 40], 1871: [10097, 1.5, 40],
+    1965: [10097, 1.5, 40], 1905: [10098, 1.5, 40], 1909: [10099, 4, 40], 1869: [10100, 1.5, 40], 1985: [10101, 1.5, 40],
+    1990: [10102, 1.5, 40], 2038: [10103, 1.5, 40], 2045: [10104, 1.5, 40], 2054: [10105, 1.5, 40], 2076: [10107, 1.5, 40],
+    2150: [10108, 1.5, 40], 2175: [10109, 4, 40], 2226: [10110, 1.5, 40], 2296: [10113, 1.5, 40], 2314: [10114, 1.5, 40],
+    2374: [10115, 1.5, 40], 2387: [10116, 1.5, 40], 2531: [10118, 1.5, 40],
   };
   const riding = new Map<string, { pmId: number; cloth: number }>();
   const wornWithRide = (rec: UserRecord) => {

@@ -139,7 +139,7 @@ package mmo.petfightnew
          return s;
       }
 
-      /** petattribute/attribute<n>.swf: mmo.pet.attribute<n> (the 2011 attribute icons), scaled into a box. */
+      /** petattribute/attribute<n>.swf: mmo.pet.attribute<n> (the 2011 attribute icons, 王 and the 超系 later), scaled into a box. */
       public static function attributeIcon(into:DisplayObjectContainer, attr:int, box:int):void
       {
          var cls:String = "mmo.pet.attribute" + attr;
@@ -157,7 +157,7 @@ package mmo.petfightnew
             into.addChild(d);
          };
          if (RDef.has(cls)) put();
-         else if (attr >= 0 && attr <= 21) ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});
+         else if ((attr >= 0 && attr <= 34) || attr == 999) ResScheduler.getResource("petattribute/attribute" + attr, put, cls, function(e:* = null):void {});
          else badge(into, attr, box);
       }
 

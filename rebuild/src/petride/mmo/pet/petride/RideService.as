@@ -67,11 +67,26 @@ package mmo.pet.petride
        * clothes, speed, level), which the 2013 map lacks: [race, clothes, speed, level].
        */
       private static const LATER_RIDES:Array = [[1101, 10089, 1.5, 40], [1122, 10087, 1.5, 42], [1350, 10086, 1.5, 40],
-         [1423, 10083, 1.3, 40], [1426, 10088, 1.5, 40], [1430, 10081, 1.3, 40], [1448, 10082, 1.3, 40], [1461, 10084, 1.3, 40], [1599, 10085, 1.3, 40]];
+         [1423, 10083, 1.3, 40], [1426, 10088, 1.5, 40], [1430, 10081, 1.3, 40], [1448, 10082, 1.3, 40], [1461, 10084, 1.3, 40], [1599, 10085, 1.3, 40],
+         // And those of the 亚比 to 2395 and their 超系 forms (the first, 40-level form of 天极鲸, 苍翼弑龙
+         // and 帝皇真龙; their second came with a ride card).
+         [1746, 10090, 1.5, 40], [1777, 10091, 1.5, 40], [1788, 10092, 1.5, 40], [1805, 10093, 1.5, 40], [1824, 10094, 1.5, 20],
+         [1825, 10094, 1.5, 40], [1860, 10095, 1.5, 40], [1872, 10096, 1.5, 20], [1873, 10096, 1.5, 40], [1871, 10097, 1.5, 40],
+         [1965, 10097, 1.5, 40], [1905, 10098, 1.5, 40], [1909, 10099, 4, 40], [1869, 10100, 1.5, 40], [1985, 10101, 1.5, 40],
+         [1990, 10102, 1.5, 40], [2038, 10103, 1.5, 40], [2045, 10104, 1.5, 40], [2054, 10105, 1.5, 40], [2076, 10107, 1.5, 40],
+         [2150, 10108, 1.5, 40], [2175, 10109, 4, 40], [2226, 10110, 1.5, 40], [2296, 10113, 1.5, 40], [2314, 10114, 1.5, 40],
+         [2374, 10115, 1.5, 40], [2387, 10116, 1.5, 40], [2531, 10118, 1.5, 40]];
+
+      /** The ride clothes whose parts sit at the 坐骑's head layers (the later ClothesPartsDatas: 10095–10098). */
+      private static const HEAD_PARTS:Array = [10095, 10096, 10097, 10098];
 
       /** The later ride clothes' names (the later materialdata's, 10083 and 10084 as their pictures are). */
       private static const LATER_NAMES:Object = {10081: "阿波罗", 10082: "星际旋风", 10083: "噬月武神", 10084: "苍炎战神", 10085: "风暴流星",
-         10086: "赤魔导士", 10087: "狼王", 10088: "黑炎龙", 10089: "飞天ET"};
+         10086: "赤魔导士", 10087: "狼王", 10088: "黑炎龙", 10089: "飞天ET", 10090: "凌月战神", 10091: "帝卡", 10092: "艾布",
+         10093: "焚天烈焰马", 10094: "明王", 10095: "狮鹫", 10096: "多罗罗", 10097: "天冲", 10098: "君焰狼王", 10099: "光速黑蝠",
+         10100: "圣王麒麟", 10101: "断空翼皇", 10102: "苍耀光圣", 10103: "酷奇", 10104: "六龙", 10105: "虎跃", 10107: "天极鲸（普通形态）",
+         10108: "圣王麒麟", 10109: "星神驹", 10110: "苍翼弑龙-普通", 10113: "帝皇真龙-普通", 10114: "小糖罐", 10115: "圣诞坐骑",
+         10116: "超上古龙", 10118: "超系凤凰"};
 
       /**
        * The later ride clothes (10081–10089) made known to the 2013 clothes service, as the later
@@ -91,8 +106,9 @@ package mmo.pet.petride
                if (svc.getClothesDataById(id) != null) continue;
                var file:String = "a0" + id;
                var c:Clothes = new Clothes(id, String(LATER_NAMES[id] || ""), false, 0, false, 1, 0, 0);
-               c.parts = [new ClothesParts(file + "0", SkinPosInfo.QI_CHONG__QIAN, SkinInfoFactory.RIDING_PET, ClothesSideTypes.TWO, "4444555566667777"),
-                  new ClothesParts(file + "1", SkinPosInfo.QI_CHONG__HOU, SkinInfoFactory.RIDING_PET, ClothesSideTypes.TWO, "4444555566667777")];
+               var head:Boolean = HEAD_PARTS.indexOf(id) >= 0;
+               c.parts = [new ClothesParts(file + "0", head ? SkinPosInfo.QI_CHONG_TOU__QIAN : SkinPosInfo.QI_CHONG__QIAN, SkinInfoFactory.RIDING_PET, ClothesSideTypes.TWO, "4444555566667777"),
+                  new ClothesParts(file + "1", head ? SkinPosInfo.QI_CHONG_TOUBU__HOU : SkinPosInfo.QI_CHONG__HOU, SkinInfoFactory.RIDING_PET, ClothesSideTypes.TWO, "4444555566667777")];
                c.fileName = file;
                svc.getClothesDatas()[id] = c;
             }
@@ -125,7 +141,8 @@ package mmo.pet.petride
       public function validateRidePetRace():Array
       {
          return [30, 45, 105, 141, 278, 138, 198, 300, 189, 299, 153, 24, 90, 481, 506, 290, 493, 391, 388, 75, 215, 111, 624, 653, 654, 741, 775, 794, 180, 838, 1082, 1126, 1240, 1356,
-            1101, 1122, 1350, 1423, 1426, 1430, 1448, 1461, 1599];
+            1101, 1122, 1350, 1423, 1426, 1430, 1448, 1461, 1599, 1746, 1777, 1788, 1805, 1824, 1825, 1860, 1872, 1873, 1871, 1965, 1905, 1909,
+            1869, 1985, 1990, 2038, 2045, 2054, 2076, 2150, 2175, 2226, 2296, 2314, 2374, 2387, 2531];
       }
 
       public function validateRideReady(p:PetBriefInfo):Boolean

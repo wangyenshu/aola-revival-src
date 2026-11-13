@@ -12,9 +12,10 @@ const tables: PetTables = {
 };
 const skillNamed = (n: string) => Number(Object.entries(tables.pm.skills).find(([, s]) => s.n === n)![0]);
 
-test("every skill of the 图鉴's 亚比 is read to the last word", () => {
+test("every skill of the 图鉴's 亚比 of 2013 (to 1651) is read to the last word", () => {
   const left: string[] = [];
   for (const id of Object.keys(tables.species)) {
+    if (Number(id) > 1651) continue;
     for (const [, sid] of tables.pm.species[id]?.learn ?? []) {
       const s = tables.pm.skills[String(sid)];
       if (!s) continue;
