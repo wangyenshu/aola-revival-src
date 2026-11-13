@@ -611,8 +611,9 @@ A skill with no animation of its own plays the later client's generic one
 (SkillMap.getSkillAttributeEffectId: `fightassets/effect<10000000 + 属性×100 + kind>` or
 `effect2000000x` for a whole side; `ge` in the pet table's skills, sent with the skill's
 report), as the later battle did; a status skill has none, as there. The blow lands (the
-hurt, the numbers) at the animation's `att` frame, and the turn goes on when it ends, as
-the later UseSkill does.
+hurt, the numbers) at the animation's `att` frame (its second frame where it has no such
+label: 踏破大地, 霸绝一击 and 76 more of the 2013 亚比's skills), and the turn goes on when it
+ends, as the later UseSkill does.
 
 Skill effects are placed as the later UseSkill.setEffectMovie places them: on the user
 for its own skills and those labelled `move`, over the whole screen unmirrored for

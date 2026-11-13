@@ -2188,6 +2188,9 @@ package mmo.petfightnew
             fxLayer.addChild(fx);
             var attAt:int = labelFrame("att", labels);
             if (attAt > 0 && attAt < fx.totalFrames) fx.addFrameScript(attAt - 1, land);
+            // One without the label (踏破大地, 霸绝一击 … 78 of the 2013 亚比's skills): the blow lands
+            // on its second frame, as the game's UseSkill has it.
+            else if (attAt <= 0) fx.addFrameScript(1, land);
             fx.addFrameScript(fx.totalFrames - 1, end);
             fx.gotoAndPlay(1);
          };
