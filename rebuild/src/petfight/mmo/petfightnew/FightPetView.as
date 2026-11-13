@@ -14,16 +14,18 @@ package mmo.petfightnew
    import mmo.revival.RLog;
 
    /**
-    * REBUILT. One 亚比 on the battle screen, played as the 2013 battle sprites
-    * expect (the contract the era pet/fightpreview shows):
+    * REBUILT. One 亚比 on the battle screen, played as the battle sprites are made:
     * fightassets/pet<race>.swf holds mmo.petfight.pet<race>_1 (facing the
     * viewer, for the far side: the wild 亚比) and _2 (seen from behind, for the
-    * near side: mine); frame 1 stands, 2 is hurt, 3 special
-    * attack, 4 physical attack, 5 status skill. In frames 2–5 a child "mc" plays
-    * the move; its labels "att", "eff" (start the skill effect), "move" with
-    * p1–p4 (step towards the other side: +320,+90 from the far side, -340,-100
-    * from the near side, and back) drive the rest. A 亚比 without a battle sprite stands in as its
-    * large icon (peticon<race>_L).
+    * near side: mine); frame 1 stands, 2 is hurt, 4 attacks (physical and special skills alike)
+    * and 6 plays a status skill; 3 and 5 are empty in nearly every sprite (a few early ones have
+    * five frames, 3, 4 and 5 the three moves). The battle screen of the game takes them so
+    * (PetActionFrame: a physical or special skill plays the first of 4, 9 and 3 that holds a
+    * picture, a status skill the first of 6 and 5); here, a sprite with neither plays the other.
+    * The frame's child "mc" (or its only child) plays the move; its labels "att", "eff" (start the
+    * skill effect), "move" with p1–p4 (step towards the other side: +320,+90 from the far side,
+    * -340,-100 from the near side, and back) drive the rest. A 亚比 without a battle sprite stands
+    * in as its large icon (peticon<race>_L).
     */
    public class FightPetView extends Sprite
    {
@@ -116,6 +118,31 @@ package mmo.petfightnew
          if (mc) mc.gotoAndStop(1);
       }
 
+      /** The frames a skill's move is looked for in, by kind (0 physical, 1 special, 2 status). */
+      private static const ATTACK_FRAMES:Array = [[4, 9, 3], [4, 9, 3], [6, 5]];
+
+      /** The clip of the frame mc stands at: its "mc", else its only child. */
+      private function actionClip():MovieClip
+      {
+         var inner:MovieClip = mc.getChildByName("mc") as MovieClip;
+         if (inner == null && mc.numChildren > 0) inner = mc.getChildAt(0) as MovieClip;
+         return inner;
+      }
+
+      /** Go to the frame of a skill's move: the first of its kind's that holds one, else the other kind's; 0 if none. */
+      private function attackFrame(kind:int):int
+      {
+         var own:Array = ATTACK_FRAMES[kind] || ATTACK_FRAMES[0];
+         var tried:Array = own.concat(own == ATTACK_FRAMES[2] ? ATTACK_FRAMES[0] : ATTACK_FRAMES[2]);
+         for each (var f:int in tried)
+         {
+            if (f > mc.totalFrames) continue;
+            mc.gotoAndStop(f);
+            if (actionClip() != null) return f;
+         }
+         return 0;
+      }
+
       /** kind: 0 physical, 1 special, 2 status. onEffect when the skill effect should start, onDone at the end. */
       public function attack(kind:int, onEffect:Function, onDone:Function):void
       {
@@ -136,9 +163,11 @@ package mmo.petfightnew
             onDone();
          };
          startGuard(4000, finish);
-         if (mc == null || mc.totalFrames < 5)
+         var inner:MovieClip = mc != null && mc.totalFrames >= 3 && attackFrame(kind) > 0 ? actionClip() : null;
+         if (inner == null)
          {
             // A still picture: a short hop towards the other side.
+            normal();
             var self:FightPetView = this;
             var dx:int = front ? 40 : -40;
             var x0:Number = x;
@@ -149,41 +178,31 @@ package mmo.petfightnew
             }});
             return;
          }
-         var frame:int = kind == 1 ? 3 : (kind == 2 ? 5 : 4);
-         mc.addFrameScript(frame - 1, function():void
+         var scripts:Object = {};
+         var at:Function = function(f:int, fn:Function):void
          {
-            mc.addFrameScript(frame - 1, null);
-            var inner:MovieClip = mc.getChildByName("mc") as MovieClip;
-            if (inner == null)
-            {
-               TweenLite.delayedCall(0.4, finish);
-               return;
-            }
-            var scripts:Object = {};
-            var at:Function = function(f:int, fn:Function):void
-            {
-               if (f < 1) return;
-               (scripts[f] ||= []).push(fn);
-            };
-            var labels:Array = inner.currentLabels;
-            var moving:Boolean = false;
-            for each (var l:FrameLabel in labels)
-            {
-               if (l.name == "eff") at(l.frame, fireEffect);
-               else if (l.name == "move") moving = true;
-            }
-            if (moving)
-            {
-               var p1:int = labelFrame("p1", labels), p2:int = labelFrame("p2", labels);
-               var p3:int = labelFrame("p3", labels), p4:int = labelFrame("p4", labels);
-               at(p1, function():void { step(inner, p2 - p1, true); });
-               at(p3, function():void { step(inner, p4 - p3, false); });
-            }
-            at(inner.totalFrames, function():void { inner.stop(); finish(); });
-            for (var f:String in scripts) setFns(inner, int(f) - 1, scripts[f] as Array);
-            inner.gotoAndPlay(1);
-         });
-         mc.gotoAndStop(frame);
+            if (f < 1) return;
+            (scripts[f] ||= []).push(fn);
+         };
+         var labels:Array = inner.currentLabels;
+         var moving:Boolean = false;
+         for each (var l:FrameLabel in labels)
+         {
+            // "eff " in a few early sprites.
+            var name:String = l.name.replace(/\s+/g, "");
+            if (name == "eff") at(l.frame, fireEffect);
+            else if (name == "move") moving = true;
+         }
+         if (moving)
+         {
+            var p1:int = labelFrame("p1", labels), p2:int = labelFrame("p2", labels);
+            var p3:int = labelFrame("p3", labels), p4:int = labelFrame("p4", labels);
+            at(p1, function():void { step(inner, p2 - p1, true); });
+            at(p3, function():void { step(inner, p4 - p3, false); });
+         }
+         at(inner.totalFrames, function():void { inner.stop(); finish(); });
+         for (var f:String in scripts) setFns(inner, int(f) - 1, scripts[f] as Array);
+         inner.gotoAndPlay(1);
       }
 
       /** addFrameScript with a closure per frame (AS3 closures share loop variables). */
@@ -242,7 +261,7 @@ package mmo.petfightnew
          mc.addFrameScript(1, function():void
          {
             mc.addFrameScript(1, null);
-            var inner:MovieClip = mc.getChildByName("mc") as MovieClip;
+            var inner:MovieClip = actionClip();
             if (inner == null || inner.totalFrames < 2)
             {
                TweenLite.delayedCall(0.5, finish);

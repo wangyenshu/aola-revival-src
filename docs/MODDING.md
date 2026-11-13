@@ -429,18 +429,24 @@ game.species({
 ```
 
 **The battle sprite.** The battle sprite follows the contract of the game's
-own (`fightassets/pet<race>`). It is a MovieClip of at least five frames:
+own (`fightassets/pet<race>`). It is a MovieClip of six frames:
 
 - frame 1: standing;
 - frame 2: hurt;
-- frame 3: special attack;
-- frame 4: physical attack;
-- frame 5: status skill.
+- frame 4: physical and special attacks;
+- frame 6: status skills;
+- frames 3 and 5: empty.
 
-In frames 2–5 a child named `mc` plays the move. Its frame labels drive the
-rest: `eff` is where the skill's effect starts, and `move` with `p1`–`p4`
-makes it step towards the other side and back. A sprite of fewer frames,
-or none, is shown standing (the icon stands in) and hops when it attacks.
+A physical or special skill plays the first of frames 4 and 3 that holds a
+picture, a status skill the first of 6 and 5; a sprite with neither plays the
+other kind's. So a sprite of five frames (3, 4 and 5 filled) still works:
+its status skills play frame 5.
+
+In those frames a child named `mc` (or the frame's only child) plays the
+move. Its frame labels drive the rest: `eff` is where the skill's effect
+starts, and `move` with `p1`–`p4` makes it step towards the other side and
+back. A sprite of fewer than three frames, or none, is shown standing (the
+icon stands in) and hops when it attacks.
 When `back` is missing, the `fight` sprite is mirrored for the player's
 side.
 

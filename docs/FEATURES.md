@@ -886,6 +886,8 @@ run pays 晶豆, as its end panel says.
 - Battles against wild 亚比 in 124 rooms (幽冥大殿's 金银球, 小金小银 and, now and
   then, 金银童子 among them), task 亚比, bosses and NPCs: skills,
   attributes, statuses, items, switching, escaping, the boss films.
+  Every skill plays its 亚比's move (special and status skills too) and its
+  animation (all but 5 skills, which have none anywhere).
   A turn has 30 seconds (counted at the top of the battle screen); when they
   run out the screen uses the first skill with uses left, or waits if none
   has (the next 亚比 when a fallen one is to be replaced). The battle screen's
