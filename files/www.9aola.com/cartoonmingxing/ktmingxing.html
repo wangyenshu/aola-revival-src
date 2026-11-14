@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>奥拉星-卡通明星</title>
+<style type="text/css">
+ *{padding:0;margin:0;}
+ body{background:#b8d8f1 url(images/bd_bg.png) repeat-y 50% 50%;}
+ .wrapper{ background:url(images/main_bg.png) repeat-y;width:1000px;margin:0 auto;padding-top:20px;}
+ .main{background:url(images/main.jpg) no-repeat;height:623px;position:relative;}
+ .main a{display:block;text-indent:-9999px;position:absolute;}
+ .main .logo{left:40px;width:170px;height:90px;}
+ .main .getin{bottom:13px;right:260px;width:200px;height:52px;}
+ .main .title{top:192px;left:367px;height:60px;position:absolute;}
+ .t1,.t2,.t3{float:left;height:60px;}
+ .t1{width:124px;background:url(images/mt1.png) no-repeat;}
+ .t2{background:url(images/mt2.png) repeat-x;font:16px/3.5 "宋体";padding:0 10px;}
+ .t3{width:225px;background:url(images/mt3.png) no-repeat;}
+ .ct1,.ct2{width:13px;height:40px;position:absolute;background:url(images/center.png) no-repeat;top:233px;}
+ .ct1{left:475px;}
+ .ct2{left:705px;}
+ .main .cnt{width:444px;height:144px;position:absolute;top:288px;left:367px;}
+ .foot{background:url(images/foot.jpg) no-repeat;height:175px;position:relative;}
+ .foot_logo{display:block;width:140px;height:70px;position:absolute;top:90px;left:220px;text-indent:-9999px;}
+ .foot_cnt{width:365px;position:absolute;top:90px;left:395px;font:12px/1.5 "宋体";color:#000;}
+ a{text-decoration:none;color:#000;}
+ a:hover{text-decoration:underline;color:#390;}
+ .clear{clear:both;}
+ .footbg{background:url(images/foot_bg.jpg)  no-repeat 50% 292px;width:100%;}
+ </style>
+</head>
+
+<body>
+<div class="footbg">
+    <div class="wrapper">
+      <div class="main">
+          <a target="_blank" href="http://aola.100bt.com/" class="logo" title="奥拉星">奥拉星</a>
+          <a target="_blank" href="http://aola.100bt.com/" class="getin" title="进入奥拉星">进入奥拉星</a>
+          <div class="title">
+             <div class="t1"></div>
+             <div class="t2" id="name"></div>
+             <div class="t3"></div>
+             <div class="clear"></div>
+          </div>
+          <div class="ct1"></div>
+          <div class="ct2"></div>
+          <div class="cnt" id="cnt">
+        </div>
+      
+      </div>
+    
+      <div class="foot">
+        <a class="foot_logo" target="_blank" href="http://aoqi.100bt.com/" title="奥拉星">奥拉星</a>
+        <div class="foot_cnt">
+             <a target="_blank" href="http://web.9aola.com/story/story.html">关于奥拉星</a>
+             |
+             <a target="_blank" href="http://blog.9aola.com/">官方博客</a>
+             |
+             <a target="_blank" href="http://www.9aola.com/website/tos6.html">服务条款</a>
+             |
+             <a target="_blank" href="http://www.baitianinfo.com/join/campus.html">加盟奥拉星</a>
+             |
+             <a target="_blank" href="http://www.baitianinfo.com/about/contact.html">联系我们</a><br />
+                 文网文［2009］103号   增值电信业务经营许可证粤B2-20090388号   <br />
+                 文化部监督电子邮箱：wlwh@vip.sina.com<br />
+                 Copyright © 2009 BaitianInfo Ltd.All Rights Reserved
+        </div>
+      </div>
+      
+    </div>
+
+</div>
+
+
+
+
+</body>
+<script type="text/javascript" src="images/jquery-min.js"></script>
+<script type="text/javascript">
+    var qurl = window.location.search.slice(1);
+	var arr = qurl.split('&');
+	var obj = {};
+	for(var i=0;i<arr.length;i++){
+		  var t = arr[i].split('=');
+		  obj[t[0]] = decodeURIComponent(t[1]);
+		};
+	var imgArr = ["p1.jpg","p2.jpg","p3.jpg","p4.jpg","p5.jpg"];
+	$(function(){
+	   var n = obj.name||"";
+	   var p = obj.page>imgArr.length||!obj.page?0:(obj.page-1);
+	   $("#name").html(n);
+	   if(n.length<3||!n){$("#name").css("padding","0 20px");}
+	   $("#cnt").css("background-image","url(images/$0)".replace("$0",imgArr[p]));
+	});
+</script>
+</html>

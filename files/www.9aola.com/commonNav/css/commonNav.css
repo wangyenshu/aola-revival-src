@@ -1,0 +1,80 @@
+#baseNav{height:42px;width:100%}
+#commonNav *{font-size:12px;outline:0;font:12px/1.5 Tahoma,Helvetica,Arial,"宋体b8b\4f53",sans-serif;list-style:none}
+.hide{display:none}
+#commonNav_slide li{list-style:none}
+.pr{position:relative}
+.pa{position:absolute}
+.full{display:block;width:100%;height:100%}
+.l{float:left}
+#commonNav{background:url(navImgs/navbg.png) repeat-x;height:42px;width:100%;position:relative;z-index:1;_overflow:hidden;}
+#w_navCtn,#w_navSlide{width:960px;margin:0 auto;position:relative}
+#w_navSlide{position:static;}
+#commonNav_slide{background:url(navImgs/nabbg2.png) repeat-x;overflow:hidden;display:none;width:100%}
+.navMenuItem{display:inline-block;*display:inline;padding-top:7px;*padding-top:9px;_padding-top:7px;padding-bottom:8px;_padding-bottom:1px;*zoom:1;margin-top:1px;margin-right:16px}
+.clearRM{margin-right:0}
+.navLogo{width:65px;background:url(navImgs/navsp.png?20120412) no-repeat;no-repeat;background-position:0 2px;height:40px;margin-right:19px;*zoom:1}
+.navMenu{width:562px;height:15px;*zoom:1;margin-top:5px;}
+.navItem_r{background-position:-93px -98px;position:absolute;top:4px;width:10px;height:31px;top:2px\9;*top:9px;_top:7px}
+.navItem_l{background-position:0 -98px;padding-top:5px;padding-left:6px;padding-bottom:7px;*zoom:1}
+.on .navItem_r,.on .navItem_l{background-image:url(navImgs/navsp.png?20120412);background-repeat:no-repeat}
+.navMenuItem .normal{color:#333;text-decoration:none;cursor:pointer}
+.on .normal{color:black;text-decoration:none}
+.navMenuItem .color090,.navLogins .color090{color:#090;cursor:pointer;text-decoration:none}
+.navLogins .color090{color:#666;text-decoration:underline}
+.on .color090{color:#060;text-decoration:none;cursor:pointer}
+.navAllGame .color090:hover{color:#090;text-decoration:none}
+.navMenuIconMg{margin-left:22px}
+.navMenuIcon{position:absolute;width:20px;height:20px;background-image:url(navImgs/navsp.png?20120412);background-position:0 -59px;top:8px;top:6px\9;*top:13px;_top:12px}
+.navMenuIconqq{background-position:-20px -59px}
+.navStatus{position:absolute;width:23px;height:12px;top:-5px;*top:-1px;_top:-3px;right:12%;background-image:url(navImgs/navsp.png?20120412)}
+.navStatus_new .navStatus{background-position:0 -82px}
+.navStatus_hot .navStatus{background-position:-27px -82px}
+.w_navMenuLinks{float:left}
+.navMenuSlideIcon{padding:0 6px;background-image:url(navImgs/navsp.png?20120412);background-position:-53px -40px;*zoom:1}
+.navMenuSlideIcon_open .navMenuSlideIcon,.userProfileSlideIcon_open .userProfileSlideIcon{background-position:-65px -40px}
+.navAllGame{background-position:-72px -136px;padding-left:5px;width:41px;margin-top:9px;*margin-top:3px;_margin-top:7px}
+.navAllGame a{*zoom:1;*padding:5px 0 7px}
+.navLinks{position:absolute;top:14px;right:0;top:12px\9;*top:13px;_top:11px;}
+.navLinks a{border-right:1px solid;padding:0 6px;color:#666;text-decoration:none}
+.navLinks a:hover{text-decoration:underline}
+.navLinks .clearRB{border-right:0}
+.openbg{background-image:url(navImgs/navsp.png?20120412)}
+.navSlide{height:88px;margin-left:360px}
+.navSlide li{float:left;margin-top:2px;margin-right:10px}
+.navSlide li.hov{background:url(navImgs/navsp.png?20120412);background-position:0 -127px}
+.navLoginsStatus_unlog,.navLoginsStatus_loged{display:none}
+.navLoginsStatus_unlog{margin-top:15px;text-align:right;width:250px}
+.navLoginsStatus_loged{margin-top:5px;margin-left:30px}
+.navMenuItem a{outline:0}
+.navMenuItem .w_navMenuLinks a{text-decoration:none}
+.commonNav_preIcon{background-image:url(navImgs/navsp.png?20120412);width:20px;height:22px;display:block;position:absolute;top:5px;*top:12px}
+.commonNav_preIcon_1 .commonNav_preIcon{background-position:-85px -132px;width:23px;left:4px}
+.commonNav_preIcon_2 .commonNav_preIcon{background-position:-24px -132px;width:33px;left:3px}
+.commonNav_preIcon_3 .commonNav_preIcon{background-position:-59px -132px;width:24px;left:4px}
+.commonNav_preIcon_4 .commonNav_preIcon{background-position:0 -132px;width:24px;left:4px}
+.navItem_l{background-position:0 -97px;padding-top:8px;padding-left:30px;padding-bottom:8px;_padding-top:6px}
+.noIcon .navItem_l{padding-left:8px}
+.commonNav_preIcon_2 .navItem_l{padding-left:39px}
+.navItem_r{background-position:-147px -97px;position:absolute;top:1px;width:7px;height:31px;top:-1px\9;*top:9px;_top:7px}
+.navMenu{*margin-top:-3px}
+.navMenuItem{margin-right:10px}
+.commonNav_preIcon_5 .commonNav_preIcon{background-position:-111px -130px;width:29px;left:1px;height:24px;top:3px;*top:10px;}
+.z_gt {text-align: center;margin-top: -4px;*margin-top:-2px;}
+.z_gt a{font-size:12px;color: #666;text-decoration:none;}
+.z_gt a:visited{color:#666;}
+.z_w_game .hover a,.z_w_game .hover a:visited{color:#333;text-decoration:none;}
+.z_imgnav_inner{overflow:hidden;width:774px;margin:0 auto}
+.z_w_game{margin:0 10px}
+.z_imgnav{margin-top:10px;margin-bottom:10px}
+.z_botttomA{display:block;width:90px;height:71px;pointer:cursor}
+#z_botttomA_1{background-image:url(navImgs/icons/aobi.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/aobi.png")}
+#z_botttomA_2{background-image:url(navImgs/icons/aola.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/aola.png")}
+#z_botttomA_3{background-image:url(navImgs/icons/lds.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/lds.png")}
+#z_botttomA_4{background-image:url(navImgs/icons/aoya.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/aoya.png")}
+#z_botttomA_5{background-image:url(navImgs/icons/aoqi.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/aoqi.png")}
+#z_botttomA_6{background-image:url(navImgs/icons/ddt.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/ddt.png")}
+#z_botttomA_7{background-image:url(navImgs/icons/hy.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/hy.png")}
+.z_w_game_hoticon,.z_w_game_newicon{width: 28px;height: 14px;top:4px;right: 5px;}
+.z_w_game_hoticon {background-image: url(../css/navImgs/icons/hot.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/hot.png")}
+.z_w_game_newicon{background-image: url(../css/navImgs/icons/new.png);_background:none;_filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=noscale,src="commonNav/css/navImgs/icons/new.png")}
+.z_imgnav_inner .last{_margin-right:0;}
