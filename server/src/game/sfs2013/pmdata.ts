@@ -46,6 +46,13 @@ export interface PmJiuji {
   /** Points added: 体力, 攻击, 防御, 特攻, 特防, 速度. */
   up: number[];
   d: string;
+  /** 2: a 契约 (jiujiType 2, the two 战骑): its 坐骑召唤 instead of points, for the whole battle. */
+  k?: number;
+  /**
+   * The 契约's 坐骑召唤 (PMJiujiQiyueData at the same 等级): 回复最大体力值 hp%, 伤害抗性 res%, 速度等级 +spd,
+   * its words; its 契约技能 (sn, sd: 满月血脉 …) while it rides.
+   */
+  qy?: { hp: number; res: number; spd: number; d: string; sn: string; sd: string };
 }
 
 /** A PMWeather row: 1 圣域技能, 2 圣域, 3 自动循环激活圣域, 4 特性; its front text and BuffXML. */

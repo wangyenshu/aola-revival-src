@@ -85,7 +85,7 @@ either:
 | Chat box | Type and send a message. The button beside it shows the recent chat. |
 | 信息卡 | Your player card with the wardrobe: click clothes to put them on or take them off. |
 | 好友, 组队, 战队 | 好友 and 组队 in 联机模式 (docs/MULTIPLAYER.md); 战队 is not available. |
-| 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, and 放回仓库 (the box button): the 亚比 chosen goes into the 亚比仓库. The last 亚比 of the bag stays. |
+| 亚比 | The 亚比 bag: details, 恢复 (heal), 更换技能, 坐骑, 跟随, and 放回仓库 (the box button): the 亚比 chosen goes into the 亚比仓库. The last 亚比 of the bag stays. Its tabs: 信息, 道具, 装扮 (亚比装扮: the pieces you have, in squares as on 道具; click one to put it on the 亚比 chosen, or to take it off when it shows 穿着; what it wears shows on it when it follows you) and 战术卡. |
 | 物品 | Everything collected: 道具, 亚比蛋, 种植, 射击卡. |
 | 回家 | Your 家园 (garden); 我的家 there leads into the 小屋. In the 家园: the 亚比仓库, the 经验分配器 (below), 我的荣誉 (your 徽章), the bar's 勋章, the 植树盆 (choose one of your 树苗, bought in the 种植园's 树苗售卖), the 留言板, 健身房 (亚比训练) and 最近访问; the strip at the bottom shows your 徽章分数, 人气 and friends, and a card for you and each friend: click one to go to that 家园. |
 | 商城 (cart) | The 收费 catalogs (服装, 道具, 家具, 亚比蛋), bought with 星币. |
@@ -112,6 +112,7 @@ the screen.
 | 亚比经验 | Enter an amount and click 增加. The experience goes to the first 亚比 of the bag, which levels up, learns skills and evolves as after a battle. |
 | 成为蓝宝石 / 取消蓝宝石 | Switch the 蓝宝石 membership on or off. |
 | 领取亚比 | Enter the 亚比's number (编号, 1 to 2395, or a 超系 form's: 2401, 2577 …) and a level from 1 to 100, then click 领取. The name appears next to the number. The 亚比 goes into the bag, or into the 亚比仓库 when the bag already holds six. It knows every skill its line learns up to that level. |
+| 领取亚比装扮 | Click it to get one of each of the 11 pieces of 亚比装扮 (99 of each at most). Each is for one 亚比: 朵朵兔 (糖果蝴蝶眼镜), 活力企鹅 (绅士披风, 绅士礼帽), 白古丁 (飞行员头盔), 沙克 (索里德头巾), 焚天大圣 (焰魔棒), 犄角麋鹿 (麋鹿小帽), 斯多王 (印第安羽毛帽), 扭扭 (可爱雪白头花), 雷鸣女王 (水晶糖果花), 半沙之子 (七彩披肩). Put them on in the bag's 装扮 tab. |
 | 传送 | Type a place's Chinese name (for example 艺术馆) or its room id and click 传送, or click 选地图 to pick from the places of the world map. 选地图 → 其他场景 lists every other room of the game, including the rooms of the story quests that were no longer on the map in 2013. |
 | 存档 | 导出存档 and 导入存档, see [Saves](#saves). |
 | 音乐 | Play any piece of the game's music up to the end of 2014 (100 pieces) in place of the room's: enter its number (编号) or file name and click 播放, or click 选音乐 to pick it from the list (numbered by the order the pieces came, named after a place that plays them). It plays until you go to another room, or into a mini game that has its own music; 场景音乐 gives the room's back at once. |
@@ -129,8 +130,8 @@ animations and walking figures. Numbers the tables never used (116, 117, 330 …
 walking figures, or their large picture where the game gave them none), evolve and learn skills as the others do.
 The 属性 of 2014 (王, and the 超系: 超数码, 超木, 超水 …) show their own icons.
 Their skills do what the battle engine reads in their words. Of the 3,120 skills of
-the 亚比 up to 2395, 2,417 are read to the last word (all those of the 亚比 up to 1651,
-and every 超奥义); in the other 703 a part the engine has no rule for (重生, 君芒圣域's
+the 亚比 up to 2395, 2,503 are read to the last word (all those of the 亚比 up to 1651,
+and every 超奥义); in the other 617 a part the engine has no rule for (重生, 君芒圣域's
 growing chance …) does nothing. The big skills that fill the screen (刷屏: 神照修罗王's
 修罗战神诀, 暗煞魔龙王's 魔·碎神, 噬月武神's 月影无踪 … 135 of them) play over the whole
 battle screen, as they were drawn to.
@@ -138,11 +139,18 @@ battle screen, as they were drawn to.
 **究极亚比.** The 49 究极 亚比 of 2014 (神照修罗王, 创圣天奇灵 … 虎烈张飞) show the
 **究极变身** button above their skills in battle (the game's own button; 聚能中 while a
 亚比 still gathers its power, which none at the top stage needs). Click it to change into
-the 究极 form: that is your 亚比's act for the round. The form has its own four skills and the points of its
-top 究极 stage (三阶: for 神照修罗王 体力 +800, 攻击 +800, 防御 +850), for 6 rounds (the
-button shows 剩余回合 N), then it changes back; it can change once a battle. Every
-究极 亚比 is at its top stage from the start (no 究极进化仪 or 究极能量 is needed); the two
-战骑 (零夜战骑, 辉月战骑) stop at 二阶, as in the game, and stay changed.
+the 究极 form: that is your 亚比's act for the round. The form's movie plays first (its
+picture and name sweeping over the screen, the game's own), then the change (the screen
+dims, the form grows in its place, the points it gets rise over it). The form has its own
+four skills and the points of its top 究极 stage (三阶: for 神照修罗王 体力 +800, 攻击 +800,
+防御 +850), for 6 rounds (the button shows 剩余回合 N), then it changes back with the game's
+movie of that; after that the button is 究极变身 again, and it can change again. Every
+究极 亚比 is at its top stage from the start (no 究极进化仪 or 究极能量 is needed). The two
+战骑 (零夜战骑, 辉月战骑) stop at 二阶, as in the game, and are 契约 亚比: their button is
+坐骑召唤, which brings their mount for the rest of the battle (all their 体力 back, 60% less
+damage taken, 速度 +3), and then shows their 契约技能 (point at it for its words): after each
+of their attacks the mount strikes for 350 more (辉月战骑's 皇犽 also clears the other's raised
+levels 60% of the time; 零夜战骑's 夜灵 keeps its levels from being lowered 80% of rounds).
 
 **超奥义.** 63 亚比 (most of them 超系: 乾坤修罗神, 暗煞魔龙王, 天焰菲尔 … and 星 and
 上古星龙) have a 超奥义, a fifth skill shown as the **超奥义** button above their skills
@@ -164,21 +172,24 @@ yours and for the other: 睡眠, 中毒, 害怕, 诅咒, 麻痹, 混乱, 冰冻,
 with the rounds left on the icon. Point at an icon for its name, what it does and
 剩余持续回合数. States (风暴, 狂战 …) and 护盾 stay words in brackets after the name.
 
-**圣域.** Some 亚比 of 2014 bring a 圣域 into the battle when they come out (圣域·幻极
-brings 幻灵, 煌炎战神 阳炎, 万王圣麒麟 万王 …), and some skills summon one. The field's
+**圣域.** Some 亚比 of 2014 bring a 圣域 into the battle the moment they come out (at the
+battle's start or when sent in: 圣域·幻极 brings 幻灵, 煌炎战神 阳炎, 万王圣麒麟 万王 …), and
+some skills summon one. The field's
 background and icon show at the top of the battle screen (point at the icon for what
 it does). One field is out at a time. A 亚比 that learnt its 圣域技能 (at Lv60) may go into
 its state at the start of a round while its field is out (圣域·幻雷's 雷神: its blows may
 paralyse).
 
 The tables also have 98 亚比 that only fight: the 究极 forms (神照修罗王's
-2161 …), 图腾, 星石, bosses' forms. The 图鉴 lists them too, by the later table's
+2161 …), 图腾, 星石, bosses' forms. The 图鉴 lists them too (but 斗魂星云棒 246, a copy of
+245 with the same name, values and picture), by the later table's
 names, sizes and 属性 (获得方式: 由X究极变身而成。 for a 究极 form, with its 亚比's
 introduction; 无法获得。 for the others). 领取亚比 gives them as well, and they fight,
 follow and show in the bag like the others. 23 of them had no picture in the
-game files: theirs are made from their battle sprites. Three had no art at all
-(鲁阿鲁 119, 源第一态 1929, 天启英灵 2295): the later game showed them as 圣渊露龙 (2011),
-and so do they here. 320, 323, 605,
+game files, and 影龙 (2025) had 兔小子's: theirs are made from their battle sprites. Three had no art at all
+(鲁阿鲁 119, 源第一态 1929, 天启英灵 2295, neither in the game files nor on the game's
+server): the later game showed another 亚比's picture (圣渊露龙's); here they show a dark
+figure with a "?", in battle too. 320, 323, 605,
 1002 and 1423 of the 2013 亚比, which had no walking figure then, follow in
 the ones the later game gave them. The 坐骑 the later game added up to 1651
 (1101, 1122, 1350, 1423, 1426, 1430, 1448, 1461, 1599) and up to 2395 with the 超系 forms

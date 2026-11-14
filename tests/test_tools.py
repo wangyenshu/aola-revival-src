@@ -526,6 +526,20 @@ class TestImageShapes(unittest.TestCase):
         self.assertEqual(inner[0][1][1] & 0x10, 0, "image flag cleared")
         self.assertEqual(struct.unpack_from("<H", inner[0][1], 4)[0], sid)
 
+    def test_placed_jpeg_becomes_a_shape(self):
+        import struct
+        import swf_transplant as t
+        # A DefineBitsJPEG3 of a 4×3 baseline JPEG (only its start-of-frame header matters).
+        jpeg = b"\xff\xd8" + b"\xff\xc0\x00\x11\x08" + struct.pack(">HH", 3, 4) + b"\x00" * 12 + b"\xff\xd9"
+        self.assertEqual(t.jpeg_size(jpeg), (4, 3))
+        png = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + struct.pack(">II", 7, 5)
+        self.assertEqual(t.jpeg_size(png), (7, 5))
+        bitmap = (35, struct.pack("<HI", 5, len(jpeg)) + jpeg + zlib.compress(b"\xff" * 12))
+        place = (70, bytes([0x06, 0x10]) + struct.pack("<HH", 1, 5) + b"\0")
+        sprite = (39, struct.pack("<HH", 9, 1) + t.write_tag(*place) + t.write_tag(1, b"") + t.write_tag(0, b""))
+        out = t.image_shapes([bitmap, sprite, (1, b""), (0, b"")])
+        self.assertEqual([c for c, _ in out], [35, 2, 39, 1, 0], "the shape right after its picture")
+
 
 class TestOnlyBinds(unittest.TestCase):
     """swf_transplant --only-binds: the art's own class names for symbols left unbound are dropped."""

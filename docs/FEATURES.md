@@ -23,7 +23,7 @@ were reconstructed; [IMPLEMENTATION.md](IMPLEMENTATION.md) explains how.
 | Bosses | 42 entries of 守护者 and event bosses, 11 NPC challenges, the 道馆 masters, 黑星堡垒, 时空隧道, the 四大副本 bosses |
 | 四大副本 | 幻影冰宫, 倒立金字塔, 蚁族王朝, 恐龙博物馆, three modes each |
 | Mini games | 85 of the 87 game rooms of the 2013 config |
-| 亚比 | 2,437 species in the 图鉴 (1–2395, the 73 超系 forms of those and the 98 that only fight: 究极 forms, 图腾, 星石, bosses' forms); battles, catching, skills, evolution, eggs, following, riding |
+| 亚比 | 2,436 species in the 图鉴 (1–2395, the 73 超系 forms of those and the 97 that only fight: 究极 forms, 图腾, 星石, bosses' forms); battles, catching, skills, evolution, eggs, following, riding |
 | Added by the revival | the 工具箱 and the 沙盒 with its mods ([GUIDE.md](GUIDE.md)); a mod played or exported as a game of its own ([MODDING.md](MODDING.md)) |
 
 ## Places and NPCs
@@ -892,9 +892,15 @@ run pays 晶豆, as its end panel says.
   screen (刷屏: 修罗战神诀, 魔·碎神, 月影无踪 …) play over the whole battle screen.
 - 究极亚比 (2014): the 49 究极 lines (神照修罗王 … 虎烈张飞) change in battle with the
   究极变身 button above the skills (the later client's: 聚能中, 究极变身, 剩余回合 N) into
-  their 究极 form at its top 等级 (三阶, the two 战骑 二阶: no 究极进化仪
-  needed), with the form's own skills and the row's points (体力, 攻击 …) for its 究极回合数
-  (6 at 三阶), once a battle; the later client's change effect plays.
+  their 究极 form at its top 等级 (三阶: no 究极进化仪 needed), with the form's own skills and
+  the row's points (体力, 攻击 …) for its 究极回合数 (6 at 三阶), and again once a form is over;
+  the form's own movie (its picture and name over the screen), the later client's change
+  effect (up and down at once, the screen dimmed, the form growing in) and the points rising
+  over it play, and its going back has the later movie of that. The two 战骑 (零夜战骑,
+  辉月战骑) are 契约 亚比: 坐骑召唤 (the button's own frame) brings their mount for the whole
+  battle, with all their 体力 back, 60% 伤害抗性 and 速度 +3, and their 契约技能 (满月血脉,
+  新月血脉: the mount's 350 after each attack, …) shown on the button, after the later 契约
+  movie.
 - 超奥义: the 63 亚比 to 2395 with one (most of them 超系) have the 超奥义 button above the
   skills (its tip: name, kind, 威力, used or not, what it does), a fifth skill used once a
   battle, after its own movie over the screen (pet/aoyitakeeffectmovie). All 59 of them work in
@@ -916,8 +922,13 @@ run pays 晶豆, as its end panel says.
   for some rounds, each round's stage changes, heals and statuses, the next turn's sure hit
   and drain, 对方每次受到X伤害则… (each time a status hurts the foe), 提升自己…或削弱对方…,
   吸取对方N点体力值 or 属性等级, 技能威力N%, 概率免疫伤害, 回合末 heals, 护盾, 斩杀, marks with layers,
-  skills set off by name, states, 诅咒, points of values (提升全数值N点); 2,417 of the 3,120
-  skills of the 亚比 to 2395 are read to the last word, every 超奥义 among them.
+  skills set off by name, states, 诅咒, points of values (提升全数值N点); 2,503 of the 3,120
+  skills of the 亚比 to 2395 are read to the last word, every 超奥义 among them. A status
+  named only as a condition (若对方已冰冻则…) is not given.
+- A 连击 shows as in 2013–14: each hit's number small and red, one under another in
+  columns over the 亚比, then the whole damage big and yellow ("连击-4294"), with the
+  later battle module's digits. 君焰狼王's 弦月之斩 (and 嗨皮水雷) shake the screen
+  when they hit (震屏, not on a 暴击), as the later client's ShakeSkillConfig lists them.
   A turn has 30 seconds (counted at the top of the battle screen); when they
   run out the screen uses the first skill with uses left, or waits if none
   has (the next 亚比 when a fallen one is to be replaced). The battle screen's
@@ -975,8 +986,15 @@ run pays 晶豆, as its end panel says.
 - 亚比道具 (the bag's 道具 tab): every item of 2013 that is used on a 亚比.
 - 战术卡 (the bag's 战术卡 tab): the 35 cards of 2013, one in each place
   (A, B, C) of a 亚比, adding to its stats; a 亚比 BOSS beaten sometimes gives
-  one (RECONSTRUCTED). 亚比装扮 is not there: the 2013 files have no list of
-  the 亚比's clothes.
+  one (RECONSTRUCTED).
+- 亚比装扮 (the bag's 装扮 tab): the 11 pieces of 2010–11 the 2013 tables keep (糖果蝴蝶眼镜,
+  绅士披风, 绅士礼帽, 飞行员头盔 …), each for one of ten 亚比 (朵朵兔, 活力企鹅, 白古丁, 沙克,
+  焚天大圣, 犄角麋鹿, 斯多王, 扭扭, 雷鸣女王, 半沙之子). The tab turns the platform blue
+  and stands the 亚比 there in what it wears; the pieces one has are in squares as on the
+  道具 tab (穿着 on those it wears), and a click puts one on or takes it off. A following
+  亚比 wears them in the scene, as others see it. A piece is worn by one 亚比 at a time;
+  a 亚比 that evolves wears none of its earlier form's. They come from the 工具箱
+  (领取亚比装扮): how the game gave them is lost.
 
 ### Shops and money
 

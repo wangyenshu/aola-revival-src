@@ -42,7 +42,7 @@ package mmo.pet.petpackage
     * mmo.pet.petpackage.PetPackage, showPanel): the 亚比背包 on its original
     * 2012 artwork (PetPackagePanel: six capsules bvc0-5, the platform with
     * the big picture, the follow / first / heal buttons, the 技能 / 能力 /
-    * 信息 pages). The logic is lost and written here against IPetDataService;
+    * 信息 pages, and the tabs 道具, 装扮 and 战术卡). The logic is lost and written here against IPetDataService;
     * pictures are the original peticon/peticon<id>.swf (_S small, _L large).
     */
    public class PetPackage extends MovieClip implements IShowPanel
@@ -54,6 +54,7 @@ package mmo.pet.petpackage
       private var tab:String = "info";
       private var itemPage:DisplayObject;
       private var cardPage:CardPage;
+      private var clothPage:ClothPage;
       private var skillButton:Sprite;
       private var pageText:TextField;
       private var titleText:TextField;
@@ -100,7 +101,8 @@ package mmo.pet.petpackage
          button(panel.btnInfo, function():void { showTab("info"); page = "skill"; showPage(); });
          // 道具: the rebuilt pet/petitem's page (service PetItem) in place of the 信息 page.
          button(panel.btnItem, function():void { showTab("item"); });
-         button(panel.btnCloth, notReady("亚比装扮"));
+         // 装扮: the revival's page (ClothPage) in place of the 信息 page, the 亚比 on the blue platform.
+         button(panel.btnCloth, function():void { showTab("cloth"); });
          // 战术卡: the revival's page (CardPage) in place of the 信息 page.
          button(panel.btnCard, function():void { showTab("card"); });
          // 放回仓库 (btnBackWare): the 亚比 chosen into the 亚比仓库, whose 2012 panel shows the 仓库 alone.
@@ -116,6 +118,9 @@ package mmo.pet.petpackage
          frame(panel.mcRide, 1);
          frame(panel.mcSetPri, 1);
          frame(panel.mcFollow, 1);
+         // The art holds both platforms: the green one (normalEffect, normalBottom) and the blue
+         // one of 装扮 (dressEffect, dressBottom), the blue drawn over the green.
+         platform(false);
          // The page under the 技能 / 能力 / 信息 tabs, and the name above them.
          titleText = text(new TextFormat("SimSun", 14, 0x0D5EB0, true));
          titleText.x = panel.btnshowskill.x - 30;
@@ -167,6 +172,9 @@ package mmo.pet.petpackage
          frame(panel.btnInfo, t == "info" ? 2 : 1);
          frame(panel.btnItem, t == "item" ? 2 : 1);
          frame(panel.btnCard, t == "card" ? 2 : 1);
+         frame(panel.btnCloth, t == "cloth" ? 2 : 1);
+         var dressing:Boolean = t == "cloth";
+         platform(dressing);
          var info:Boolean = t == "info";
          for each (var n:String in ["btnshowskill", "btnshowpropertity", "btnshowinfo"]) if (panel[n]) DisplayObject(panel[n]).visible = info;
          titleText.visible = info;
@@ -176,7 +184,31 @@ package mmo.pet.petpackage
          itemPage = null;
          if (cardPage != null) cardPage.dispose();
          cardPage = null;
+         if (clothPage != null) clothPage.dispose();
+         clothPage = null;
+         var cur:PetBriefInfo = pets[selected] as PetBriefInfo;
+         if (cur != null) showBig(cur);
          if (info) return;
+         if (dressing)
+         {
+            // In the 道具 page's squares (the PetItem module's art), where that page stands.
+            ServiceContainer.instance.tryGetService("PetItem", function(svc:IService, o:Object = null):void
+            {
+               if (panel == null || tab != "cloth" || clothPage != null) return;
+               try
+               {
+                  var grid:DisplayObjectContainer = Object(svc).createGrid() as DisplayObjectContainer;
+                  clothPage = new ClothPage(grid, Object(svc).createSquare, function():PetBriefInfo { return pets[selected] as PetBriefInfo; }, function():void
+                  {
+                     var p:PetBriefInfo = pets[selected] as PetBriefInfo;
+                     if (p != null) showBig(p);
+                  });
+               }
+               catch (e:Error) { RLog.error("petpackage cloth page", e); return; }
+               placePage(clothPage);
+            });
+            return;
+         }
          if (t == "card")
          {
             cardPage = new CardPage(function():int
@@ -201,18 +233,26 @@ package mmo.pet.petpackage
                }) as DisplayObject;
             }
             catch (e:Error) { RLog.error("petpackage item page", e); return; }
-            // Over the 信息 page's place: from its tabs down to the end of its text, at most full
-            // size. The art draws away from its origin (its squares lie at about 550,80 in it).
-            var top:Number = panel.btnshowskill.y;
-            var w:Number = 360, h:Number = pageText.y + pageText.height - top;
-            var b:Rectangle = itemPage.getBounds(itemPage);
-            var k:Number = Math.min(1, w / Math.max(1, b.width), h / Math.max(1, b.height));
-            itemPage.scaleX = itemPage.scaleY = k;
-            itemPage.x = pageText.x + (w - b.width * k) / 2 - b.x * k;
-            itemPage.y = top - b.y * k;
             itemPage.name = "petItemPage";
-            panel.addChild(itemPage);
+            placePage(itemPage);
          });
+      }
+
+      /**
+       * The 道具 page (or the 装扮 page in its squares) over the 信息 page's place: from its tabs
+       * down to the end of its text, at most full size. The art draws away from its origin (its
+       * squares lie at about 550,80 in it).
+       */
+      private function placePage(d:DisplayObject):void
+      {
+         var top:Number = panel.btnshowskill.y;
+         var w:Number = 360, h:Number = pageText.y + pageText.height - top;
+         var b:Rectangle = d.getBounds(d);
+         var k:Number = Math.min(1, w / Math.max(1, b.width), h / Math.max(1, b.height));
+         d.scaleX = d.scaleY = k;
+         d.x = pageText.x + (w - b.width * k) / 2 - b.x * k;
+         d.y = top - b.y * k;
+         panel.addChild(d);
       }
 
       /** For PetItem.showPanel: the bag opened on its 道具 page. */
@@ -224,11 +264,6 @@ package mmo.pet.petpackage
       private function selectFn(i:int):Function
       {
          return function():void { select(i); };
-      }
-
-      private function notReady(what:String):Function
-      {
-         return function():void { RNotice.show(LayerManager.getBaseTop(), what + "还在修复中哦！"); };
       }
 
       private function get pets():Array
@@ -305,17 +340,8 @@ package mmo.pet.petpackage
          }
          if (data) data.setSelectPetId(p.id);
          if (cardPage != null) cardPage.refresh();
-         var big:MovieClip = panel.bigiconcontainer;
-         if (big)
-         {
-            clearIcons(big);
-            // Centred over the platform (normalEffect is the glow the big 亚比 stands in).
-            var fx:DisplayObject = panel.normalEffect;
-            var cx:Number = fx ? fx.x + fx.width / 2 : 301, cy:Number = fx ? fx.y + fx.height * 0.62 : 222;
-            var h:Sprite = icon(big, p.viewId, "L", 130, 2.2);
-            h.x = cx - big.x;
-            h.y = cy - big.y;
-         }
+         if (clothPage != null) clothPage.refresh();
+         showBig(p);
          var hp:int = p.curHp, max:int = Math.max(1, p.maxHp);
          if (panel.bighptext) panel.bighptext.text = hp + "/" + max;
          var bar:MovieClip = panel.hpmc;
@@ -327,6 +353,31 @@ package mmo.pet.petpackage
          showFollowState();
          PetClient.instance.viewSinglePM(p.id);
          showPage();
+      }
+
+      /**
+       * The 亚比's big picture over the platform; on the 装扮 page, one that can wear
+       * something stands there in what it wears (ClothPage.figure).
+       */
+      private function showBig(p:PetBriefInfo):void
+      {
+         var big:MovieClip = panel.bigiconcontainer;
+         if (big == null) return;
+         clearIcons(big);
+         // Centred over the platform (normalEffect is the glow the big 亚比 stands in).
+         var fx:DisplayObject = panel.normalEffect;
+         var cx:Number = fx ? fx.x + fx.width / 2 : 301, cy:Number = fx ? fx.y + fx.height * 0.62 : 222;
+         if (tab == "cloth" && ClothPage.canDress(p.viewId) && ClothPage.figure(big, p, cx - big.x, cy - big.y, 130) != null) return;
+         var h:Sprite = icon(big, p.viewId, "L", 130, 2.2);
+         h.x = cx - big.x;
+         h.y = cy - big.y;
+      }
+
+      /** The blue platform of 装扮, or the green one. */
+      private function platform(dress:Boolean):void
+      {
+         for each (var n:String in ["dressEffect", "dressBottom"]) if (panel[n]) DisplayObject(panel[n]).visible = dress;
+         for each (n in ["normalEffect", "normalBottom"]) if (panel[n]) DisplayObject(panel[n]).visible = !dress;
       }
 
       private function onDetail(e:PetDataServiceEvent):void
@@ -490,6 +541,8 @@ package mmo.pet.petpackage
          itemPage = null;
          if (cardPage != null) cardPage.dispose();
          cardPage = null;
+         if (clothPage != null) clothPage.dispose();
+         clothPage = null;
          tab = "info";
       }
    }

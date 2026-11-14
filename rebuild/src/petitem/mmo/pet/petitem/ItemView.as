@@ -15,7 +15,8 @@ package mmo.pet.petitem
    /**
     * One square of the 亚比道具 page (the later copy's art, symbol 706): the item's
     * picture (item/view<id>), how many the bag holds, its name and description as
-    * the tip. A click uses it (PetItemUse) on the 亚比 the pet bag shows.
+    * the tip. A click uses it (PetItemUse) on the 亚比 the pet bag shows. Without an item
+    * (PetItem.createSquare), the square alone.
     */
    public class ItemView extends Sprite
    {
@@ -30,6 +31,12 @@ package mmo.pet.petitem
          super();
          item = u;
          onUse = onClick;
+         if (u == null)
+         {
+            if (txtNum) txtNum.text = "";
+            if (mcRedDot) mcRedDot.visible = false;
+            return;
+         }
          var id:int = u.materialId;
          name = "petItem" + id;
          // The whole square answers the pointer, before (and around) the picture.

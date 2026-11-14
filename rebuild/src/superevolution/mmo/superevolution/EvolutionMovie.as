@@ -6,6 +6,7 @@ package mmo.superevolution
    import mmo.common.DisplayUtil;
    import mmo.common.utils.panel.modaldialog.ModalDialogManager;
    import mmo.interfaces.pet.peticon.PetIconContainer;
+   import mmo.revival.RIcon;
    import mmo.interfaces.pet.peticon.PetIconEvent;
    import mmo.interfaces.pet.peticon.PetIconType;
 
@@ -35,7 +36,7 @@ package mmo.superevolution
       public function show():void
       {
          ModalDialogManager.getInstance().addModalDialog(this);
-         petIcon = new PetIconContainer(originalViewId, PetIconType.LARGE, false);
+         petIcon = RIcon.container(originalViewId, PetIconType.LARGE, false);
          petIcon.addEventListener(PetIconEvent.ON_ICON_LOADED, onFirst);
          petIcon.startLoad();
       }
@@ -43,7 +44,7 @@ package mmo.superevolution
       private function onFirst(e:PetIconEvent):void
       {
          petIcon.removeEventListener(PetIconEvent.ON_ICON_LOADED, onFirst);
-         petIcon2 = new PetIconContainer(evolutionViewId, PetIconType.LARGE, false);
+         petIcon2 = RIcon.container(evolutionViewId, PetIconType.LARGE, false);
          petIcon2.addEventListener(PetIconEvent.ON_ICON_LOADED, onSecond);
          petIcon2.startLoad();
       }

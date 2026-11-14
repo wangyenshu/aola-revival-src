@@ -24,6 +24,7 @@ import {
 import type { World, XtContext } from "./server.ts";
 import { inFight } from "./fighting.ts";
 import { cardBonus } from "./petcards.ts";
+import { wornOf } from "./petdress.ts";
 
 export interface PetSkill {
   id: number;
@@ -67,6 +68,8 @@ export interface PetRecord {
   elite?: boolean;
   /** In the 放生仓库: when it was let go (ms). */
   relAt?: number;
+  /** 亚比装扮 worn (petdress.ts): the pieces' ids, "30002;30003". */
+  drs?: string;
 }
 
 /** Fields of UserRecord the pet code uses. */
@@ -248,7 +251,7 @@ function sView(p: PetRecord, owner: Pick<PetOwner, "id">, t: PetTables) {
     sks: p.skills.map((s) => s.id).join(","),
     m: owner.id,
     pcp: '<pcp r="0" sc=""/>',
-    drs: "",
+    drs: wornOf(p),
     // Not a 2013 field: the 亚比's first attribute, for the rebuilt battle screen.
     t: speciesOf(t, p.race)?.t[0] ?? t.species[String(p.race)]?.a ?? 0,
   };
@@ -348,7 +351,7 @@ export const NO_FOLLOW = "0#0#0";
 
 /** The "p" user variable of a player whose 亚比 follows them. */
 export function followVar(p: PetRecord): string {
-  return `${p.race},${p.race},${p.id},,,0`;
+  return `${p.race},${p.race},${p.id},${wornOf(p)},,0`;
 }
 
 export function installPets(world: World, deps: PetDeps): void {
@@ -643,7 +646,7 @@ export function installPets(world: World, deps: PetDeps): void {
     o.followPet = id;
     await deps.save(o);
     world.setUserVars(ctx.session, { p: followVar(p) });
-    ctx.broadcast({ name: o.name, pRId: p.race, pVId: p.race, pId: p.id, dr: "", ind: "", indLv: 0 }, "54_8", true);
+    ctx.broadcast({ name: o.name, pRId: p.race, pVId: p.race, pId: p.id, dr: wornOf(p), ind: "", indLv: 0 }, "54_8", true);
   });
 
   world.xt(`PetExtension.54_9`, async (ctx) => {

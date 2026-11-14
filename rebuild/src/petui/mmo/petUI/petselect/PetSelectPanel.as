@@ -13,6 +13,7 @@ package mmo.petUI.petselect
    import mmo.common.utils.tips.TipsManager;
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.interfaces.pet.peticon.PetIconContainer;
+   import mmo.revival.RIcon;
    import mmo.interfaces.pet.peticon.PetIconEvent;
    import mmo.interfaces.pet.peticon.PetIconType;
 
@@ -92,7 +93,7 @@ package mmo.petUI.petselect
          var holder:MovieClip = k.getChildByName("pt") as MovieClip;
          if (holder == null) return;
          var w:Number = holder.width, h:Number = holder.height;
-         var icon:PetIconContainer = new PetIconContainer(p.viewId, PetIconType.SMALL, false);
+         var icon:PetIconContainer = RIcon.container(p.viewId, PetIconType.SMALL, false);
          icon.addEventListener(PetIconEvent.ON_ICON_LOADED, function(e:PetIconEvent):void
          {
             DisplayUtil.scaleDisplay(icon, w, h);

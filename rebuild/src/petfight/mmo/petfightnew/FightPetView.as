@@ -144,7 +144,7 @@ package mmo.petfightnew
       }
 
       /** kind: 0 physical, 1 special, 2 status. onEffect when the skill effect should start, onDone at the end. */
-      public function attack(kind:int, onEffect:Function, onDone:Function):void
+      public function attack(kind:int, onEffect:Function, onDone:Function, onShake:Function = null):void
       {
          var once:Object = {eff: false, done: false};
          var fireEffect:Function = function():void
@@ -192,6 +192,8 @@ package mmo.petfightnew
             var name:String = l.name.replace(/\s+/g, "");
             if (name == "eff") at(l.frame, fireEffect);
             else if (name == "move") moving = true;
+            // The screen shakes there, for the skills that do (the later onStartShEff).
+            else if (name == "shake" && onShake != null) at(l.frame, onShake);
          }
          if (moving)
          {

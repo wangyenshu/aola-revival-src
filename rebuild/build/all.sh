@@ -232,14 +232,24 @@ unset GEN
 # battle module (character 2837 of pet/petfightnew, the 2026 copy), taken out alone.
 # And the button over the skills for 究极 and 超奥义 (BigSkillButton): character 898 of the same
 # file (BigSkillMC, its mcView's frames 聚能中 / 究极变身 / 剩余回合 / 超奥义 / BOSS克星).
-rm -rf "$OUT/attrlevel" "$OUT/bigskill"
+# And the movies of the 究极 forms (ChangePetView / ChangeViewStatus of the same file): the
+# points the form gets rising over it (AbilityMovie, character 3373) and the form going back
+# (ChangeViewEndMovie, character 376). And the digits of a 连击's numbers: the red of each hit
+# (HitDigits, character 2374, MultipleDecHp's) and the yellow of the whole (TotalDigits, 2357,
+# StrongDecHp's).
+rm -rf "$OUT/attrlevel" "$OUT/bigskill" "$OUT/cvend" "$OUT/ability" "$OUT/hitnum"
 java -jar "$FFDEC" -selectid 2837 -format sprite:swf -export sprite "$OUT/attrlevel" "$(art pet/petfightnew.swf)" > /dev/null
 java -jar "$FFDEC" -selectid 898 -format sprite:swf -export sprite "$OUT/bigskill" "$(art pet/petfightnew.swf)" > /dev/null
+java -jar "$FFDEC" -selectid 376 -format sprite:swf -export sprite "$OUT/cvend" "$(art pet/petfightnew.swf)" > /dev/null
+java -jar "$FFDEC" -selectid 3373 -format sprite:swf -export sprite "$OUT/ability" "$(art pet/petfightnew.swf)" > /dev/null
+java -jar "$FFDEC" -selectid 2374,2357 -format sprite:swf -export sprite "$OUT/hitnum" "$(art pet/petfightnew.swf)" > /dev/null
 python3 "$TOOLS/swf_transplant.py" --art "$(ls "$OUT"/attrlevel/DefineSprite_2837*/1.swf)" --wrap-root 2837 \
-  --add-art "$(ls "$OUT"/bigskill/DefineSprite_898*/1.swf)=898" --image-shapes --drop-art-abc \
+  --add-art "$(ls "$OUT"/bigskill/DefineSprite_898*/1.swf)=898" \
+  --add-sprite "$(art pet/petfightnew.swf)=376=$(ls -d "$OUT"/cvend/DefineSprite_376*)" --add-sprite "$(art pet/petfightnew.swf)=2374=$(ls -d "$OUT"/hitnum/DefineSprite_2374*)" --add-sprite "$(art pet/petfightnew.swf)=2357=$(ls -d "$OUT"/hitnum/DefineSprite_2357*)" \
+  --add-art "$(ls "$OUT"/ability/DefineSprite_3373*/1.swf)=3373" --image-shapes --drop-art-abc \
   --code "$OUT/petfight.swf" --bind 0=mmo.petfightnew.DocLoginPetFight --bind 2837=mmo.petfightnew.AttributeLevelPanel \
-  --bind 898=mmo.petfightnew.BigSkillButton \
-  --note "REBUILT pet/loginpetfightnew (aola-revival); its 属性等级 panel and big-skill button are characters 2837 and 898 of the later pet/petfightnew" \
+  --bind 898=mmo.petfightnew.BigSkillButton --bind 376=mmo.petfightnew.ChangeViewEndMovie --bind 3373=mmo.petfightnew.AbilityMovie --bind 2374=mmo.petfightnew.HitDigits --bind 2357=mmo.petfightnew.TotalDigits \
+  --note "REBUILT pet/loginpetfightnew (aola-revival); its 属性等级 panel, big-skill button, 究极 movies and 连击 digits are characters 2837, 898, 376, 3373, 2374 and 2357 of the later pet/petfightnew" \
   --out "$W/pet/loginpetfightnew.swf%3F1210"
 
 # The HELLO in scenes: rebuilt init/robotmanager (its menu, the wheel of December 2012, drawn,
@@ -629,12 +639,16 @@ python3 "$TOOLS/swf_transplant.py" --art "$(art pet/pethatchegg.swf)" --code "$O
 # 2012 and 2013 lack (missing or an empty sprite): each file's own large picture,
 # scaled; the missing classes from a compiled template (tools/peticon_fill.py). And the
 # 亚比 of the tables with no peticon file at all (星石, 图腾 …): their three pictures made
-# from their battle sprite (or 圣渊露龙's, as the later client showed those without art).
+# from their battle sprite (the three with no art anywhere: a figure with a "?").
 build peticonfill mmo/pet/peticon777777_S.as peticonfill-template.swf ""
 build peticonfill mmo/pet/peticon777777_L.as peticonfill-template-l.swf ""
 build peticonfill mmo/pet/peticon777777_F.as peticonfill-template-f.swf ""
+build peticonunknown mmo/pet/peticon777777_S.as peticonunknown-s.swf ""
+build peticonunknown mmo/pet/peticon777777_L.as peticonunknown-l.swf ""
+build peticonunknown mmo/pet/peticon777777_F.as peticonunknown-f.swf ""
 python3 "$TOOLS/peticon_fill.py" --game "$GAME" --template "$OUT/peticonfill-template.swf" \
   --template-l "$OUT/peticonfill-template-l.swf" --template-f "$OUT/peticonfill-template-f.swf" \
+  --template-q "$OUT/peticonunknown-s.swf" --template-q-l "$OUT/peticonunknown-l.swf" --template-q-f "$OUT/peticonunknown-f.swf" \
   --pmdata "$HERE/../static/www.9aola.com/revival/pmdata.json" --out "$W"
 
 # 奇草树林 (云端王国's first room): the later scene's code on the 2013

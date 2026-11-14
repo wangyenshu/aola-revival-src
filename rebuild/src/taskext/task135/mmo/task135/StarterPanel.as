@@ -22,7 +22,7 @@ package mmo.task135
     * December 2011 walkthrough the three 初始亚比 stand on a round platform
     * in the 指挥中心: 滴滴, 吉拉 and 兔小子. Drawn here as that platform with
     * the 亚比's own big icons (peticon<race>_L); a click picks one and
-    * 就决定是它了！ confirms.
+    * 确定 confirms.
     */
    public class StarterPanel extends Sprite
    {
@@ -68,7 +68,7 @@ package mmo.task135
          og.beginGradientFill(GradientType.LINEAR, [0xFFC24D, 0xEF7A10], [1, 1], [0, 255], m);
          og.drawRoundRect(0, 0, 220, 46, 24, 24);
          og.endFill();
-         var ot:TextField = label("就决定是它了！", 20, 0xFFFFFF, 0x9A3A00);
+         var ot:TextField = label("确定", 20, 0xFFFFFF, 0x9A3A00);
          ot.x = 110 - ot.width / 2;
          ot.y = 23 - ot.height / 2;
          ok.addChild(ot);

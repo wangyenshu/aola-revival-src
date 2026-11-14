@@ -24,7 +24,11 @@ With --add-art SWF=ID (repeatable) another frame exported from the same original
 the same way as sprite ID; the characters both exports hold are kept once (JPEXS keeps the
 original ids), so pieces of one module can be put together.
 
-With --image-shapes every picture a timeline places directly (PlaceObject3 with
+With --add-sprite ORIG=ID=DIR (repeatable) the sprite ID of the original SWF is added whole, its
+own timeline (all its frames) kept: the characters it places come from the frames JPEXS exported
+of it into DIR (every *.swf there, original ids kept, each character once).
+
+With --image-shapes every picture (lossless, or JPEG/PNG/GIF) a timeline places directly (PlaceObject3 with
 its image flag, as later tools write) becomes a shape filled with that picture,
 at the same place, depth and name: Ruffle draws such pictures in an AS3 movie as
 a dot, Flash Player drew them.
@@ -46,6 +50,23 @@ T_DEFINESPRITE = 39
 T_DISPLAY = (4, 5, 26, 28, 70)  # PlaceObject 1-3, RemoveObject 1-2
 T_PLACE3, T_DEFINESHAPE = 70, 2
 T_LOSSLESS = (20, 36)  # DefineBitsLossless 1-2: id, format, width, height
+T_JPEGS = (21, 35, 90)  # DefineBitsJPEG2-4: id, (alpha offset, deblock,) JPEG, PNG or GIF data
+
+
+def jpeg_size(b: bytes) -> tuple[int, int] | None:
+    """The width and height of the JPEG, PNG or GIF picture a DefineBitsJPEG2-4 holds."""
+    if b[:8] == b"\x89PNG\r\n\x1a\n":
+        return struct.unpack(">II", b[16:24])
+    if b[:4] == b"GIF8":
+        return struct.unpack("<HH", b[6:10])
+    i = 0
+    while i + 9 < len(b):
+        # Start of frame (baseline, extended, progressive): FF C0/C1/C2, length, precision, height, width.
+        if b[i] == 0xFF and b[i + 1] in (0xC0, 0xC1, 0xC2):
+            h, w = struct.unpack(">HH", b[i + 5 : i + 9])
+            return w, h
+        i += 1
+    return None
 
 
 def rect_len(body: bytes) -> int:
@@ -149,6 +170,38 @@ def add_art(tags: list[tuple[int, bytes]], extra: Path, cid: int) -> list[tuple[
     return tags[:at] + adds + tags[at:]
 
 
+def add_sprite(tags: list[tuple[int, bytes]], orig: Path, cid: int, frames: Path) -> list[tuple[int, bytes]]:
+    """
+    Add the original's DefineSprite `cid` as it is (all its frames), after the characters it needs
+    that `tags` lacks: those of every frame JPEXS exported of it into `frames`.
+    """
+    have = {struct.unpack_from("<H", d, 0)[0] for c, d in tags if c in T_DEFINES}
+    adds, added = [], set()
+    for f in sorted(frames.glob("*.swf"), key=lambda x: int(x.stem) if x.stem.isdigit() else 0):
+        _, _, more = parse(f)
+        first = next(i for i, (c, _) in enumerate(more) if c == T_SHOWFRAME)
+        for c, d in more[:first]:
+            if c in T_SKIP or c in T_DISPLAY:
+                continue
+            ref = struct.unpack_from("<H", d, 0)[0] if len(d) >= 2 else -1
+            if c in T_DEFINES:
+                if ref in have:
+                    continue
+                have.add(ref)
+                added.add(ref)
+            elif c in T_ABOUT and ref not in added:
+                continue
+            adds.append((c, d))
+    _, _, otags = parse(orig)
+    sprite = next(((c, d) for c, d in otags if c == T_DEFINESPRITE and struct.unpack_from("<H", d, 0)[0] == cid), None)
+    if sprite is None:
+        raise SystemExit(f"{orig}: no sprite {cid}")
+    if cid not in have:
+        adds.append(sprite)
+    at = next(i for i, (c, _) in enumerate(tags) if c == T_SHOWFRAME)
+    return tags[:at] + adds + tags[at:]
+
+
 class Bits:
     """A big-endian bit writer (RECT, MATRIX and shape records)."""
 
@@ -204,6 +257,10 @@ def image_shapes(tags: list[tuple[int, bytes]]) -> list[tuple[int, bytes]]:
             if c in T_LOSSLESS:
                 cid, _fmt, w, h = struct.unpack_from("<HBHH", d, 0)
                 sizes[cid] = (w, h)
+            elif c in T_JPEGS:
+                wh = jpeg_size(d[{21: 2, 35: 6, 90: 8}[c]:])
+                if wh:
+                    sizes[struct.unpack_from("<H", d, 0)[0]] = wh
             if c == T_DEFINESPRITE:
                 scan(read_tags(d, 4))
 
@@ -221,7 +278,7 @@ def image_shapes(tags: list[tuple[int, bytes]]) -> list[tuple[int, bytes]]:
             if c == T_PLACE3 and d[1] & 0x10 and d[0] & 0x02 and not d[1] & 0x08:
                 bid = struct.unpack_from("<H", d, 4)[0]
                 if bid not in sizes:
-                    raise SystemExit(f"a placed picture {bid} is not a DefineBitsLossless (not handled)")
+                    raise SystemExit(f"a placed picture {bid} is neither a DefineBitsLossless nor a DefineBitsJPEG2-4 (not handled)")
                 if bid not in shapes:
                     top += 1
                     shapes[bid] = top
@@ -236,18 +293,21 @@ def image_shapes(tags: list[tuple[int, bytes]]) -> list[tuple[int, bytes]]:
     out: list[tuple[int, bytes]] = []
     for c, d in fixed:
         out.append((c, d))
-        if c in T_LOSSLESS and struct.unpack_from("<H", d, 0)[0] in defs:
+        if (c in T_LOSSLESS or c in T_JPEGS) and struct.unpack_from("<H", d, 0)[0] in defs:
             out.append(defs[struct.unpack_from("<H", d, 0)[0]])
     return out
 
 
 def transplant(art: Path, code: Path, binds: dict[int, str], note: str, drop_art_abc: bool = False, wrap: int = 0, shapes: bool = False,
-               only_binds: bool = False, more: list[tuple[Path, int]] | None = None) -> bytes:
+               only_binds: bool = False, more: list[tuple[Path, int]] | None = None,
+               sprites: list[tuple[Path, int, Path]] | None = None) -> bytes:
     version, header, tags = parse(art)
     if wrap:
         tags = wrap_root(tags, wrap)
     for extra, cid in more or []:
         tags = add_art(tags, extra, cid)
+    for orig, cid, frames in sprites or []:
+        tags = add_sprite(tags, orig, cid, frames)
     # After the wrap: the new shapes are numbered after every character, the wrapping sprite too.
     if shapes:
         tags = image_shapes(tags)
@@ -301,10 +361,17 @@ def main(argv=None) -> None:
     p.add_argument("--only-binds", action="store_true", help="the SymbolClass names only the --bind classes (symbols left unused lose their art class names)")
     p.add_argument("--add-art", action="append", default=[], metavar="SWF=ID",
                    help="with --wrap-root: another frame JPEXS exported from the same original SWF, whose first frame becomes sprite ID")
+    p.add_argument("--add-sprite", action="append", default=[], metavar="ORIG=ID=DIR",
+                   help="the original SWF's sprite ID whole (all its frames), its characters from the frames JPEXS exported of it into DIR")
     a = p.parse_args(argv)
     binds = {int(k): v for k, v in (b.split("=", 1) for b in a.bind)}
     more = [(Path(x.rsplit("=", 1)[0]), int(x.rsplit("=", 1)[1])) for x in a.add_art]
-    data = transplant(Path(a.art), Path(a.code), binds, a.note, a.drop_art_abc, a.wrap_root, a.image_shapes, a.only_binds, more)
+    sprites = []
+    for x in a.add_sprite:
+        orig, rest = x.split("=", 1)
+        cid, frames = rest.split("=", 1)
+        sprites.append((Path(orig), int(cid), Path(frames)))
+    data = transplant(Path(a.art), Path(a.code), binds, a.note, a.drop_art_abc, a.wrap_root, a.image_shapes, a.only_binds, more, sprites)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_bytes(data)
     print(f"wrote {a.out} ({len(data)} bytes)")

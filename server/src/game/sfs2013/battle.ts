@@ -40,6 +40,7 @@ import {
   expYield,
   skillsLearntAt,
   typeMultiplier,
+  type PmJiuji,
   type PmSkill,
 } from "./pmdata.ts";
 import {
@@ -191,7 +192,7 @@ export interface Fighter {
    * 究极: pet is a battle-only copy of `from` in its 究极 form for `left` more rounds (fresh: the
    * round it changed in, not counted), with `up` added to its numbers; `from` is the record kept.
    */
-  form?: { from: PetRecord; left: number; up: number[]; fresh: boolean };
+  form?: { from: PetRecord; left: number; up: number[]; fresh: boolean; qy?: PmJiuji["qy"] };
   /** Its 究极 was used this battle. */
   formUsed?: boolean;
   /** The round it came out in, once its 特性's field and the field's 上场 effect were seen to. */
@@ -386,6 +387,7 @@ function aimsAtFoe(sk: PmSkill, fx: SkillEffects): boolean {
     fx.endeavor ||
     fx.ohko ||
     fx.ohkoIf ||
+    fx.bossKill ||
     fx.forceSwitch ||
     fx.trap ||
     fx.baseDown ||
@@ -456,7 +458,7 @@ const markTurns = (d: string): number => {
 };
 const plain = (n: string) => n.replace(/[“”"]/g, "");
 
-const STATUS_WORDS: Record<string, string> = { 麻痹: "麻痹了！", 冰冻: "被冻住了！", 睡眠: "睡着了！", 烧伤: "被烧伤了！", 中毒: "中毒了！" };
+const STATUS_WORDS: Record<string, string> = { 麻痹: "麻痹了！", 冰冻: "被冰冻了！", 睡眠: "睡着了！", 烧伤: "被烧伤了！", 中毒: "中毒了！" };
 
 // ---------------------------------------------------------------- the engine
 
@@ -574,18 +576,20 @@ export class BattleEngine {
     return j && speciesOf(this.t, j.to) ? j : undefined;
   }
 
-  /**
-   * Can the player's 亚比 change now: a 究极 亚比 standing, not changed yet this battle, out for its
-   * 聚能回合数 (0 for every line: at once). Not in a duel (the later client's PK had its own rules).
-   */
   /** Rounds of 聚能 still to wait before the 究极 can be used (the later button's 聚能中). */
   chargeLeft(b: Battle, f: Fighter): number {
-    if (f.form || f.formUsed || !this.jiujiOf(f)) return 0;
+    if (f.form || !this.jiujiOf(f)) return 0;
     return Math.max(0, (f.cameRound ?? 0) + (this.jiujiOf(f)?.store ?? 0) - b.turn);
   }
 
+  /**
+   * Can the player's 亚比 change now: a 究极 亚比 standing in its own form, out for its 聚能回合数 (0 for
+   * every line: at once). Again after a form ends: the later button (BigSkillMCHandler_ChangeView)
+   * is 究极变身 again once the form is over, there is no once a battle. Not in a duel (the later
+   * client's PK had its own rules).
+   */
   canChange(b: Battle, f: Fighter): boolean {
-    return f.slot === 0 && !b.duel && !f.form && !f.formUsed && f.pet.hp > 0 && !!this.jiujiOf(f) && b.turn >= (f.cameRound ?? 0) + (this.jiujiOf(f)?.store ?? 0);
+    return f.slot === 0 && !b.duel && !f.form && f.pet.hp > 0 && !!this.jiujiOf(f) && b.turn >= (f.cameRound ?? 0) + (this.jiujiOf(f)?.store ?? 0);
   }
 
   /**
@@ -599,6 +603,22 @@ export class BattleEngine {
     const j = this.jiujiOf(f)!;
     const from = f.pet;
     const sp = speciesOf(this.t, j.to)!;
+    const name = from.nick || nameOf(this.t, from.race);
+    if (j.k === 2 && j.qy) {
+      // 契约 (零夜战骑, 辉月战骑: jiujiType 2): 坐骑召唤 — its mount under it for the whole battle, its own
+      // skills and numbers, 回复最大体力值 N%, 伤害抗性 N%, 速度等级 +N, and its 契约技能 while it rides.
+      const copy: PetRecord = { ...from, race: j.to };
+      f.pet = copy;
+      f.form = { from, left: j.keep, up: [0, 0, 0, 0, 0, 0], fresh: true, qy: j.qy };
+      f.formUsed = true;
+      f.stats = statsOf(copy, this.t);
+      f.types = sp.t;
+      const lines = [`${name}召唤了坐骑！`, j.qy.d];
+      if (j.qy.hp > 0) this.heal(f, (f.stats[0] * j.qy.hp) / 100);
+      if (j.qy.spd) this.stage(f, f, ["spd"], j.qy.spd, []);
+      lines.push(`${j.qy.sn}：${j.qy.sd}`);
+      return ["2417", { reqSId: f.slot, res: 1, raceId: j.to, from: from.race, left: j.keep, qiyue: true, desc: lines.join("\n"), pmmList: this.views(b) }];
+    }
     const ids = [...new Set(sp.learn.map(([, id]) => id))].slice(-4);
     const copy: PetRecord = { ...from, race: j.to, skills: ids.map((id) => skillOf(this.t, id)) };
     copy.hp = from.hp + (j.up[0] ?? 0);
@@ -607,9 +627,108 @@ export class BattleEngine {
     f.formUsed = true;
     f.stats = statsOf(copy, this.t).map((v, i) => v + (j.up[i] ?? 0));
     f.types = sp.t;
-    const name = from.nick || nameOf(this.t, from.race);
-    const desc = `${name}究极进化成了${nameOf(this.t, j.to)}！\n${j.d}`;
-    return ["2417", { reqSId: f.slot, res: 1, raceId: j.to, from: from.race, left: j.keep, desc, pmmList: this.views(b) }];
+    const desc = `${name}究极变身成了${nameOf(this.t, j.to)}！\n${j.d}`;
+    return ["2417", { reqSId: f.slot, res: 1, raceId: j.to, from: from.race, left: j.keep, up: j.up, desc, pmmList: this.views(b) }];
+  }
+
+  /**
+   * 越…越… (Scale; the words give no numbers, RECONSTRUCTED): a factor from what it goes by —
+   * 15% a 属性等级 (at least a quarter), the value against the other's (1/2 to 2 times), up to twice
+   * as the 体力 goes, half more each use (3 times at most), half more each 不良状态 — on the power,
+   * the chances, the heals, the 伤害抵抗能力, the hits or the levels the skill changes.
+   */
+  private scaled(att: Fighter, def: Fighter, fx: SkillEffects, uses: number): SkillEffects {
+    const out: SkillEffects = { ...fx, stages: fx.stages.map((x) => ({ ...x })), statuses: fx.statuses.map((x) => ({ ...x })), timed: fx.timed.map((x) => ({ ...x })) };
+    const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+    for (const sc of fx.scale ?? []) {
+      const sub = sc.by.who === "foe" ? def : att;
+      const oth = sub === att ? def : att;
+      const keys = sc.by.stats ?? [];
+      let f = 1;
+      switch (sc.by.kind) {
+        case "stage":
+        case "stageDiff": {
+          let lv = sc.by.kind === "stage" ? avg(keys.map((k) => sub.stages[k])) : avg(keys.map((k) => att.stages[k] - def.stages[k]));
+          if (!sc.up) lv = -lv;
+          f = Math.max(0.25, 1 + 0.15 * lv);
+          break;
+        }
+        case "value": {
+          // Values: the five (命中, 闪避, 暴击 have none: their levels instead).
+          const five = keys.filter((k): k is "atk" | "def" | "satk" | "sdef" | "spd" => ["atk", "def", "satk", "sdef", "spd"].includes(k));
+          const r = five.length ? avg(five.map((k) => stat(sub, k) / Math.max(1, stat(oth, k)))) : Math.max(0.25, 1 + 0.15 * avg(keys.map((k) => sub.stages[k])));
+          f = Math.min(2, Math.max(0.5, sc.up ? r : 1 / Math.max(0.01, r)));
+          break;
+        }
+        case "hp": {
+          const share = sub.pet.hp / Math.max(1, sub.stats[0]);
+          f = sc.up ? 1 + share : 2 - share;
+          break;
+        }
+        case "uses":
+          f = Math.min(3, 1 + 0.5 * (uses - 1));
+          break;
+        case "bad":
+          f = 1 + 0.5 * BAD_STATUSES.filter((x) => this.has(sub, x)).length;
+          break;
+      }
+      if (!sc.inc) f = 1 / f;
+      const ch = (c: number) => (c >= 100 ? c : Math.min(100, c * f));
+      switch (sc.on) {
+        case "power":
+          out.powerScale = (out.powerScale ?? 1) * f;
+          break;
+        case "chance":
+          for (const x of out.statuses) x.chance = ch(x.chance);
+          for (const x of out.stages) x.chance = ch(x.chance);
+          for (const x of out.timed) if (x.chance !== undefined) x.chance = ch(x.chance);
+          if (out.ohko) out.ohko = ch(out.ohko);
+          if (out.ohkoIf) out.ohkoIf = { ...out.ohkoIf, chance: ch(out.ohkoIf.chance) };
+          if (out.clearFoeUps) out.clearFoeUps = { ...out.clearFoeUps, chance: ch(out.clearFoeUps.chance) };
+          if (out.boost) out.boost = out.boost.map((x) => ({ ...x, chance: ch(x.chance) }));
+          break;
+        case "heal":
+          if (out.drain !== undefined) out.drain *= f;
+          if (out.healAfter) out.healAfter = { ...out.healAfter, f: out.healAfter.f * f };
+          if (out.healFlat !== undefined) out.healFlat = Math.round(out.healFlat * f);
+          if (out.stealHp) out.stealHp = { ...out.stealHp, n: Math.round(out.stealHp.n * f) };
+          for (const x of out.timed) if (x.kind === "regen") {
+            if (x.n !== undefined) x.n = Math.round(x.n * f);
+            if (x.f !== undefined) x.f *= f;
+          }
+          break;
+        case "resist":
+          for (const x of out.timed) if (x.kind === "screen") {
+            if (x.phys !== undefined && x.phys < 1) x.phys = Math.max(0, 1 - (1 - x.phys) * f);
+            if (x.spec !== undefined && x.spec < 1) x.spec = Math.max(0, 1 - (1 - x.spec) * f);
+          }
+          break;
+        case "hits":
+          if (out.hits) out.hits = [out.hits[0], Math.max(out.hits[0], Math.round(out.hits[1] * f))];
+          break;
+        case "stages":
+          for (const x of out.stages) if (!x.self) x.delta = Math.sign(x.delta) * Math.min(6, Math.max(1, Math.round(Math.abs(x.delta) * f)));
+          break;
+      }
+    }
+    return out;
+  }
+
+  /** A lasting effect's status: one of its statusPick, or of status and statusAlt, at random. */
+  private pickStatus(x: Timed): StatusName {
+    if (x.statusPick?.length) return x.statusPick[Math.min(x.statusPick.length - 1, Math.floor(this.rng() * x.statusPick.length))];
+    return x.statusAlt && this.rng() < 0.5 ? x.statusAlt : x.status!;
+  }
+
+  /** A 契约技能's words (满月血脉, 新月血脉): the mount's blow after each attack, its chances. */
+  private mountRule(sd: string): { mount: string; extra: number; clearUps: number; guard: number } {
+    const m = sd.match(/攻击结束时，(\S+?)额外造成(\d+)点/);
+    return {
+      mount: m?.[1] ?? "坐骑",
+      extra: m ? Number(m[2]) : 0,
+      clearUps: Number(sd.match(/(\d+)%概率清空对方增益属性/)?.[1] ?? 0),
+      guard: Number(sd.match(/(\d+)%概率保护自身属性/)?.[1] ?? 0),
+    };
   }
 
   /** The mark f has that the words name (古魂: its 星神古魂; 印记: the only one it has). */
@@ -782,6 +901,35 @@ export class BattleEngine {
     if (id && this.chance(chance)) this.makeField(b, id, att.slot, lines);
   }
 
+  /** A 亚比 out on the field: its 特性's field comes (else it meets the field's 上场 act). */
+  private arrive(b: Battle, f: Fighter, lines: string[]): number {
+    f.cameRound = b.turn;
+    const own = fieldsOfTrait(speciesOf(this.t, f.pet.race)?.f);
+    if (own.length) {
+      this.makeField(b, own[0], f.slot, lines);
+      return 0;
+    }
+    return this.fieldAct(b, f, this.fieldRule(b)?.enter?.(f.types), lines);
+  }
+
+  /**
+   * The 亚比 just come out (the battle's start, a switch, the next of a team): their fields as they
+   * arrive, as the later battle brings a 圣域 with its 亚比 (煌炎战神's 天武圣域 the moment it is out,
+   * not with its first skill). The words as reports of their own (2421).
+   */
+  arrivals(b: Battle): Msg[] {
+    const out: Msg[] = [];
+    this.cur = b;
+    for (const f of [b.mine, b.wild]) {
+      if (f.pet.hp <= 0 || f.cameRound !== undefined) continue;
+      const lines: string[] = [];
+      const hp = this.arrive(b, f, lines);
+      lines.push(...this.healLines.splice(0));
+      if (lines.length) out.push(["2421", { slotId: f.slot, hpInc: hp, desc: lines.join("\n"), pmmList: this.views(b) }]);
+    }
+    return out;
+  }
+
   /**
    * The start of a round: a 亚比 just out brings its 特性's field (or meets the field's 上场 act);
    * the 自动循环激活 fields of the 亚比 out come back every 5 rounds; 圣武霸体's 体力 comes back; each
@@ -801,16 +949,22 @@ export class BattleEngine {
         f.hpBack = undefined;
         lines.push(`${name}的体力恢复了！`);
       }
+      // 新月血脉: 每回合有N%概率保护自身属性 (this round its levels cannot be lowered).
+      const guard = f.form?.qy ? this.mountRule(f.form.qy.sd).guard : 0;
+      if (guard && this.chance(guard)) {
+        f.timed = f.timed.filter((x) => x.from !== "契约");
+        f.timed.push({ who: "self", kind: "guard", turns: 1, left: 1, from: "契约" });
+        lines.push(`${name}的属性等级本回合不会被削弱！`);
+      }
       const own = fieldsOfTrait(speciesOf(this.t, f.pet.race)?.f);
-      if (f.cameRound === undefined) {
-        f.cameRound = b.turn;
-        if (own.length) this.makeField(b, own[0], f.slot, lines);
-        else hp += this.fieldAct(b, f, this.fieldRule(b)?.enter?.(f.types), lines);
-      } else if (own.length && this.t.pm.weather?.[own[0]]?.k === 3 && b.sy?.id !== own[0] && b.turn > f.cameRound && (b.turn - f.cameRound) % AUTO_EVERY === 0) {
+      if (f.cameRound === undefined) hp += this.arrive(b, f, lines);
+      else if (own.length && this.t.pm.weather?.[own[0]]?.k === 3 && b.sy?.id !== own[0] && b.turn > f.cameRound && (b.turn - f.cameRound) % AUTO_EVERY === 0) {
         this.makeField(b, own[0], f.slot, lines);
       }
       const sy = syOf(speciesOf(this.t, f.pet.race)?.sy, f.pet.level);
-      if (sy && b.sy?.id === sy.rule.field && this.chance(sy.rule.chance)) {
+      // Not again while its state lasts (it came every other round, a report and a pause each time).
+      const inSy = !!sy && f.timed.some((x) => x.from === `圣域技能${sy.id}` && x.left > 0);
+      if (sy && !inSy && b.sy?.id === sy.rule.field && this.chance(sy.rule.chance)) {
         const r = sy.rule;
         const w = this.t.pm.weather?.[sy.id];
         lines.push(`${name}发动了圣域技能「${w?.n ?? ""}」，进入了${r.state}状态！`);
@@ -875,6 +1029,7 @@ export class BattleEngine {
     if ("dmgOver" in c) return (ctx.dmg ?? 0) > c.dmgOver;
     if ("dmgUnder" in c) return (ctx.dmg ?? 0) < c.dmgUnder;
     if ("field" in c) return !!b.sy && b.sy.id === fieldByName(this.t.pm.weather, c.field);
+    if ("noField" in c) return !b.sy || b.sy.id !== fieldByName(this.t.pm.weather, c.noField);
     return false;
   }
 
@@ -1079,6 +1234,8 @@ export class BattleEngine {
       fx = { ...fx, status: undefined, statuses: [], badStatuses: nextUse.bad };
       nextUse.left = 0;
     }
+    // 越…越…: the amounts as things stand now.
+    if (fx.scale?.length) fx = this.scaled(att, def, fx, (att.uses[skillId] ?? 0) + 1);
     const foeFirst = !!def.turn.moved;
     att.turn.moved = true;
     att.turn.first = !foeFirst;
@@ -1113,14 +1270,14 @@ export class BattleEngine {
     }
     if (att.fear > 0) {
       att.fear--;
-      return stopped(`${name}害怕得不敢行动！`);
+      return stopped(`${name}害怕，无法行动！`);
     }
     if (att.status === "睡眠") {
-      if (--att.sleep > 0) return stopped(`${name}正在睡觉……`);
+      if (--att.sleep > 0) return stopped(`${name}睡着了，无法行动！`);
       att.status = undefined;
       lines.push(`${name}醒过来了！`);
     } else if (att.status === "冰冻") {
-      if (att.statusLeft > 0 ? --att.statusLeft > 0 : !this.chance(20)) return stopped(`${name}被冻住了，无法行动！`);
+      if (att.statusLeft > 0 ? --att.statusLeft > 0 : !this.chance(20)) return stopped(`${name}被冰冻，无法行动！`);
       att.status = undefined;
       att.statusLeft = 0;
       lines.push(`${name}解冻了！`);
@@ -1136,7 +1293,7 @@ export class BattleEngine {
         att.pet.hp = Math.max(0, att.pet.hp - dmg);
         att.lock = undefined;
         att.charging = undefined;
-        lines.push(`${name}在混乱中攻击了自己！`);
+        lines.push(`${name}混乱中攻击了自己！`);
         if (att.pet.hp <= 0) lines.push(`${name}倒下了！`);
         return report(3, { selfHpInc: -dmg });
       }
@@ -1176,6 +1333,22 @@ export class BattleEngine {
       }
     }
 
+    // BOSS绝杀 (龙态炎王 …: BOSS专有技能，100%秒杀对方全体，无视任何无效效果，不会受到任何反弹伤害，
+    // 必定命中): the other falls, and the rest of its side with it (the player's bag, a boss's
+    // helpers), whatever guards it (无敌, 免疫, 护盾, 闪避, 保护); nothing comes back.
+    if (fx.bossKill && def !== att) {
+      const lost = def.pet.hp;
+      def.pet.hp = 0;
+      def.turn.endure = false;
+      def.revive = false;
+      lines.push("秒杀！", `${petName(t, def)}倒下了！`);
+      const rest = def === b.mine ? (this.bag ?? []).filter((p) => p.hp > 0 && p.id !== (def.form ? def.form.from : def.pet).id) : b.foes ?? [];
+      for (const p of rest) p.hp = 0;
+      if (def === b.wild) b.foes = [];
+      if (rest.length) lines.push(def === b.mine ? "你的亚比全部倒下了！" : "对方的亚比全部倒下了！");
+      return report(0, { hpInc: -lost });
+    }
+
     // 蓄力: this turn only the words of this turn (本回合…); the blow comes next turn
     // (蓄力N回合: after N turns of it). The turns between, it goes on gathering by itself.
     if (fx.charge && att.charging === skillId && (att.chargeLeft ?? 0) > 0) {
@@ -1203,7 +1376,7 @@ export class BattleEngine {
 
     // 一场战斗使用次数越多，成功率越低.
     if (fx.fade && uses > 1 && !this.chance(100 / 2 ** (uses - 1))) {
-      lines.push("但是失败了……");
+      lines.push("技能失败了……");
       let selfHp = 0;
       if (fx.failHeal) selfHp = this.heal(att, fx.failHeal);
       return report(1, { selfHpInc: selfHp });
@@ -1331,7 +1504,7 @@ export class BattleEngine {
       if (which.length) lines.push(`${petName(t, def)}的技能次数减少了！`);
     }
     // 吸取 / 扣除对方全部PP值N~N点: off each skill of the other (back to the user's when stolen).
-    if (aims && fx.ppRange && this.chance(fx.ppRange.chance)) {
+    if (aims && fx.ppRange && this.holds(fx.ppRange.cond, b, att, def, ctx) && this.chance(fx.ppRange.chance)) {
       const n = this.int(fx.ppRange.a, fx.ppRange.b);
       let taken = 0;
       for (const s of def.pet.skills) {
@@ -1396,7 +1569,10 @@ export class BattleEngine {
       heal += this.heal(att, att.stats[0] * f);
     }
     if (fx.healFull) heal += this.heal(att, att.stats[0]);
-    if (fx.healFlat && this.chance(fx.healChance ?? 100)) heal += this.heal(att, fx.healFlat);
+    // 若对方已X则必定回复: the heal's chance is sure while that holds.
+    const sureHeal = !!fx.healSure && this.holds(fx.healSure, b, att, def, ctx);
+    if (fx.healFlat && (sureHeal || this.chance(fx.healChance ?? 100))) heal += this.heal(att, fx.healFlat);
+    if (fx.healLostIf && (sureHeal || this.chance(fx.healLostIf.chance))) heal += this.heal(att, (att.stats[0] - att.pet.hp) * fx.healLostIf.f);
     if (fx.healFlatIf && this.holds(fx.healFlatIf.cond, b, att, def, ctx)) heal += this.heal(att, fx.healFlatIf.n);
     if (fx.healLost) heal += this.heal(att, (att.stats[0] - att.pet.hp) * fx.healLost);
     // 获得N层X: marks with layers on the user or the other.
@@ -1471,7 +1647,7 @@ export class BattleEngine {
     }
     // 吸取对方N点体力值: off the other, back to the user.
     if (aims && def !== att && fx.stealHp && def.pet.hp > 0 && this.holds(fx.stealHp.cond, b, att, def, ctx)) {
-      const l = Math.min(def.pet.hp, fx.stealHp.n);
+      const l = Math.min(def.pet.hp, fx.stealHp.f ? Math.floor(def.stats[0] * fx.stealHp.f) : fx.stealHp.n);
       def.pet.hp -= l;
       foeHeal -= l;
       lines.push(`${petName(this.t, att)}吸取了${petName(this.t, def)}的体力！`);
@@ -1621,6 +1797,20 @@ export class BattleEngine {
     // A skill's background: for its turns (夜之域 3, 星神之域 4), a 战界奥义's while its 亚比 is out.
     const bgKey = backgroundOf(skillId);
     if (bgKey && att.pet.hp > 0) b.bg = { key: bgKey, slot: att.slot, pet: att.pet.id, left: whole ? 999 : markTurns(sk.d) };
+    // 契约技能 (满月血脉 / 新月血脉): 每回合攻击结束时，皇犽额外造成N点 (and 满月's chance to clear the
+    // other's raised levels), after each of its attacks while it rides.
+    if (att.form?.qy && def !== att && sk.k !== 2 && att.pet.hp > 0 && def.pet.hp > 0) {
+      const mr = this.mountRule(att.form.qy.sd);
+      if (mr.extra > 0) {
+        const l = this.hurt(def, mr.extra);
+        shown += l;
+        lines.push(`${mr.mount}额外造成了${l}点伤害！`);
+      }
+      if (mr.clearUps && def.pet.hp > 0 && this.chance(mr.clearUps) && ALL_KEYS.some((k) => def.stages[k] > 0)) {
+        for (const k of ALL_KEYS) if (def.stages[k] > 0) def.stages[k] = 0;
+        lines.push(`${petName(t, def)}的增益属性被清空了！`);
+      }
+    }
     if (def.pet.hp <= 0 && def !== att) lines.push(`${petName(t, def)}倒下了！`);
     if (att.pet.hp <= 0) lines.push(`${name}倒下了！`);
     const any = landed || sk.k !== 2 || selfHp !== 0 || fx.timed.length > 0 || !!fx.field || fx.protect || !!fx.shield || !!fx.summon;
@@ -1698,7 +1888,7 @@ export class BattleEngine {
         if (this.chance(ohko)) {
           killed = true;
           dmg = Math.max(dmg, def.pet.hp);
-          lines.push("一击必杀！");
+          lines.push("秒杀！");
         }
       }
       if (fx.endeavor) dmg = Math.max(0, def.pet.hp - att.pet.hp);
@@ -1720,6 +1910,8 @@ export class BattleEngine {
         const f = kindOk(x);
         if (f !== undefined) dmg = Math.floor(dmg * f);
       }
+      // 契约's 伤害抗性 (坐骑召唤: 60% at its top 等级) while it rides.
+      if (def.form?.qy?.res && !fx.bossKill) dmg = Math.floor((dmg * (100 - def.form.qy.res)) / 100);
       // 每回合自己可以抵抗N点伤害值: N a turn, however many hits.
       for (const x of fx.pierce ? [] : live(def, "absorb")) {
         const left = Math.max(0, (x.n ?? 0) - (def.turn.absorbed ?? 0));
@@ -1740,7 +1932,7 @@ export class BattleEngine {
       }
       if (dmg > 0 && live(def, "doom").some((x) => this.chance(x.chance ?? 0))) {
         dmg = Math.max(dmg, def.pet.hp);
-        lines.push("一击必杀！");
+        lines.push("秒杀！");
       }
       // 圣武霸体: no damage at all; 万王: 王系 免疫100点以下伤害.
       const fl = this.fieldRule(b)?.floor;
@@ -1848,7 +2040,7 @@ export class BattleEngine {
             this.stage(x.selfStage ? def : att, def, stats, x.deltaMax ? this.int(x.delta ?? 1, x.deltaMax) : x.delta ?? 0, lines);
           }
           if (x.status) {
-            const ss = x.bothStatus ? [x.status, x.statusAlt!] : [x.statusAlt && this.rng() < 0.5 ? x.statusAlt : x.status];
+            const ss = x.bothStatus ? [x.status, x.statusAlt!] : [this.pickStatus(x)];
             for (const st of ss) this.applyStatus(att, st, lines);
           }
           if (x.n) for (const s2 of att.pet.skills) s2.pp = Math.max(0, s2.pp - x.n);
@@ -1880,7 +2072,7 @@ export class BattleEngine {
         if (x.stackFoe && def.pet.hp > 0) this.addStack(def, x.stackFoe, 1, lines, att);
         if (x.n === 1) this.applyStatus(def, "害怕", lines);
         else if (x.n === 2) for (const k of ALL_KEYS) def.stages[k] = Math.min(0, def.stages[k]);
-        else if (x.status) this.applyStatus(def, x.status, lines);
+        else if (x.status) this.applyStatus(def, this.pickStatus(x), lines);
         // 圣域技能: stages on each blow (霜锋, 天神, 深洋), 体力 taken (狮王).
         if (x.stats?.length) {
           // 每次攻击提升自己任意N项属性: N of them at random.
@@ -1922,8 +2114,8 @@ export class BattleEngine {
     }
     if (out.cri) lines.push(out.crits > 1 ? `暴击${out.crits}次！` : "暴击！");
     if (out.hits - dodged > 0) {
-      if (mult > 1) lines.push("效果拔群！");
-      else if (mult < 1) lines.push("效果不理想……");
+      if (mult > 1) lines.push("属性克制！");
+      else if (mult < 1) lines.push("属性微弱……");
     }
     // The same line of each hit once, with how many times (兔小子的全属性下降了！×3).
     const mine = lines.splice(mark);
@@ -2023,7 +2215,7 @@ export class BattleEngine {
     if (fr?.hpBoost) field *= 2 - att.pet.hp / Math.max(1, att.stats[0]);
     for (const x of live(att, "double")) if (this.chance(x.chance ?? 0)) field *= 2;
     const rand = 0.85 + this.rng() * 0.15;
-    const dmg = Math.max(1, Math.floor(base * stab * mult * (cri ? 1.5 : 1) * burn * boost * field * rand)) + fixed;
+    const dmg = Math.max(1, Math.floor(base * stab * mult * (cri ? 1.5 * (fx.critBoost ?? 1) : 1) * burn * boost * (fx.powerScale ?? 1) * field * rand)) + fixed;
     return { dmg, cri };
   }
 
@@ -2032,6 +2224,9 @@ export class BattleEngine {
     let any = false;
     const toUser = fx.fate === undefined || this.chance(fx.fate);
     let failed = false;
+    // 重置…, then the changes (焚羽新生: 重置全场状态，提升全场亚比双防2级): the reset comes first.
+    if (fx.resetFoe && aims && def !== att && this.chance(fx.resetFoeChance ?? 100)) for (const k of ALL_KEYS) def.stages[k] = 0;
+    if (fx.resetSelf) for (const k of ALL_KEYS) att.stages[k] = 0;
     for (const ch of fx.stages) {
       if (fx.stagesIfCrit && !ctx.crit) continue;
       if (ch.cond && !this.holds(ch.cond, b, att, def, ctx)) continue;
@@ -2095,7 +2290,6 @@ export class BattleEngine {
         lines.push(`${petName(this.t, att)}复制了${name}的能力等级！`);
         any = true;
       }
-      if (fx.resetFoe) for (const k of ALL_KEYS) def.stages[k] = 0;
       if (fx.swapStages && this.chance(fx.swapChance ?? 100)) {
         const a = { ...att.stages };
         att.stages = { ...def.stages };
@@ -2124,9 +2318,12 @@ export class BattleEngine {
             stats = [];
             while (stats.length < ss.pick! && pool.length) stats.push(pool.splice(Math.floor(this.rng() * pool.length), 1)[0]);
           }
+          // a~b级: so many at random; 若暴击则吸取效果翻倍.
+          let d = ss.deltaMax !== undefined ? this.int(ss.delta, ss.deltaMax) : ss.delta;
+          if (ss.doubleIf && this.holds(ss.doubleIf, b, att, def, ctx)) d *= 2;
           for (const k of stats) {
-            def.stages[k] = clampStage(def.stages[k] - ss.delta);
-            att.stages[k] = clampStage(att.stages[k] + ss.delta);
+            def.stages[k] = clampStage(def.stages[k] - d);
+            att.stages[k] = clampStage(att.stages[k] + d);
           }
         }
         if (ss.pick) lines.push(`${petName(this.t, att)}吸取了${name}的能力等级！`);
@@ -2146,7 +2343,6 @@ export class BattleEngine {
       if (def !== att) turn(def, fx.invert.foe);
       any = true;
     }
-    if (fx.resetSelf) for (const k of ALL_KEYS) att.stages[k] = 0;
     if (fx.restoreOwn && this.chance(fx.restoreOwn.chance) && ALL_KEYS.some((k) => att.stages[k] < 0)) {
       for (const k of ALL_KEYS) att.stages[k] = Math.max(0, att.stages[k]);
       lines.push(`${petName(this.t, att)}被削弱的能力等级恢复了！`);
@@ -2433,7 +2629,7 @@ export class BattleEngine {
             if (!f.turn.damaging) lose(f, x.n ?? 0, `${name}受到了伤害！`);
             break;
           case "plague":
-            if (x.status && this.chance(x.chance ?? 0)) this.applyStatus(f, x.statusAlt && this.rng() < 0.5 ? x.statusAlt : x.status, lines);
+            if (x.status && this.chance(x.chance ?? 0)) this.applyStatus(f, this.pickStatus(x), lines);
             break;
         }
       }
@@ -2652,7 +2848,8 @@ export class BattleEngine {
         // Not a 2013 field: the skill it uses this turn by itself (蓄力, 连续攻击N回合): no choice is asked.
         ...(forced !== undefined ? { forced } : {}),
         // Not 2013 fields: 究极 (can change now, the form's rounds left, used) and the 圣域 out.
-        ...(j ? { jj: { can: this.canChange(b, f), left: f.form?.left ?? 0, used: !!f.formUsed && !f.form, to: j.to, from: f.form ? f.form.from.race : f.pet.race, wait: this.chargeLeft(b, f) } } : {}),
+        // A 契约 (k 2): its 契约技能's name and words, and no rounds (the whole battle).
+        ...(j ? { jj: { can: this.canChange(b, f), left: f.form?.left ?? 0, to: j.to, from: f.form ? f.form.from.race : f.pet.race, wait: this.chargeLeft(b, f), ...(j.k === 2 && j.qy ? { k: 2, on: !!f.form, sn: j.qy.sn, sd: j.qy.sd, qd: j.qy.d } : {}) } } : {}),
         // Not a 2013 field: the 超奥义 (its skill, name, type, power, words, used).
         ...(ao ? { ao: { id: ao, n: this.skill(ao).n, t: this.skill(ao).ao ?? 0, p: this.skill(ao).p, d: this.skill(ao).d, used: !this.canAoyi(b, f) } } : {}),
         ...(b.sy ? { sy: { id: b.sy.id, n: w?.n ?? "", d: w?.d ?? "" } } : {}),
@@ -3169,6 +3366,8 @@ export function installBattles(world: World, deps: BattleDeps): void {
     battles.set(o.id, b);
     engine.bag = o.pets;
     engine.ownerRef = o;
+    // The 亚比 come out: a 圣域 of theirs is there from the start (in the views of 2303), its words after 2401.
+    const came = engine.arrivals(b);
     send(ctx, [
       // chp (not in the 2013 reply): the HP fraction from which balls work, for the 捕捉难度 hint.
       ["2303", { esc: true, sw: true, ch: canCatch, cd: catchStars(speciesOf(t, race)!.c[0]), chp: catchHpLimit(t, race), pmmList: engine.views(b) }],
@@ -3176,6 +3375,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       // bosses), by which the battle screen finds the boss's films (bossfightmovie/boss<id>).
       // autoOff: a 自动战斗仪 with battles left that the player stopped (the screen offers it again).
       ["2401", { id: b.id, type: 0, pt: 0, bs: "", srt: 0, scene: b.room, boss: asked ?? race, ...(auto ? { auto: true, autoLeft: boosts?.auto ?? 0 } : boosts?.auto && b.autoMay ? { autoOff: true, autoLeft: boosts.auto } : {}) }],
+      ...came,
     ]);
     // The 图鉴 (petdic.ts): the species met (not the 沙盒's).
     if (!sandbox && markDic(o, t, race, MET)) {
@@ -3856,7 +4056,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
         const next = others[Math.floor((deps.rng ?? Math.random)() * others.length)];
         b.mine = fighter(0, next, o.id, t);
         const desc = `${gone.nick || nameOf(t, gone.race)}被强制替换下场！\n${next.nick || nameOf(t, next.race)}出战了！`;
-        out.push(["2413", { playerInfo: e.view(b, 0), extInfo: { desc, res: 1, forced: false } }]);
+        out.push(["2413", { playerInfo: e.view(b, 0), extInfo: { desc, res: 1, forced: false } }], ...e.arrivals(b));
       } else out.push(["2421", { slotId: 0, hpInc: 0, desc: "没有可以替换的亚比。", pmmList: e.views(b) }]);
     }
     b.forceOut = undefined;
@@ -3866,7 +4066,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
       const next = b.foes.shift()!;
       b.wild = fighter(1, next, 0, t);
       const desc = `${nameOf(t, gone.race)}倒下了！\n${nameOf(t, next.race)}出战了！`;
-      out.push(["2413", { playerInfo: e.view(b, 1), extInfo: { desc, res: 1, forced: true, foe: true } }]);
+      out.push(["2413", { playerInfo: e.view(b, 1), extInfo: { desc, res: 1, forced: true, foe: true } }], ...e.arrivals(b));
     }
     if (b.wild.pet.hp > 0 && b.mine.pet.hp > 0) out.push(...e.endOfTurn(b));
     // 究极 ends with a fall or the battle's end: the record kept carries on.
@@ -3979,7 +4179,7 @@ export function installBattles(world: World, deps: BattleDeps): void {
   turn("1407", (_ctx, b, e, _o, _t) => {
     if (b.mustSwitch) return { refused: [["2422", { slotId: 0, desc: "请选择下一只出战的亚比。", pmmList: e.views(b) }]] };
     if (!e.canChange(b, b.mine)) {
-      const why = !e.jiujiOf(b.mine) ? "这只亚比不能究极进化。" : b.mine.form ? "已经是究极形态了！" : "这场战斗已经究极进化过了。";
+      const why = !e.jiujiOf(b.mine) ? "这只亚比不能究极进化。" : b.mine.form ? "已经是究极形态了！" : "现在还不能究极进化。";
       return { refused: [["2417", { reqSId: 0, res: 0, refused: true, desc: why, pmmList: e.views(b) }]] };
     }
     e.startTurn(b);
@@ -4069,8 +4269,9 @@ export function installBattles(world: World, deps: BattleDeps): void {
       next.hp = b.mine.stats[0];
       for (const s of next.skills) s.pp = s.max;
     }
-    const msg: Msg = ["2413", { playerInfo: e.view(b, 0), extInfo: { desc: `就决定是你了，${next.nick || nameOf(t, next.race)}！`, res: 1, forced } }];
-    return forced ? [msg] : [msg, ...e.wildTurn(b)];
+    const msg: Msg = ["2413", { playerInfo: e.view(b, 0), extInfo: { desc: `${next.nick || nameOf(t, next.race)}出战！`, res: 1, forced } }];
+    const came = e.arrivals(b);
+    return forced ? [msg, ...came] : [msg, ...came, ...e.wildTurn(b)];
   });
 
   // escape {}: always works against wild 亚比.

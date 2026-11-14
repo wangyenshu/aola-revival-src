@@ -23,6 +23,7 @@ package mmo.superevolution
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.interfaces.pet.data.PetDataServiceEvent;
    import mmo.interfaces.pet.peticon.PetIconContainer;
+   import mmo.revival.RIcon;
    import mmo.interfaces.pet.peticon.PetIconEvent;
    import mmo.interfaces.pet.peticon.PetIconType;
    import mmo.revival.RLog;
@@ -169,7 +170,7 @@ package mmo.superevolution
       {
          selectPetMC.gotoAndStop(SuperEvolutionConfig.ART_ORDER.indexOf(evoId) + 1);
          DisplayUtil.applyGray(selectPetMC);
-         var icon:PetIconContainer = new PetIconContainer(evoId, PetIconType.LARGE, false);
+         var icon:PetIconContainer = RIcon.container(evoId, PetIconType.LARGE, false);
          icon.addEventListener(PetIconEvent.ON_ICON_LOADED, loadIcon);
          icon.startLoad();
       }

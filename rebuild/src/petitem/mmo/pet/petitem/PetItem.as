@@ -33,6 +33,21 @@ package mmo.pet.petitem
          return p;
       }
 
+      /**
+       * The page's art alone for another page of the bag (its 装扮 tab, ClothPage): the
+       * twenty squares p_0…p_19 and the pager (prevBtn, nextBtn, pageTxt), nothing in them.
+       */
+      public function createGrid():DisplayObject
+      {
+         return new PetItemPanel();
+      }
+
+      /** One square of the page alone (txtNum, mcRedDot), for what another page puts in it. */
+      public function createSquare():Sprite
+      {
+         return new ItemView(null, null);
+      }
+
       public function showPanel():void
       {
          ServiceContainer.instance.tryGetService("NewPetPackage", function(svc:IService, o:Object = null):void

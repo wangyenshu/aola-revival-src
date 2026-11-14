@@ -13,7 +13,8 @@ package mmo.peticon
 
    /**
     * REVIVAL. The picture of a 亚比 the 2013 PetIconContainer does not list: its ids end at 1426
-    * (and skip 1002 and 1423), and any other id shows 兔小子 (peticon1). The revival has the
+    * (and skip 119, 999, 1000, 1001, 1002, 1283, 1310 and 1423), and any other id shows 兔小子
+    * (peticon1). The revival has the
     * species to 1651 and every one's peticon/peticon<id>; this loads it the way the 2013 class
     * loads the listed ones (ids above 10000 are their form's species, as there).
     */
@@ -32,11 +33,14 @@ package mmo.peticon
          if (load) startLoad();
       }
 
+      /** The species to 1426 the 2013 list leaves out (鲁阿鲁, 拉贝尔幻影, 阿努比斯, 变异库斯特, 大黑龙, 玩偶 …). */
+      private static const UNLISTED:Array = [119, 999, 1000, 1001, 1002, 1283, 1310, 1423];
+
       /** Is the species one the 2013 list leaves out? */
       public static function needs(race:int):Boolean
       {
          while (race > 10000) race -= 10000;
-         return race > 1426 || race == 1002 || race == 1423;
+         return race > 1426 || UNLISTED.indexOf(race) >= 0;
       }
 
       override public function startLoad():void

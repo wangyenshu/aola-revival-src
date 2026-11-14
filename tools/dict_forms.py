@@ -14,6 +14,8 @@ after gen_pets.py and gen_pmdata.py:
   - 介绍: a 究极 form its 亚比's; the others none;
   - in revival/pets.json its name, 属性 and skill names, as the other rows.
 
+A copy of a 图鉴 亚比 (the same name, 属性 and values: 斗魂星云棒 246 of 245) gets no row.
+
   tools/dict_forms.py --dict rebuild/gen/petdict/mmo/pet/petdictionarydata/PetDictionaryData.as \\
       --pets rebuild/static/www.9aola.com/revival/pets.json \\
       --pmdata rebuild/static/www.9aola.com/revival/pmdata.json --table .../PMDataList.as
@@ -64,10 +66,26 @@ def main(argv=None) -> None:
             by_pair.setdefault((t[0],), (x[4], x[5]))
     base_of = {v["to"]: int(k) for k, v in pm.get("jiuji", {}).items()}
 
+    # A copy of another 亚比 (斗魂星云棒 246 of 245: the same name, 属性 and values, the same
+    # picture) is not a 亚比 of its own: no row (it fights still).
+    forms = {str(v["to"]) for v in pm.get("jiuji", {}).values()}
+
+    def copy_of(k: str):
+        sp = pm["species"][k]
+        if k in forms:  # a 究极 form has its 亚比's values: it is a form, with a picture of its own
+            return None
+        for o, osp in pm["species"].items():
+            if int(o) < int(k) and int(o) in rows and osp["n"] == sp["n"] and osp["s"] == sp["s"] and osp["t"] == sp["t"]:
+                return o
+        return None
+
+    dropped = [i for i in list(rows) if str(i) in pm["species"] and copy_of(str(i))]
+    for i in dropped:
+        del rows[i]
     added = []
     for k in sorted(pm["species"], key=int):
         i = int(k)
-        if i in rows or k in pets:
+        if i in rows or k in pets or copy_of(k):
             continue
         sp = pm["species"][k]
         t = tuple(sp["t"])
@@ -92,7 +110,7 @@ def main(argv=None) -> None:
     open(a.dict, "w", encoding="utf-8").write(head + "public static const data:Object = {\n" + body + tail)
     pets = {k: pets[k] for k in sorted(pets, key=int)}
     json.dump(pets, open(a.pets, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print(f"{len(added)} rows added ({len(rows)} in the 图鉴)")
+    print(f"{len(added)} rows added, {len(dropped)} copies left out ({len(rows)} in the 图鉴)")
 
 
 if __name__ == "__main__":

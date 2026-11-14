@@ -709,7 +709,11 @@ package mmo.petfightnew
          // The far 亚比 stands behind the near one.
          if (mine) petLayer.addChild(v);
          else petLayer.addChildAt(v, 0);
-         v.load(ready);
+         // A sprite already in the domain calls back at once, before the caller holds the view: its
+         // callback (a refresh looks at the side's view) waits a frame. Called at once, it found the
+         // old view still the side's, and made a second one that nothing took away (a switched-out
+         // 究极 form left standing under the next 亚比, the same 亚比 twice in its place).
+         v.load(function():void { TweenLite.delayedCall(0, ready); });
          return v;
       }
 
@@ -813,10 +817,8 @@ package mmo.petfightnew
             bigBtn.addEventListener(MouseEvent.CLICK, onBig);
             bigBtn.addEventListener(MouseEvent.ROLL_OVER, onBigOver);
             bigBtn.addEventListener(MouseEvent.ROLL_OUT, hideTooltip);
-            // Centred over the panel by the 究极变身 plate.
             bigBtn.show(2);
             var r:Rectangle = bigBtn.getBounds(bigBtn);
-            bigBtn.x = PANEL_X + 71 - (r.x + r.width / 2) * BIG_SCALE;
             bigBtn.y = PANEL_Y + 34 - (r.y + r.height / 2) * BIG_SCALE;
          }
          page.addChild(bigBtn);
@@ -824,6 +826,8 @@ package mmo.petfightnew
       }
 
       private static const BIG_SCALE:Number = 0.8;
+      /** The 战斗 wheel's axis, over the skill panel. */
+      private static const BIG_AXIS:Number = 890.5;
       /** How far the skills move down under the button, and the attribute row under them. */
       private static const BIG_ROOM:int = 40;
       private static const BIG_ROOM_MATCHUP:int = 34;
@@ -845,13 +849,12 @@ package mmo.petfightnew
          var grey:Boolean = false;
          if (j != null)
          {
-            if (int(j.left) > 0) bigBtn.show(3, int(j.left));
+            // A 契约 (BigSkillMCHandler_Bargain): 坐骑召唤 (4), then its 契约技能's name (5) for the battle.
+            if (int(j.k) == 2) bigBtn.show(j.on == true ? 5 : 4, 0, String(j.sn || ""));
+            else if (int(j.left) > 0) bigBtn.show(3, int(j.left));
             else if (int(j.wait) > 0) bigBtn.show(1);
-            else
-            {
-               bigBtn.show(2);
-               grey = j.used == true;
-            }
+            // 究极变身 again once a form is over (the later button has no once a battle).
+            else bigBtn.show(2);
          }
          else if (a != null)
          {
@@ -864,6 +867,10 @@ package mmo.petfightnew
             return;
          }
          bigBtn.visible = true;
+         // Its plate centred under the 战斗 wheel (the axis of the wheel and the tab over the
+         // skills): the 聚能中/究极变身/剩余回合 plate's middle is at 67.4 in the button, the
+         // 超奥义/BOSS克星 one's (with its flag on the left) at 59.3.
+         bigBtn.x = BIG_AXIS - (int(bigBtn.mcView ? bigBtn.mcView.currentFrame : 2) >= 7 ? 59.3 : 67.4) * BIG_SCALE;
          bigBtn.filters = grey ? [new ColorMatrixFilter([0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0.3, 0.59, 0.11, 0, 0, 0, 0, 0, 1, 0])] : [];
          bigBtn.buttonMode = bigBtn.useHandCursor = bigUsable();
       }
@@ -877,8 +884,15 @@ package mmo.petfightnew
       /** 超奥义's tip (the later BigSkillMCHandler_AoYi's words). */
       private function onBigOver(e:MouseEvent):void
       {
+         var j:Object = jiuji();
+         // A 契约: what its 坐骑召唤 gives, and its 契约技能 (the later skill icon's tips).
+         if (j != null && int(j.k) == 2)
+         {
+            showTooltip(j.on == true ? String(j.sn) : "坐骑召唤", (j.on == true ? "" : String(j.qd || "") + "\n") + String(j.sn) + "：" + String(j.sd || ""), bigBtn.x - 196, PANEL_Y + 20);
+            return;
+         }
          var a:Object = aoyi();
-         if (a == null || jiuji() != null) return;
+         if (a == null || j != null) return;
          var title:String = String(a.n) + "（" + (AOYI_NAMES[int(a.t)] || "") + "）";
          var body:String = int(a.t) == 4 ? String(a.d) : "威力：" + (int(a.p) < 0 ? "-" : String(int(a.p))) + (a.used == true ? "\t已使用\n" : "\t未使用\n") + String(a.d) + "\n每场战斗超奥义仅可使用一次";
          showTooltip(title, body, bigBtn.x - 196, PANEL_Y + 20);
@@ -951,13 +965,17 @@ package mmo.petfightnew
          if (closed || !commandsOn || j == null || j.can != true || forcedSwitch) return;
          hideTooltip();
          setCommands(false);
-         addLog("你选择了究极进化！");
          SocketClient.instance.sendXtMessage("PocketMonsterExtension", "1407", {reqPSId: 0, turn: turn});
       }
 
       /**
-       * 2417: my 亚比 changes into its 究极 form: the later ChangeViewEffectUp over it, the form
-       * in its place, ChangeViewEffectDown (petfightres/changeviewres), then the round goes on.
+       * 2417: my 亚比 changes into its 究极 form, as the later ChangePetView: the form loaded first,
+       * its cut-in over the screen (showTalkMovie), then ChangeViewEffectUp over the 亚比 and
+       * ChangeViewEffectDown under it together, the background dimmed (DisplayUtil.setBrightHalf);
+       * at Up's 14th frame the 亚比 goes and the form grows in its place (12 frames), at its 16th the
+       * points it gets rise over it (AbilityMovie). A 契约 (零夜战骑, 辉月战骑: 坐骑召唤) has no
+       * cut-in: petfightres/bargainres' MCBargain over it, the screen shaking at its 10th frame as
+       * the form comes (showBargainMovie). Then the round goes on.
        */
       private function changeForm(p:Object):void
       {
@@ -971,48 +989,293 @@ package mmo.petfightnew
          takeViews(p.pmmList as Array);
          formSwapping = true;
          var at:Array = holder(true);
-         var swap:Function = function():void
+         var old:FightPetView = myView;
+         var ups:Array = (p.up as Array) || [];
+         var qiyue:Boolean = p.qiyue == true;
+         var nv:FightPetView;
+         var swapped:Boolean = false;
+         var finished:Boolean = false;
+         var swap:Function = function(frames:int):void
          {
-            var old:FightPetView = myView;
-            myView = makePetView(true, function():void
-            {
-               if (old) old.dispose();
-               formSwapping = false;
-               refresh(true);
-               sound("x7005");
-            });
+            if (swapped) return;
+            swapped = true;
+            if (old) old.dispose();
+            nv.visible = true;
+            nv.scaleX = nv.scaleY = 0;
+            TweenLite.to(nv, frames, {scaleX: 1, scaleY: 1, useFrames: true});
+            sound("x7005");
          };
-         var play:Function = function(cls:String, then:Function):void
+         var done:Function = function():void
          {
-            if (closed || !ApplicationDomain.currentDomain.hasDefinition(cls)) { then(); return; }
-            var C:Class = getDefinitionByName(cls) as Class;
-            var mc:MovieClip = new C() as MovieClip;
-            if (mc == null || mc.totalFrames < 2) { then(); return; }
+            if (finished) return;
+            finished = true;
+            swap(1);
+            bgLayer.filters = [];
+            formSwapping = false;
+            refresh(true);
+            later(0.3);
+         };
+         // As long as its movies at most (the cut-in's own guard is 10 s), whatever becomes of them.
+         TweenLite.delayedCall(20, function():void { if (!closed) done(); });
+         var make:Function = function(cls:String):MovieClip
+         {
+            if (closed || !ApplicationDomain.currentDomain.hasDefinition(cls)) return null;
+            var mc:MovieClip = new (getDefinitionByName(cls) as Class)() as MovieClip;
+            if (mc == null || mc.totalFrames < 2) return null;
             mc.x = at[0];
             mc.y = at[1];
-            fxLayer.addChild(mc);
+            mc.mouseEnabled = mc.mouseChildren = false;
+            return mc;
+         };
+         var effects:Function = function(... a):void
+         {
+            var up:MovieClip = make("mmo.petfightnew.common.ChangeViewEffectUp");
+            var down:MovieClip = make("mmo.petfightnew.common.ChangeViewEffectDown");
+            if (up == null) { done(); return; }
+            if (down) petLayer.addChildAt(down, old && old.parent == petLayer ? petLayer.getChildIndex(old) : 0);
+            petLayer.addChild(up);
+            dim();
+            up.addFrameScript(13, function():void { swap(12); });
+            up.addFrameScript(15, function():void { abilityMovie(ups); });
+            up.addFrameScript(up.totalFrames - 1, function():void
+            {
+               up.stop();
+               if (up.parent) up.parent.removeChild(up);
+               if (down)
+               {
+                  down.stop();
+                  if (down.parent) down.parent.removeChild(down);
+               }
+               done();
+            });
+            if (down) down.gotoAndPlay(1);
+            up.gotoAndPlay(1);
+         };
+         var bargain:Function = function(... a):void
+         {
+            var mc:MovieClip = make("mmo.petfightnew.common.MCBargain");
+            if (mc == null) { done(); return; }
+            petLayer.addChild(mc);
+            dim();
+            mc.addFrameScript(9, function():void
+            {
+               shake();
+               swap(12);
+            });
             mc.addFrameScript(mc.totalFrames - 1, function():void
             {
                mc.stop();
                if (mc.parent) mc.parent.removeChild(mc);
-               then();
+               done();
             });
             mc.gotoAndPlay(1);
          };
-         var go:Function = function(... a):void
+         var load:Function = function(file:String, cls:String, then:Function):void
          {
-            play("mmo.petfightnew.common.ChangeViewEffectUp", function():void
-            {
-               swap();
-               play("mmo.petfightnew.common.ChangeViewEffectDown", function():void { later(0.3); });
-            });
+            if (ApplicationDomain.currentDomain.hasDefinition(cls)) then();
+            else ResScheduler.getResource(file, then, cls, function(e:* = null):void { done(); });
          };
-         if (ApplicationDomain.currentDomain.hasDefinition("mmo.petfightnew.common.ChangeViewEffectUp")) go();
-         else ResScheduler.getResource("petfightres/changeviewres", go, "mmo.petfightnew.common.ChangeViewEffectUp", function(e:* = null):void
+         nv = makePetView(true, function():void
          {
-            swap();
-            later(0.3);
+            if (closed || finished) return;
+            if (qiyue) load("petfightres/bargainres", "mmo.petfightnew.common.MCBargain", bargain);
+            else playChangeMovie(int(p.raceId) || int(view(me).r), function():void
+            {
+               load("petfightres/changeviewres", "mmo.petfightnew.common.ChangeViewEffectUp", effects);
+            });
          });
+         nv.visible = false;
+         myView = nv;
+      }
+
+      /** The background dimmed under a form's change (the later DisplayUtil.setBrightHalf). */
+      private function dim():void
+      {
+         bgLayer.filters = [new ColorMatrixFilter([1, 0, 0, 0, -100, 0, 1, 0, 0, -100, 0, 0, 1, 0, -100, 0, 0, 0, 1, 0])];
+      }
+
+      /**
+       * The skills whose 亚比's move shakes the screen at its "shake" frame, not on a crit (the later
+       * ShakeSkillConfig: 君焰狼王's 弦月之斩, 嗨皮兔's 嗨皮水雷).
+       */
+      private static const SHAKE_SKILLS:Array = [21043, 11311];
+
+      private var shaking:Boolean;
+
+      /** The screen shaking (the later FightPanel.shake / ScreenShaker): 10 frames, up to 10 across and 5 up or down. */
+      private function shake():void
+      {
+         if (shaking || closed) return;
+         shaking = true;
+         var n:int = 0;
+         var x0:Number = x, y0:Number = y;
+         var jolt:Function = function(e:Event = null):void
+         {
+            if (closed || ++n >= 10)
+            {
+               removeEventListener(Event.ENTER_FRAME, jolt);
+               x = x0;
+               y = y0;
+               shaking = false;
+               return;
+            }
+            x = x0 + Math.random() * 20 - 10;
+            y = y0 + Math.random() * 10 - 5;
+         };
+         addEventListener(Event.ENTER_FRAME, jolt);
+      }
+
+      /**
+       * The points a 究极 form gets rising over it (the later showAbilityMovie): AbilityMovie at the
+       * form, its mc<k> for the k-th of the points it gets, at the frame of that number (in the later
+       * order 攻击, 特攻, 防御, 特防, 体力, 速度); gone when the first has played.
+       */
+      private function abilityMovie(ups:Array):void
+      {
+         if (closed || ups == null) return;
+         // The 2417's up: 体力, 攻击, 防御, 特攻, 特防, 速度.
+         var effect:Array = [int(ups[1]), int(ups[3]), int(ups[2]), int(ups[4]), int(ups[0]), int(ups[5])];
+         var mv:AbilityMovie = new AbilityMovie();
+         var at:Array = holder(true);
+         mv.x = at[0];
+         mv.y = at[1];
+         mv.mouseEnabled = mv.mouseChildren = false;
+         var gone:Function = function():void { mv.stop(); if (mv.parent) mv.parent.removeChild(mv); };
+         var count:int = 0;
+         for (var i:int = 0; i < effect.length; i++)
+         {
+            var mc:MovieClip = mv.getChildByName("mc" + i) as MovieClip;
+            if (mc != null)
+            {
+               mc.visible = false;
+               mc.gotoAndStop(1);
+               if (mc.getChildByName("mc") is MovieClip) MovieClip(mc.getChildByName("mc")).gotoAndStop(1);
+            }
+            if (effect[i] == 0) continue;
+            mc = mv.getChildByName("mc" + count) as MovieClip;
+            if (mc == null) continue;
+            mc.visible = true;
+            mc.gotoAndStop(i + 1);
+            var inner:MovieClip = mc.getChildByName("mc") as MovieClip;
+            if (inner)
+            {
+               if (count == 0) inner.addFrameScript(inner.totalFrames - 1, function():void { gone(); });
+               inner.gotoAndPlay(1);
+            }
+            count++;
+         }
+         if (count == 0) return;
+         petLayer.addChild(mv);
+         TweenLite.delayedCall(4, gone);
+      }
+
+      /**
+       * A form over (its rounds out): the later ChangeViewStatus — the 亚比 loaded, ChangeViewEndMovie
+       * over the form, at its 12th frame the form gone and the 亚比 growing in its place (25 frames).
+       */
+      private function formBack(slot:int, then:Function):void
+      {
+         formSwapping = true;
+         var mine:Boolean = slot == 0;
+         var old:FightPetView = petViewOf(slot);
+         var finished:Boolean = false;
+         var nv:FightPetView;
+         var swapped:Boolean = false;
+         var swap:Function = function():void
+         {
+            if (swapped) return;
+            swapped = true;
+            if (old) old.dispose();
+            nv.visible = true;
+            nv.scaleX = nv.scaleY = 0;
+            TweenLite.to(nv, 25, {scaleX: 1, scaleY: 1, useFrames: true});
+         };
+         var done:Function = function():void
+         {
+            if (finished) return;
+            finished = true;
+            swap();
+            formSwapping = false;
+            then();
+         };
+         TweenLite.delayedCall(6, function():void { if (!closed) done(); });
+         nv = makePetView(mine, function():void
+         {
+            if (closed || finished) return;
+            var mc:ChangeViewEndMovie = new ChangeViewEndMovie();
+            if (mc.totalFrames < 12) { done(); return; }
+            mc.x = old ? old.x : holder(mine)[0];
+            mc.y = old ? old.y : holder(mine)[1];
+            mc.mouseEnabled = mc.mouseChildren = false;
+            petLayer.addChild(mc);
+            mc.addFrameScript(11, swap);
+            mc.addFrameScript(mc.totalFrames - 1, function():void
+            {
+               mc.stop();
+               if (mc.parent) mc.parent.removeChild(mc);
+               done();
+            });
+            mc.gotoAndPlay(1);
+         });
+         nv.visible = false;
+         if (mine) myView = nv;
+         else vsView = nv;
+      }
+
+      /** A side whose 亚比 is standing in another form than its view shows (a 究极 form over): its slot, or -1. */
+      private function formOver():int
+      {
+         if (formSwapping) return -1;
+         for (var slot:int = 0; slot < 2; slot++)
+         {
+            var v:FightPetView = petViewOf(slot);
+            var r:int = int(view(sideView(slot)).r);
+            if (v != null && r > 0 && r != v.race && hpOf(sideView(slot)) > 0) return slot;
+         }
+         return -1;
+      }
+
+      /**
+       * The 究极 form's cut-in before it changes (the later ChangePetView.showTalkMovie): its
+       * picture and name sweeping over the screen, pet/petfightchangeviewmovie/movie<form>_0
+       * (_1 for the far side), the movie at 0,0 over the battle. A form without one goes straight on,
+       * as there.
+       */
+      private function playChangeMovie(race:int, then:Function):void
+      {
+         var key:String = (race % 10000) + "_0";
+         var cls:String = "mmo.petfightnew.common.fightcontroller.ChangeViewMovie" + key;
+         var done:Boolean = false;
+         var mc:MovieClip;
+         var guard:Timer = new Timer(10000, 1);
+         var end:Function = function(... a):void
+         {
+            if (done) return;
+            done = true;
+            guard.stop();
+            if (mc)
+            {
+               mc.stop();
+               if (mc.parent) mc.parent.removeChild(mc);
+            }
+            then();
+         };
+         guard.addEventListener(TimerEvent.TIMER_COMPLETE, end);
+         guard.start();
+         var play:Function = function(... a):void
+         {
+            if (done || closed || !ApplicationDomain.currentDomain.hasDefinition(cls)) { end(); return; }
+            mc = new (getDefinitionByName(cls) as Class)() as MovieClip;
+            if (mc == null || mc.totalFrames < 2) { end(); return; }
+            mc.x = mc.y = 0;
+            popupLayer.addChild(mc);
+            mc.addFrameScript(mc.totalFrames - 1, end);
+            mc.gotoAndPlay(1);
+         };
+         if (race <= 0) end();
+         else if (ApplicationDomain.currentDomain.hasDefinition(cls)) play();
+         // Asked for without the class name: ResScheduler never calls back when a named class is missing.
+         else ResScheduler.getResource("pet/petfightchangeviewmovie/movie" + key, play, "", function(e:* = null):void { end(); });
       }
 
       /** A side's 亚比 shown in another form than its view (究极 over): the view follows. */
@@ -1020,6 +1283,8 @@ package mmo.petfightnew
       {
          var v:FightPetView = petViewOf(slot);
          if (formSwapping || v == null || int(view(sideView(slot)).r) == v.race || int(view(sideView(slot)).r) <= 0) return;
+         // A fallen 究极 form stays fallen (its 亚比 is not shown standing again).
+         if (hpOf(sideView(slot)) <= 0) return;
          var mine:Boolean = slot == 0;
          var nv:FightPetView = makePetView(mine, function():void { v.dispose(); });
          if (mine) myView = nv;
@@ -1251,62 +1516,157 @@ package mmo.petfightnew
       }
 
       /**
-       * A 连击's hits one after another, then how many hits and the whole damage. As the later
-       * battle screen of the game plays them (SkillResultHandler): a hit every 8 frames, more than
-       * 8 hits within 50 frames, a 暴击 hit as a 暴击, then the hit count (MultipleTimesMovie).
+       * A 连击 as the battle screen of 2013–14 showed it: each hit's number, small and red, put
+       * under the last in columns over the 亚比 (a hit every 8 frames, more than 8 hits within 50
+       * frames, as the later SkillResultHandler times them; a 暴击 hit's number yellow), then the
+       * whole damage, big and yellow, "连击-4294"; the numbers stay until it goes. The digits are
+       * the later battle module's (HitDigits, TotalDigits); without them, text.
        */
       private function playHits(slot:int, list:Array, cri:Array, eff:Number, total:int, done:Function):void
       {
          var n:int = list.length;
          var gap:Number = n > 8 ? 50 / 24 / n : 8 / 24;
-         // The count of hits so far, over the 亚比, as each one lands (the later MultipleTimesMovie).
-         var count:TextField = new TextField();
-         count.defaultTextFormat = new TextFormat("Arial Black", 30, 0xFFE66A, true);
-         count.autoSize = TextFieldAutoSize.LEFT;
-         count.selectable = false;
-         count.filters = [new GlowFilter(0xFFFFFF, 1, 3, 3, 10), new GlowFilter(0x5A0A00, 1, 2, 2, 6)];
          var at:Array = holder(slot == 0);
+         const ROWS:int = 6, ROW_H:int = 19, COL_W:int = 54;
+         var cols:int = Math.ceil(n / ROWS);
+         var left:Number = at[0] - (slot == 0 ? 0 : 20) - cols * COL_W / 2;
+         var top:Number = at[1] - 165;
+         var shown:Array = [];
          var hit:Function = function(i:int):void
          {
             TweenLite.delayedCall(gap * i, function():void
             {
+               if (closed) return;
                var d:int = int(list[i]);
                var c:Boolean = cri != null && int(cri[i]) == 1;
-               // Each hit its own place, round the 亚比, so that no number covers the last.
-               var dx:Number = ((i * 3) % 5 - 2) * 30;
-               var dy:Number = (i % 2) * -26 + 20;
-               if (d > 0) hitFloat(slot, (c ? "暴击" : "") + "-" + d, c ? 0xFFB01E : 0xE8301E, dx, dy);
-               else hitFloat(slot, "MISS", 0xFFFFFF, dx, dy);
-               count.text = (i + 1) + "连击";
-               count.x = at[0] - count.width / 2 - (slot == 0 ? 0 : 20);
-               count.y = at[1] - 206;
-               if (count.parent == null) floatLayer.addChild(count);
-               count.scaleX = count.scaleY = 1;
+               var num:DisplayObject = d > 0 ? hitNumber(d, c) : missText();
+               num.x = left + int(i / ROWS) * COL_W;
+               num.y = top + (i % ROWS) * ROW_H;
+               floatLayer.addChild(num);
+               shown.push(num);
+               // A little jump as it comes.
+               num.scaleX *= 1.25;
+               num.scaleY *= 1.25;
+               TweenLite.to(num, 0.12, {scaleX: num.scaleX / 1.25, scaleY: num.scaleY / 1.25});
             });
          };
          for (var i:int = 0; i < n; i++) hit(i);
          TweenLite.delayedCall(gap * n + 0.2, function():void
          {
-            TweenLite.to(count, 1.0, {alpha: 0, delay: 0.8, onComplete: function():void { if (count.parent) count.parent.removeChild(count); }});
-            if (total < 0) float(slot, (eff > 1 ? "克制" : (eff < 1 ? "微弱" : "")) + total, 0xE8301E, true, 0, 4);
+            if (closed) return;
+            if (total < 0)
+            {
+               var sum:Sprite = totalNumber(-total);
+               var w:Number = Number(sum.name) > 0 ? Number(sum.name) : sum.width;
+               sum.x = at[0] - (slot == 0 ? 0 : 20) - w / 2;
+               sum.y = top + Math.min(n, ROWS) * ROW_H - 6;
+               floatLayer.addChild(sum);
+               shown.push(sum);
+               sum.alpha = 0;
+               TweenLite.to(sum, 0.15, {alpha: 1});
+            }
+            // overwrite 0: beside the tweens these already have (a TweenLite on the same thing
+            // would stop them).
+            for each (var o:DisplayObject in shown)
+            {
+               TweenLite.to(o, 0.5, {alpha: 0, delay: 1.3, overwrite: 0, onComplete: function(x:DisplayObject):void { if (x.parent) x.parent.removeChild(x); }, onCompleteParams: [o]});
+            }
             done();
          });
       }
 
-      /** One hit's number of a 连击: small, quick, where it is put. */
-      private function hitFloat(slot:int, value:String, color:uint, dx:Number, dy:Number):void
+      /** n into the digit clips n0…n7 of a HitDigits / TotalDigits (frame 1 + the digit, from `from`); false: no art. */
+      private static function digits(mc:MovieClip, n:int, from:int = 1):Boolean
       {
+         if (mc == null || !(mc.getChildByName("n0") is MovieClip)) return false;
+         var ds:Array = String(Math.max(0, n)).split("");
+         for (var k:int = 0; k < 8; k++)
+         {
+            var c:MovieClip = mc.getChildByName("n" + k) as MovieClip;
+            if (c == null) continue;
+            c.visible = k < ds.length;
+            if (c.visible) c.gotoAndStop(from + int(ds[k]));
+         }
+         return true;
+      }
+
+      /** One hit's "-202" of a 连击, its top left where it is put, about 18 high (a 暴击's yellow). */
+      private function hitNumber(d:int, crit:Boolean):DisplayObject
+      {
+         var mc:MovieClip = crit ? new TotalDigits() : new HitDigits();
+         mc.mouseEnabled = mc.mouseChildren = false;
+         if (digits(mc, d))
+         {
+            var holderSp:Sprite = new Sprite();
+            var b:Rectangle = shownBounds(mc);
+            var k:Number = 18 / Math.max(1, b.height);
+            mc.scaleX = mc.scaleY = k;
+            mc.x = -b.left * k;
+            mc.y = -b.top * k;
+            holderSp.addChild(mc);
+            holderSp.mouseEnabled = holderSp.mouseChildren = false;
+            return holderSp;
+         }
          var t:TextField = new TextField();
-         t.defaultTextFormat = new TextFormat("Arial Black", 22, color, true);
+         t.defaultTextFormat = new TextFormat("Arial Black", 15, crit ? 0xFFC22E : 0xF0342A, true);
          t.autoSize = TextFieldAutoSize.LEFT;
          t.selectable = false;
-         t.text = value;
-         t.filters = [new GlowFilter(0xFFFFFF, 1, 3, 3, 10), new GlowFilter(0x5A0A00, 1, 2, 2, 6)];
-         var at:Array = holder(slot == 0);
-         t.x = at[0] - t.width / 2 - (slot == 0 ? 0 : 20) + dx;
-         t.y = at[1] - 150 + dy;
-         floatLayer.addChild(t);
-         TweenLite.to(t, 0.8, {y: t.y - 24, alpha: 0, delay: 0.25, onComplete: function():void { if (t.parent) t.parent.removeChild(t); }});
+         t.text = "-" + d;
+         t.filters = [new GlowFilter(0x5A0A00, 1, 2, 2, 6)];
+         return t;
+      }
+
+      private function missText():DisplayObject
+      {
+         var t:TextField = new TextField();
+         t.defaultTextFormat = new TextFormat("Arial Black", 14, 0xFFFFFF, true);
+         t.autoSize = TextFieldAutoSize.LEFT;
+         t.selectable = false;
+         t.text = "MISS";
+         t.filters = [new GlowFilter(0x173F7A, 1, 2, 2, 6)];
+         return t;
+      }
+
+      /** "连击-4294": the words, then the yellow digits (with their "-"), about 44 high. */
+      private function totalNumber(sum:int):Sprite
+      {
+         var s:Sprite = new Sprite();
+         s.mouseEnabled = s.mouseChildren = false;
+         var words:TextField = new TextField();
+         words.autoSize = TextFieldAutoSize.LEFT;
+         words.selectable = false;
+         words.defaultTextFormat = new TextFormat("Arial Black", 38, 0xFFC830, true);
+         var mc:MovieClip = new TotalDigits();
+         var art:Boolean = digits(mc, sum);
+         words.text = art ? "连击" : "连击-" + sum;
+         words.filters = [new GlowFilter(0xFFF2B0, 1, 2, 2, 3, 1, true), new GlowFilter(0x7A1600, 1, 4, 4, 12)];
+         s.addChild(words);
+         if (art)
+         {
+            var b:Rectangle = shownBounds(mc);
+            var k:Number = 44 / Math.max(1, b.height);
+            mc.scaleX = mc.scaleY = k;
+            mc.x = words.width - 4 - b.left * k;
+            mc.y = words.height / 2 - (b.top + b.height / 2) * k;
+            s.addChild(mc);
+            // Its width without the digit clips left hidden (a container counts them).
+            s.name = String(mc.x + b.right * k);
+         }
+         return s;
+      }
+
+      /** The bounds of what a clip shows (its hidden children left out), in its own space. */
+      private static function shownBounds(mc:MovieClip):Rectangle
+      {
+         var r:Rectangle = null;
+         for (var i:int = 0; i < mc.numChildren; i++)
+         {
+            var c:DisplayObject = mc.getChildAt(i);
+            if (!c.visible) continue;
+            var cb:Rectangle = c.getBounds(mc);
+            r = r == null ? cb : r.union(cb);
+         }
+         return r != null ? r : mc.getBounds(mc);
       }
 
       /** The skill's name called out by the 亚比 that uses it ("龙牙剑!!"). */
@@ -1437,7 +1797,6 @@ package mmo.petfightnew
          {
             if (!commandsOn) return;
             setCommands(false);
-            addLog("你选择了逃跑……");
             PetClient.instance.escape();
             return;
          }
@@ -1758,7 +2117,7 @@ package mmo.petfightnew
                playFilm(opening, function():void
                {
                   sound("x7011");
-                  addLog("<font color='#FFE66A'>第1回合</font>");
+                  addLog("<font color='#B7DCFF'>第1回合</font>");
                   if (auto) addLog("<font color='#7FE0FF'>自动战斗仪开启中（还可以使用" + int(p.autoLeft) + "次）</font>");
                   newTurnClock();
                   setCommands(true);
@@ -1799,17 +2158,31 @@ package mmo.petfightnew
                takeViews(p.pmmList as Array);
                if (int(p.hpInc) < 0) float(int(p.slotId), String(int(p.hpInc)), 0xE8301E);
                else if (int(p.hpInc) > 0) float(int(p.slotId), "+" + int(p.hpInc), 0x3CC21E);
-               refresh(true);
-               faintIfDown(int(p.slotId));
-               later(0.8);
+               var shown:Object = p;
+               var rest:Function = function():void
+               {
+                  refresh(true);
+                  faintIfDown(int(shown.slotId));
+                  later(0.8);
+               };
+               // A 究极 form's rounds out (究极结束了): it goes back with its movie first.
+               if (formOver() >= 0) formBack(formOver(), rest);
+               else rest();
                break;
             case 2402:
                takeViews(p.pmmList as Array);
+               if (formOver() >= 0)
+               {
+                  // Not seen with the round's end: as the next turn begins.
+                  var again:Object = p;
+                  formBack(formOver(), function():void { handle(2402, again); });
+                  break;
+               }
                refresh(true);
                playFilm(hpFilm(), function():void
                {
                   turn++;
-                  addLog("<font color='#FFE66A'>第" + turn + "回合</font>");
+                  addLog("<font color='#B7DCFF'>第" + turn + "回合</font>");
                   newTurnClock();
                   setCommands(hpOf(me) > 0);
                   if (current == "catch") showPage("catch");
@@ -1974,7 +2347,7 @@ package mmo.petfightnew
                // The hurt at the animation's "att" frame; the turn goes on when it is over.
                pending++;
                playEffect(int(p.id), att == 0, p.self == true, impact, int(p.ge), step);
-            }, step);
+            }, step, SHAKE_SKILLS.indexOf(int(p.id)) >= 0 && p.cri != true ? shake : null);
          };
          var a:Object = aoyi();
          if (att == 0 && a != null && int(a.id) == int(p.id) && attView) playAoyiMovie(attView.race, blow);

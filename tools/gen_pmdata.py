@@ -87,6 +87,7 @@ def main(argv=None) -> None:
     battle = {x for x in a.battle_skills.split(",") if x}
     era = set(json.load(open(a.pets, encoding="utf-8")).keys()) | {x for x in a.story.split(",") if x}
     jiuji_rows: list[list[str]] = []
+    qiyue_rows: list[list[str]] = []
     weather_rows: dict[str, list[str]] = {}
     if a.upto:
         chao_src: dict[str, set[str]] = {}
@@ -97,6 +98,8 @@ def main(argv=None) -> None:
                 chao_src.setdefault(p[0], set()).add(p[1])
             elif cls == "PMJiujiData" and p[0].isdigit() and int(p[0]) < 10000:
                 jiuji_rows.append(p)
+            elif cls == "PMJiujiQiyueData" and p[0].isdigit():
+                qiyue_rows.append(p)
             elif cls == "PMWeather":
                 weather_rows[key] = p
         era |= {c for c, srcs in chao_src.items() if any(int(x) <= a.upto for x in srcs)}
@@ -217,6 +220,15 @@ def main(argv=None) -> None:
                 top[p[0]] = p
         out["jiuji"] = {k: {"to": int(p[1]), "lv": int(num(p[3])), "store": int(num(p[4])), "keep": int(num(p[5])),
                             "up": [int(num(x)) for x in p[6:12]], "d": p[12]} for k, p in sorted(top.items(), key=lambda kv: int(kv[0]))}
+        # 契约 (究极 type 2, jiujiType: 零夜战骑, 辉月战骑): no points, the whole battle; their 坐骑召唤 at
+        # the same 等级 (PMJiujiQiyueData: from, to, name, 契约等级, 回复最大体力值%, 伤害抗性%, 速度等级,
+        # text, …, 契约技能 name and words).
+        for k, p in top.items():
+            if len(p) > 23 and p[23] == "2":
+                q = next((x for x in qiyue_rows if x[0] == k and x[3] == p[3]), None)
+                if q:
+                    out["jiuji"][k].update({"k": 2, "qy": {"hp": int(num(q[4])), "res": int(num(q[5])), "spd": int(num(q[6])),
+                                                           "d": q[7], "sn": q[10], "sd": q[11]}})
         # 圣域 (PMWeather: id, name, type 1 圣域技能 / 2 圣域 / 3 自动循环激活圣域 / 4 特性, text, BuffXML).
         out["weather"] = {k: {"n": p[1], "k": int(num(p[2])), "d": p[4] or p[3], "b": p[5] if len(p) > 5 else ""}
                           for k, p in weather_rows.items() if p[2] in ("1", "2", "3", "4")}

@@ -8,6 +8,7 @@ import type { Emulator } from "../../core/emulator.ts";
 import { installPets, maxHpOf, followVar, newPet, nameOf, speciesOf, detailOf, NO_FOLLOW, type PetRecord, type PetTables, type SpeciesTable } from "./pets.ts";
 import { installBattles, gainExp, MEMBER_ARENA_PASS, type WildEntry } from "./battle.ts";
 import { installPetDic } from "./petdic.ts";
+import { giveAllPetClothes, installPetDress } from "./petdress.ts";
 import { installPetItems, type Boosts } from "./petitems.ts";
 import {
   checkPass,
@@ -79,6 +80,8 @@ export interface UserRecord {
   storage?: PetRecord[];
   /** 放生仓库 (pets.ts): 亚比 let go, kept a while. */
   released?: PetRecord[];
+  /** 亚比装扮 owned (petdress.ts): piece id -> how many. */
+  petClothes?: Record<string, number>;
   /** 展示 (pets.ts revival_show): the 亚比 shown in the 家园. */
   showPet?: number;
   /** Experience of the 捕捉等级. */
@@ -232,7 +235,6 @@ export interface Sfs2013Options {
  * then finishes its init and the game carries on.
  */
 const EMPTY_INVENTORY: Record<string, Record<string, unknown>> = {
-  "MaterialExtension.61_5": { pd: [] }, // PetClothesService
   "MaterialExtension.61-8": { cards: [] }, // PetCard2Service
 };
 
@@ -1140,13 +1142,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   //                                  first 亚比 of the bag, with its levels and evolutions)
   //   {raceId, level}                a new 亚比 (to the bag, or the 亚比仓库 when the bag is full)
   //   {tree: "grown"}                the 植树盆's tree at its top level, its fruit all borne (收为家具 may follow)
+  //   {petClothes: 1}                one more of every 亚比装扮 piece (petdress.ts)
   //   -> revival_toolbox {score, xingbi, jingdou, aobi, msg}, onScoreUpdated, and the 亚比 replies
   const toolbox = opts.toolbox ?? true;
   world.xt("SundriesExtension.revival_toolbox", async (ctx) => {
     const rec = await me(ctx);
     const p = ctx.params;
     // Closed (a shared server): the totals only (the game asks them at the start), no gifts.
-    const gifts = ["score", "xingbi", "jingdou", "aobi", "exp", "raceId", "vip", "tree"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
+    const gifts = ["score", "xingbi", "jingdou", "aobi", "exp", "raceId", "vip", "tree", "petClothes"].some((k) => p[k] != null && p[k] !== 0 && p[k] !== "");
     if (!toolbox && gifts) {
       return ctx.reply({ score: rec.score ?? 0, xingbi: rec.xingbi ?? 0, jingdou: rec.jingdou ?? 0, aobi: rec.aobi ?? 0, vip: !!rec.vip, msg: "这个服务器关闭了工具箱。" }, "revival_toolbox");
     }
@@ -1195,6 +1198,10 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
         said.push(`${PLANTS[tree.plantId].name}长大了`);
       }
     }
+    if (p.petClothes) {
+      const n = giveAllPetClothes(rec);
+      said.push(n ? `得到了亚比装扮（${n}件）` : "亚比装扮已经拿满了");
+    }
     const race = Number(p.raceId) | 0;
     if (race > 0) {
       if (!speciesOf(t, race)) said.push(`没有编号为 ${race} 的亚比`);
@@ -1219,6 +1226,14 @@ export function installSfs2013(emu: Emulator, opts: Sfs2013Options = {}): World 
   const today = () => emu.clock.today();
   installPets(world, { load: me, save: (o) => save(o as UserRecord), tables, today, anyPet: toolbox || !!opts.dev, now: () => emu.clock.now().getTime() });
   installPetDic(world, { load: me, save: (o) => save(o as UserRecord), tables });
+  installPetDress(world, {
+    load: me,
+    save: (o) => save(o as UserRecord),
+    following: (ctx, o, pet) => {
+      if (o.followPet === pet.id) world.setUserVarOnce(ctx.session, "p", followVar(pet));
+    },
+    nameOf: async (pet) => pet.nick || nameOf(await tables(), pet.race),
+  });
   installBattles(world, {
     load: me,
     fair: !toolbox,

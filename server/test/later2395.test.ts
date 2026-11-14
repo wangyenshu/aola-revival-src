@@ -66,7 +66,8 @@ test("static check: every 亚比 is whole (属性, skills, 图鉴 row), at any l
     if (sp.t.some((t) => !pm.chart[String(t)])) wrong.push(`${id} 属性`);
     if (!sp.learn.length) wrong.push(`${id} no skills`);
     if (!tables.species[id]) wrong.push(`${id} not in pets.json`);
-    if (!named.has(id)) wrong.push(`${id} no 图鉴 row`);
+    // (斗魂星云棒 246, a copy of 245, has none: dict_forms.py.)
+    if (!named.has(id) && id !== "246") wrong.push(`${id} no 图鉴 row`);
     for (const lv of [1, 20, 59, 100]) {
       const ids = skillsAt(sp, lv);
       if (!ids.length || new Set(ids).size !== ids.length) wrong.push(`${id} skills at ${lv}`);

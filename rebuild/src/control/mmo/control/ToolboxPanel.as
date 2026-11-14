@@ -23,7 +23,7 @@ package mmo.control
    /**
     * The revival's 工具箱 (not of 2013): add 晶币, 星币, 晶豆 and 亚比 experience
     * (to the first 亚比 of the bag), become 蓝宝石 or not, and get any 亚比 by its number at a chosen
-    * level (to the bag, or to the 亚比仓库 when the bag is full), for testing
+    * level (to the bag, or to the 亚比仓库 when the bag is full), the 亚比装扮, for testing
     * fights and for players who want them. Server: SundriesExtension.revival_toolbox.
     */
    public class ToolboxPanel extends Sprite
@@ -124,6 +124,8 @@ package mmo.control
          petName.x = 30;
          petName.y = 304;
          box.addChild(petName);
+         // 亚比装扮: one more of each of the eleven pieces (the bag's 装扮 page puts them on).
+         box.addChild(place(RUI.button("领取亚比装扮", function():void { send({petClothes: 1}); }, 110, 26, 0x6CC0F5, 0x2E86D6, "toolboxPetClothes"), W - 146, 306));
 
          // 传送 to any place of config.xml, by its name (crossroad) or its
          // Chinese name (十字大道); 存档: the saves of this browser to a file and back.

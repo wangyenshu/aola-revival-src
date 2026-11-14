@@ -131,8 +131,10 @@ export function installDuels(world: World, deps: DuelDeps) {
     s.must = false;
     const name = next.nick || nameOf(t, next.race);
     const pre = why ? why + "\n" : "";
-    out[i].push(["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: `${pre}就决定是你了，${name}！`, res: 1, forced } }]);
+    out[i].push(["2413", { playerInfo: viewsFor(d, i, e)[0], extInfo: { desc: `${pre}${name}出战！`, res: 1, forced } }]);
     out[1 - i].push(["2413", { playerInfo: viewsFor(d, 1 - i, e)[1], extInfo: { desc: `${pre}${s.name}派出了${name}！`, res: 1, forced: true, foe: true } }]);
+    // Its 圣域 comes with it.
+    for (const m of e.arrivals(d.canon)) both(d, e, out, m);
     return true;
   };
 
@@ -370,10 +372,13 @@ export function installDuels(world: World, deps: DuelDeps) {
     canon.duel = d;
     deps.battles.set(a.id, canon);
     deps.battles.set(b.id, canon);
+    // The two 亚比 come out: a 圣域 of theirs from the start.
+    const came = e.arrivals(canon);
     for (const i of [0, 1]) {
       sendTo(d, i, [
         ["2303", { esc: true, sw: true, ch: false, cd: 1, pvp: { vs: d.sides[1 - i].name }, pmmList: viewsFor(d, i, e) }],
         ["2401", { id: canon.id, type: 0, pt: 0, bs: "", srt: 0, scene: canon.room, boss: 0, pvp: true }],
+        ...came.map((m) => asSide(d, i, e, m)),
       ]);
     }
     arm(d);

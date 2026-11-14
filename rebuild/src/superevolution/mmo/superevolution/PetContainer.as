@@ -6,6 +6,7 @@ package mmo.superevolution
    import mmo.common.DisplayUtil;
    import mmo.interfaces.pet.data.PetBriefInfo;
    import mmo.interfaces.pet.peticon.PetIconContainer;
+   import mmo.revival.RIcon;
    import mmo.interfaces.pet.peticon.PetIconEvent;
    import mmo.interfaces.pet.peticon.PetIconType;
 
@@ -30,7 +31,7 @@ package mmo.superevolution
       {
          _petInfo = p;
          DisplayUtil.clearFilters(this);
-         var icon:PetIconContainer = new PetIconContainer(p.viewId, PetIconType.LARGE, false);
+         var icon:PetIconContainer = RIcon.container(p.viewId, PetIconType.LARGE, false);
          icon.addEventListener(PetIconEvent.ON_ICON_LOADED, onLoadIcon);
          icon.startLoad();
          txtInfo.text = p.name + "\n" + p.level + "级";

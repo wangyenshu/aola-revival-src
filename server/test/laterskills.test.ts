@@ -220,7 +220,7 @@ test("异常状态 in the view: each with its rounds left, on both sides (磁爆
   assert.ok(sts(1).some(([n]) => n === "麻痹"));
 });
 
-test("the 图鉴 lists the 亚比 that only fight: 究极 forms, 图腾, bosses' forms", () => {
+test("the 图鉴 lists the 亚比 that only fight: 究极 forms, 图腾, bosses' forms (not a copy)", () => {
   const dict = readFileSync(new URL("../../rebuild/gen/petdict/mmo/pet/petdictionarydata/PetDictionaryData.as", import.meta.url), "utf8");
   const row = (id: number) => dict.match(new RegExp(`^\\s*"${id}":new PetDictionaryDataItem\\((.*)\\)`, "m"))?.[1] ?? "";
   // 神照修罗王's 究极 form, by the 究极 table.
@@ -230,7 +230,7 @@ test("the 图鉴 lists the 亚比 that only fight: 究极 forms, 图腾, bosses'
   assert.ok(tables.species[String(to)], "and in pets.json");
   // Every species of the pet table has a row.
   const missing = Object.keys(tables.pm.species).filter((k) => !row(Number(k)));
-  assert.deepEqual(missing, []);
+  assert.deepEqual(missing, ["246"], "all but a copy of another (斗魂星云棒 246 of 245)");
 });
 
 test("风起云涌 leaves the other 1 PP a skill; 玩偶之家 makes the next 玩偶傀儡线's status sure", () => {
@@ -245,4 +245,122 @@ test("风起云涌 leaves the other 1 PP a skill; 玩偶之家 makes the next �
   d.e.skillTurn(d.b, 17256);
   assert.ok(d.b.wild.status || d.b.wild.confuse > 0, "a status landed");
   assert.ok(!d.b.mine.timed.some((x) => x.kind === "nextUse" && x.left > 0), "once");
+});
+
+test("极限躯体: 无敌 for 2 rounds (no damage taken), then its 体力 is 1", () => {
+  const race = Number(Object.entries(tables.pm.species).find(([, s]) => s.learn.some(([, x]) => x === 28033))![0]);
+  // Every chance fails but the skill's own (rolls 0.5: it is not used up yet).
+  const f = fightAs(race, 28033, () => 0.5);
+  f.b.wild.stats[1] = f.b.wild.stats[3] = 999;
+  const hp = f.b.mine.pet.hp;
+  f.e.skillTurn(f.b, 28033);
+  assert.ok(f.b.mine.timed.some((x) => x.kind === "untouchable"), "无敌");
+  assert.equal(f.b.mine.pet.hp, hp, "round 1: no damage");
+  f.e.endOfTurn(f.b);
+  f.b.mine.pet.skills.push({ id: 1016, name: "噼啪乱击", pp: 30, max: 30 });
+  f.e.skillTurn(f.b, 1016);
+  assert.equal(f.b.mine.pet.hp, hp, "round 2: no damage");
+  f.e.endOfTurn(f.b);
+  assert.equal(f.b.mine.pet.hp, 1, "its 体力 is 1 when the effect ends");
+});
+
+test("煌炎战神's skills as their words: 超钢圣星 heals only in 阳炎, 真芒无双 surely there (once a hit), 古阳之力's heals at the rounds' ends", () => {
+  const steel = read(tables.pm.skills["9298"].d);
+  assert.deepEqual(steel.healAfter, { f: 0.25, chance: 100, cond: { field: "阳炎" } });
+  assert.equal(steel.heal, undefined, "not at once, out of the field");
+  const star = read(tables.pm.skills["16324"].d);
+  assert.deepEqual(
+    star.stages.map((x) => [x.chance, x.cond]),
+    [[100, { field: "阳炎" }], [50, { noField: "阳炎" }]],
+    "in the field sure instead of its 50%, not a second roll",
+  );
+  const sun = read(tables.pm.skills["16323"].d);
+  assert.equal(sun.healFlat, undefined, "no heal at once");
+  assert.deepEqual(sun.selfCost, { n: 200 });
+  assert.deepEqual(
+    sun.timed.map((x) => [x.kind, x.turns, x.n, x.chance]),
+    [["regen", 2, 200, 30], ["guard", 2, undefined, undefined]],
+  );
+  // In battle: 真芒无双 outside 阳炎 (rng 0.99: no chance comes) raises nothing; in it, a level each hit.
+  const e = new BattleEngine(tables, () => 0.99);
+  const b = e.start(1, "x", { id: 1, name: "a" }, makePet(tables, 2050, 100, "d", 1), makePet(tables, 1, 60, "d"), true);
+  b.wild.pet.hp = b.wild.stats[0] = 99999;
+  e.act(b, b.mine, b.wild, 16324);
+  assert.equal(b.mine.stages.satk, 0, "out of 阳炎: its 50% did not come");
+  e.arrivals(b);
+  assert.equal(b.sy?.id, "1001");
+  const [, r] = e.act(b, b.mine, b.wild, 16324);
+  assert.ok(b.mine.stages.satk >= 2, `in 阳炎: one each hit (${String(r.desc)})`);
+});
+
+test("BOSS绝杀 (龙态炎王): the player's 亚比 and the rest of the bag fall at once, 无敌 or not", () => {
+  const fx = read(tables.pm.skills["1280"].d);
+  assert.deepEqual([fx.bossKill, fx.sure], [true, true]);
+  const e = new BattleEngine(tables, () => 0.99);
+  const one = makePet(tables, 2050, 100, "d", 1);
+  const two = makePet(tables, 2219, 100, "d", 2);
+  const b = e.start(1, "x", { id: 1, name: "a" }, one, makePet(tables, 2059, 100, "d"), true);
+  e.bag = [one, two];
+  b.mine.timed.push({ who: "self", kind: "untouchable", turns: 3, left: 3 } as (typeof b.mine.timed)[number]);
+  const [, r] = e.act(b, b.wild, b.mine, 1280);
+  assert.deepEqual([one.hp, two.hp], [0, 0]);
+  assert.ok(String(r.desc).includes("秒杀") && String(r.desc).includes("全部倒下"), String(r.desc));
+});
+
+test("X越高，Y越高 (a Scale): 雷之终曲's chance grows with the user's 攻击等级, 幻化无常's power as the other's 体力 falls", () => {
+  const thunder = read(tables.pm.skills["13293"].d);
+  assert.deepEqual(thunder.scale, [{ by: { kind: "stage", who: "self", stats: ["atk"] }, up: true, on: "chance", inc: true }]);
+  const mirage = read(tables.pm.skills["21033"].d);
+  assert.deepEqual(mirage.scale, [{ by: { kind: "hp", who: "foe" }, up: false, on: "power", inc: true }]);
+  // In battle: 雷之终曲's 麻痹 (一定概率, 30%) at +6 攻击 is 57%; a roll of 0.5 lands it then, not at 0.
+  const run = (atk: number) => {
+    const e = new BattleEngine(tables, () => 0.5);
+    const b = e.start(1, "x", { id: 1, name: "a" }, makePet(tables, 323, 100, "d", 1), makePet(tables, 1, 60, "d"), true);
+    b.wild.pet.hp = b.wild.stats[0] = 99999;
+    b.mine.stages.atk = atk;
+    e.act(b, b.mine, b.wild, 13293);
+    return b.wild.status;
+  };
+  assert.equal(run(0), undefined);
+  assert.equal(run(6), "麻痹");
+});
+
+test("one of several: 元素爆发's 烧伤、冰冻或麻痹 on each blow taken, 天地乖离 one of three levels each hit", () => {
+  const burst = read(tables.pm.skills["20068"].d);
+  assert.deepEqual(burst.statuses, [], "nothing at once");
+  assert.deepEqual(burst.timed.map((x) => [x.kind, x.turns, x.chance, x.statusPick]), [["onhurt", 4, 20, ["烧伤", "冰冻", "麻痹"]]]);
+  const rift = read(tables.pm.skills["16307"].d);
+  assert.deepEqual(rift.stages.map((x) => [x.stats, x.delta, x.pick]), [[["sdef", "acc", "spd"], -1, [1, 1]]]);
+  assert.equal(rift.perHit, true);
+});
+
+test("若对方已X…: a foe that has X, not X given (冷笑话, 灵魂引导, 风银破, 凤舞八方, 枭凤乱舞)", () => {
+  const joke = read(tables.pm.skills["15357"].d);
+  assert.deepEqual(joke.statuses, [], "冰冻 is the condition, not given");
+  assert.deepEqual(joke.stealHp, { n: 0, f: 0.5, cond: { foeStatus: "冰冻" } });
+  assert.equal(joke.dmg, undefined);
+  assert.deepEqual(read(tables.pm.skills["19163"].d).ppRange, { a: 1, b: 3, steal: true, chance: 100, cond: { foeStatus: "冰冻" } });
+  const wind = read(tables.pm.skills["3327"].d);
+  assert.deepEqual([wind.statuses, wind.healLostIf, wind.healSure], [[], { f: 0.8, chance: 30 }, { foeStatus: "混乱" }]);
+  const phoenix = read(tables.pm.skills["10386"].d);
+  assert.deepEqual(phoenix.statuses.map((x) => [x.name, x.chance]), [["烧伤", 100]], "its own 烧伤 once");
+  assert.deepEqual([phoenix.healFlat, phoenix.healChance, phoenix.healSure], [500, 40, { foeStatus: "烧伤" }]);
+  assert.deepEqual(read(tables.pm.skills["27043"].d).hitsIf, { cond: { foeStatus: "烧伤" }, add: 3 });
+  // In battle: 冷笑话 takes half the most 体力 of a frozen foe only.
+  const run = (frozen: boolean) => {
+    const e = new BattleEngine(tables, () => 0.5);
+    const b = e.start(1, "x", { id: 1, name: "a" }, makePet(tables, 323, 100, "d", 1), makePet(tables, 1, 60, "d"), true);
+    b.wild.pet.hp = b.wild.stats[0] = 99999;
+    if (frozen) b.wild.status = "冰冻";
+    e.act(b, b.mine, b.wild, 15357);
+    return 99999 - b.wild.pet.hp;
+  };
+  const plain = run(false), cold = run(true);
+  assert.ok(cold - plain >= Math.floor(99999 / 2) - 1, `${plain} ${cold}`);
+});
+
+test("每回合回复最大体力值1/6 for the rounds the words name (灵风拂面: 3)", () => {
+  const breeze = read(tables.pm.skills["3302"].d);
+  assert.deepEqual(breeze.timed.find((x) => x.kind === "regen"), { who: "self", kind: "regen", turns: 3, f: 1 / 6 });
+  assert.equal(breeze.healAfter, undefined);
 });

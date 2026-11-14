@@ -95,7 +95,7 @@ test("a skill hits, drains, poisons; attributes multiply", () => {
   // Ice is good against grass (chart 14 -> 11 = 2).
   const [, ice] = e.act(b, b.wild, b.mine, 15009);
   assert.equal(ice.eff, 2);
-  assert.match(String(ice.desc), /效果拔群/);
+  assert.match(String(ice.desc), /属性克制/);
 });
 
 test("属性等级: at most +6 and -6, sent as bal (攻击#防御#特攻#特防#速度#命中#闪避#暴击)", () => {

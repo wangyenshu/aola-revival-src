@@ -17,10 +17,14 @@ Where the class itself is missing, its bytecode is that of a compiled template
 With --pmdata (and the _L and _F templates) the 亚比 of the revival's tables that have no
 peticon file at all (the 无法获得 ones: 星石, 图腾, 拉贝尔幻影 …; 22 of them) get one made
 from their battle sprite: its standing move (frame 1 of fightassets/pet<id>.swf's
-mmo.petfight.pet<id>_1) scaled into _S, _L and _F. Three have no battle sprite either
-(鲁阿鲁 119, 源第一态 1929, 天启英灵 2295): the later client showed them, as every 亚比 its
-art table did not name, as 圣渊露龙 (PetAssetsMap's 2011), and so do they here, its
-battle sprite copied under their names too.
+mmo.petfight.pet<id>_1) scaled into _S, _L and _F. Three have no art anywhere, neither in
+the era files nor on the game's server (鲁阿鲁 119, 源第一态 1929, 天启英灵 2295): the later
+client showed them as 圣渊露龙 (PetAssetsMap's 2011), another 亚比's picture; with the
+"no art" templates (--template-q*, rebuild/src/peticonunknown: a dark figure with a "?")
+their three pictures are those instead, and they have no battle sprite (the battle shows
+the picture).
+A game file known to hold another 亚比's picture (WRONG_PICTURE: 影龙 2025) is replaced the
+same way, from the 亚比's own battle sprite.
 Nothing is downloaded; the files in game/ are left as they are.
 
   tools/peticon_fill.py --game game --template out/peticonfill-template.swf \\
@@ -292,6 +296,11 @@ def fill(path: Path, race: str, template_abc: bytes | None):
 
 # --- whole files for the 亚比 without a peticon file ---------------------------------
 
+# peticon files of the game that hold another 亚比's picture: their pictures are made from
+# the 亚比's battle sprite instead, as for those without a file. 影龙 2025's (April 2014) is a
+# round 炫光 creature from before the id was the dragon's (its battle sprite, January 2016).
+WRONG_PICTURE = {"2025"}
+
 # The art the later client fell back on for a 亚比 its PetAssetsMap did not name (圣渊露龙).
 DEFAULT_ART = "2011"
 SIZES = {"_S": (40.0, 44.0, "feet"), "_L": (120.0, 100.0, "feet-15"), "_F": (150.0, 120.0, "centre")}
@@ -447,13 +456,36 @@ def first_file(folder: Path, stem: str):
     return folder / hits[0] if hits else None
 
 
-def make_missing(game: Path, out: Path, pmdata: Path, templates: dict) -> list[str]:
+def unknown_file(race: str, unknown: dict) -> bytes:
+    """A peticon file for race with only the "no art" templates' three classes (no characters)."""
+    version, header, tags = unknown["file"]
+    out = []
+    for cc, dd in tags:
+        if cc == T_DOABC:
+            out += [(T_DOABC, renamed_abc(unknown[k], race)) for k in ("_S", "_L", "_F")]
+        elif cc in (T_SYMBOLCLASS, 43, 56, T_METADATA):
+            continue
+        else:
+            out.append((cc, dd))
+    body = header + b"".join(write_tag(cc, dd) for cc, dd in out)
+    return b"CWS" + bytes([version]) + struct.pack("<I", 8 + len(body)) + zlib.compress(body, 9)
+
+
+def make_missing(game: Path, out: Path, pmdata: Path, templates: dict, unknown: dict | None = None) -> list[str]:
     import json
     races = sorted((r for r in json.load(open(pmdata, encoding="utf-8"))["species"] if int(r) < 10000), key=int)
     icons, fights = game / "www.9aola.com" / "peticon", game / "www.9aola.com" / "fightassets"
     made = []
     for race in races:
-        if first_file(icons, f"peticon{race}"):
+        if first_file(icons, f"peticon{race}") and race not in WRONG_PICTURE:
+            continue
+        if unknown and not first_file(fights, f"pet{race}"):
+            (out / "peticon").mkdir(parents=True, exist_ok=True)
+            (out / "peticon" / f"peticon{race}.swf%3F1210").write_bytes(unknown_file(race, unknown))
+            stale = out / "fightassets" / f"pet{race}.swf%3F1210"
+            if stale.exists():
+                stale.unlink()
+            made.append(race + "(?)")
             continue
         art = race if first_file(fights, f"pet{race}") else DEFAULT_ART
         src = first_file(fights, f"pet{art}")
@@ -479,6 +511,9 @@ def main(argv=None) -> None:
     ap.add_argument("--template-l", help="the compiled template SWF of mmo.pet.peticon777777_L")
     ap.add_argument("--template-f", help="the compiled template SWF of mmo.pet.peticon777777_F")
     ap.add_argument("--pmdata", help="revival/pmdata.json: make whole files for its 亚比 that have no peticon file")
+    ap.add_argument("--template-q", help='the "no art" template SWF of mmo.pet.peticon777777_S (rebuild/src/peticonunknown)')
+    ap.add_argument("--template-q-l", help='the "no art" template of _L')
+    ap.add_argument("--template-q-f", help='the "no art" template of _F')
     a = ap.parse_args(argv)
     template_abc = None
     if a.template:
@@ -491,15 +526,21 @@ def main(argv=None) -> None:
         for k, f in (("_L", a.template_l), ("_F", a.template_f)):
             _, _, ttags = parse(Path(f))
             templates[k] = next(d for c, d in ttags if c == T_DOABC)
-        whole = make_missing(Path(a.game), Path(a.out), Path(a.pmdata), templates)
-        print(f"peticon_fill: {len(whole)} pictures made from battle sprites ((n) = 圣渊露龙's art): {' '.join(whole)}")
+        unknown = None
+        if a.template_q and a.template_q_l and a.template_q_f:
+            unknown = {"file": parse(Path(a.template_q))}
+            for k, f in (("_S", a.template_q), ("_L", a.template_q_l), ("_F", a.template_q_f)):
+                _, _, ttags = parse(Path(f))
+                unknown[k] = next(d for c, d in ttags if c == T_DOABC)
+        whole = make_missing(Path(a.game), Path(a.out), Path(a.pmdata), templates, unknown)
+        print(f"peticon_fill: {len(whole)} pictures made from battle sprites ((n) = 圣渊露龙's art, (?) = no art): {' '.join(whole)}")
     src = Path(a.game) / "www.9aola.com" / "peticon"
     dst = Path(a.out) / "peticon"
     dst.mkdir(parents=True, exist_ok=True)
     made = []
     for f in sorted(os.listdir(src)):
         m = re.match(r"peticon(\d+)\.swf", f)
-        if not m:
+        if not m or m.group(1) in WRONG_PICTURE:
             continue
         r = fill(src / f, m.group(1), template_abc)
         if r is None:
