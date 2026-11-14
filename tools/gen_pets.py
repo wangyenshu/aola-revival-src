@@ -122,6 +122,15 @@ def main(argv=None) -> None:
         if m and (i + 1) in names:
             nxt = i + 1  # the dictionary lists each line's next form right after it
         pets[str(i)] = {"n": names[i], "a": attr, "e": int(m.group(1)) if m else 0, "next": nxt, "sk": skills[:12]}
+    # 亚比 the later tables changed (伊乐, 圣·天伊): their 2013–14 属性 and skills (tools/data/pets-original.json).
+    orig_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "pets-original.json")
+    if os.path.exists(orig_path):
+        for k, o in json.load(open(orig_path, encoding="utf-8")).items():
+            if k in pets:
+                if "t" in o:
+                    pets[k]["a"] = o["t"][0]
+                if "sk" in o:
+                    pets[k]["sk"] = o["sk"][:12]
     os.makedirs(os.path.dirname(a.json), exist_ok=True)
     json.dump(pets, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(f"{len(keep)} species of {len(dict_lines)} -> {pkg}, {a.json}")

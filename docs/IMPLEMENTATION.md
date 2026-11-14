@@ -278,9 +278,17 @@ The 2013 server's rules are lost. The main reconstructions:
   对方每次受到X伤害则… is an `ontick` effect on the foe while it has X, acting
   each time X hurts it; 冰冻, which does no damage in the 2013 rules, acts at
   each round's end (reconstructed). 提升自己…或削弱对方… lands by its chance and
-  is then one or the other, half and half. 617 of the 3,120 later skills keep
+  is then one or the other, half and half. 588 of the 3,117 later skills keep
   words with no rule (重生 …), which do nothing. A status in a condition's head (若对方已冰冻,
-  当对方烧伤时) is not read as one given. A skill that resets stages and changes
+  当对方烧伤时) is not read as one given. A 先发 skill's changes under 若本回合(未)受到攻击
+  (神圣考验) are kept for the round's end (`atEnd`, the fighter's `endStages`), when it is known
+  whether it was hit. 若本回合不死，则将受到的伤害的N倍返还给对方 (乾坤霸体, 后发) is a counter of
+  what it took in the round; 自己造成的不良状态造成伤害值的N%转化回复自己 (自然之魂) a lasting
+  `statusHeal` (the other's 烧伤, 中毒, 衰弱, 寄生 and 束缚 damage heals it); 对方每次受到伤害都有N%概率
+  清除提升的属性等级 (光明切割) an `onhurt` on the foe with `clearOwnUps`. 回合末有N%概率额外提升… (傲世龙啸)
+  is an `atEnd` change by that chance; N回合内每次受到伤害都有N%概率… (月之暗影, 超能激光) is read
+  before the plain stage readers, which took it as a change at once; a status put on the user
+  with a change by one chance (怒火焚夜: 并令自己束缚) is the user's, not the other's. A skill that resets stages and changes
   them (焚羽新生: 重置全场状态，提升全场亚比双防2级) resets first. 无敌N回合 (极限躯体) is no damage
   and no 异常状态 for N rounds; its 效果结束后体力值变为1点 comes at the end of the last. X圣域中
   命中则必定提升… after the same change by a chance (真芒无双) is that change made sure in the
@@ -471,6 +479,7 @@ The modules and the emulator read tables generated once from the decompiled
 | `rebuild/gen/taskdata/`, `tasknpc/TaskTalkData.as`, `rebuild/static/…/revival/tasks.json` | `gen_tasks.py` | quest definitions, starters, steps, conversations, the scene table of quest scripts |
 | `rebuild/gen/petdict/`, `revival/pets.json` | `gen_pets.py` | the 亚比 dictionary and species data: the 图鉴 rows to 2395 and the 超系 forms of those (`--top 2395 --pmdata`) |
 | `rebuild/gen/petdict/`, `revival/pets.json` (after `gen_pmdata.py`) | `dict_forms.py` | the 图鉴 rows of the 97 亚比 that only fight (究极 forms, 图腾, 星石, bosses' forms; not 斗魂星云棒 246, a copy of 245): name, 身高, 体重 from the later pet table, 克制 lists of their 亚比 or of their 属性, 获得方式 由X究极变身而成。 or 无法获得。 |
+| `tools/data/pets-original.json` | (by hand) | 亚比 the later table changed, as they were in 2013–14 (伊乐 1884, 圣·天伊 1896: 种族值, 光明+神秘, learnsets; from the 4399 tables of the time): `gen_pmdata.py --original` and `gen_pets.py` put them in place of the later rows; a saved 亚比 that learnt a skill the tables no longer have gets its learnset's instead |
 | `revival/pmdata.json` | `gen_pmdata.py` | battle data: base stats, skills, learnsets, attribute chart, experience curves; with `--upto 2395` every species of the later table to 2395, the 超系 and 究极 forms of those, the 究极 table at each line's top 等级 and the 圣域 rows (PMWeather: 圣域技能, 圣域, 特性) |
 | `rebuild/gen/petfollow/` | `gen_petclothes.py` | the walking figures (scene clothes) of the 亚比 the 2013 tables lack |
 | `rebuild/gen/wildpet/`, `revival/wildpets.json` | `gen_wildpets.py`, `map_pets.py` | wild 亚比 per room, levels, battle backgrounds |

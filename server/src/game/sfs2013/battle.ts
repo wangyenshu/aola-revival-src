@@ -132,6 +132,8 @@ interface TurnFlags {
 
 export interface Fighter {
   slot: 0 | 1;
+  /** Its skill's changes made at the round's end (神圣考验: by whether it was hit). */
+  endStages?: import("./skilltext.ts").StageChange[];
   pet: PetRecord;
   owner: number;
   stats: number[];
@@ -1813,7 +1815,7 @@ export class BattleEngine {
     }
     if (def.pet.hp <= 0 && def !== att) lines.push(`${petName(t, def)}倒下了！`);
     if (att.pet.hp <= 0) lines.push(`${name}倒下了！`);
-    const any = landed || sk.k !== 2 || selfHp !== 0 || fx.timed.length > 0 || !!fx.field || fx.protect || !!fx.shield || !!fx.summon;
+    const any = landed || sk.k !== 2 || selfHp !== 0 || fx.timed.length > 0 || !!fx.field || fx.protect || !!fx.shield || !!fx.summon || fx.stages.some((x) => x.atEnd);
     return report(any || this.countered > 0 ? 0 : 1, { cri, hits, hpInc: -(shown + this.countered) + foeHeal, selfHpInc: selfHp, eff: mult, ...perHit });
   }
 
@@ -2044,6 +2046,11 @@ export class BattleEngine {
             for (const st of ss) this.applyStatus(att, st, lines);
           }
           if (x.n) for (const s2 of att.pet.skills) s2.pp = Math.max(0, s2.pp - x.n);
+          // 对方每次受到伤害都有N%概率清除提升的属性等级 (光明切割): the holder's own raised stages.
+          if (x.clearOwnUps && ALL_KEYS.some((k) => def.stages[k] > 0)) {
+            for (const k of ALL_KEYS) def.stages[k] = Math.min(0, def.stages[k]);
+            lines.push(`${dn}提升的能力等级被清除了！`);
+          }
           if (x.heal) out.foeHeal += this.heal(def, x.heal);
           if (x.rest && att.pet.hp > 0) {
             att.rest = Math.max(att.rest, x.rest);
@@ -2229,6 +2236,10 @@ export class BattleEngine {
     if (fx.resetSelf) for (const k of ALL_KEYS) att.stages[k] = 0;
     for (const ch of fx.stages) {
       if (fx.stagesIfCrit && !ctx.crit) continue;
+      if (ch.atEnd) {
+        (att.endStages ??= []).push(ch);
+        continue;
+      }
       if (ch.cond && !this.holds(ch.cond, b, att, def, ctx)) continue;
       let f = ch.self ? att : def;
       if (!ch.self && (!aims || def === att)) continue;
@@ -2439,6 +2450,12 @@ export class BattleEngine {
         for (const on of x.bothSides && o.pet.hp > 0 ? [f, o] : [one]) this.addStack(on, mark, this.int(x.a ?? 1, x.b ?? x.a ?? 1), lineOf.get(on)!, f);
       }
       for (const x of live(f, "hurtStack")) if (f.turn.hurt) this.addStack(f, x.mark!, x.n ?? 1, lines);
+      // 神圣考验: what the round brought decides.
+      for (const ch of f.endStages ?? []) {
+        if (ch.cond && "hurt" in ch.cond && !!f.turn.hurt !== ch.cond.hurt) continue;
+        if (this.chance(ch.chance)) this.stage(f, f, ch.stats, ch.delta, lines);
+      }
+      f.endStages = undefined;
       this.stackChecks(b, f, lines);
       if (f.pet.hp > 0 && o.pet.hp > 0 && live(o, "stackAt").some((x) => x.onOther)) this.stackChecks(b, o, lineOf.get(o)!);
       // 每回合概率进入X状态 / 每N回合再触发1次 / 使X的技能在回合末概率再触发1次.
@@ -2483,8 +2500,12 @@ export class BattleEngine {
           if (x.selfStack && o.pet.hp > 0) this.addStack(o, x.selfStack, x.n ?? 1, lineOf.get(o)!);
         }
       };
+      // 自己造成的不良状态造成伤害值的N%转化回复自己 (自然之魂): the other heals by the hurt its statuses do.
+      const fed = (l: number) => {
+        for (const x of live(o, "statusHeal")) if (o.pet.hp > 0 && l > 0) gain(o, l * (x.f ?? 1), `${petName(this.t, o)}回复了体力！`);
+      };
       if (f.status === "烧伤" || f.status === "中毒") {
-        lose(f, Math.max(1, max / 8), `${name}受到了${f.status === "烧伤" ? "烧伤" : "毒"}的伤害！`);
+        fed(lose(f, Math.max(1, max / 8), `${name}受到了${f.status === "烧伤" ? "烧伤" : "毒"}的伤害！`));
         tick(f.status);
       }
       if (f.status === "冰冻") tick("冰冻");
@@ -2494,7 +2515,7 @@ export class BattleEngine {
         lines.push(`${name}的技能次数减少了！`);
       }
       if (f.weak > 0) {
-        lose(f, Math.max(1, (max * Math.min(8, f.weak)) / 16), `${name}受到了衰弱的伤害！`);
+        fed(lose(f, Math.max(1, (max * Math.min(8, f.weak)) / 16), `${name}受到了衰弱的伤害！`));
         tick("衰弱");
         f.weak++;
         if (f.weakLeft && --f.weakLeft === 0) {
@@ -2505,11 +2526,12 @@ export class BattleEngine {
       if (f.seeded && o.pet.hp > 0) {
         const l = lose(f, Math.max(1, max / 8), `${name}被吸取了体力！`);
         gain(o, l);
+        fed(l);
         tick("寄生");
       }
       if (f.bind > 0) {
         f.bind--;
-        lose(f, Math.max(1, max / 16), f.bind > 0 ? `${name}受到了束缚的伤害！` : `${name}挣脱了束缚！`);
+        fed(lose(f, Math.max(1, max / 16), f.bind > 0 ? `${name}受到了束缚的伤害！` : `${name}挣脱了束缚！`));
         tick("束缚");
       }
       if (f.status && f.status !== "睡眠" && f.status !== "冰冻" && f.statusLeft > 0 && --f.statusLeft === 0) {

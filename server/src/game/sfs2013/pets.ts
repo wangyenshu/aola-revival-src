@@ -224,6 +224,12 @@ export function normalisePet(p: PetRecord, t: PetTables): boolean {
     p.learned = p.skills.map((s) => s.id);
     changed = true;
   }
+  // Skills learnt that the tables no longer have (伊乐's later ones, tools/data/pets-original.json):
+  // gone, and what its learnset gives by its level learnt instead.
+  if (sp && p.learned?.some((id) => !t.pm.skills[String(id)])) {
+    p.learned = [...new Set([...p.learned.filter((id) => t.pm.skills[String(id)]), ...(sp.learn.length ? allSkillsAt(sp, p.level) : [])])];
+    changed = true;
+  }
   const max = statsOf(p, t)[0];
   if (p.hp > max) {
     p.hp = max;

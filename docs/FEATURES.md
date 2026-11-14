@@ -922,9 +922,13 @@ run pays 晶豆, as its end panel says.
   for some rounds, each round's stage changes, heals and statuses, the next turn's sure hit
   and drain, 对方每次受到X伤害则… (each time a status hurts the foe), 提升自己…或削弱对方…,
   吸取对方N点体力值 or 属性等级, 技能威力N%, 概率免疫伤害, 回合末 heals, 护盾, 斩杀, marks with layers,
-  skills set off by name, states, 诅咒, points of values (提升全数值N点); 2,503 of the 3,120
+  skills set off by name, states, 诅咒, points of values (提升全数值N点); 2,529 of the 3,117
   skills of the 亚比 to 2395 are read to the last word, every 超奥义 among them. A status
-  named only as a condition (若对方已冰冻则…) is not given.
+  named only as a condition (若对方已冰冻则…) is not given. A 先发 skill whose words depend
+  on whether it is hit in the round (神圣考验) makes its changes at the round's end.
+- 伊乐 and 圣·天伊 are as in 2013–14, not as the later game remade them: 光明+神秘, their
+  种族值 (伊乐 50/92/48/30/46/79, 圣·天伊 90/137/88/70/86/127) and skills (神圣考验,
+  无限龙魂, and 圣·天伊's 魂耀 and 传说之星), from the 4399 tables of the time.
 - A 连击 shows as in 2013–14: each hit's number small and red, one under another in
   columns over the 亚比, then the whole damage big and yellow ("连击-4294"), with the
   later battle module's digits. 君焰狼王's 弦月之斩 (and 嗨皮水雷) shake the screen

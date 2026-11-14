@@ -84,6 +84,8 @@ function scaleOf(subject: string, sdir: string, object: string, odir: string): S
 
 export interface StageChange {
   self: boolean;
+  /** Made at the round's end, by what came in the round (神圣考验, 先发: 若本回合未受到攻击则…). */
+  atEnd?: boolean;
   stats: StatKey[];
   delta: number;
   chance: number;
@@ -224,7 +226,10 @@ export interface Timed {
     | "exposed" // 必定被技能命中: blows on the holder never miss
     | "ptsEachTurn" // 每回合提升技能固伤N点和速度N点: each round n points of `stats`, and add more fixed damage (a)
     | "stealEachTurn" // 每回合吸取抵抗能力N%并概率吸取X1级: each round f of the other's resistance, and by chance its stages
+    | "statusHeal" // 自己造成的不良状态造成伤害值的N%转化回复自己: the hurt the other's statuses do heals the holder by f
     | "nextUse"; // 下次使用X时…: the holder's next use of the skill named `mark` gives `bad` instead of its own statuses
+  /** onhurt: the holder's own raised stages go (光明切割: 对方每次受到伤害都有40%概率清除提升的属性等级). */
+  clearOwnUps?: boolean;
   /** nextUse: n 不良或异常状态 at random, by the chance. */
   bad?: { n: number; chance: number };
   n?: number;
@@ -702,6 +707,8 @@ export function normalise(desc: string): string {
     .replace(/伤害抗性/g, "伤害抵抗能力")
     .replace(/每回合(?=免疫异常状态)/g, "")
     .replace(/(?<=回复(?:自身|自己))(\d+%)的最大体力值/g, "最大体力值的$1")
+    // 本回合不会进入异常或不良状态 (魂耀): this round only.
+    .replace(/本回合不会(?:进入|陷入)异常或不良状态/g, "1回合内不会陷入异常状态")
     .replace(/不会进入异常或不良状态|免疫异常状态|免疫异常和不良状态|不会陷入异常或不良状态/g, "不会陷入异常状态")
     .replace(/保护(?:自己|自身)?属性(?:等级)?(\d+)回合(?:内)?不被削弱/g, "自己属性能力等级不能被削弱$1回合")
     .replace(/下回合(?:的)?攻击必定命中/g, "下回合必定命中")
@@ -712,6 +719,21 @@ export function normalise(desc: string): string {
     .replace(/(复制对方提升的(?:属性能力|属性|能力)?(?:等级)?)加给自己/g, "$1")
     // 提升自己攻击1级1级 (火尖枪): the level once.
     .replace(/(\d+级)\1/g, "$1")
+    // 20%概率提全属性1级 (霸龙超岩击).
+    .replace(/概率提(?=全属性|自己|自身)/g, "概率提升").replace(/概率提升全属性/g, "概率提升自己全属性")
+    // 命中(后)(有)概率削弱… / 并有概率令对方麻痹 (空间碎裂击, 雷光爆裂, 煜阳神灭): 一定概率 (its growth read apart).
+    .replace(/(命中(?:后|则)?|并)有?概率(?=削弱|降低|令|提升)/g, "$1一定概率")
+    // 复制 / 清空对方提升的属性等级 (能力侦测): the 能力等级.
+    .replace(/对方提升的属性等级/g, "对方提升的能力等级")
+    // …，之后必定清除对方提升的属性能力等级 (瞬灵逆转).
+    .replace(/(复制对方提升的(?:属性能力|能力)?等级)，之后必定清除/g, "$1，清除")
+    // 效果不可叠加: one at a time, as every lasting effect here (秩序之光: 伤害抵抗持续3回合，抵抗效果不可叠加).
+    .replace(/，?(?:抵抗)?效果不可叠加/g, "")
+    .replace(/，伤害抵抗(?=持续\d+回合)/g, "，")
+    // 50%概率提升自己攻击1级，20%概率提升2级 (战怒): the second of the same stat.
+    .replace(/(提升自己([^，。；\d]{2,8}?)(?:等级)?\d+级)，(\d+)%概率提升(\d+)级/g, "$1，$3%概率提升自己$2等级$4级")
+    // 使用时未受到攻击，则…，否则… (潜行) / 若攻击前未受到伤害则…，否则… (摄魂夺魄): the second under 受到.
+    .replace(/(?:若)?(?:使用时|攻击前|出手前)未受到(攻击|伤害)，?则([^，。；]+)，否则/g, "若未受到$1则$2，若受到$1则")
     .replace(/(\d+)%(?:概率)?秒杀已(麻痹|害怕|冰冻|睡眠|烧伤|中毒|混乱|束缚|衰弱|寄生)的目标/g, "若对方已$2则$1%概率秒杀对方")
     .replace(/(?:清空|清除)对方(?:提升|增益)的?属性(?!能力)(?:等级)?/g, "清除对方提升的能力等级")
     .replace(/并有(?=\d+%)/g, "并")
@@ -887,7 +909,7 @@ const COND_HEADS: [RegExp, (m: RegExpMatchArray) => Cond | Cond[]][] = [
   [/(?:若|如果)(?:对方比自己先出手|对方先出手|(?:自己)?后出手|后手)(?:时)?，?(?:则)?/g, () => ({ second: true })],
   [/(?:若|如果)先手(?:时)?，?(?:则)?/g, () => ({ first: true })],
   [/(?:若|如果)?(?:在)?([^，。、；\s＿]{2})圣域中，?(?:时)?(?:则)?/g, (m) => ({ field: m[1] })],
-  [/(?:若|如果)?(?:本回合)?(?:出手时|使用时)?(?:未|没有)受到?(?:过)?(?:伤害|攻击)(?:时)?，?(?:则)?/g, () => ({ hurt: false })],
+  [/(?:若|如果)?(?:本回合)?(?:出手时|使用时|使用技能前|出手前|攻击前)?(?:未|没有)受到?(?:过)?(?:伤害|攻击)(?:时)?，?(?:则)?/g, () => ({ hurt: false })],
   [/(?:若|如果)(?:本回合)?(?:出手前|使用时)?(?:已|已经)?受到(?:过)?(?:伤害|攻击)(?:时)?，?(?:则)?/g, () => ({ hurt: true })],
   [/(?:若|如果)(?:攻击|命中)?次数为(\d+)(?:~(\d+))?(?:次)?(?:时)?，?(?:则)?/g, (m) => ({ hitsIn: [num(m[1]), num(m[2] || m[1])] })],
   [/(?:若|如果)对方速度等级低于我方(?:时)?，?(?:则)?/g, () => ({ foeSpdLower: true })],
@@ -999,7 +1021,16 @@ export function readSkill(desc: string): { fx: SkillEffects; unread: string } {
   // (the readers of the era's skills keep their words).
   if (!plain.unread || !COND_HEADS.some(([re]) => new RegExp(re.source).test(normalise(desc)))) return plain;
   const conds = readWith(desc, true);
-  return sureInField(conds.unread.length < plain.unread.length ? conds : plain);
+  return endOfRound(desc, sureInField(conds.unread.length < plain.unread.length ? conds : plain));
+}
+
+/**
+ * 先发，若本回合未受到攻击则…，若受到攻击则… (神圣考验): moving first, it cannot know yet; the
+ * changes are made at the round's end, by whether it was hit in the round.
+ */
+function endOfRound(desc: string, r: { fx: SkillEffects; unread: string }): { fx: SkillEffects; unread: string } {
+  if (r.fx.first && /本回合/.test(desc)) for (const x of r.fx.stages) if (x.self && x.cond && "hurt" in x.cond) x.atEnd = true;
+  return r;
 }
 
 /**
@@ -1078,6 +1109,45 @@ function readWith(desc: string, conds: boolean): { fx: SkillEffects; unread: str
   // 若对方已烧伤则高概率额外攻击2~4次 (枭凤乱舞): 高概率 RECONSTRUCTED as sure; the more hits, the mean.
   r.take(new RegExp(`若对方已(${ST})则高概率额外攻击(\\d+)~(\\d+)次`), (m) =>
     void (e.hitsIf = { cond: { foeStatus: statusOf(m[1]) }, add: Math.round((num(m[2]) + num(m[3])) / 2) }));
+  // 若本回合不死，则将受到的伤害的1.5倍 / 加倍返还给对方 (乾坤霸体, 后发): a counter of what it took this round.
+  r.take(/若本回合不死，?则?将受到的?伤害的?(?:(\d+(?:\.\d+)?)倍|(加倍))返还给对方/, (m) => void (e.shield = { take: 1, reflect: m[2] ? 2 : Number(m[1]), ifAlive: true }));
+  // 使用后N回合自己造成的不良状态造成伤害值的50%转化回复自己 (自然之魂): a lasting heal by the hurt the
+  // other's statuses do (烧伤, 中毒, 衰弱, 寄生, 束缚).
+  r.take(/使用后(\d+)回合(?:内)?自己造成的?不良状态造成(?:的)?伤害值(?:的(\d+)%)?转化(?:来)?回复自己/, (m) =>
+    void e.timed.push({ who: "self", kind: "statusHeal", turns: num(m[1]), f: m[2] ? num(m[2]) / 100 : 1 }));
+  // 命中后3回合对方每次受到伤害都有40%概率清除提升的属性等级 (光明切割).
+  r.take(/命中后(\d+)回合(?:内)?对方每次受到伤害都?有(\d+)%概率清除(?:其)?提升的?属性(?:能力)?等级/, (m) =>
+    void e.timed.push({ who: "foe", kind: "onhurt", turns: num(m[1]), chance: num(m[2]), clearOwnUps: true }));
+  // (使用后)N回合内每次受到伤害都有 / 均有N%概率降低对方… / 提升自身… (月之暗影, 超能激光): on each blow
+  // taken for those rounds (read before the plain stage readers take the change as at once).
+  r.take(new RegExp(`(?:使用后)?(\\d+)回合内，?每次受到(?:攻击|伤害)(?:都|均)?有?(\\d+)%概率(提升|降低|削弱)(自身|自己|对方)?(${STAT_LIST})(?:等级)?各?(\\d+)级`), (m) => {
+    const onUser = m[4] ? m[4] !== "对方" : m[3] === "提升";
+    e.timed.push({ who: "self", kind: "onhurt", turns: num(m[1]), chance: num(m[2]), stats: statsOf(m[5]), delta: (m[3] === "提升" ? 1 : -1) * num(m[6]), selfStage: onUser });
+  });
+  // 有40%概率额外提升自己攻击等级2级并令自己束缚 (怒火焚夜): both on the user, by that chance.
+  r.take(new RegExp(`有?(\\d+)%概率(?:额外)?提升(?:自己|自身)(${STAT_LIST})(?:等级)?(\\d+)级并令(?:自己|自身)(${ST})`), (m) => {
+    e.stages.push({ self: true, stats: statsOf(m[2]), delta: num(m[3]), chance: num(m[1]) });
+    e.statuses.push({ name: statusOf(m[4]), chance: num(m[1]), self: true });
+  });
+  // 一定概率令对方混乱和束缚2回合 (噩梦咒): both, by one chance (一定概率: the era's 30%).
+  r.take(new RegExp(`(一定概率|(\\d+)%概率)令对方(${ST})和(${ST})(\\d+)回合`), (m) => {
+    const chance = m[2] ? num(m[2]) : 30;
+    const turns: [number, number] = [num(m[5]), num(m[5])];
+    e.statuses.push({ name: statusOf(m[3]), chance, turns }, { name: statusOf(m[4]), chance, turns });
+  });
+  // 有30%概率回复300点体力值 (凤舞八方): a flat heal by chance.
+  r.take(/有(\d+)%概率回复(?:自己|自身)?(\d+)点体力值?(?![，、]若)/, (m) => {
+    if (e.healFlat) return false;
+    e.healFlat = num(m[2]);
+    e.healChance = num(m[1]);
+  });
+  // 使用后3回合技能必中 (王之凝视).
+  r.take(/使用后(\d+)回合(?:内)?(?:技能|攻击)必(?:定命)?中/, (m) => void e.timed.push({ who: "self", kind: "sure", turns: num(m[1]) }));
+  // 回合末有30%概率额外提升自己攻击等级1级 (傲世龙啸): at this round's end.
+  r.take(new RegExp(`回合末有(\\d+)%概率(?:额外)?提升(?:自己|自身)(${STAT_LIST})(?:等级)?(\\d+)级`), (m) =>
+    void e.stages.push({ self: true, stats: statsOf(m[2]), delta: num(m[3]), chance: num(m[1]), atEnd: true }));
+  // 下回合攻击将伤害的1/2回复自己的体力值 (北斗之狼).
+  r.take(/下回合攻击将伤害的?(\d+\/\d+|\d+%)回复自己的?体力值?/, (m) => void e.timed.push({ who: "self", kind: "drain", turns: 2, f: frac(m[1]) }));
   // N%概率令对方A、B或C: one of them (on each blow given or taken, or at once).
   r.take(new RegExp(`(?:使用后(\\d+)回合内，?)?每次(受到攻击|攻击|命中)(?:有|则)?(\\d+)%概率令对方(${ST})[、，](${ST})或(${ST})`), (m) => {
     const pick = [m[4], m[5], m[6]].map(statusOf);

@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 
 ROW = re.compile(r'^\s*"(\w+)":new (PM\w+)\((.*)\),?\s*$')
@@ -70,6 +71,13 @@ def num(s: str, default: float = 0) -> float:
 MULT = {"": 1, "1": 1, "1/2": 0.5, "2": 2, "3": 3, "-1": 0}
 
 
+def load_original(path: str) -> dict:
+    """The 2013–14 numbers of the 亚比 the later table changed: race -> {s, t, learn, n}."""
+    if not path or not os.path.exists(path):
+        return {}
+    return {k: v for k, v in json.load(open(path, encoding="utf-8")).items() if k.isdigit()}
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pmdata", required=True)
@@ -80,6 +88,8 @@ def main(argv=None) -> None:
                          "2681–2764) and the 黑化病毒 (998, task 1294); they cannot be caught")
     ap.add_argument("--battle-skills", default="332,334,360,361",
                     help="species whose skills are those of their battle rows (10000/20000/30000 + id)")
+    ap.add_argument("--original", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "pets-original.json"),
+                    help="亚比 the later table changed, as they were in 2013–14 (\"\" for none)")
     ap.add_argument("--upto", type=int, default=0,
                     help="also keep every species of the table up to this id, the 超系 forms of those "
                          "(pmChaoxiMap) and their 究极 forms (pmJiujiMap): the 工具箱's 亚比")
@@ -187,6 +197,10 @@ def main(argv=None) -> None:
         elif cls == "PMExp":
             exp[key] = [int(num(x)) for x in p]
 
+    # 亚比 the later table changed (伊乐, 圣·天伊): their 2013–14 numbers (tools/data/pets-original.json).
+    for key, orig in load_original(a.original).items():
+        if key in species:
+            species[key].update({k: v for k, v in orig.items() if k in ("s", "t", "learn")})
     used = {str(s) for sp in species.values() for _, s in sp["learn"]} | {str(sp["ao"]) for sp in species.values() if "ao" in sp}
     # The skills a kept skill sets off by name (触发技能X: 万里雪飘, 不朽圣体 …), and theirs in turn:
     # kept too, with a name index for the battle engine.

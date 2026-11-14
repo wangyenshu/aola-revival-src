@@ -129,9 +129,9 @@ animations and walking figures. Numbers the tables never used (116, 117, 330 …
 领取亚比 in the 工具箱 is the way to get them. They fight, follow (in their own
 walking figures, or their large picture where the game gave them none), evolve and learn skills as the others do.
 The 属性 of 2014 (王, and the 超系: 超数码, 超木, 超水 …) show their own icons.
-Their skills do what the battle engine reads in their words. Of the 3,120 skills of
-the 亚比 up to 2395, 2,503 are read to the last word (all those of the 亚比 up to 1651,
-and every 超奥义); in the other 617 a part the engine has no rule for (重生, 君芒圣域's
+Their skills do what the battle engine reads in their words. Of the skills of
+the 亚比 up to 2395, 2,529 of 3,117 are read to the last word (all those of the 亚比 up to 1651,
+and every 超奥义); in the other 588 a part the engine has no rule for (重生, 君芒圣域's
 growing chance …) does nothing. The big skills that fill the screen (刷屏: 神照修罗王's
 修罗战神诀, 暗煞魔龙王's 魔·碎神, 噬月武神's 月影无踪 … 135 of them) play over the whole
 battle screen, as they were drawn to.

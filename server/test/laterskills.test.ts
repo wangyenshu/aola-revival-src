@@ -356,11 +356,55 @@ test("若对方已X…: a foe that has X, not X given (冷笑话, 灵魂引导, 
     return 99999 - b.wild.pet.hp;
   };
   const plain = run(false), cold = run(true);
-  assert.ok(cold - plain >= Math.floor(99999 / 2) - 1, `${plain} ${cold}`);
+  assert.ok(plain < 5000 && cold >= Math.floor(99999 / 2), `${plain} ${cold}`);
 });
 
 test("每回合回复最大体力值1/6 for the rounds the words name (灵风拂面: 3)", () => {
   const breeze = read(tables.pm.skills["3302"].d);
   assert.deepEqual(breeze.timed.find((x) => x.kind === "regen"), { who: "self", kind: "regen", turns: 3, f: 1 / 6 });
   assert.equal(breeze.healAfter, undefined);
+});
+
+test("伊乐 and 圣·天伊 as in 2013–14 (tools/data/pets-original.json): 光明+神秘, their numbers and skills", () => {
+  for (const [race, s] of [["1884", [50, 92, 48, 30, 46, 79]], ["1896", [90, 137, 88, 70, 86, 127]]] as const) {
+    const sp = tables.pm.species[race];
+    assert.deepEqual(sp.s, s);
+    assert.deepEqual(sp.t, [18, 13]);
+  }
+  assert.deepEqual(tables.pm.species["1896"].learn.slice(-4), [[45, 14348], [50, 14349], [55, 19108], [60, 19109]]);
+  assert.deepEqual(tables.pm.species["1884"].learn.slice(-2), [[50, 14348], [60, 14349]]);
+  assert.equal(tables.pm.skills["19109"].n, "传说之星");
+  assert.equal(tables.pm.skills["30257"], undefined, "the later 无限圣裁 is gone");
+  // 神圣考验, 先发: at the round's end, 攻击 and 速度 +2 when nothing hit it, else 防御 and 特防 +1.
+  const run = (hit: boolean) => {
+    const e = new BattleEngine(tables, () => 0.5);
+    const b = e.start(1, "x", { id: 1, name: "a" }, makePet(tables, 1896, 50, "d", 1), makePet(tables, 1, 60, "d"), true);
+    e.act(b, b.mine, b.wild, 14348);
+    assert.deepEqual([b.mine.stages.atk, b.mine.stages.def], [0, 0], "nothing yet");
+    if (hit) b.mine.turn.hurt = true;
+    e.endOfTurn(b);
+    return [b.mine.stages.atk, b.mine.stages.spd, b.mine.stages.def, b.mine.stages.sdef];
+  };
+  assert.deepEqual(run(false), [2, 2, 0, 0]);
+  assert.deepEqual(run(true), [0, 0, 1, 1]);
+});
+
+test("极武兔皇: 乾坤霸体 strikes back 1.5 times what it took, 自然之魂 heals by its statuses' hurt, 光明切割", () => {
+  const body = read(tables.pm.skills["19175"].d);
+  assert.deepEqual(body.shield, { take: 1, reflect: 1.5, ifAlive: true });
+  assert.deepEqual(read(tables.pm.skills["12305"].d).timed, [{ who: "self", kind: "statusHeal", turns: 4, f: 0.5 }]);
+  assert.deepEqual(read(tables.pm.skills["19176"].d).timed, [{ who: "foe", kind: "onhurt", turns: 3, chance: 40, clearOwnUps: true }]);
+  for (const id of ["12305", "19175", "19176", "12307", "19177"]) assert.equal(readSkill(tables.pm.skills[id].d).unread, "", id);
+});
+
+test("more later words: 怒火焚夜's own 束缚, 月之暗影 on blows taken, 傲世龙啸 at the round's end, 摄魂夺魄's 否则", () => {
+  const rage = read(tables.pm.skills["10357"].d);
+  assert.deepEqual(rage.statuses, [{ name: "束缚", chance: 40, self: true }], "on itself, not the other");
+  assert.deepEqual(read(tables.pm.skills["19084"].d).timed, [{ who: "self", kind: "onhurt", turns: 3, chance: 25, stats: ["atk", "satk"], delta: -2, selfStage: false }]);
+  assert.deepEqual(read(tables.pm.skills["19084"].d).stages, [], "nothing at once");
+  assert.ok(read(tables.pm.skills["20069"].d).stages.some((x) => x.atEnd && x.chance === 30 && x.stats.join() === "atk"));
+  const soul = read(tables.pm.skills["16388"].d);
+  assert.deepEqual([soul.ohkoIf, soul.stealHp], [{ chance: 40, cond: { hurt: false } }, { n: 200, cond: { hurt: true } }]);
+  assert.deepEqual(read(tables.pm.skills["17277"].d).statuses.map((x) => x.name), ["混乱", "束缚"]);
+  for (const id of ["10357", "19084", "20069", "16388", "17277", "17346", "28013"]) assert.equal(readSkill(tables.pm.skills[id].d).unread, "", id);
 });
